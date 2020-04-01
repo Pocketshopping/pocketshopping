@@ -1,0 +1,99 @@
+{
+  "project_info": {
+    "project_number": "727948071020",
+    "firebase_url": "https://pocketshopping-a57c2.firebaseio.com",
+    "project_id": "pocketshopping-a57c2",
+    "storage_bucket": "pocketshopping-a57c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:727948071020:android:ea34e35cf306bece7d8849",
+        "android_client_info": {
+          "package_name": "com.fleepage.pocketshopping"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "727948071020-9iuoq5dannpjnoa76lpk2g8f5gjhsgbm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fleepage.pocketshopping",
+            "certificate_hash": "d14306e3afde2ee5385fe242c2414db0ba78ffee"
+          }
+        },
+        {
+          "client_id": "727948071020-i9s1u6lto83nii35v1m4ps85279u0t09.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrhla_zcJmBey2U82AMxGq6_02TNgLI84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "727948071020-i9s1u6lto83nii35v1m4ps85279u0t09.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "727948071020-0qfprrc45nveor8ut07fr4tgtj3lqmj3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fleepage.pocketshopping"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:727948071020:android:0bcd1001561d73e57d8849",
+        "android_client_info": {
+          "package_name": "fleepage.pocketshopping"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "727948071020-c6gie6h550h9icn0ghhk5a40rkd8u6k6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fleepage.pocketshopping",
+            "certificate_hash": "d14306e3afde2ee5385fe242c2414db0ba78ffee"
+          }
+        },
+        {
+          "client_id": "727948071020-i9s1u6lto83nii35v1m4ps85279u0t09.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrhla_zcJmBey2U82AMxGq6_02TNgLI84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "727948071020-i9s1u6lto83nii35v1m4ps85279u0t09.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "727948071020-0qfprrc45nveor8ut07fr4tgtj3lqmj3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fleepage.pocketshopping"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

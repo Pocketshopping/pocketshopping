@@ -1,0 +1,75 @@
+name: pocketshopping
+description: A new Flutter application.
+version: 1.0.0+1
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  cupertino_icons: ^0.1.2
+  provider:
+  bottom_navigation_badge: ^1.0.3
+  barcode_scan: ^2.0.1
+  flutter_typeahead: ^1.8.0
+  badges: ^1.1.0
+  rflutter_alert: ^1.0.2
+  google_maps_flutter: ^0.5.24+1
+  flutter_polyline_points: ^0.1.0
+  palette_generator: ^0.2.0
+  flutter_rating_bar: ^3.0.1+1
+  camera: ^0.5.7+4
+  flutter_icons: ^1.0.0+1
+  dash_chat: ^1.0.16
+  path_provider: ^1.6.5
+  image_picker: ^0.6.2+3
+  google_map_polyline:
+    git:
+      url: git://github.com/Shark01/google_map_polyline.git
+  firebase_auth: ^0.15.5+2
+  firebase_messaging: ^6.0.12
+  firebase_storage: ^3.1.3
+  cloud_firestore: ^0.13.4+2
+  cloud_functions: ^0.4.2+3
+  custom_splash: ^0.0.2
+  introduction_screen: ^1.0.7
+  datetime_picker_formfield: ^1.0.0
+  geolocator: ^5.3.0
+  shared_preferences: ^0.5.6+3
+  firebase_core: ^0.4.0+9
+  country_code_picker: ^1.3.7
+  transparent_image: ^1.0.0
+  image_cropper: ^1.2.1
+  flux_validator_dart: ^1.0.3
+  month_picker_dialog: ^0.3.1
+  recase: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+
+  uses-material-design: true
+  assets:
+    - assets/images/signup.png
+    - assets/images/form-bg.png
+    - assets/images/online_store_.png
+    - assets/images/logo.png
+    - assets/images/food.jpg
+    - assets/images/closed.png
+    - assets/images/opened.png
+    - assets/images/wlogo.png
+    - assets/images/loader.gif
+    - assets/images/signup.jpg
+    - assets/images/blue_logo.png
+    - assets/images/signup.gif
+    - assets/images/entrepreneurs.png
+    - assets/images/signup_3.png
+    - assets/images/blogo.png
+    - assets/images/cloud-upload.gif
+    - assets/images/working.gif
+    - assets/images/completed.gif
+    - assets/images/locator.gif
+    - assets/images/menu.gif
