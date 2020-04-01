@@ -2,11 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
-import 'package:badges/badges.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/locations.dart';
-import 'package:pocketshopping/page/user/places.dart';
-import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/page/user/order.dart';
 import 'package:pocketshopping/page/user/drawer.dart';
 import 'package:pocketshopping/util/data.dart';
