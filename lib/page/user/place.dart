@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/component/dialog.dart';
 import 'package:pocketshopping/page/user/singleMerchant.dart';
-import 'package:pocketshopping/util/data.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';

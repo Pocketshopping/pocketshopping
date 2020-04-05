@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/page/user/menu.dart';
 import 'package:pocketshopping/page/user/product.dart';
-import 'package:pocketshopping/util/data.dart';
 import 'package:pocketshopping/component/dialog.dart';
 import 'package:pocketshopping/page/map.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -18,12 +18,10 @@ import 'package:pocketshopping/widget/bSheetSocialWidget.dart';
 class MerchantWidget extends StatefulWidget {
   static String tag = 'Merchant-page';
   MerchantWidget({
-    this.session_,
     this.data,
     this.page,
 
   });
-  final session session_;
   final Map data;
   final Function page;
   @override
@@ -46,7 +44,6 @@ class MerchantWidget extends StatefulWidget {
       void initState(){
         super.initState();
         _status = 'open';
-        _cartCount=widget.session_.BasketCount();
         color= PaletteColor(Color(0xff33805D),2);
         coverImage=widget.data['cover'];
         _updatePalettes();
@@ -76,7 +73,7 @@ class MerchantWidget extends StatefulWidget {
         color = generator.paletteColors.isNotEmpty?getDarkest(generator.paletteColors):PaletteColor(const Color(0xff33805D),2);
 
         setState(() {});
-        widget.session_.fcolorsetter(color == null? const Color(0xff000000): color.color);
+
       }
 
       PaletteColor getDarkest(List<PaletteColor> colors){
@@ -154,7 +151,7 @@ class MerchantWidget extends StatefulWidget {
         ),
         ),
           Text(
-          widget.session_.mgetter()['title'] != null ?widget.session_.mgetter()['title']:'Title',
+          'Title',
           style: TextStyle(fontSize:30.0,color:Colors.white,fontWeight: FontWeight.w700,),
 
           ),
@@ -435,8 +432,8 @@ class MerchantWidget extends StatefulWidget {
                           ),
                           delegate: new SliverChildBuilderDelegate(
                                 (BuildContext context, int index) {
-                              return ProductWidget(widget.session_,
-                                  color==null?const Color(0xff000000):color
+                              return ProductWidget(
+                                  PRIMARYCOLOR
                               );
                             },
                             childCount: loadmore,

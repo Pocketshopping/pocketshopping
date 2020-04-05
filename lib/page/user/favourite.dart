@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/page/user/place.dart';
-import 'package:pocketshopping/util/data.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:pocketshopping/widget/bSheetSearchWidget.dart';
 
 class Favourite extends StatefulWidget {
   //static String tag = 'User-page';
-  Favourite({this.session_,this.themeColor});
-  final session session_;
+  Favourite({this.themeColor});
   final Color themeColor;
   @override
   _FavouriteState createState() => new _FavouriteState();
@@ -55,7 +53,6 @@ class _FavouriteState  extends State<Favourite> {
     generator.dominantColor:generator.paletteColors.isNotEmpty?getDarkest(generator.paletteColors):
     PaletteColor(const Color(0xff33805D),2):PaletteColor(const Color(0xff33805D),2);
     setState(() {});
-    widget.session_.fcolorsetter(color == null? const Color(0xff000000): color.color);
   }
 
   PaletteColor getDarkest(List<PaletteColor> colors){

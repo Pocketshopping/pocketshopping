@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:badges/badges.dart';
 
 import 'package:pocketshopping/page/user/place.dart';
-import 'package:pocketshopping/util/data.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/widget/bSheetSearchWidget.dart';
@@ -10,8 +9,7 @@ import 'package:pocketshopping/widget/firstMerchantWidget.dart';
 
 class PlaceWidget extends StatefulWidget {
   //static String tag = 'User-page';
-  PlaceWidget(this._session,this.themeColor);
-  final session _session;
+  PlaceWidget(this.themeColor);
   final Color themeColor;
   @override
   _PlaceWidget createState() => new _PlaceWidget();
@@ -59,7 +57,6 @@ class PlaceWidget extends StatefulWidget {
     generator.dominantColor:generator.paletteColors.isNotEmpty?getDarkest(generator.paletteColors):
     PaletteColor(const Color(0xff33805D),2):PaletteColor(const Color(0xff33805D),2);
         setState(() {});
-    widget._session.fcolorsetter(color == null? const Color(0xff000000): color.color);
   }
 
   PaletteColor getDarkest(List<PaletteColor> colors){
@@ -167,7 +164,6 @@ class PlaceWidget extends StatefulWidget {
                                                     Navigator.push(
                                                         context,
                                                         MaterialPageRoute(builder: (BuildContext context) => MerchantWidget(
-                                                          session_: widget._session,
                                                           data: {'title':'Amala Place','cover':covers[1]},
                                                           ),
 

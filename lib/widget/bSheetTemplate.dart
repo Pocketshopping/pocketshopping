@@ -21,7 +21,7 @@ class BottomSheetTemplate extends StatelessWidget{
         child:Container(
         height: MediaQuery.of(context).size.height,
     width: MediaQuery.of(context).size.width,
-    color: Colors.black.withOpacity(opacity),
+    color: Colors.transparent,
     alignment: Alignment.bottomCenter,
     child: ClipRRect(
         borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),

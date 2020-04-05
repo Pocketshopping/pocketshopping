@@ -47,7 +47,7 @@ class _LocationUIState extends State<LocationUI>{
     super.initState();
     loader=6;
     //categories.add("hello");
-    //setCategory();
+    setCategory();
       }
 
   setCategory()async{
@@ -183,7 +183,7 @@ class _LocationUIState extends State<LocationUI>{
   @override
   Widget build(BuildContext context) {
     double height=MediaQuery.of(context).size.height;
-
+    print(psProvider.of(context).value['uid']);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(MediaQuery.of(context).size.height*0.25), // here the desired height
@@ -240,13 +240,14 @@ class _LocationUIState extends State<LocationUI>{
                             Wrap(
                               spacing: 2.0,
                               children: List<Widget>.generate(
-                                  psProvider.of(context).value['category'].length,//:categories.length,
+                                 // psProvider.of(context).value['category'].length,
+                                categories.length,
                                     (int index) {
                                   return ChoiceChip(
 
                                     label: Text(
-                                        psProvider.of(context).value['category'][index]
-                                        //categories[index]
+                                        //psProvider.of(context).value['category'][index]
+                                        categories[index]
                                         ,style: TextStyle(color:
                                     Colors.grey)),
 

@@ -46,7 +46,7 @@ class StaffBottomPage extends StatelessWidget{
                     height:gridHeight,
                     icon:Icon(Icons.person_add, size: MediaQuery.of(context).size.width*0.16,color: themeColor.withOpacity(0.8),),
                     title:'Add Staff',
-                    page:AddStaff(color: themeColor,coverUrl: 'https://scontent-los2-1.xx.fbcdn.net/v/t1.0-9/13015366_962282610522031_7032913772865906850_n.jpg?_nc_cat=110&_nc_sid=dd9801&_nc_ohc=2tFLxKELYhUAX9UaXox&_nc_ht=scontent-los2-1.xx&oh=f4372b89baf627b42395be5d593f81ca&oe=5EA6150F',) ),
+                    page:AddStaff(color: themeColor) ),
 
                 BsMenuItem(
                     height:gridHeight,

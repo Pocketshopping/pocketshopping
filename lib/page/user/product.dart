@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:pocketshopping/util/data.dart';
-import 'package:pocketshopping/component/dialog.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:pocketshopping/widget/bSheetOrderWidget.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ProductWidget extends StatelessWidget {
-  ProductWidget(this._seesion,this.defaut);
-  final session _seesion;
-  final PaletteColor defaut;
+  ProductWidget(this.defaut);
+  final Color defaut;
 
 
   @override
@@ -89,7 +86,7 @@ class ProductWidget extends StatelessWidget {
 
                             alignment: Alignment(0.0, 0.0),
                             decoration: BoxDecoration(
-                              color: defaut.color,
+                              color: defaut,
                             ),
                             padding:  EdgeInsets.all(5.0),
                             margin:EdgeInsets.all(5.0),
@@ -117,7 +114,7 @@ class ProductWidget extends StatelessWidget {
                           child: Container(
                             padding:  EdgeInsets.all(5.0),
                             margin:EdgeInsets.all(5.0),
-                            child:Icon(Icons.shopping_cart, color: defaut.color,),
+                            child:Icon(Icons.shopping_cart, color: defaut,),
                           ),
                         ),
                         ),

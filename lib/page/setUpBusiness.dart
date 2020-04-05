@@ -8,8 +8,6 @@ import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/constants/ui_constants.dart';
 import 'package:pocketshopping/model/DataModel/categoryData.dart';
 import 'package:pocketshopping/page/businessSecondForm.dart';
-import 'package:pocketshopping/widget/template.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:pocketshopping/component/psCard.dart';
 import 'package:pocketshopping/model/DataModel/merchantData.dart';
 import 'package:pocketshopping/component/psProvider.dart';
@@ -18,6 +16,7 @@ import 'package:transparent_image/transparent_image.dart';
 
 
 class SetupBusiness extends StatefulWidget {
+  static String tag = 'SetUpBusiness-page';
   SetupBusiness({
     this.coverUrl=PocketShoppingDefaultCover,
     this.color=PRIMARYCOLOR,
@@ -36,10 +35,12 @@ class _SetupBusinessState extends State<SetupBusiness> {
   var _nameController = TextEditingController();
   var _addressController = TextEditingController();
   var _descriptionController= TextEditingController();
+  var _uniquController = TextEditingController();
 
   final FocusNode _descriptionFocus = FocusNode();
   final FocusNode _nameFocus = FocusNode();
   final FocusNode _pricehtFocus = FocusNode();
+  final FocusNode _unique = FocusNode();
 
   File camresult;
   String bcategory='Restuarant';
@@ -97,7 +98,7 @@ class _SetupBusinessState extends State<SetupBusiness> {
   Widget build(BuildContext context) {
     print('popped');
     setState(() {
-      serverCategory=psProvider.of(context).value['category'];
+      serverCategory=psProvider.of(context).value['category']??['Restuarant','Store',"Bar","Super Market"];
     });
     if(widget.data != null) {
       _nameController..text = widget.data['businessName'];
@@ -107,6 +108,28 @@ class _SetupBusinessState extends State<SetupBusiness> {
         delivery=deliverItems[(widget.data['businessDelivery']-1)];
       });
     }
+
+    final branchUnique = TextFormField(
+      validator: (value) {
+        if (value.isEmpty) {
+          return 'Enter a unique name for branch';
+        }
+        else if( !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)){
+          return 'Special characters or numbers are not allowed.';
+        }
+        return null;
+      },
+      controller: this._uniquController,
+      textInputAction: TextInputAction.done,
+      focusNode: this._unique,
+      keyboardType: TextInputType.phone,
+      autofocus: false,
+
+      decoration: InputDecoration(
+        labelText:"Branch Unique Name",
+        border: InputBorder.none,
+      ),
+    );
 
     final name = TextFormField(
       validator: (value) {
@@ -178,7 +201,7 @@ class _SetupBusinessState extends State<SetupBusiness> {
       focusNode: this._pricehtFocus,
       onFieldSubmitted: (term){
         _pricehtFocus.unfocus();
-        FocusScope.of(context).requestFocus(this._descriptionFocus);
+        FocusScope.of(context).requestFocus(this._unique);
       },
       keyboardType: TextInputType.text,
       autofocus: false,
@@ -309,200 +332,281 @@ class _SetupBusinessState extends State<SetupBusiness> {
         ],),
       ),
     );
-    return Scaffold(
-      backgroundColor: Colors.white,
-
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height*0.1), // here the desired height
-        child: AppBar(
-          centerTitle: true,
-          elevation:0.0,
+    return FutureBuilder<List<String>>(
+    future: CategoryData().getAll(),
+    builder: (context,AsyncSnapshot<List<String>>snapshot) {
+      if(snapshot.hasData){psProvider.of(context).value['category']=snapshot.data;}
+     return Scaffold(
           backgroundColor: Colors.white,
-          leading: IconButton(
 
-            icon: Icon(Icons.arrow_back_ios,color:PRIMARYCOLOR,
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(MediaQuery
+                .of(context)
+                .size
+                .height * 0.1), // here the desired height
+            child: AppBar(
+              centerTitle: true,
+              elevation: 0.0,
+              backgroundColor: Colors.white,
+              leading: IconButton(
+
+                icon: Icon(Icons.arrow_back_ios, color: PRIMARYCOLOR,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              title: Text(
+                "Business Setup", style: TextStyle(color: PRIMARYCOLOR),),
+
+              automaticallyImplyLeading: false,
             ),
-            onPressed: (){
-              Navigator.pop(context);
-            },
-          ) ,
-          title:Text("Business Setup",style: TextStyle(color: PRIMARYCOLOR),),
+          ),
 
-          automaticallyImplyLeading: false,
-        ),
-      ),
-
-      body: CustomScrollView(
-          slivers: <Widget>[ SliverList(
-          delegate: SliverChildListDelegate(
-            [
-              Container(height: MediaQuery.of(context).size.height*0.02,),
-              psCard(
-                color: widget.color,
-                title: widget.data!=null ?"New Branch for "+widget.data['businessName']:'New Business',
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey,
-                    //offset: Offset(1.0, 0), //(x,y)
-                    blurRadius: 6.0,
-                  ),
-                ],
-                child: Form(
-                    key: _formKey,
-                    autovalidate: _autovalidator,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: name,
+          body: CustomScrollView(
+              slivers: <Widget>[ SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      Container(height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.02,),
+                      psCard(
+                        color: widget.color,
+                        title: widget.data != null ? "New Branch for " +
+                            widget.data['businessName'] : 'New Business',
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey,
+                            //offset: Offset(1.0, 0), //(x,y)
+                            blurRadius: 6.0,
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: address,
-                          ),
-
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
+                        ],
+                        child: Form(
+                            key: _formKey,
+                            autovalidate: _autovalidator,
                             child: Column(
-                              children: <Widget>[
-                                Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text((widget.data !=null ?"Category: Note.you can not change business category":"Select Business Category "),style: TextStyle(color: Colors.black54),)),
-
-                                category
-                              ],
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: Column(
-                              children: <Widget>[
-                                Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text("Will you offer delivery service",style: TextStyle(color: Colors.black54),)),
-
-                                deliver
-                              ],
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: description,
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: Column(
-                              children: <Widget>[
-                                Text("Business Cover Photo",style: TextStyle(color: Colors.black54),),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: <Widget>[
-                                    Center(
-                                      child: FlatButton(
-                                        onPressed: (){getItemImageFromLib();},
-                                        child: Column(
-                                          children: <Widget>[
-                                            Icon(Icons.file_upload,
-                                              color: Colors.black54,
-                                              size: MediaQuery.of(context).size.height*0.05,),
-                                            FittedBox(
-                                              fit: BoxFit.contain,
-                                              child: Text("Select a Photo",
-                                                  style: TextStyle(color: Colors.black54)),
-                                            )
-                                          ],
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                                Container(
-                                  padding: EdgeInsets.only(top: 10),
-                                  child: croppedFile !=null ?Image.file(croppedFile,
-                                    height: MediaQuery.of(context).size.height*0.3,
-                                    width: MediaQuery.of(context).size.height*0.4,
-                                    //scale: 2,
-                                    fit: BoxFit.scaleDown,
-                                  ):FadeInImage.memoryNetwork(
-                                    placeholder: kTransparentImage,
-                                    image: widget.data !=null ?widget.data['businessPhoto']:PocketShoppingDefaultCover,
-                                    fit: BoxFit.cover,
-                                    height: MediaQuery.of(context).size.height*0.3,
-                                    width: MediaQuery.of(context).size.height*0.4,
-
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: name,
                                   ),
-                                )
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: addProduct,
-                          ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: address,
+                                  ),
+                                  widget.data != null ?
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: branchUnique,
+                                  ) : Container(),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text((widget.data != null
+                                                ? "Category: Note.you can not change business category"
+                                                : "Select Business Category "),
+                                              style: TextStyle(
+                                                  color: Colors.black54),)),
 
-                        ]
-                    )
-                ),
+                                        category
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              "Will you offer delivery service",
+                                              style: TextStyle(
+                                                  color: Colors.black54),)),
+
+                                        deliver
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: description,
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide( //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Text("Business Cover Photo",
+                                          style: TextStyle(
+                                              color: Colors.black54),),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .spaceAround,
+                                          children: <Widget>[
+                                            Center(
+                                              child: FlatButton(
+                                                onPressed: () {
+                                                  getItemImageFromLib();
+                                                },
+                                                child: Column(
+                                                  children: <Widget>[
+                                                    Icon(Icons.file_upload,
+                                                      color: Colors.black54,
+                                                      size: MediaQuery
+                                                          .of(context)
+                                                          .size
+                                                          .height * 0.05,),
+                                                    FittedBox(
+                                                      fit: BoxFit.contain,
+                                                      child: Text(
+                                                          "Select a Photo",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .black54)),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.only(top: 10),
+                                          child: croppedFile != null ? Image
+                                              .file(croppedFile,
+                                            height: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height * 0.3,
+                                            width: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height * 0.4,
+                                            //scale: 2,
+                                            fit: BoxFit.scaleDown,
+                                          ) : FadeInImage.memoryNetwork(
+                                            placeholder: kTransparentImage,
+                                            image: widget.data != null
+                                                ? widget.data['businessPhoto']
+                                                : PocketShoppingDefaultCover,
+                                            fit: BoxFit.cover,
+                                            height: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height * 0.3,
+                                            width: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height * 0.4,
+
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.all(MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width * 0.02),
+                                    child: addProduct,
+                                  ),
+
+                                ]
+                            )
+                        ),
+                      ),
+
+
+                    ],
+                  )
+
               ),
-
-
-
-
-            ],
+              ]
           )
-
-      ),
-    ]
-      )
+      );
+    }
     );
   }
 }

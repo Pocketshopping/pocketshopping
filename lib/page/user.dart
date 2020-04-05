@@ -3,15 +3,16 @@
 import 'package:flutter/material.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:badges/badges.dart';
+import 'package:pocketshopping/model/DataModel/categoryData.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/places.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/page/user/order.dart';
 import 'package:pocketshopping/page/user/drawer.dart';
-import 'package:pocketshopping/util/data.dart';
 import 'package:pocketshopping/page/user/locations.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:flutter/services.dart';
+import 'package:pocketshopping/component/psProvider.dart';
 
 
 class UserPage extends StatefulWidget {
@@ -60,6 +61,7 @@ BottomNavigationBadge badger = new BottomNavigationBadge(
     _cart = Map();
     _merchant = Map();
     fabColor = PRIMARYCOLOR;
+    CategoryData().getAll().then((value) => psProvider.of(context).value['category']=value);
   }
 
 void _onItemTapped(int index) {
@@ -68,73 +70,8 @@ void _onItemTapped(int index) {
   });
 }
 
-
-
-void _removeFromCart(String key){
-  setState(() {
-  _cart.remove(key);
-  });
-}
-
-bool _addToCart(Map item, String key){
-
-  if(_cart.containsKey(key))
-    return false;
-  else{
-    setState(() {
-  _cart[key] = item;
-  _cartCount +=1;
-  });
-    return true;
-  }
-  
-}
-
-Map _getBasket(){
-  return _cart;
-}
-
-  int _getBasketCount(){
-    return _cartCount;
-  }
-
-void _setFabColor(Color color){
-  setState(() {
-    fabColor=color;
-  });
-}
-void _setMerchant(Map merchant){
-  setState(() {
-  _merchant=merchant;
-  });
-}
-
-Map _getMerchant(){
-  return _merchant;
-}
-
-
-
-
-
 @override
 Widget build(BuildContext context) {
-  session _session = new session(
-    _addToCart,
-    _removeFromCart,
-    _getBasket,
-    _onItemTapped,
-    _getMerchant
-    ,_setMerchant,
-    _setFabColor,
-    _getBasketCount,
-    );
-  //setState(() {
-  //items = badger.setBadge(items, "1", _selectedIndex);
-//});
-//setState(() {
-  //items = badger.setBadge(items, "4", 2);
-//});
   return WillPopScope(
       onWillPop: _onWillPop,
       child:Scaffold(
@@ -146,7 +83,7 @@ Widget build(BuildContext context) {
  LocationUI(themeColor:fabColor),
  Favourite(),
  //MerchantWidget(_session),
- OrderWidget(_session,fabColor),
+ OrderWidget(fabColor),
       ].elementAt(_selectedIndex),
     ),
     decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black54.withOpacity(0.2))))

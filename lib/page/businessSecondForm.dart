@@ -29,13 +29,16 @@ class BusinessSetUpSecondPage extends StatefulWidget {
     this.coverUrl=PocketShoppingDefaultCover,
     this.color=PRIMARYCOLOR,
     this.data,
-    this.fieldData
+    this.fieldData,
+    this.backFlag='double',
+
 
   });
   final String coverUrl;
   final Color color;
   MerchantDataModel data;
   Map<String,dynamic> fieldData;
+  String backFlag;
   @override
   State<StatefulWidget> createState() => _SetupBusinessState();
 }
@@ -50,10 +53,12 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
   var _emailController= TextEditingController();
   var _openingController = TextEditingController();
   var _closingController = TextEditingController();
+
   final FocusNode _telephoneFocus = FocusNode();
   final FocusNode _telephone2Focus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _capture = FocusNode();
+
 
 
   dynamic camresult;
@@ -92,7 +97,6 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
     _autovalidate=false;
     agreed=false;
     termsError="You can not proceed with out accepting the terms and conditions";
-    print(widget.data.bName);
     //myLocale=Localizations.localeOf(context);
 
 
@@ -138,20 +142,6 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
     print(difference.inHours.toString());
    return difference.inHours;
   }
-
-  /*List<Color> getDarkest(List<PaletteColor> colors){
-    double heighest=0.4;
-    List<Color> tempColor=[];
-    colors.forEach((color) {
-      double temp  = color.color.computeLuminance();
-      if (temp < heighest) {
-        tempColor.add(color.color);
-      }
-
-
-    });
-    return tempColor;
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -242,6 +232,8 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
         return DateTimeField.convert(time);
       },
     );
+
+
 
     final telephone = TextFormField(
       validator: (value) {
@@ -354,9 +346,12 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
             ),
             onPressed: (){
               int count = 0;
-              Navigator.popUntil(context, (route) {
-                return count++ == 2;
-              });
+              if(widget.backFlag == 'double')
+                Navigator.popUntil(context, (route) {
+                  return count++ == 2;
+                });
+              else
+                Navigator.pop(context);
             },
           ) ,
           title:Text("Business Setup",style: TextStyle(color: PRIMARYCOLOR),),
@@ -701,9 +696,10 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
                                       widget.data.bGeopint = GeoPoint(userLocation.latitude, userLocation.longitude);
                                       widget.data.uid= psProvider.of(context).value['uid'];
                                       widget.data.bID = "";
-                                      if(widget.fieldData !=null){
+                                      if(widget.fieldData.isNotEmpty){
+                                        print(widget.fieldData);
                                         widget.data.isBranch=true;
-                                        widget.data.bParent=widget.fieldData['documentID'];
+                                        widget.data.bParent=widget.fieldData['merchantID'];
                                       }
                                       else{
                                         widget.data.isBranch=false;
@@ -768,17 +764,6 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
     );
   }
 
- /* Future<Position> _getLocation() async {
-    var currentLocation;
-    try {
-      currentLocation = await geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best);
-    } catch (e) {
-      currentLocation = null;
-    }
-    return currentLocation;
-  }*/
-
  LocationTimer()async{
    await Future.delayed(Duration(seconds: 15),() {
      setState(() {
@@ -822,9 +807,12 @@ class _SetupBusinessState extends State<BusinessSetUpSecondPage> {
 
   Future<bool> _onWillPop() async {
     int count = 0;
+    if(widget.backFlag == 'double')
     Navigator.popUntil(context, (route) {
       return count++ == 2;
     });
+    else
+      Navigator.pop(context);
   }
 
 }

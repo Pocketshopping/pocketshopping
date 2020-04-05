@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pocketshopping/component/psProvider.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/constants/ui_constants.dart';
+import 'package:pocketshopping/firebase/BaseAuth.dart';
 import 'package:pocketshopping/model/DataModel/merchantData.dart';
 import 'package:pocketshopping/model/DataModel/userData.dart';
 import 'package:pocketshopping/page/businessSetupComplete.dart';
@@ -44,8 +45,9 @@ class _BusinesSetupLoaderState extends State<BusinesSetupLoader> {
     });
     widget.data.save().then((value) =>
     {
-
-    UserData(uid:psProvider.of(context).value['uid'],role: 'admin',bid: value ).upDate(),
+    
+      UserData(uid:psProvider.of(context).value['uid'],role: 'admin',bid: value ).upDate(),
+      Auth().upDateUserRole('admin').then((value) => null),
       UserData(uid: psProvider.of(context).value['uid']).getOne().then((value) => {
         psProvider.of(context).value['user']=value,
         Navigator.push(

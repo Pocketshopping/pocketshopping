@@ -27,7 +27,7 @@ class AddProduct extends StatefulWidget {
 
 class _AddProductState extends State<AddProduct> {
 
-  final _formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Map formType;
   String btype;
   final TextEditingController _typeAheadController = TextEditingController();

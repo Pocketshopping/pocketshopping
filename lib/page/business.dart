@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pocketshopping/component/psCard.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/constants/ui_constants.dart';
+import 'package:pocketshopping/firebase/BaseAuth.dart';
 import 'package:pocketshopping/model/DataModel/merchantData.dart';
 import 'package:pocketshopping/page/curvyPage.dart';
 import 'package:pocketshopping/page/setUpBusiness.dart';
@@ -176,10 +177,11 @@ class FirstBusinessPage extends StatelessWidget{
                           padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
                           child: FlatButton(
                             onPressed: (){
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>SetupBusiness()));
+
+                             Navigator.push(
+                                context,
+                              MaterialPageRoute(
+                                builder: (context) =>SetupBusiness()));
                             },
                             color: themecolor,
                             child: Text("Create a new business",style: TextStyle(color: Colors.white),),

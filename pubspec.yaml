@@ -44,6 +44,8 @@ dependencies:
   flux_validator_dart: ^1.0.3
   month_picker_dialog: ^0.3.1
   recase: ^3.0.0
+  firebase_dynamic_links: ^0.5.0+11
+  share: ^0.6.3+6
 
 dev_dependencies:
   flutter_test:

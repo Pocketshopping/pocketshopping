@@ -6,7 +6,6 @@ import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/locations.dart';
 import 'package:pocketshopping/page/user/order.dart';
 import 'package:pocketshopping/page/user/drawer.dart';
-import 'package:pocketshopping/util/data.dart';
 import 'package:pocketshopping/page/admin/dasbboard.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:flutter/services.dart';
@@ -122,16 +121,6 @@ class _AdminPageState extends State<AdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    session _session = new session(
-        _addToCart,
-        _removeFromCart,
-        _getBasket,
-        _onItemTapped,
-        _getMerchant
-        ,_setMerchant,
-        _setFabColor,
-      _getBasketCount,
-    );
     //setState(() {
     //items = badger.setBadge(items, "1", _selectedIndex);
 //});
@@ -150,9 +139,9 @@ class _AdminPageState extends State<AdminPage> {
               DashBoardPage(),
               //PlaceWidget(_session,fabColor),
               LocationUI(themeColor:fabColor),
-              Favourite(session_: _session,themeColor: fabColor,),
+              Favourite(themeColor: fabColor,),
               //MerchantWidget(_session),
-              OrderWidget(_session,fabColor),
+              OrderWidget(fabColor),
             ].elementAt(_selectedIndex),
           ),
           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: PRIMARYCOLOR.withOpacity(0.2))))

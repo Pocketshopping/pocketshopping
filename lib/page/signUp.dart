@@ -16,6 +16,8 @@ import 'package:pocketshopping/component/psProvider.dart';
 
 class SignUpPage extends StatefulWidget {
   static String tag = 'signUp-page';
+  SignUpPage({this.linkdata});
+  Map<String,String>linkdata;
   @override
   _SignUpPageState createState() => new _SignUpPageState();
 }
@@ -70,6 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
     });
   }
 
+
   bool validateMobile(String value) {
 
     if (value.length<6) {
@@ -85,6 +88,12 @@ class _SignUpPageState extends State<SignUpPage> {
       return true;
     }
 
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _emailController.removeListener(() { });
   }
 
   @override
@@ -305,7 +314,7 @@ class _SignUpPageState extends State<SignUpPage> {
           _isLoadingText='Creating account';
         });
 
-        authHandler.signUp(_emailController.text.trim(), _passwordController.text.trim()).then((value) =>
+        authHandler.signUp('user',_emailController.text.trim(), _passwordController.text.trim()).then((value) =>
         {
           psProvider.of(context).value['uid']=value,
           setState(() {

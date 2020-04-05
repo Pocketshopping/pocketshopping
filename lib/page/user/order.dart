@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:pocketshopping/util/data.dart';
+import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/page/user/orderTab.dart';
 import 'package:badges/badges.dart';
 
 
 class OrderWidget extends StatefulWidget {
   //static String tag = 'User-page';
-  OrderWidget(this._session,this.themeColor);
-  final session _session;
+  OrderWidget(this.themeColor);
   final Color themeColor;
   @override
-  _OrderWidgetState createState() => new _OrderWidgetState(_session,themeColor);
+  _OrderWidgetState createState() => new _OrderWidgetState();
 }
   class _OrderWidgetState  extends State<OrderWidget> {
-    _OrderWidgetState(this._session,this.themeColor);
-    final session _session;
-    final Color themeColor;
+
 
     @override
     Widget build(BuildContext context) {
@@ -26,8 +23,7 @@ class OrderWidget extends StatefulWidget {
                   SliverPersistentHeader(
                     pinned: true,
                     delegate: MyDynamicHeader(
-                        session_: _session,
-                        themeColor: themeColor,
+                        themeColor: PRIMARYCOLOR,
                       maxHeight: MediaQuery.of(context).size.height*0.1,
                       minHeight: MediaQuery.of(context).size.height*0.1,
 
@@ -39,7 +35,7 @@ class OrderWidget extends StatefulWidget {
                           Container(
                               color: Colors.white,
                               height: MediaQuery.of(context).size.height,
-                            child: TopTabBar(themeColor),
+                            child: TopTabBar(PRIMARYCOLOR),
                           ),
                         ],
                       )
@@ -54,13 +50,11 @@ class OrderWidget extends StatefulWidget {
 class MyDynamicHeader extends SliverPersistentHeaderDelegate {
   int index = 0;
   MyDynamicHeader({
-    this.session_,
     this.themeColor,
     this.maxHeight=150,
     this.minHeight=100,
   });
 
-  final session session_;
   final Color themeColor;
   final double maxHeight;
   final double minHeight;

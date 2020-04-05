@@ -43,7 +43,7 @@ class MenuItem extends StatelessWidget{
       child:
       FlatButton(
         onPressed: () => {
-              isMultiMenu ? showBottomSheet(
+              isMultiMenu ? showModalBottomSheet(
                 context: context,
                 builder: (context) =>
 

@@ -67,6 +67,7 @@ class UserData extends Data{
    Future<bool> upDate() async{
      bool success=false;
      String fcmToken = await _fcm.getToken();
+     print('updated');
      await databaseReference.collection("users")
          .document(uid)
          .updateData(makeData(fcmToken)).then((value) => success=true);
@@ -105,13 +106,16 @@ class UserData extends Data{
    Future<Map<String,dynamic>> getOne()async {
   Map<String,dynamic> collection={};
   var data;
-  var document = await Firestore.instance.collection('users').document(uid).get();
+  var document = await Firestore.instance.collection('users').document(uid).get(source: Source.server);
   collection.addAll(document.data);
+
   if(document.data['business'].toString().isNotEmpty && document.data['role'].toString()=='admin'){
     data = await document.data['business'].get();
     collection.putIfAbsent("merchantID", () => data.documentID);
     collection.addAll(data.data);
   }
+  collection.putIfAbsent("log", () => document.documentID);
+  collection.putIfAbsent("isFromCache", () => document.metadata.isFromCache);
 
 
 
@@ -132,5 +136,13 @@ class UserData extends Data{
     else
       return true;
   }
+
+   Future<List<DocumentSnapshot>> getOneUsingEmail(String email)async{
+     var document = await Firestore.instance.collection('users').where('email', isEqualTo: email).getDocuments();
+     if(document.documents.length>0)
+       return document.documents;
+     else
+       return [];
+   }
 
 }

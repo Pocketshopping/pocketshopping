@@ -1,3 +1,4 @@
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flux_validator_dart/flux_validator_dart.dart';
 import 'package:pocketshopping/component/psCard.dart';
@@ -10,6 +11,7 @@ import 'package:pocketshopping/firebase/BaseAuth.dart';
 import 'package:pocketshopping/page/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/component/psProvider.dart';
+import 'package:pocketshopping/component/dynamicLinks.dart';
 
 class LoginPage extends StatefulWidget {
   static String tag = 'login-page';
@@ -36,6 +38,21 @@ class _LoginPageState extends State<LoginPage> {
     errorText ='';
     timeout = false;
     _autovalidate=false;
+    //_retrieveDynamicLink();
+  }
+
+  Future<void> _retrieveDynamicLink() async {
+
+    DynamicLinks.createLinkWithParams({'merchant':'rertereSAFdw','otp': 'sfdfs','route':'branch'}).then((uri) {
+      print(uri);
+    });
+    //final PendingDynamicLinkData data =
+    //await FirebaseDynamicLinks.instance.getDynamicLink(dynamicUri);
+    //final Uri deepLink = data?.link;
+
+    //if (deepLink != null) {
+      //Navigator.pushNamed(context, deepLink.path); // '/helloworld'
+    //}
   }
   
   @override
@@ -152,27 +169,28 @@ class _LoginPageState extends State<LoginPage> {
             authHandler.signIn(_emailController.text.trim(),
                 _passwordController.text.trim()).then((value) =>
             {
-              psProvider.of(context).value['uid']=value,
-              UserData(uid: value).getOne().then((data) => {
-                psProvider.of(context).value['user']=data,
-                UserData(uid: value,notificationID: 'fcm').upDate().then((value) => null),
-                //UserData(uid: value,role: 'admin').upDate().then((value) => null),
-                if(data['role']=='admin'){
-
-                 // if(data['business'].toString().isNotEmpty){
-               //data['business'].get().then((value)=>print(value.data)),
-                 // },
+              if(timeout){
+                psProvider.of(context).value['uid']=value.uid,
+          psProvider.of(context).value['user']={'role':value.displayName},
+          UserData(uid: psProvider.of(context).value['uid'],notificationID: 'fcm').upDate().then((value)=>null),
+                if(value.displayName =='admin'){
                   Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => AdminPage()))
                 }
-                else if(data['role']=='user'){
+                else if(value.displayName =='user'){
                   Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => UserPage()))
                 }
 
-              })
+                else{
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()))
+                  }
+
+              }
 
             }
             ).catchError((error, stackTrace) =>
@@ -209,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
                         _isLoading = false;
                         timeout = false;
                         errorText =
-                        "Wrong password. chack you password and try again";
+                        "Wrong password. check you password and try again";
                       })
                   }
                   else
