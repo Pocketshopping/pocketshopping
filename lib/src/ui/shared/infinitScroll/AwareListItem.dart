@@ -24,9 +24,12 @@ class _AwareListItemState extends State<AwareListItem> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return
+  void dispose() {
+    super.dispose();
+  }
 
-      widget.child;
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

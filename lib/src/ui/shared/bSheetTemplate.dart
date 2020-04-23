@@ -5,10 +5,12 @@ class BottomSheetTemplate extends StatelessWidget{
   final Widget child;
   final double height;
   final double opacity;
+  final Color color;
   BottomSheetTemplate({
     @required this.child,
     this.height=100,
-    this.opacity=0.5
+    this.opacity=0.5,
+    this.color=Colors.white
 
   });
 
@@ -28,7 +30,7 @@ class BottomSheetTemplate extends StatelessWidget{
         child:
         Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: color,
             ),
             height:height,
             width: MediaQuery.of(context).size.width,
@@ -37,7 +39,7 @@ class BottomSheetTemplate extends StatelessWidget{
               children: <Widget>[
 
                 Container(
-                  color: Colors.white,
+                  color: color,
                   alignment: Alignment.topRight,
                   height:MediaQuery.of(context).size.width*0.05 ,
 
@@ -50,7 +52,7 @@ class BottomSheetTemplate extends StatelessWidget{
                     flex: 1,
                     child:
                     CustomScrollView(
-
+                        physics: NeverScrollableScrollPhysics(),
                         slivers: <Widget>[
                           SliverList(
                               delegate: SliverChildListDelegate(
@@ -65,6 +67,69 @@ class BottomSheetTemplate extends StatelessWidget{
         )
     )
     )
+    );
+
+  }
+}
+
+
+
+
+
+class CarouselBottomSheetTemplate extends StatelessWidget{
+  final Widget child;
+  final double height;
+  final double opacity;
+  final Color color;
+  CarouselBottomSheetTemplate({
+    @required this.child,
+    this.height=100,
+    this.opacity=0.5,
+    this.color=Colors.white
+
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onTap: (){
+          //Navigator.pop(context);
+        },
+        child:Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.transparent,
+            alignment: Alignment.bottomCenter,
+            child: ClipRRect(
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
+                child:
+                Container(
+                    decoration: BoxDecoration(
+                      color: color,
+                    ),
+                    height:height,
+                    width: MediaQuery.of(context).size.width,
+                    //
+                    child: Column(
+                      children: <Widget>[
+                        Expanded(
+                            flex: 1,
+                            child:
+                            CustomScrollView(
+                                slivers: <Widget>[
+                                  SliverList(
+                                      delegate: SliverChildListDelegate(
+                                          [
+                                            child
+                                          ]
+                                      ))])
+                        ),
+
+                      ],
+                    )
+                )
+            )
+        )
     );
 
   }

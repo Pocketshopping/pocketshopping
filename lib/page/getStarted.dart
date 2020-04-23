@@ -31,7 +31,9 @@ class _GetStartedPageState extends State<GetStartedPage> {
 
   var uData;
   String uid='';
+  int route;
   var authHandler = new Auth();
+  var user;
   final FirebaseMessaging _fcm = FirebaseMessaging();
 
   StreamSubscription iosSubscription;
@@ -41,11 +43,12 @@ class _GetStartedPageState extends State<GetStartedPage> {
   void initState() {
     super.initState();
     uid='';
+    user = Provider.of<Auth>(context,listen: false).getCurrentUser();
     processInstallationStatus();
     handleDynamicLinks();
     if (Platform.isIOS) {
       iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
-        print(data);
+        //print(data);
       });
 
       _fcm.requestNotificationPermissions(IosNotificationSettings());
@@ -75,11 +78,18 @@ class _GetStartedPageState extends State<GetStartedPage> {
   processInstallationStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     psProvider.of(context).value['category']= await CategoryData().getAll();
+
     if( prefs.containsKey('uid')){
+
       psProvider.of(context).value['route']=1;
+      route = 1;
+      setState(() {});
+
         }
         else{
       psProvider.of(context).value['route']=0;
+      route = 0;
+      setState(() {});
         }
 
 
@@ -92,7 +102,7 @@ class _GetStartedPageState extends State<GetStartedPage> {
       Scaffold(
 
         body: FutureBuilder<FirebaseUser>(
-          future: Provider.of<Auth>(context).getCurrentUser(),
+          future: user,
           builder: (context, AsyncSnapshot<FirebaseUser> snapshot) { //          ⇐ NEW
             if (snapshot.connectionState == ConnectionState.done) {
               // log error to console                                            ⇐ NEW
@@ -105,11 +115,12 @@ class _GetStartedPageState extends State<GetStartedPage> {
                 //UserData(uid: psProvider.of(context).value['uid']).getOne().then((value){
                 //psProvider.of(context).value['user']=value;
                 //});
-                print(snapshot.data.displayName);
+                //print(snapshot.data.displayName);
                 psProvider.of(context).value['user']={'role':snapshot.data.displayName};
                 psProvider.of(context).value['uid']=snapshot.data.uid;
-                SharedPreferences.getInstance().then((value) => value.setString('uid', snapshot.data.uid));
-                switch(snapshot.data.displayName){
+               SharedPreferences.getInstance().then((value) => value.setString('uid', snapshot.data.uid));
+               print('twice');
+               switch(snapshot.data.displayName){
                   case 'user':
                     return UserPage();
                     break;
@@ -117,7 +128,7 @@ class _GetStartedPageState extends State<GetStartedPage> {
                     return AdminPage();
                     break;
                   case 'staff':
-                    return UserPage();
+                    return AdminPage();
                     break;
                   default:
                     return LoginPage();
@@ -125,11 +136,20 @@ class _GetStartedPageState extends State<GetStartedPage> {
 
               }
               else{
-                if(psProvider.of(context).value['route']==1){
+                //print(snapshot.data);
+                if(route==1){
                   return SignUpPage();
                 }
-                else{
+                else if(route == 0){
                   return Introduction();
+                }
+                else{
+                  return Container(
+                    color: Colors.white,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
                 }
               }
               //return snapshot.hasData ? UserPage() : LoginPage();
@@ -153,7 +173,7 @@ class _GetStartedPageState extends State<GetStartedPage> {
   }
 
   Future handleDynamicLinks() async {
-    print('i aam been launched');
+    //print('i aam been launched');
     // 1. Get the initial dynamic link if the app is opened with a dynamic link
     final PendingDynamicLinkData data =
     await FirebaseDynamicLinks.instance.getInitialLink();
@@ -168,7 +188,7 @@ class _GetStartedPageState extends State<GetStartedPage> {
           // 3a. handle link that has been retrieved
           _handleDeepLink(dynamicLink);
         }, onError: (OnLinkErrorException e) async {
-      print('Link Failed: ${e.message}');
+      //print('Link Failed: ${e.message}');
     });
   }
 
@@ -176,21 +196,21 @@ class _GetStartedPageState extends State<GetStartedPage> {
     final Uri deepLink = data?.link;
     if (deepLink != null) {
 
-      psProvider.of(context).value['linkdata']=deepLink.queryParameters;
+      //psProvider.of(context).value['linkdata']=deepLink.queryParameters;
       FirebaseUser user;
       user = await Auth().getCurrentUser();
-      print('user= $user');
+      //print('user= $user');
       if(user == null ){
         if(psProvider.of(context).value['route']==1){
           Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => SignUpPage(linkdata: deepLink.queryParameters,)));
+              MaterialPageRoute(builder: (context) => LoginPage(linkdata: deepLink.queryParameters,)));
 
         }
         else{
           Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Introduction()));
+              MaterialPageRoute(builder: (context) => Introduction(linkdata: deepLink.queryParameters,)));
 
         }
 

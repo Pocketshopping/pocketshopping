@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "pocketshopping",
+  "private_key_id": "524549d342fa0d10326fa37d2ec3e903f9ce5e1d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC8HhfMBngPqsrV\nsZl379pxDKg09XCUFvuheMGwDD+0GwjvuMP4S1Ps/D5P6ZI/rQA0rb6494wQy/ak\nHQ9yyv0cW6ezBowzumH1/lW/SyhIEsQSyhKEwUWAj+71yyKSuzKygutkRbk22Nx4\nDXGVuGCCujcT3YAzgcygzC/ThYkxRjDZFCAyn74mPK0wrsVZV6il0vEJMoBwc9K7\nyRGv9O3J/+6mA/KQdwRJLDGhbfVYZyrySwVdKFk7I/kSX0aty8U42MKua1LdC+DV\n6uEk27XqdU9z5mb7/jXK/8azbfV7khcsd16G04uMNQ+5oXk8iyM9uAiAyL39EOZE\npyqEJ6jPAgMBAAECggEAO1tneNolshPbEpiKazzEeV1cCfHUBvZFicq3mtwSkbri\nE/oB4+uo3KMu6joyCmOFKBoWjviVOouRFHGS+U6xlOwauzN6s6vA00TgO470c+Fv\n+tnGBBuT2aAQ73+cNh5ZPdhve+FAMt00m7DqQSq/USB+1obSt+3h6m7jPGPrSR9p\nNrAwLZRwz/TN/sTcETb+j+dkEE66OVvvaFHk+gAONwKvBHKeBvFG85uFZS19DoQd\nkqH9FolPAgi2FvL5vJjHa/yDha9JICjho+xGDO+eh0VGqIm2m3Pok3Nip5DIdjCd\nbedDK+11T9eUan/ED5w22I0R+1JT386xYqFUmgZ3uQKBgQDcvbmth41XgSQe4TqV\naCM+cHhKSMsZ6JQkKqrEZONd++sBzWfTr7GXX866bFUNhVFB3de6yAUnNv1nfI1f\n+saU1Cjip2NeZ5COmoD2Ov64GXNiDcTsAllgFOi15HLOBLq0zoAm3yzuTHvlcNoc\nf3dCTcZtHlwY1o90tqMFY7P7AwKBgQDaKl1rs4tYihzm2vZsgLjRkV+BLtI0wDlm\nid9cHPEAHOeT9UxT2AcAh1Yy4Ampyi60t4JJYA+N7mpVbI67lghx1dnJWGrrsEXb\nEUMLsUFC6LE8viiFywDNpcyDhP6YasH/L9Flfp3fB+3mSBVPc1QMpybxzWfwO08U\nncRGdf6rRQKBgQCU23CyX93l65WTKWmbRX225puH5KzqDNiRxyAfjrVxNKgXMBBb\nRXjqTtaXCuUUWBoi49pOAALRnhimx+yClBeEV8o2hpDRId/u+qwK4F/TgH452nU4\nfqEM1SzVNHhjC/doZHUxQYEINhW69S5w11hyIwazoSyUJ2TYXS10PfcqRwKBgC8T\nwUECZ2ldtErkqRRU2ozub8tyjQ2xBTHpQnegDylVE2vMHQJitXAZxDIKQkuPQ3Df\nwI+Q2QppjiyM1mgIQh4+ZVaba8ccLJbPLMaTI2AK0mQnLJtiaPP3eSBQTJgbQW2N\npgPexLZiAaYVm/OfEV4Bm9fF2U3vnmr2eGo0ABZ5AoGAdFVkkasdtVYYeq4DkQTx\nz+0o1uYrqndtAK7m6RQU+JQ5i3B+P8Sf6O4kLetwN3Iv9iHokINf7WrtBfAt3vzW\n9lBKhLjo4kr3vxAj1Kip1Soor3TZFBBGaNmez0zzi+xy+0IedUh5VVOKjzMKspZR\nqAH7CjdeV8u7EGm+lLqMbFU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "fleepagedev@pocketshopping.iam.gserviceaccount.com",
+  "client_id": "118206974877207865435",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/fleepagedev%40pocketshopping.iam.gserviceaccount.com"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "pocketshopping-a57c2",
+  "private_key_id": "0786ec16c2b1a3d37d9516158e2205539e052a2f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC8VOAoKPgVnwoE\nQtscs8ODGThoU3A6GQXNtr+PHhPf4rW1eN8Pke7l2CLJFDdgblFdEB4XVyXR68ke\nNLqaIrfjq+h3DRd4M4CXnuTnEAxmX/sKJ87ellLAYpv80/X0clGpo2lTEm8lIaP/\nqP3SKTACO2gnyZ5FUCGk0q3Y9HP9MQSNY/pkvTYfgI47zjpxGwoe2SL1MIK67/vs\n1xY1QWnuDdlhT7Hs6Ewu5wmY8zGezatTe3nZhvefM7Dc5hEYh7WM+iRBAqBaWjyV\nKk4ta+VvzhD665sibuR+MNsRoM6ZvmSDBLFrVRPYDtguu3i9uAw/ZHG3ndiuFh5q\nxKwEbgD5AgMBAAECggEAA+CbKyLmMg5cjShB6fIwauctDGacxR3XHjkX8jBLdrTG\nHeRTjFbXJF7tK9BjA2HC3B+2ma93wsqgBDapjL5jZJHmHVuOkYRKIbHNGU3XZ+nf\nNmJWlB09oVwbK8sCqyVJr0YWR0MJUoPoXb1XrD9gle7HU876Kq40b4TBlnmrvY+4\nrKtEaupLBAbdsNQXXZxrqArH3c0cEJEGkjhhwGnDYna1kTPvYlCFiY0M5WDGisno\nmr8mrRZFDM5+fHGOOtbm4T5fdkQB2VMELBDEtu0ZBnOiUe0P7fa6hu5BpzdptIGU\nUrH9L3YQeeWBITj7CFksou3krtkdb++1g40Gc5HrUQKBgQD0NdVyMNl/PPLpkGfx\nwcX+2TJ3DWa6ZhPtZgqqGCHsDqKm1HoMN3GkRQSyj0zZQYDT2XRpkGqG+Qu2Fq5E\nBnEf14urfK2qnanAzdNYJ3vYflO64wsIhvK+1d0VqITfgj2zEFlW58oV+y+H+6Ha\n0QpCh3dAy3Ok5FJOrE7h9v4UyQKBgQDFbHFqYB+WeZ3DKRJWnFoooqe32QM+lNkv\nRS8d06WMAxlSi8pk2ptruMPWI2DGuoPesLFkCQyNb5EY00rD2I0FYrLV789ZJBNx\ng03DSQd3yTNrhrn8J6IiEeDEt+zfJ8239xvxpPp5vb22Kmr6P0SF5yn+NESYw1Q2\nHJtiVi+SsQKBgAiIgQbWciMiDBLhOuCVtsdq63qBe190Bao78I90/Gp1MHXH4uPe\nZBgrWTisDTFiOpAsfwbZRv+kYCZisIAsAXPtYjIBz0ew7qeQCZyA9LDh6ScUm+QW\nYxEMBAentczhjipdneGNg+A0wLptroAo4cTlWuNmuInAeKfLGY6HxOURAoGAODbh\nsH2AYRNuFZULULgif/GYuiPD5bzyfqA/g0mxmMWFH1kIn2ET4j9xG/dk5hFT3UQI\nrshY16kN8rivUEbIGOF6tKodK2+3TZoquVGBG92hk5uAN8l9RCA9FSad/wjRbfGh\n9lOYsrORYl5/qZP8SfiBn414ftsXjnTk1cJet3ECgYEAnnEAVlu/a3FAodJiOedN\nOIBzHdPyemWASET7CeETqtkpvbHo16ZZT/GUZ3g7UBItjMZBi1r77wpMIs7Odznx\nrR4rsETFjcu3kuV3JGxHfMipfF1oDdmwFbjy+dy6DpNe3urKhTNgIG4DGueXA0oQ\nIqvDlYkaC7olkvdULr5LokA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-qpsrk@pocketshopping-a57c2.iam.gserviceaccount.com",
+  "client_id": "102584937381967117360",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-qpsrk%40pocketshopping-a57c2.iam.gserviceaccount.com"
+}

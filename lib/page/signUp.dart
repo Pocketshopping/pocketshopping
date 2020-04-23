@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flux_validator_dart/flux_validator_dart.dart';
 import 'package:pocketshopping/component/psCard.dart';
 import 'package:pocketshopping/firebase/BaseAuth.dart';
+import 'package:pocketshopping/page/admin/deepLinkBranch.dart';
 import 'package:pocketshopping/page/business.dart';
 import 'package:pocketshopping/page/curvyPage.dart';
 import 'package:pocketshopping/page/login.dart';
@@ -336,9 +337,26 @@ class _SignUpPageState extends State<SignUpPage> {
             if(data.length>0){
               psProvider.of(context).value['user']=data,
             },
-            Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => BusinessSetUpPage())),
+
+            if(widget.linkdata != null ){
+
+              if(widget.linkdata['route'] == 'branch' )
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DeepLinkBranch(linkdata: widget.linkdata,)))
+              else
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SignUpPage(linkdata: widget.linkdata,)))
+
+
+            }
+            else{
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BusinessSetUpPage())),
+            }
+
           }
 
           ),

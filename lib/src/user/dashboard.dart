@@ -1,13 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+
 import 'package:pocketshopping/page/admin/TopUp.dart';
-import 'package:pocketshopping/page/admin/menuItem.dart';
 import 'package:pocketshopping/page/admin/message.dart';
 import 'package:pocketshopping/page/admin/openOrder.dart';
 import 'package:pocketshopping/page/admin/settings.dart';
 import 'package:pocketshopping/page/admin/viewItem.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
-import 'package:pocketshopping/widget/product.dart';
 import 'package:pocketshopping/widget/staffs.dart';
 import 'package:pocketshopping/widget/unit.dart';
 import 'package:pocketshopping/widget/customers.dart';
@@ -18,11 +22,12 @@ import 'package:pocketshopping/widget/statistic.dart';
 import 'package:pocketshopping/widget/reviews.dart';
 import 'package:pocketshopping/widget/status.dart';
 import 'package:pocketshopping/component/scanScreen.dart';
-import 'package:pocketshopping/constants/appColor.dart';
+
 
 class DashBoardScreen extends StatefulWidget {
   static String tag = 'DashBoard-page';
   DashBoardScreen();
+
 
 
   @override
@@ -34,10 +39,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
 
   final GlobalKey<ScaffoldState> scaffoldKey=GlobalKey<ScaffoldState>();
-
+  Session CurrentUser;
   @override
   void initState(){
     super.initState();
+    CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
   }
 
   @override
@@ -71,12 +77,13 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
             centerTitle: true,
             elevation:0.0,
             backgroundColor: Colors.white,
-            title:Text("Pocketshopping",style: TextStyle(color: PRIMARYCOLOR),),
+            title:Text(CurrentUser.merchant.bName??"Pocketshopping",style: TextStyle(color: PRIMARYCOLOR),),
 
             automaticallyImplyLeading: false,
           ),
         ),
         body: Container(
+          color: Colors.white,
             child: CustomScrollView(
               slivers: <Widget>[
                 SliverList(
@@ -88,7 +95,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           //margin:  MediaQuery.of(context).size.height*0.05,
                           margin: EdgeInsets.only(left: marginLR*0.01,right: marginLR*0.01),
                           child: Column(
+
                             children: <Widget>[
+                              Align(alignment:Alignment.centerLeft, child:Text('Hi ${CurrentUser.user.fname}')),
                               Row(
 
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -221,7 +230,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(gridHeight,Icon(
                         Icons.fastfood, size: MediaQuery.of(context).size.width*0.12,
                         color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Products',border:PRIMARYCOLOR, content: ProductBottomPage(themeColor: PRIMARYCOLOR,),),
+                      'Products',border:PRIMARYCOLOR, content: ProductBottomPage(session: CurrentUser,),),
 
                     MenuItem(gridHeight,Icon(
                         Icons.show_chart, size: MediaQuery.of(context).size.width*0.12,

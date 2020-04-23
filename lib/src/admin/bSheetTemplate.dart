@@ -39,7 +39,7 @@ class BottomSheetTemplate extends StatelessWidget{
                 Container(
                   color: Colors.white,
                   alignment: Alignment.topRight,
-                  height:MediaQuery.of(context).size.width*0.05 ,
+
 
                   child: FlatButton(
                       onPressed: () => {Navigator.pop(context)},

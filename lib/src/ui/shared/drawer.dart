@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:pocketshopping/firebase/BaseAuth.dart';
-import 'package:pocketshopping/page/drawer/Business.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pocketshopping/page/drawer/aboutus.dart';
 import 'package:pocketshopping/page/drawer/notification.dart';
 import 'package:pocketshopping/page/drawer/pocket.dart';
 import 'package:pocketshopping/page/drawer/profile.dart';
 import 'package:pocketshopping/page/drawer/usetting.dart';
-import 'package:pocketshopping/page/login.dart';
-import 'package:pocketshopping/component/psProvider.dart';
+import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/business/business.dart';
 
-class DrawerWidget extends StatelessWidget {
-  var authHandler = new Auth();
-  final Color headerColor;
-  DrawerWidget({this.headerColor=Colors.white});
+class DrawerScreen extends StatelessWidget {
+
+  final UserRepository _userRepository;
+  final User user;
+
+  DrawerScreen({Key key, @required UserRepository userRepository,this.user})
+      : assert(userRepository != null),
+        _userRepository = userRepository,
+        super(key: key);
+
+
   @override
       Widget build(BuildContext context) {
         return Drawer(
@@ -20,7 +28,7 @@ class DrawerWidget extends StatelessWidget {
             padding: EdgeInsets.zero,
             children: <Widget>[
               Container(
-                color: headerColor,
+                color: Colors.white,
                 height: MediaQuery.of(context).size.height*0.35,
                 child: DrawerHeader(
               
@@ -40,7 +48,7 @@ class DrawerWidget extends StatelessWidget {
                                 "https://i.imgur.com/BoN9kdC.png")
                         )
                     )),
-                new Text("John Doe",
+                new Text(user.fname,
                     textScaleFactor: 1),
                 
                 new Text("Balance: \u20A6 456.09",
@@ -93,7 +101,7 @@ class DrawerWidget extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => NotificationPage()));
                 },
               ),
-              if(psProvider.of(context).value['user']['role']=='user')
+              if(user.role == 'user')
               ListTile(
                 leading: Icon(Icons.business),
                 title: Text("Business"),
@@ -101,7 +109,7 @@ class DrawerWidget extends StatelessWidget {
                   Navigator.pop(context);
                   Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => BusinessPage()));
+                      MaterialPageRoute(builder: (context) => FirstBusinessPage()));
                 },
 
               ),
@@ -129,11 +137,11 @@ class DrawerWidget extends StatelessWidget {
                 leading: Icon(Icons.close),
                 title: Text("SignOut"),
                 onTap: () {
-                  authHandler.signOut();
-                  Navigator.pop(context);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()));
+                  BlocProvider.of<AuthenticationBloc>(context).add(
+                    LoggedOut(),
+                  );
+                  //Navigator.pop(context);
+
                 },
               ),
             ],

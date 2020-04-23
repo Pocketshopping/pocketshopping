@@ -11,6 +11,8 @@ class NotificationDataModel extends Data {
   bool nCleared;
   String nReceiver;
   DocumentReference nInitiator;
+  String uid;
+  String nid;
 
   NotificationDataModel({
     this.nTitle,
@@ -18,7 +20,9 @@ class NotificationDataModel extends Data {
     this.nBody,
     this.nCleared,
     this.nReceiver,
-    this.nInitiator
+    this.nInitiator,
+    this.uid,
+    this.nid
 });
 
 
@@ -39,6 +43,26 @@ class NotificationDataModel extends Data {
     });
 
     return nid.documentID;
+  }
+  @override
+  Future<List<DocumentSnapshot>> getAll()async {
+    var user = databaseReference.collection("users").document(uid);
+    var data = await databaseReference.collection("notification")
+        .where('notificationReceiver',isEqualTo: user)
+        .where('notificationCleared',isEqualTo: nCleared)
+        .orderBy('notificationCreatedAt',descending: false)
+        .getDocuments();
+
+    return data.documents;
+  }
+
+  @override
+ Future<void> upDate() async{
+    await databaseReference.collection("notification").document(nid).
+    updateData({
+      'notificationCleared':true,
+      'notificationClearedAt':DateTime.now(),
+    });
   }
 
 }

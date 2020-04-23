@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:pocketshopping/component/dynamicLinks.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 
 
 class MerchantRepo{
@@ -11,6 +12,7 @@ class MerchantRepo{
 
 
   final databaseReference = Firestore.instance;
+  Geoflutterfire geo = Geoflutterfire();
 
   Future<String> save(
       {
@@ -36,6 +38,7 @@ class MerchantRepo{
   String bBranchUnique,
 }) async{
     DocumentReference bid;
+    GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
     bid = await databaseReference.collection("merchants")
         .add({
       'businessCreator': databaseReference.document('users/'+uid),
@@ -48,7 +51,7 @@ class MerchantRepo{
       'businessTelephone':bTelephone,
       'businessTelephone2':bTelephone2,
       'businessEmail':bEmail,
-      'businessGeopint':bGeopint,
+      'businessGeopint':merchantLocation.data,
       'businessDelivery':bDelivery,
       'businessSocials':bSocial,
       'businessDescription':bDescription,

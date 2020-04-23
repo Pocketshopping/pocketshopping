@@ -1,7 +1,7 @@
 
+import 'package:badges/badges.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:pocketshopping/model/DataModel/userData.dart';
 import 'package:pocketshopping/page/admin/TopUp.dart';
 import 'package:pocketshopping/page/admin/menuItem.dart';
@@ -79,27 +79,20 @@ class _DashBoardPageState extends State<DashBoardPage> {
 
             children: <Widget>[
           Scaffold(
+            backgroundColor: Colors.white,
             appBar: PreferredSize(
               preferredSize: Size.fromHeight(MediaQuery.of(context).size.height*0.1), // here the desired height
               child: AppBar(
-                leading:psProvider.of(context).value['user']['role'] !=null? IconButton(
+                leading:psProvider.of(context).value['user']['role'] !=null?
+                     IconButton(
 
-                  icon: Icon(Icons.menu,color:PRIMARYCOLOR,
-                    size: marginLR*0.08,),
-                  onPressed: (){
-                    Scaffold.of(context).openDrawer();
-                  },
-                ):Container(),
-                actions: <Widget>[
-                  IconButton(
-
-                    icon: Icon(Icons.notification_important,color:PRIMARYCOLOR,
-                      size: marginLR*0.08,),
-                    onPressed: (){
-                      Scaffold.of(context).openDrawer();
-                    },
-                  ),
-                ],
+                        icon: Icon(Icons.menu,color:PRIMARYCOLOR,
+                          size: marginLR*0.08,),
+                        onPressed: (){
+                          Scaffold.of(context).openDrawer();
+                        },
+                      )
+                    :Container(),
                 centerTitle: true,
                 elevation:0.0,
                 backgroundColor: Colors.white,
@@ -121,7 +114,46 @@ class _DashBoardPageState extends State<DashBoardPage> {
                               margin: EdgeInsets.only(left: marginLR*0.01,right: marginLR*0.01),
                               child: Column(
                                 children: <Widget>[
+                                  if(psProvider.of(context).value['user']['role'] !=null)
+                                    if(psProvider.of(context).value['user']['role']=='admin')
                                   Row(
+
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: <Widget>[
+                                      Expanded(
+                                        child:  Center(child:Text("PocketUnit: 12345678.90",
+                                          style: TextStyle(fontSize:20, fontWeight: FontWeight.bold),)),
+                                      ),
+                                      Expanded(
+                                          flex: 0,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(20.0),
+                                              border: Border.all(color: PRIMARYCOLOR.withOpacity(0.5)),
+                                              color: PRIMARYCOLOR.withOpacity(0.6),
+                                            ),
+                                            margin: EdgeInsets.only(left: MediaQuery.of(context).size.width*0.01),
+                                            //width: MediaQuery.of(context).size.width*0.2,
+                                            child:FlatButton(
+                                              onPressed: () => {
+
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>TopUp()    ))
+
+                                              },
+                                              child:  Center(child:Text("TopUp",style: TextStyle(color: Colors.white),)),
+                                            ),
+                                          )
+                                      ),
+                                    ],
+                                  ),
+
+                                  if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                                    if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                                        psProvider.of(context).value['user']['staffPermissions']['finances'])
+                                      Row(
 
                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                     children: <Widget>[
@@ -167,6 +199,8 @@ class _DashBoardPageState extends State<DashBoardPage> {
                     SliverGrid.count(
                         crossAxisCount: 3,
                         children: [
+                          if(psProvider.of(context).value['user']['role'] !=null)
+                            if(psProvider.of(context).value['user']['role']=='admin')
                           ViewItem(
                             gridHeight,
                             Header: '0',
@@ -178,7 +212,35 @@ class _DashBoardPageState extends State<DashBoardPage> {
 
                           ),
 
+                          if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                            if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                                psProvider.of(context).value['user']['staffPermissions']['orders'])
+                              ViewItem(
+                            gridHeight,
+                            Header: '0',
+                            actionText: 'click to extend screen',
+                            subHeader: 'Open Order(s)',
+                            skey:scaffoldKey,
+                            bgColor: PRIMARYCOLOR.withOpacity(0.8),
+                            content: ScanScreen(PRIMARYCOLOR.withOpacity(0.8)),
+
+                          ),
+
+                          if(psProvider.of(context).value['user']['role'] !=null)
+                            if(psProvider.of(context).value['user']['role']=='admin')
                           ViewItem(
+                            gridHeight,
+                            Header: 'Open',
+                            subHeader: 'Store Status',
+                            actionText: 'click to Change',
+                            skey:scaffoldKey,
+                            bgColor: PRIMARYCOLOR.withOpacity(0.8),
+                            content: StatusBottomPage(themeColor: PRIMARYCOLOR.withOpacity(0.8)),
+                          ),
+
+                          if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                            if(psProvider.of(context).value['user']['staffPermissions']['managers'])
+                              ViewItem(
                             gridHeight,
                             Header: 'Open',
                             subHeader: 'Store Status',
@@ -215,6 +277,8 @@ class _DashBoardPageState extends State<DashBoardPage> {
                     SliverGrid.count(
                       crossAxisCount: 3,
                       children: [
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                           Icons.folder_open,
                           size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),)
@@ -224,6 +288,20 @@ class _DashBoardPageState extends State<DashBoardPage> {
                           content: Orders(),
                         ),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['orders'])
+                            MenuItem(gridHeight,Icon(
+                          Icons.folder_open,
+                          size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),)
+                          ,'Open Orders',border:PRIMARYCOLOR, isBadged: true,
+                          openCount: 3,
+                          isMultiMenu: false,
+                          content: Orders(),
+                        ),
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                           Icons.folder,
                           size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),)
@@ -232,7 +310,19 @@ class _DashBoardPageState extends State<DashBoardPage> {
                           content: ManageOrder(themeColor: PRIMARYCOLOR,),
                           isMultiMenu: false,),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['orders'])
                         MenuItem(gridHeight,Icon(
+                          Icons.folder,
+                          size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),)
+                          ,'Manage Orders',
+                          border:PRIMARYCOLOR,
+                          content: ManageOrder(themeColor: PRIMARYCOLOR,),
+                          isMultiMenu: false,),
+
+
+                            MenuItem(gridHeight,Icon(
                           Icons.person_pin,
                           size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),)
                           ,'Place Order For Customer',border:PRIMARYCOLOR,
@@ -240,6 +330,8 @@ class _DashBoardPageState extends State<DashBoardPage> {
                           content: MerchantWidget(),
                         ),
 
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.message, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
@@ -250,26 +342,84 @@ class _DashBoardPageState extends State<DashBoardPage> {
 
                         ),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['messages'])
+                            MenuItem(gridHeight,Icon(
+                            Icons.message, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'Customer Message',border:PRIMARYCOLOR,
+                          isBadged: true,openCount: 3,
+                          isMultiMenu: false,
+                          content: Message(themeColor: PRIMARYCOLOR,),
+
+                        ),
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.fastfood, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                           'Products',border:PRIMARYCOLOR, content: ProductBottomPage(themeColor: PRIMARYCOLOR,),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['products'])
+                            MenuItem(gridHeight,Icon(
+                            Icons.fastfood, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'Products',border:PRIMARYCOLOR, content: ProductBottomPage(themeColor: PRIMARYCOLOR,),),
+
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.show_chart, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                           'Statistic',border:PRIMARYCOLOR, content: StatisticBottomPage(themeColor: PRIMARYCOLOR,),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['finances'])
+                            MenuItem(gridHeight,Icon(
+                            Icons.show_chart, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'Statistic',border:PRIMARYCOLOR, content: StatisticBottomPage(themeColor: PRIMARYCOLOR,),),
+
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.people, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                           'Staffs',border:PRIMARYCOLOR, content: StaffBottomPage(themeColor: PRIMARYCOLOR,),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers'])
+                            MenuItem(gridHeight,Icon(
+                            Icons.people, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'Staffs',border:PRIMARYCOLOR, content: StaffBottomPage(themeColor: PRIMARYCOLOR,),),
+
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.credit_card, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                           'PocketUnit',border:PRIMARYCOLOR, content: UnitBottomPage(themeColor: PRIMARYCOLOR,),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['finances'])
+                            MenuItem(gridHeight,Icon(
+                            Icons.credit_card, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'PocketUnit',border:PRIMARYCOLOR, content: UnitBottomPage(themeColor: PRIMARYCOLOR,),),
+
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.thumb_up, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
@@ -279,6 +429,21 @@ class _DashBoardPageState extends State<DashBoardPage> {
                           openCount: 3,
                           content: Reviews(themeColor: PRIMARYCOLOR),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers']||
+                              psProvider.of(context).value['user']['staffPermissions']['messages']||
+                              psProvider.of(context).value['user']['staffPermissions']['finances'])
+                            MenuItem(gridHeight,Icon(
+                            Icons.thumb_up, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'Reviews',border:PRIMARYCOLOR, isBadged: true,
+                          badgeType:'icon',
+                          isMultiMenu: false,
+                          openCount: 3,
+                          content: Reviews(themeColor: PRIMARYCOLOR),),
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                          if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.people_outline, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
@@ -286,6 +451,17 @@ class _DashBoardPageState extends State<DashBoardPage> {
                           isMultiMenu: false,
                           content: Customer(themeColor: PRIMARYCOLOR,),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers'])
+                        MenuItem(gridHeight,Icon(
+                            Icons.people_outline, size: MediaQuery.of(context).size.width*0.12,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                          'Customers',border:PRIMARYCOLOR,
+                          isMultiMenu: false,
+                          content: Customer(themeColor: PRIMARYCOLOR,),),
+
+                        if(psProvider.of(context).value['user']['role'] !=null)
+                        if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.settings, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
@@ -294,15 +470,27 @@ class _DashBoardPageState extends State<DashBoardPage> {
                           isMultiMenu: false,
                           content: Settings(),),
 
+                        if(psProvider.of(context).value['user']['staffPermissions'] !=null)
+                          if(psProvider.of(context).value['user']['staffPermissions']['managers'])
+                            MenuItem(gridHeight,Icon(
+                                Icons.settings, size: MediaQuery.of(context).size.width*0.12,
+                                color: PRIMARYCOLOR.withOpacity(0.8)),
+                              'Settings',
+                              border:PRIMARYCOLOR,
+                              isMultiMenu: false,
+                              content: Settings(),),
+
 
                         if(psProvider.of(context).value['user']['isBranch']!=null)
                         if(!psProvider.of(context).value['user']['isBranch'])
+                        if(psProvider.of(context).value['user']['role']=='admin')
                           MenuItem(gridHeight,Icon(
                               Icons.business, size: MediaQuery.of(context).size.width*0.12,
                               color: PRIMARYCOLOR.withOpacity(0.8)),
                             'Branch',border:PRIMARYCOLOR, content: BranchBottomPage(themeColor: PRIMARYCOLOR,),),
 
-
+                        if(psProvider.of(context).value['user']['role']!=null)
+                        if(psProvider.of(context).value['user']['role']=='admin')
                         MenuItem(gridHeight,Icon(
                             Icons.account_box, size: MediaQuery.of(context).size.width*0.12,
                             color: PRIMARYCOLOR.withOpacity(0.8)),

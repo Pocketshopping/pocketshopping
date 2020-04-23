@@ -13,7 +13,7 @@
         android:label="pocketshopping"
         android:icon="@mipmap/ic_launcher">
         <meta-data android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCAab1Mr7q2KGcQeWeIqL0v0grGtrSbzv8"/>
+            android:value="AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

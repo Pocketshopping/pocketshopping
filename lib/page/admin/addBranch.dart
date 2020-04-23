@@ -64,29 +64,6 @@ class _AddBranchState extends State<AddBranch> {
   @override
   Widget build(BuildContext context) {
 
-    final addStaff=Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: FlatButton(
-        color: widget.color,
-        onPressed: () {
-          // Validate returns true if the form is valid, or false
-          // otherwise.
-          if (_formKey.currentState.validate() && !loaded) {
-            // If the form is valid, display a Snackbar.
-            setState(() {
-              loaded=true;
-            });
-
-          }
-          else{
-            print('added');
-          }
-        },
-        child: Text('Create New Branch with this device',style: TextStyle(color: Colors.white),),
-      ),
-    );
-
-
 
 
     return Scaffold(
@@ -104,20 +81,20 @@ class _AddBranchState extends State<AddBranch> {
 
               onPressed: (){
 
-                if(true){
+                /*if(true){
                   Scaffold.of(ctx)
                       .showSnackBar(SnackBar(
                       behavior: SnackBarBehavior.floating,
                       content: Text('I am working please wait')));
                 }
-                else{
+                else{*/
                   Navigator.pop(context);
-                }
+                //}
 
               },
             ) ,
 
-            title:Text("Product",style: TextStyle(color: PRIMARYCOLOR),),
+            title:Text("Branch",style: TextStyle(color: PRIMARYCOLOR),),
 
             automaticallyImplyLeading: false,
           ),
@@ -219,14 +196,6 @@ class _AddBranchState extends State<AddBranch> {
                                           .of(context)
                                           .size
                                           .height * 0.02,),
-                                      Center(
-                                        child: Text("Or"
-                                          , style: TextStyle(fontSize: 20),),
-                                      ),
-
-                                      addStaff,
-
-
                                     ],
                                   )),
                                 ),

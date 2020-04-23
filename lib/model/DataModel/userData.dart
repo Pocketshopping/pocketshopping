@@ -67,7 +67,7 @@ class UserData extends Data{
    Future<bool> upDate() async{
      bool success=false;
      String fcmToken = await _fcm.getToken();
-     print('updated');
+    // print('updated');
      await databaseReference.collection("users")
          .document(uid)
          .updateData(makeData(fcmToken)).then((value) => success=true);
@@ -109,13 +109,18 @@ class UserData extends Data{
   var document = await Firestore.instance.collection('users').document(uid).get(source: Source.server);
   collection.addAll(document.data);
 
-  if(document.data['business'].toString().isNotEmpty && document.data['role'].toString()=='admin'){
-    data = await document.data['business'].get();
+  if(document.data['role'].toString()=='staff'){
+    var userRef = Firestore.instance.collection('users').document(uid);
+    var tdata = await Firestore.instance.collection('staff').where('staff',isEqualTo: userRef).getDocuments(source: Source.server);
+    collection.putIfAbsent("staffID", () => tdata.documents[0].documentID);
+    collection.addAll(tdata.documents[0].data);
+  }
+
+  if(document.data['business'].toString().isNotEmpty && (document.data['role'].toString()=='admin' || document.data['role'].toString()=='staff')){
+    data = await document.data['business'].get(source: Source.server);
     collection.putIfAbsent("merchantID", () => data.documentID);
     collection.addAll(data.data);
   }
-  collection.putIfAbsent("log", () => document.documentID);
-  collection.putIfAbsent("isFromCache", () => document.metadata.isFromCache);
 
 
 

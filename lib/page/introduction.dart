@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/page/signUp.dart';
@@ -6,8 +7,26 @@ import 'package:pocketshopping/page/signUp.dart';
 
 class Introduction extends StatelessWidget{
 
+  Introduction({this.linkdata});
+  Map<String,dynamic> linkdata;
+  BuildContext bcontx;
+
   @override
   Widget build(BuildContext context) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if(linkdata != null )
+        Scaffold.of(bcontx).showSnackBar(
+            SnackBar(
+              duration: Duration(seconds: 5),
+              content: Text(
+                  linkdata['route']=='branch'?
+                  'You have to signUp before creating a new branch':
+                  ''),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            )
+        );
+    });
     final first = PageViewModel(
       titleWidget: Text("Welcome to PocketShopping",style: TextStyle(color: PRIMARYCOLOR),),
       bodyWidget: Text(
@@ -69,24 +88,31 @@ class Introduction extends StatelessWidget{
         )
     );
     List<PageViewModel>pages=[first,second,third,fourth];
-    return IntroductionScreen(
-      pages: pages,
-      onDone: (){
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>SignUpPage()));
-      },
-      onSkip: (){
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>SignUpPage()));
-      },
-      showSkipButton: true,
-      next: Icon(Icons.navigate_next,color: PRIMARYCOLOR,),
-      skip: Text("Skip",style: TextStyle(color: PRIMARYCOLOR),),
-      done: Text("Done",style: TextStyle(color: PRIMARYCOLOR,fontWeight: FontWeight.w600),),
+    return Scaffold(
+
+        body:Builder(builder: (context){
+      bcontx=context;
+      return IntroductionScreen(
+        pages: pages,
+        onDone: (){
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>SignUpPage()));
+        },
+        onSkip: (){
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>SignUpPage(linkdata: linkdata,)));
+        },
+        showSkipButton: true,
+        next: Icon(Icons.navigate_next,color: PRIMARYCOLOR,),
+        skip: Text("Skip",style: TextStyle(color: PRIMARYCOLOR),),
+        done: Text("Done",style: TextStyle(color: PRIMARYCOLOR,fontWeight: FontWeight.w600),),
+      );
+    }
+        )
     );
   }
 

@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:pocketshopping/constants/ui_constants.dart';
-import 'package:pocketshopping/widget/bSheetTemplate.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-typedef StringValue = String Function(String);
+typedef DynamicValue =  Function(dynamic);
 
 
 class ListItem extends StatelessWidget {
-  final String title;
+  final dynamic title;
   final String template;
-  final StringValue callback;
-  const ListItem({Key key, this.title, this.template,this.callback}) : super(key: key);
+  final DynamicValue callback;
+  final dynamic data;
+  const ListItem({
+    Key key,
+    this.title,
+    this.template,
+    this.callback,
+    this.data
+  }) : super(key: key);
 
 
   @override
@@ -333,16 +339,19 @@ class ListItem extends StatelessWidget {
         case SearchEmptyIndicatorTitle:
           temp = ListTile(
 
-            title:Text("Empty",style: TextStyle(fontWeight: FontWeight.bold),),
+            title:Image.asset('assets/images/empty.gif'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
+                Center(child: Text('Empty',
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.height*0.06),),),
+                SizedBox(height: 10,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Expanded(
-                   child: Text("we can not find what you are looking for in the database. "
+                   child: Text("we do not have what you are looking for. "
                        "Try again later"),
                     )
                       ],
@@ -581,16 +590,26 @@ class ListItem extends StatelessWidget {
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30.0),
                   ),
-                  child:FadeInImage.memoryNetwork(
-                  placeholder: kTransparentImage,
-                  image: 'https://i.pinimg.com/originals/85/8d/b9/858db9330ae2c94a28a6a99fcd07f85c.jpg',
-                  fit: BoxFit.cover,
-                    height: height*0.2,
+                  child:ShaderMask(
+                    shaderCallback: (rect) {
+                      return LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.topRight,
+                        colors: [Colors.black, Colors.transparent],
+                      ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child:FadeInImage.memoryNetwork(
+                      placeholder: kTransparentImage,
+                      image: title.pPhoto.length>0?title.pPhoto[0]:
 
-                )
-                )
+                      'https://i.pinimg.com/originals/85/8d/b9/858db9330ae2c94a28a6a99fcd07f85c.jpg',
+                      fit: BoxFit.cover,
+                      height: height*0.2,
 
-                  ,
+                    ),
+                  ),
+                ),
                 ),
                 Expanded(
                   child: Container(
@@ -599,12 +618,13 @@ class ListItem extends StatelessWidget {
                       children: <Widget>[
                         Container(
                           padding: EdgeInsets.all(5),
-                          child: Text("Food1", style: TextStyle(fontWeight: FontWeight.bold),),
+                          child: Text(title.pName, style: TextStyle(fontWeight: FontWeight.bold),),
                         ),
 
                         Container(
                           padding: EdgeInsets.all(10),
-                          child: Text('\u20A6 456.09',style: TextStyle(fontWeight: FontWeight.bold),),
+                          child: Text('\u20A6 ${title.pPrice}',
+                            style: TextStyle(fontWeight: FontWeight.bold),),
                         ),
 
                         RatingBar(
@@ -629,11 +649,14 @@ class ListItem extends StatelessWidget {
                             FlatButton.icon(
                                 onPressed: (){},
                                 icon: Icon(Icons.shopping_basket,color: Colors.black54),
-                                label: Text('Add',style: TextStyle(color: Colors.black54),))),
+                                label: Text('Add',
+                                  style:
+                                  TextStyle(color: Colors.black54,
+                                  fontSize: 12),))),
                             Expanded(
                               child: FlatButton(
                                 color: Colors.orangeAccent,
-                                onPressed: (){},
+                                onPressed: (){callback({'callType':'ORDER','payload':title});},
                                 child: Text("Order",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),
                               ),
                             ),

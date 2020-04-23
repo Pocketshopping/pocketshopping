@@ -392,7 +392,16 @@ class _DeepLinkBranchState extends State<DeepLinkBranch> {
                         icon: Icon(Icons.arrow_back_ios, color: PRIMARYCOLOR,
                         ),
                         onPressed: () {
-                          Navigator.pop(context);
+                          if(psProvider.of(context).value['user']['role']=='user')
+                             Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>UserPage()));
+                          else
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>AdminPage()));
                         },
                       ),
                       title: Text(

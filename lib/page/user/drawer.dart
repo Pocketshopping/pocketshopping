@@ -83,7 +83,16 @@ class DrawerWidget extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => PocketPage()));
                 },
               ),
-
+              ListTile(
+                leading: Icon(Icons.notifications_active),
+                title: Text("Request"),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NotificationPage()));
+                },
+              ),
               if(psProvider.of(context).value['user']['role']=='user')
               ListTile(
                 leading: Icon(Icons.business),
@@ -95,16 +104,6 @@ class DrawerWidget extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => BusinessPage()));
                 },
 
-              ),
-              ListTile(
-                leading: Icon(Icons.thumb_up),
-                title: Text("Notification"),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NotificationPage()));
-                },
               ),
               ListTile(
                 leading: Icon(Icons.settings),

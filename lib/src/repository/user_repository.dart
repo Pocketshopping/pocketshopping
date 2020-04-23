@@ -23,11 +23,11 @@ class UserRepository {
     return user;
   }
 
-  Future<String> signUp(String role , String email, String password) async {
+  Future<String> signUp({String role , String email, String password}) async {
     AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
     FirebaseUser user = result.user;
-    upDateUserRole(role);
+    upDateUserRole(role,user);
     return user.uid;
   }
 
@@ -44,8 +44,7 @@ class UserRepository {
 
   }
 
-  Future<void> upDateUserRole(String role) async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
+  Future<void> upDateUserRole(String role,FirebaseUser user) async {
     UserUpdateInfo info = UserUpdateInfo();
     info.displayName = role;
     await user.updateProfile(info);
@@ -60,5 +59,10 @@ class UserRepository {
   Future<bool> isEmailVerified() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
     return user.isEmailVerified;
+  }
+
+  Future<bool> isSignedIn() async {
+    final currentUser = await _firebaseAuth.currentUser();
+    return currentUser != null;
   }
 }

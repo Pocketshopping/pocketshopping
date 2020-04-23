@@ -1,13 +1,10 @@
-import 'dart:async';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:pocketshopping/page/user.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
 
 
-const double CAMERA_ZOOM = 17.1234452;
+const double CAMERA_ZOOM = 9;
 const double CAMERA_TILT = 0;
 const double CAMERA_BEARING = 30;
 const LatLng SOURCE_LOCATION = LatLng(9.0866644, 7.4592741);
@@ -15,7 +12,7 @@ const LatLng DEST_LOCATION = LatLng(9.0866644, 7.4472742);
 
 
 class MerchantDestination extends StatefulWidget {
-  static String tag = 'MerchantMap-page';
+
   @override
   State<MerchantDestination> createState() => _MerchantDestinationState();
 }
@@ -35,7 +32,7 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   }
 
   GoogleMapPolyline _googleMapPolyline =
-  new GoogleMapPolyline(apiKey: "AIzaSyCAab1Mr7q2KGcQeWeIqL0v0grGtrSbzv8");
+  new GoogleMapPolyline(apiKey: "AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc");
 
   //Polyline patterns
   List<List<PatternItem>> patterns = <List<PatternItem>>[
@@ -109,7 +106,7 @@ class _MerchantDestinationState extends State<MerchantDestination> {
         patterns: patterns[0],
         color: Colors.blueAccent,
         points: _coordinates,
-        width: 10,
+        width: 5,
         onTap: () {});
 
     setState(() {
@@ -136,11 +133,11 @@ class _MerchantDestinationState extends State<MerchantDestination> {
                       polylines: Set<Polyline>.of(_polylines.values),
                       initialCameraPosition: CameraPosition(
                         target: _mapInitLocation,
-                        zoom: 16.1234452,
+                        zoom: 15,
                       ),
                     ),
                        floatingActionButton: FloatingActionButton.extended(
-                       backgroundColor: const Color(0xff33805D),
+                       backgroundColor: PRIMARYCOLOR,
                        onPressed: (){Navigator.pop(context);},
                         label: Text('Back'),
                         icon: Icon(Icons.arrow_back),
@@ -149,5 +146,12 @@ class _MerchantDestinationState extends State<MerchantDestination> {
 
       debugShowCheckedModeBanner: false,
     );
+  }
+
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 }

@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/component/dialog.dart';
-import 'package:pocketshopping/page/user/singleMerchant.dart';
-import 'package:pocketshopping/page/user/merchant.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:pocketshopping/widget/bSheetMapTemplate.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/geofence/package_geofence.dart';
+import 'package:pocketshopping/src/business/business.dart';
 
 
 class SinglePlaceWidget extends StatelessWidget {
-  SinglePlaceWidget({this.themeColor,this.mData});
+  SinglePlaceWidget({this.merchant,this.user,this.cPosition});
+  final Merchant merchant;
+  final GeoFirePoint cPosition;
+  final User user;
 
-  final Color themeColor;
-  final Map mData;
   @override
       Widget build(BuildContext context) {
+    //print(' position ${BlocProvider.of<GeoFenceBloc>(context).state.currentPosition}');
         return
           GestureDetector(
             onTap: (){
+              final page =  MerchantUI(merchant: merchant,);
           Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => MerchantUI(
-                       themeColor: themeColor,
-                         ),
-              ));
+              MaterialPageRoute(builder: (context) => page));
         },
     child:
           Container(
@@ -39,9 +41,9 @@ class SinglePlaceWidget extends StatelessWidget {
         ),
         //color: Colors.white,
         image: DecorationImage(
-          image: NetworkImage(mData['cover']),
+          image: NetworkImage(merchant.bPhoto.isNotEmpty?merchant.bPhoto:PocketShoppingDefaultCover),
           fit: BoxFit.cover,
-          colorFilter: new ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.dstATop),
+          colorFilter: new ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.dstATop),
           //colorFilter: Colors.black.withOpacity(0.4),
 
         ),
@@ -58,28 +60,43 @@ class SinglePlaceWidget extends StatelessWidget {
                       Expanded(
                         flex:3,
                         child: Center(child:
-                        Text('Resturant',style: TextStyle(fontSize:12,
+                        Text(merchant.bCategory,style: TextStyle(fontSize:12,
                         color: Colors.white),
                           textAlign: TextAlign.left
                           ,)),
                       ),
                       Expanded(
-                        child: IconButton(
+                        child: cPosition != null ?IconButton(
                           icon:Icon(Icons.place,
                             color: Colors.white,size: 20,),
                           tooltip: 'View Map and get Direction',
                           onPressed: () {
                             //Navigator.of(context).pushNamed(MerchantMap.tag);
-                            showBottomSheet(
+                            showModalBottomSheet(
                                 context: context,
                                 builder: (context) {
                                   return BottomSheetMapTemplate(
-
+                                    source: LatLng(
+                                        cPosition.latitude,
+                                        cPosition.longitude),
+                                    destination: LatLng(
+                                        merchant.bGeoPoint['geopoint'].latitude,
+                                        merchant.bGeoPoint['geopoint'].longitude,
+                                    ),
+                                    destAddress: merchant.bAddress,
+                                    destName: merchant.bName,
+                                    destPhoto: merchant.bPhoto,
+                                    sourceName: user.fname,
+                                    sourceAddress: user.defaultAddress,
+                                    sourcePhoto: user.profile,
                                   );
-                                }
+                                },
+                              enableDrag: false,
+                              isDismissible: false,
+                              isScrollControlled: true,
                             );
                           },
-                        ),
+                        ):Container(),
                       ),
 
                       Expanded(
@@ -99,7 +116,7 @@ class SinglePlaceWidget extends StatelessWidget {
 
                  Column(
                     children: <Widget>[
-                      Text(mData['title'],style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
+                      Text(merchant.bName,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
                       RatingBar(
                         onRatingUpdate: (rate){},
                         initialRating: 3.5,
@@ -113,15 +130,13 @@ class SinglePlaceWidget extends StatelessWidget {
                         itemBuilder: (context, _)=>Icon(Icons.star, color: Colors.amber,),
 
                       ),
-                      Text('500m away',style: TextStyle(fontSize:12,color: Colors.white),),
+                      Text('${AwayFrom()}',style: TextStyle(fontSize:12,color: Colors.white),),
                       FlatButton(
                         onPressed: () {
+                          final page = MerchantUI(merchant: merchant,);
                           Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => MerchantWidget(
-                                //session_: _session,
-                                data: mData,            ),
-                              ));
+                              MaterialPageRoute(builder: (context) => page,));
                         },
                         textColor: Colors.white,
                         child: Text(
@@ -141,5 +156,16 @@ class SinglePlaceWidget extends StatelessWidget {
 ),
 
     );
+      }
+
+
+      String AwayFrom(){
+        double dist =  cPosition.distance(lat: merchant.bGeoPoint['geopoint'].latitude,
+        lng: merchant.bGeoPoint['geopoint'].longitude);
+
+        if(dist > 1 )
+          return '$dist   km away';
+        else
+          return '${dist*1000} m away';
       }
 }

@@ -1,10 +1,12 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flux_validator_dart/flux_validator_dart.dart';
 import 'package:pocketshopping/component/psCard.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/model/DataModel/userData.dart';
 import 'package:pocketshopping/page/admin.dart';
+import 'package:pocketshopping/page/admin/deepLinkBranch.dart';
 import 'package:pocketshopping/page/curvyPage.dart';
 import 'package:pocketshopping/page/signUp.dart';
 import 'package:pocketshopping/firebase/BaseAuth.dart';
@@ -15,6 +17,8 @@ import 'package:pocketshopping/component/dynamicLinks.dart';
 
 class LoginPage extends StatefulWidget {
   static String tag = 'login-page';
+  LoginPage({this.linkdata});
+  Map<String,dynamic>linkdata;
   @override
   _LoginPageState createState() => new _LoginPageState();
 }
@@ -29,6 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   String errorText;
   bool timeout;
   bool _autovalidate;
+  BuildContext bcontx;
 
   @override
   void initState() {
@@ -38,7 +43,21 @@ class _LoginPageState extends State<LoginPage> {
     errorText ='';
     timeout = false;
     _autovalidate=false;
-    //_retrieveDynamicLink();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if(widget.linkdata != null )
+        Scaffold.of(bcontx).showSnackBar(
+            SnackBar(
+              duration: Duration(seconds: 5),
+              content: Text(
+                  widget.linkdata['route']=='branch'?
+                  'You have to signIn before creating a new branch':
+                  ''),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            )
+        );
+    });
+
   }
 
   Future<void> _retrieveDynamicLink() async {
@@ -58,6 +77,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     double marginLR =  MediaQuery.of(context).size.width;
+
+
 
     Widget showCircularProgress() {
       if (_isLoading) {
@@ -173,22 +194,43 @@ class _LoginPageState extends State<LoginPage> {
                 psProvider.of(context).value['uid']=value.uid,
           psProvider.of(context).value['user']={'role':value.displayName},
           UserData(uid: psProvider.of(context).value['uid'],notificationID: 'fcm').upDate().then((value)=>null),
-                if(value.displayName =='admin'){
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AdminPage()))
-                }
-                else if(value.displayName =='user'){
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => UserPage()))
-                }
+                if(widget.linkdata != null ){
 
+                    if(widget.linkdata['route'] == 'branch' )
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => DeepLinkBranch(linkdata: widget.linkdata,)))
+                    else
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignUpPage(linkdata: widget.linkdata,)))
+
+
+                }
                 else{
+                  if(value.displayName =='admin'){
                     Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => LoginPage()))
+                        MaterialPageRoute(builder: (context) => AdminPage()))
                   }
+                  else if(value.displayName =='staff'){
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AdminPage()))
+                  }
+                  else if(value.displayName =='user'){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => UserPage()))
+                    }
+
+                    else{
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginPage()))
+                      }
+
+                }
 
               }
 
@@ -296,7 +338,7 @@ final fields=Container(
           autovalidate: _autovalidate,
           //autovalidate: true,
           child:
-      Column(
+              Column(
           children: <Widget>[
             SizedBox(height: 10,),
             Center(
@@ -360,14 +402,17 @@ final fields=Container(
         onWillPop: _onWillPop,
         child:Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child:Stack(
-          children: <Widget>[
-            form,
-            showCircularProgress(),
-          ],
-        )
-      )
+      body: Builder(builder: (contx){
+        bcontx = contx;
+        return Center(
+            child:Stack(
+              children: <Widget>[
+                form,
+                showCircularProgress(),
+              ],
+            )
+        );
+      })
         )
       );
 

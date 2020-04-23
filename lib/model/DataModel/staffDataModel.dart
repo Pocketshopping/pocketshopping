@@ -13,6 +13,9 @@ class StaffDataModel extends Data {
   String sRef;
   String sStatus;
   String sBehaviour;
+  String sid;
+  DateTime sEnd;
+  DateTime sStart;
 
   StaffDataModel({
     this.sJobTitle,
@@ -20,7 +23,11 @@ class StaffDataModel extends Data {
     this.mRef,
     this.sRef,
     this.sBehaviour,
-    this.sStatus
+    this.sStatus,
+    this.sid,
+    this.sEnd,
+    this.sStart
+
   });
 
 
@@ -73,6 +80,31 @@ Future<String> save()async {
       collection.addAll(documents.documents[0].data);
     }
     return collection;
+
+  }
+
+  @override
+  Future<void> upDate() async{
+    await Firestore.instance.collection('staff').document(sid).updateData(makeData());
+  }
+
+  Map<String,dynamic>makeData(){
+    Map<String,dynamic> data={};
+
+    if(sJobTitle != null && sJobTitle.isNotEmpty)
+      data['staffJobTitle']=sJobTitle;
+    if(sPermissions != null && sPermissions.isNotEmpty)
+      data['staffPermissions']=sPermissions;
+    if(sEnd != null)
+      data['endDate']=DateTime.now();
+    if(sStart != null)
+      data['startDate']=DateTime.now();
+    if(sStatus != null && sStatus.isNotEmpty)
+      data['staffStatus']=sStatus;
+
+
+    //print(data.toString());
+    return data;
 
   }
 

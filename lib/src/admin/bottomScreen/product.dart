@@ -1,158 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:pocketshopping/page/admin/itemLister.dart';
+import 'package:pocketshopping/constants/appColor.dart';
+import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/page/admin/manageProduct.dart';
 import 'package:pocketshopping/page/admin/sourceProduct.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
-import 'package:pocketshopping/page/admin/addProduct.dart';
+
 
 
 class ProductBottomPage extends StatelessWidget{
 
-  ProductBottomPage({this.themeColor=Colors.black54});
-  final Color themeColor;
+  ProductBottomPage({this.session});
+  final Session session;
 
   @override
   Widget build(BuildContext context) {
     double marginLR =  MediaQuery.of(context).size.width;
     double  gridHeight = MediaQuery.of(context).size.height*0.1;
-
-    Widget ProductManegaMenu({String text,Color color}){}
-
-    Widget ProductManageListTemplate({int index}){
-      return GestureDetector(
-        onTap: (){
-
-        },
-        child:
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(1.0),
-            border: Border.all(
-                color: Colors.grey.withOpacity(0.3), width: 1.0
-            ),
-            //color: Colors.white,
-            image: DecorationImage(
-              image: AssetImage("assets/images/food.jpg"),
-              fit: BoxFit.fill,
-              colorFilter: new ColorFilter.mode(Colors.black.withOpacity(0.2), BlendMode.dstATop),
-              //colorFilter: Colors.black.withOpacity(0.4),
-
-            ),
-          ),
-          child:
-          Column(
-            children: <Widget>[
-              Align(
-                alignment: Alignment.topCenter,
-                child:  Row(
-                  //mainAxisAlignment: MainAxisAlignment.spaceAround,
-
-                  children:<Widget>[
-                    Expanded(
-                      flex:3,
-                      child: Center(child:
-                      Text('Resturant',style: TextStyle(fontSize:12,
-                          color: Colors.white),
-                        textAlign: TextAlign.left
-                        ,)),
-                    ),
-                    Expanded(
-                      child: IconButton(
-                        icon:Icon(Icons.delete,
-                          color: Colors.white,size: 20,),
-                        tooltip: 'View Map and get Direction',
-                        onPressed: () {
-                          //Navigator.of(context).pushNamed(MerchantMap.tag);
-
-                        },
-                      ),
-                    ),
-
-                    Expanded(
-                      child: IconButton(
-                        icon:Icon(Icons.info,size: 20,
-                          color: Colors.white,),
-                        tooltip: 'Who we are',
-                        onPressed: () {
-
-                        },
-                      ),
-                    )
-
-                  ],
-                ),
-              ),
-
-              Column(
-                children: <Widget>[
-                  Text("ProductName",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
-                  RatingBar(
-                    onRatingUpdate: (rate){},
-                    initialRating: 3.5,
-                    minRating: 1,
-                    maxRating: 5,
-                    itemSize: MediaQuery.of(context).size.width*0.04,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                    itemBuilder: (context, _)=>Icon(Icons.star, color: Colors.amber,),
-
-                  ),
-                  Text('Price',style: TextStyle(fontSize:12,color: Colors.white),),
-                  FlatButton(
-                    onPressed: () {
-                    },
-                    textColor: Colors.white,
-                    child: Text(
-                        'Edit',
-                        style: TextStyle(fontSize: 14,color: Colors.white)
-
-
-                    ),
-                  ),
-                ],
-              ),
-
-            ],
-          ),
-
-
-        ),
-
-      );
-    }
-
-    Widget ProductManageList({int index}){
-      return SliverGrid(
-        gridDelegate:
-        SliverGridDelegateWithMaxCrossAxisExtent (
-
-          maxCrossAxisExtent: MediaQuery.of(context).size.width*0.5,
-          //maxCrossAxisExtent :200,
-          mainAxisSpacing: 5.0,
-          crossAxisSpacing: 5.0,
-          childAspectRatio: 1,
-
-
-
-        ),
-        delegate: new SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-            return ProductManageListTemplate();
-          },
-          childCount: 6,
-        ),
-      );
-    }
-
-
-
-
-    Widget ProductDetail({int index}){}
 
 
     return Container(
@@ -186,19 +51,19 @@ class ProductBottomPage extends StatelessWidget{
               children: [
                 BsMenuItem(
                   height:gridHeight,
-                  icon:Icon(Icons.add, size: MediaQuery.of(context).size.width*0.16,color: themeColor.withOpacity(0.8),),
+                  icon:Icon(Icons.add, size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),),
                   title:'Add New Product',
-                  page:AddProduct() ,),
+                  page:AddProduct(session: session,) ,),
 
                 BsMenuItem(
                     height:gridHeight,
-                    icon:Icon(MaterialIcons.arrow_drop_down_circle, size: MediaQuery.of(context).size.width*0.16,color: themeColor.withOpacity(0.8),),
+                    icon:Icon(MaterialIcons.arrow_drop_down_circle, size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),),
                     title:'Add Product From Pool',
-                    page: SourceProduct(themeColor: themeColor,),),
+                    page: SourceProduct(themeColor:PRIMARYCOLOR,),),
 
                 BsMenuItem(
                     height:gridHeight,
-                    icon:Icon(Icons.edit, size: MediaQuery.of(context).size.width*0.16,color: themeColor.withOpacity(0.8),),
+                    icon:Icon(Icons.edit, size: MediaQuery.of(context).size.width*0.16,color: PRIMARYCOLOR.withOpacity(0.8),),
                     title:'Manage Product',
                   page: ManageProduct(),),
 

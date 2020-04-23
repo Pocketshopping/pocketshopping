@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:pocketshopping/model/DataModel/notificationDataModel.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/locations.dart';
 import 'package:pocketshopping/page/user/order.dart';
@@ -9,6 +11,7 @@ import 'package:pocketshopping/page/user/drawer.dart';
 import 'package:pocketshopping/page/admin/dasbboard.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:flutter/services.dart';
+import 'package:pocketshopping/component/psProvider.dart';
 
 
 class AdminPage extends StatefulWidget {
@@ -20,11 +23,7 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
 
   int _selectedIndex;
-  int _cartCount;
   Color fabColor;
-  var _cart;
-  var _merchant;
-//CartCollection _cartCollection;
   GlobalKey globalKey = new GlobalKey(debugLabel: '_AdminPageState');
   BottomNavigationBadge badger = new BottomNavigationBadge(
       backgroundColor: Colors.red,
@@ -57,11 +56,36 @@ class _AdminPageState extends State<AdminPage> {
   @override
   void initState(){
     super.initState();
+    print('builder');
     _selectedIndex = 0;
-    _cartCount=0;
-    _cart = Map();
-    _merchant = Map();
     fabColor = PRIMARYCOLOR;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+           /*StreamBuilder(
+          stream: NotificationDataModel(uid:psProvider.of(context).value['uid']).getAll(),
+          builder: (context, snap) {
+            if (snap.hasData && !snap.hasError && snap.data.snapshot.value!=null) {}});*/
+      NotificationDataModel(uid:psProvider.of(context).value['uid'],nCleared: false).getAll().then((value) => {
+        if(value.length>0){
+          psProvider.of(context).value['notifications']=value,
+          Scaffold.of(context).showSnackBar(
+              SnackBar(
+                duration: Duration(seconds: 5),
+                content: Text('You have very important notification that needs your attention'),
+                action: SnackBarAction(
+                  label: "View Now",
+                  textColor: Colors.white,
+                  //disabledTextColor: TEXT_BLACK_LIGHT,
+                  onPressed: () {
+                    print("I know you are testing the action in the SnackBar!");
+                  },
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              )
+          )
+        }
+      });
+    });
   }
 
   void _onItemTapped(int index) {
@@ -72,48 +96,7 @@ class _AdminPageState extends State<AdminPage> {
 
 
 
-  void _removeFromCart(String key){
-    setState(() {
-      _cart.remove(key);
-    });
-  }
 
-  bool _addToCart(Map item, String key){
-
-    if(_cart.containsKey(key))
-      return false;
-    else{
-      setState(() {
-        _cart[key] = item;
-        _cartCount +=1;
-      });
-      return true;
-    }
-
-  }
-
-  Map _getBasket(){
-    return _cart;
-  }
-
-  int _getBasketCount(){
-    return _cartCount;
-  }
-
-  void _setFabColor(Color color){
-    setState(() {
-      fabColor=color;
-    });
-  }
-  void _setMerchant(Map merchant){
-    setState(() {
-      _merchant=merchant;
-    });
-  }
-
-  Map _getMerchant(){
-    return _merchant;
-  }
 
 
 

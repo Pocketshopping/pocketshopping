@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pocketshopping/component/psCard.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/constants/ui_constants.dart';
-import 'package:pocketshopping/firebase/BaseAuth.dart';
-import 'package:pocketshopping/model/DataModel/merchantData.dart';
-import 'package:pocketshopping/page/curvyPage.dart';
 import 'package:pocketshopping/page/setUpBusiness.dart';
 import 'package:pocketshopping/page/user.dart';
-import 'package:pocketshopping/page/admin.dart';
-import 'package:pocketshopping/widget/template.dart';
+
 
 class BusinessSetUpPage extends StatefulWidget {
   static String tag = 'BusinessSetUp-page';
@@ -252,27 +248,6 @@ class _ExistingBusinessState extends State<ExistingBusiness>{
   @override
   Widget build(BuildContext context) {
 
-    final businessID = TextFormField(
-      controller: _bidController,
-      validator: (value) {
-        if (value.isEmpty) {
-          return 'Enter a Business ID';
-        }
-        else if (value.length<=2) {
-          return 'Enter a valid Business ID';
-        }
-        return null;
-      },
-      keyboardType: TextInputType.text,
-      autofocus: false,
-
-      decoration: InputDecoration(
-        labelText:"Business ID",
-        hintText: 'Business ID',
-        border: InputBorder.none,
-      ),
-    );
-
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -328,93 +303,11 @@ class _ExistingBusinessState extends State<ExistingBusiness>{
                               ),
                             ),
                             padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: Text("please enter the business ID of the existing business "
-                                "by which after this registration is going to serve as HQ "
-                                "you can get the business ID by contacting whoever is in "
-                                "charge of the parent business. Please do well to read our terms and conditions"
+                            child: Text("To create a branch you need to request for branch link from the exisiting"
+                                " business, once recieved you can create branch by visiting the link. Please do well to read our terms and conditions"
                                 "",style: TextStyle(fontSize: 16),),
                           )),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: Column(
-                              children: <Widget>[
-                                //Text(report,style: TextStyle(color: Colors.redAccent),),
-                                businessID
-                              ],
-                            ),
-                          ),
-                          Center(child:Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide( //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-                            child: FlatButton(
-                              onPressed: (){
-                                if(!loading) {
-                                  if (_formKey.currentState.validate()) {
-                                    setState(() {
-                                      loading = true;
-                                    });
-                                    MerchantDataModel(bID: _bidController.text)
-                                        .getAnyOne()
-                                        .then((value) =>
-                                    {
-                                    setState(() {
-                                    loading = false;
-                                    }),
-                                      if(value.isNotEmpty){
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    SetupBusiness(data: value,)))
-                                      }
-                                      else
-                                        {
-                                          Scaffold.of(ctx).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                    "No Business with the provided ID contact your"
-                                                        " HQ for valid business ID or create a new business"),
-                                              ))
-                                        }
-                                    });
-                                  }
-                                }
-                                else{
-                                  Scaffold.of(ctx).showSnackBar(SnackBar(
-                                    content: Text("please wait!... I am working",textAlign: TextAlign.center,),
-                                  ));
-                                }
-                              },
-                              color: themecolor,
-                              child:!loading?Text("Create",style: TextStyle(color: Colors.white),)
-                                  :Container(
-                                  height:MediaQuery.of(context).size.height*0.02,
-                                  width:MediaQuery.of(context).size.width*0.03,
-                                  child:Center(child:CircularProgressIndicator(
-                                    strokeWidth: 1.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ))),
-                            ),
-                          )),
-
-
-
-                        ]
+                          ]
                     ),
                     )
                   )
