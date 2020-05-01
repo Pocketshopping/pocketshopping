@@ -64,9 +64,15 @@ var appState = new AppState({'instanceID':'34','cart':0});
 */
 
 
+import 'dart:async';
+import 'dart:io';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
+//import 'package:get/get.dart' as _get;
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/home_screen.dart';
@@ -77,6 +83,7 @@ import 'package:custom_splash/custom_splash.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
 void main() {
+
   WidgetsFlutterBinding.ensureInitialized();
   BlocSupervisor.delegate = SimpleBlocDelegate();
   final UserRepository userRepository = UserRepository();
@@ -104,7 +111,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
 
 
-    return MaterialApp(
+    return GetMaterialApp(
           builder: (context, child) =>
               MediaQuery(data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true), child: child),
           theme: ThemeData(
@@ -132,35 +139,40 @@ class MyApp extends StatelessWidget {
 
 
 }
-
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   final UserRepository _userRepository;
 
   App({Key key, @required UserRepository userRepository})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
+  @override
+  AppState createState() => new AppState();
+}
+
+class AppState extends State<App> {
+  @override
+  void initState() {
+
+    super.initState();
+
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        backgroundColor: Colors.transparent,
-        bottomSheetTheme: BottomSheetThemeData(
-            backgroundColor: Colors.black.withOpacity(0)),
-      ),
-      home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+    return Scaffold(
+      body: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state is Unauthenticated) {
-            return LoginScreen(userRepository: _userRepository);
+            return LoginScreen(userRepository: widget._userRepository);
           }
           if (state is Authenticated) {
             if(state.user.displayName == 'user')
-              return UserScreen(userRepository: _userRepository);
+              return UserScreen(userRepository: widget._userRepository);
             else if(state.user.displayName == 'admin')
-              return AdminScreen(userRepository: _userRepository);
+              return AdminScreen(userRepository: widget._userRepository);
             else if(state.user.displayName == 'staff')
-              return StaffScreen(userRepository: _userRepository);
+              return StaffScreen(userRepository: widget._userRepository);
             else
               return HomeScreen(name: state.user.email);
           }

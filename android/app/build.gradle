@@ -67,4 +67,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:20.1.2'
     implementation 'com.google.firebase:firebase-storage:19.1.1'
     implementation 'com.google.firebase:firebase-dynamic-links:19.1.0'
+    implementation 'co.paystack.android.design.widget:pinpad:1.0.4'
+    implementation 'co.paystack.android:paystack:3.0.17'
+    implementation 'com.squareup.retrofit2:retrofit:2.6.2'
+    implementation 'com.squareup.retrofit2:converter-gson:2.6.2'
 }

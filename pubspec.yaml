@@ -24,9 +24,7 @@ dependencies:
   dash_chat: ^1.0.16
   path_provider: ^1.6.5
   image_picker: ^0.6.2+3
-  google_map_polyline:
-    git:
-      url: git://github.com/Shark01/google_map_polyline.git
+  google_map_polyline: ^0.2.0+1
   firebase_auth: ^0.15.5+2
   firebase_messaging: ^6.0.12
   firebase_storage: ^3.1.3
@@ -55,6 +53,14 @@ dependencies:
   geoflutterfire: ^2.1.0
   location: ^3.0.2
   carousel_pro: ^1.0.0
+  geocoder: ^0.2.1
+  http: ^0.12.0+4
+  flutter_credit_card:
+    path: ./packages/flutter_credit_card
+  step_progress_indicator: ^0.2.2+5
+  timeline_node: ^0.1.0
+  get: ^2.0.8-dev
+  random_string: ^2.0.1
 
 dev_dependencies:
   flutter_test:

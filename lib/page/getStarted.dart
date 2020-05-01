@@ -35,7 +35,6 @@ class _GetStartedPageState extends State<GetStartedPage> {
   var authHandler = new Auth();
   var user;
   final FirebaseMessaging _fcm = FirebaseMessaging();
-
   StreamSubscription iosSubscription;
 
 

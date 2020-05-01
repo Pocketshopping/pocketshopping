@@ -9,11 +9,14 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <application
-        android:name="io.flutter.app.FlutterApplication"
+        android:name=".Application"
         android:label="pocketshopping"
         android:icon="@mipmap/ic_launcher">
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc"/>
+        <meta-data
+            android:name="co.paystack.android.PublicKey"
+            android:value="pk_test_75aba332cc72ea999034955083704a16da6f8c1c"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

@@ -127,7 +127,6 @@ class _MerchantMapState extends State<MerchantMap> {
               sourceName: widget.sourceName,
               sourceAddress: widget.sourceAddress,
               sourcePhoto: widget.sourcePhoto,
-
             ),
         ));
   }

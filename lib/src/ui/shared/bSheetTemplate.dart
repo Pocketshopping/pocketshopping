@@ -81,11 +81,13 @@ class CarouselBottomSheetTemplate extends StatelessWidget{
   final double height;
   final double opacity;
   final Color color;
+  final bool scrollable;
   CarouselBottomSheetTemplate({
     @required this.child,
     this.height=100,
     this.opacity=0.5,
-    this.color=Colors.white
+    this.color=Colors.white,
+    this.scrollable=true,
 
   });
 
@@ -116,6 +118,7 @@ class CarouselBottomSheetTemplate extends StatelessWidget{
                             flex: 1,
                             child:
                             CustomScrollView(
+                              physics: scrollable?AlwaysScrollableScrollPhysics():NeverScrollableScrollPhysics(),
                                 slivers: <Widget>[
                                   SliverList(
                                       delegate: SliverChildListDelegate(

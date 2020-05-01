@@ -30,19 +30,7 @@ class _GeoFenceState extends State<GeoFence>{
   List<String> categories =[];
   ScrollController _scrollController = new ScrollController();
   Session CurrentUser;
-  List<String> covers =[
-    'https://cdn.dribbble.com/users/230290/screenshots/5574626/crisp_drb.jpg',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcR_6b3C9f_GUEM_kNQYmLmcBH9kC-xvbs4whyuWPl7Di86BTBvo',
-    'https://www.cometonigeria.com/wp-content/uploads/Vanilla-logo.jpg',
-    'https://theprofficers.com/wp-content/uploads/2015/02/uncle-ds-restaurant-logo-e1554529462345.png',
-    'https://nightlife.ng/wp-content/uploads/2018/04/n6pa.jpg',
-    'https://jevinik.com.ng/images/logo.png',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSrqjg3uWWgw6gMSi7R4TVqxvlWI0i_0KZi4BLTDA9rVBbQQq3o',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRSarwgXmjE7GBzd-riLX8dnxuqbssaJ-U3xrGPHzmTrZ3kTyE6',
-    'https://lh3.googleusercontent.com/P008O2T_gGAda0C3qDi91Zi8w0H3bLg2ooQAHep4MZC5R3k0PW_k_WPTJbQPgYZonWjnbfON=s1280-p-no-v1'
-
-  ];
-
+  GeoFenceBloc gBloc;
   @override
   void initState() {
 
@@ -50,6 +38,7 @@ class _GeoFenceState extends State<GeoFence>{
     loader=6;
     categories=['Restuarant','Bar'];
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
+    gBloc=GeoFenceBloc();
 
 
   }
@@ -181,13 +170,20 @@ class _GeoFenceState extends State<GeoFence>{
   }
 
 
+  @override
+  void dispose() {
+    gBloc.close();
+    super.dispose();
+  }
+
+
 
 
   @override
   Widget build(BuildContext context) {
     double height=MediaQuery.of(context).size.height;
     return BlocProvider<GeoFenceBloc>(
-      create: (context) => GeoFenceBloc()..add(NearByMerchant(category: 'Restuarant')),
+      create: (context) => gBloc..add(NearByMerchant(category: 'Restuarant')),
       child: BlocBuilder<GeoFenceBloc,GeoFenceState>(
         builder: (context,state){
           return Scaffold(
@@ -412,11 +408,11 @@ class _GeoFenceState extends State<GeoFence>{
 
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
+  //@override
+  //void dispose() {
+    //context.bloc().close();
+    //super.dispose();
+  //}
 }
 
 class ChatBubbleTriangle extends CustomPainter {

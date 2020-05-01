@@ -61,6 +61,7 @@ class UserRepo{
       ) async{
     bool success=false;
     String fcmToken = await _fcm.getToken();
+    print(fcmToken);
     await databaseReference.collection("users")
         .document(uid)
         .updateData(makeData(

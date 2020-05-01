@@ -1,11 +1,16 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-
+import 'package:get/get.dart';
 import 'package:pocketshopping/page/admin/TopUp.dart';
 import 'package:pocketshopping/page/admin/message.dart';
 import 'package:pocketshopping/page/admin/openOrder.dart';
@@ -40,10 +45,35 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
   final GlobalKey<ScaffoldState> scaffoldKey=GlobalKey<ScaffoldState>();
   Session CurrentUser;
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  final String serverToken='AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
+  Stream<LocalNotification> _notificationsStream;
+  StreamSubscription iosSubscription;
+
   @override
   void initState(){
-    super.initState();
+
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
+    _notificationsStream = NotificationsBloc.instance.notificationsStream;
+
+    _notificationsStream.listen((notification) {
+      // TODO: Implement your logic here
+      // You might want to incement notificationCouter using above mentioned logic.
+      //print('Notifications: ${notification.data}');
+      showBottom();
+      //NotificationsBloc.instance.clearNotification();
+    });
+    super.initState();
+  }
+
+  showBottom(){
+    //GetBar(title: 'tdsd',messageText: Text('sdsd'),duration: Duration(seconds: 2),).show();
+
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -118,11 +148,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                         //width: MediaQuery.of(context).size.width*0.2,
                                         child:FlatButton(
                                           onPressed: () => {
+                                          sendAndRetrieveMessage().then((value) => null)
 
-                                            Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>TopUp()    ))
+                                            //Navigator.push(
+                                              //  context,
+                                                //MaterialPageRoute(
+                                                  //  builder: (context) =>TopUp()    ))
 
                                           },
                                           child:  Center(child:Text("TopUp",style: TextStyle(color: Colors.white),)),
@@ -310,5 +341,40 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     );
 
 
+  }
+  Future<void> sendAndRetrieveMessage() async{
+    print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(sound: true,badge: true,alert: true,provisional: false),
+    );
+    var response = await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String,String>{
+          'Content-Type':'application/json',
+          'Authorization':'key=$serverToken'
+        },
+        body: jsonEncode(<String,dynamic>{
+          'notification':<String,dynamic>{
+            'body':'big body',
+            'title':'titler'
+          },
+          'priority':'high',
+          'data':<String,dynamic>{
+            'click_action':'FLUTTER_NOTIFICATION_CLICK',
+            'id':'1',
+            'status':'done',
+            'payload':['route','heart']
+          },
+          'registration_ids':['dI7Jp8onQPi2icNicdNqMU:APA91bFUZEsW-z2Vo5dMjeyqd2mY3No20gmCBoCZZkeKD58fzBKnAEehiZvTmYuYVNwUKSvozpUuCZadGvBrN2HdoXlY6BsCsblf0QaF10fBmxuJrKz1OB4NbpG9i5r8ABLdUON2wUqg',
+          'cjFv_dGURZGxSJnBnHL3YU:APA91bECZPoh-OPVxk9QMkieFLXu9TBOKAw2MkfRmBkp8aOeMhnEtc_f7kgSxJCX5GNkV75300HLebhpLQ-vYn_VVwi1fMm9IMvwqfJlx3HPFewM4L56j24xklA8JP9qQaq6ooi_xxoZ'
+          ],
+        })
+    );
+
+
+    if (response.statusCode == 200) {
+      print("Notification send !");
+    } else {
+      print("false");
+    }
   }
 }

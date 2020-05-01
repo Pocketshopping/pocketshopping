@@ -14,11 +14,7 @@ class UserRepository {
   Future<FirebaseUser> signIn(String email, String password) async {
     AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
-      password: password,
-
-
-
-    );
+      password: password,);
     FirebaseUser user = result.user;
     return user;
   }

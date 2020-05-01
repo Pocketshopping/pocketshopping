@@ -647,7 +647,7 @@ class ListItem extends StatelessWidget {
                             Expanded(
                                 child:
                             FlatButton.icon(
-                                onPressed: (){},
+                                onPressed: (){callback({'callType':'CART','payload':title});},
                                 icon: Icon(Icons.shopping_basket,color: Colors.black54),
                                 label: Text('Add',
                                   style:

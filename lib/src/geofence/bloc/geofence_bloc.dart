@@ -116,8 +116,8 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
 
   @override
   Future<void> close() {
-    _positionSubscription?.cancel();
-    _merchantSubscription?.cancel();
+    _positionSubscription.cancel();
+    _merchantSubscription.cancel();
     return super.close();
   }
 }

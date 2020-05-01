@@ -63,3 +63,42 @@ class _psCardState extends State<psCard> {
 
   }
 }
+
+class psHeadlessCard extends StatelessWidget{
+
+  psHeadlessCard(
+      {
+        this.child,
+        this.boxShadow,
+      });
+
+
+  final Widget child;
+  final List<BoxShadow> boxShadow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: boxShadow,
+      ),
+      //width: 300,
+      margin: EdgeInsets.all(MediaQuery.of(context).size.width*0.04),
+      child:Column(
+          children:<Widget>[
+            Container(
+
+              //padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
+              child: child !=null?child:Container(),
+
+            ),
+
+          ]
+      ),
+    );
+
+
+  }
+
+}
