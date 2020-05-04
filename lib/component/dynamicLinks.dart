@@ -3,9 +3,8 @@ import 'dart:async';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 
 class DynamicLinks {
-
   // create a link with params
-  static Future<Uri> createLinkWithParams(Map<String,String> data) =>
+  static Future<Uri> createLinkWithParams(Map<String, String> data) =>
       _getLink('mylink', data);
 
   // create a short link with params
@@ -15,7 +14,8 @@ class DynamicLinks {
 
     final ShortDynamicLink shortLink = await DynamicLinkParameters.shortenUrl(
       longLink,
-      new DynamicLinkParametersOptions(shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable),
+      new DynamicLinkParametersOptions(
+          shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable),
     );
 
     return shortLink.shortUrl;
@@ -23,7 +23,7 @@ class DynamicLinks {
 
   // create a link with all our params and retrun DynamucLinkParameters
   static DynamicLinkParameters _getParams(
-      String category, Map<String, String> args) =>
+          String category, Map<String, String> args) =>
       DynamicLinkParameters(
         uriPrefix: 'https://fleepage.page.link',
         link: Uri.https('fleepage.page.link', category, args),
@@ -31,6 +31,5 @@ class DynamicLinks {
           packageName: 'fleepage.pocketshopping',
         ),
         iosParameters: IosParameters(bundleId: 'fleepage.pocketshopping'),
-
       );
 }

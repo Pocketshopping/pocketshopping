@@ -98,15 +98,14 @@ class Submitted extends RegisterEvent {
   final String name;
   final String telephone;
 
-  const Submitted({
-    @required this.email,
-    @required this.password,
-  @required this.name,
-  @required this.telephone
-  });
+  const Submitted(
+      {@required this.email,
+      @required this.password,
+      @required this.name,
+      @required this.telephone});
 
   @override
-  List<Object> get props => [email, password,name,telephone];
+  List<Object> get props => [email, password, name, telephone];
 
   @override
   String toString() {

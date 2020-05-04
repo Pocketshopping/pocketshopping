@@ -1,10 +1,3 @@
-import 'package:flutter/material.dart';
 
 
-class LocationManager {
-
-
-
-
-
-}
+class LocationManager {}

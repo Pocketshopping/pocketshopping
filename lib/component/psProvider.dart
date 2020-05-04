@@ -1,30 +1,33 @@
 import 'package:flutter/widgets.dart';
 
-
 class psProvider extends StatefulWidget {
   const psProvider({this.data, this.child});
+
   final data;
   final child;
+
   @override
   Widget build(BuildContext context) {
     return new _InheritedProvider(data: data, child: child);
   }
+
   static of(BuildContext context) {
     _InheritedProvider p =
-    context.dependOnInheritedWidgetOfExactType(aspect: _InheritedProvider);
+        context.dependOnInheritedWidgetOfExactType(aspect: _InheritedProvider);
     return p.data;
   }
+
   @override
   State<StatefulWidget> createState() => new _ProviderState();
 }
 
 class _ProviderState extends State<psProvider> {
-
   @override
   initState() {
     super.initState();
     widget.data.addListener(didValueChange);
   }
+
   didValueChange() => setState(() {});
 
   @override
@@ -49,6 +52,7 @@ class _InheritedProvider extends InheritedWidget {
   final data;
   final child;
   final _dataValue;
+
   @override
   bool updateShouldNotify(_InheritedProvider oldWidget) {
     return _dataValue != oldWidget._dataValue;

@@ -1,5 +1,5 @@
-
 import 'dart:io';
+
 import 'package:meta/meta.dart';
 
 @immutable
@@ -15,9 +15,6 @@ class ProductState {
   final bool isFailure;
   final int count;
 
-
-
-
   bool get isFormValid => isPriceValid && isNameValid && isCategoryValid;
 
   ProductState({
@@ -31,36 +28,31 @@ class ProductState {
     this.croppedImage,
     this.barCode,
     this.count,
-
   });
 
   factory ProductState.empty() {
     return ProductState(
-      isNameValid:true,
+      isNameValid: true,
       isPriceValid: true,
       isCategoryValid: true,
       croppedImage: [],
-      barCode:'',
+      barCode: '',
       count: 0,
       isUploading: false,
       isSubmitting: false,
       isSuccess: false,
       isFailure: false,
-
-
-
     );
   }
 
   factory ProductState.loading({
     bool isUploading,
     List<File> croppedImage,
-    String barCode="",
-    int count=0,
-
+    String barCode = "",
+    int count = 0,
   }) {
     return ProductState(
-      isNameValid:true,
+      isNameValid: true,
       isPriceValid: true,
       isCategoryValid: true,
       croppedImage: croppedImage,
@@ -73,18 +65,14 @@ class ProductState {
     );
   }
 
-
-  factory ProductState.failure(
-      {
-
-        bool isUploading,
-        List<File> croppedImage,
-        String barCode="",
-        int count=0,
-      }
-      ) {
+  factory ProductState.failure({
+    bool isUploading,
+    List<File> croppedImage,
+    String barCode = "",
+    int count = 0,
+  }) {
     return ProductState(
-      isNameValid:true,
+      isNameValid: true,
       isPriceValid: true,
       isCategoryValid: true,
       croppedImage: croppedImage,
@@ -102,7 +90,7 @@ class ProductState {
       croppedImage: [],
       barCode: "",
       count: 0,
-      isNameValid:true,
+      isNameValid: true,
       isPriceValid: true,
       isCategoryValid: true,
       isSubmitting: false,
@@ -124,10 +112,10 @@ class ProductState {
     return copyWith(
       isPriceValid: isPriceValid,
       isCategoryValid: isCategoryValid,
-      isNameValid:isNameValid,
+      isNameValid: isNameValid,
       croppedImage: croppedImage,
-      barCode:barCode,
-      count:count,
+      barCode: barCode,
+      count: count,
       isUploading: isUploading,
       isSubmitting: false,
       isSuccess: false,
@@ -147,15 +135,14 @@ class ProductState {
     bool isSubmitting,
     bool isSuccess,
     bool isFailure,
-
   }) {
     return ProductState(
       isPriceValid: isPriceValid ?? this.isPriceValid,
       isCategoryValid: isCategoryValid ?? this.isCategoryValid,
-      isNameValid: isNameValid??this.isNameValid,
-      croppedImage: croppedImage??this.croppedImage,
-      barCode:barCode??this.barCode,
-      count: count??this.count,
+      isNameValid: isNameValid ?? this.isNameValid,
+      croppedImage: croppedImage ?? this.croppedImage,
+      barCode: barCode ?? this.barCode,
+      count: count ?? this.count,
       isUploading: isUploading ?? this.isUploading,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,

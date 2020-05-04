@@ -1,11 +1,7 @@
-
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:meta/meta.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 
 abstract class BusinessEvent extends Equatable {
   const BusinessEvent();
@@ -115,16 +111,13 @@ class Submitted extends BusinessEvent {
     @required this.name,
     @required this.telephone,
     @required this.user,
-
   });
 
   @override
-  List<Object> get props => [address, category,name,telephone,user];
+  List<Object> get props => [address, category, name, telephone, user];
 
   @override
   String toString() {
     return 'Submitted { address: $address, category: $category, name: $name, telephone: $telephone, uid:$user }';
   }
-
-
 }

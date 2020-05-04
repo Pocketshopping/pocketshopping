@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
-
 abstract class UserState extends Equatable {
   const UserState();
 

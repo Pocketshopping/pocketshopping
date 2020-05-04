@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/register/register.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
 
 class CreateAccountButton extends StatelessWidget {
   final UserRepository _userRepository;

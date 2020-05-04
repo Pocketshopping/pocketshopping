@@ -1,12 +1,11 @@
-
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-
 
 class TakePicturePage extends StatefulWidget {
   final CameraDescription camera;
   final Color fabColor;
+
   TakePicturePage({@required this.camera, this.fabColor});
 
   @override
@@ -14,7 +13,6 @@ class TakePicturePage extends StatefulWidget {
 }
 
 class _TakePicturePageState extends State<TakePicturePage> {
-
   CameraController _cameraController;
   Future<void> _initializeCameraControllerFuture;
 
@@ -29,12 +27,12 @@ class _TakePicturePageState extends State<TakePicturePage> {
     try {
       await _initializeCameraControllerFuture;
 
-      final path = (await  getTemporaryDirectory()).path+ '${DateTime.now()}.png';
+      final path =
+          (await getTemporaryDirectory()).path + '${DateTime.now()}.png';
 
       await _cameraController.takePicture(path);
 
-      Navigator.pop(context,path);
-
+      Navigator.pop(context, path);
     } catch (e) {
       print(e);
     }
@@ -44,13 +42,11 @@ class _TakePicturePageState extends State<TakePicturePage> {
   void initState() {
     super.initState();
 
-    _cameraController =
-        CameraController(
-            widget.camera,
-            ResolutionPreset.high,
-            enableAudio: true,
-
-        );
+    _cameraController = CameraController(
+      widget.camera,
+      ResolutionPreset.high,
+      enableAudio: true,
+    );
 
     _initializeCameraControllerFuture = _cameraController.initialize();
   }
@@ -60,39 +56,37 @@ class _TakePicturePageState extends State<TakePicturePage> {
     return Stack(
       children: <Widget>[
         FutureBuilder(
-            future: _initializeCameraControllerFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return AspectRatio(
-                  aspectRatio: _cameraController.value.aspectRatio,
-                  child: CameraPreview(_cameraController),
-                );
-              } else {
-                return Center(child: CircularProgressIndicator());
-              }
-            },
-          ),
-
-
-        Align(
-          alignment: Alignment.bottomCenter,
-          child:Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height*0.04),
-            child: FloatingActionButton(
-
-              onPressed: (){_takePicture(context);},
-              backgroundColor: widget.fabColor != null?widget.fabColor:Colors.black54,
-              tooltip: 'Increment',
-              child:Icon(Icons.camera_alt
-              ,size: MediaQuery.of(context).size.height*0.05,),
-
-            ),
-          )
+          future: _initializeCameraControllerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return AspectRatio(
+                aspectRatio: _cameraController.value.aspectRatio,
+                child: CameraPreview(_cameraController),
+              );
+            } else {
+              return Center(child: CircularProgressIndicator());
+            }
+          },
         ),
-
-    ],
-
+        Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height * 0.04),
+              child: FloatingActionButton(
+                onPressed: () {
+                  _takePicture(context);
+                },
+                backgroundColor:
+                    widget.fabColor != null ? widget.fabColor : Colors.black54,
+                tooltip: 'Increment',
+                child: Icon(
+                  Icons.camera_alt,
+                  size: MediaQuery.of(context).size.height * 0.05,
+                ),
+              ),
+            )),
+      ],
     );
   }
-
 }

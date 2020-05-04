@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/widget/bSheetTemplate.dart';
 
-
-class BottomSheetSocialWidget extends StatelessWidget{
-
-
+class BottomSheetSocialWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomSheetTemplate(
-      height: MediaQuery.of(context).size.height*0.8,
-      child:Column(
+      height: MediaQuery.of(context).size.height * 0.8,
+      child: Column(
         children: <Widget>[
           Text("Social"),
         ],
       ),
     );
-
   }
-
 }
-

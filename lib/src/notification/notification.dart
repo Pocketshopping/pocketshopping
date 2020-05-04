@@ -12,7 +12,8 @@ class NotificationsBloc {
 
   static final NotificationsBloc instance = NotificationsBloc._internal();
 
-  BehaviorSubject<LocalNotification> _notificationsStreamController = BehaviorSubject<LocalNotification>();
+  BehaviorSubject<LocalNotification> _notificationsStreamController =
+      BehaviorSubject<LocalNotification>();
 
   Stream<LocalNotification> get notificationsStream {
     return _notificationsStreamController;
@@ -20,12 +21,10 @@ class NotificationsBloc {
 
   void newNotification(LocalNotification notification) {
     _notificationsStreamController.sink.add(notification);
-
   }
 
   void clearNotification() {
     _notificationsStreamController.sink.add(null);
-
   }
 
   void dispose() {

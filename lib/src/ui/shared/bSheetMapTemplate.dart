@@ -3,18 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/ui/shared/shared.dart';
 
-class BottomSheetMapTemplate extends StatelessWidget{
+class BottomSheetMapTemplate extends StatelessWidget {
+  BottomSheetMapTemplate(
+      {@required this.source,
+      @required this.destination,
+      this.destAddress,
+      this.destName,
+      this.destPhoto,
+      this.sourceName,
+      this.sourcePhoto,
+      this.sourceAddress});
 
-  BottomSheetMapTemplate({
-    @required this.source,
-    @required this.destination,
-    this.destAddress,
-    this.destName,
-    this.destPhoto,
-    this.sourceName,
-    this.sourcePhoto,
-    this.sourceAddress
-  });
   final LatLng source;
   final LatLng destination;
   final String destName;
@@ -28,12 +27,12 @@ class BottomSheetMapTemplate extends StatelessWidget{
   Widget build(BuildContext context) {
     return BottomSheetTemplate(
       color: Color.fromRGBO(239, 238, 236, 1),
-      height: MediaQuery.of(context).size.height*0.8,
-      child:Container(
-        color:Colors.white,
-        width:MediaQuery.of(context).size.width,
-        height:MediaQuery.of(context).size.height*0.75,
-        child:  MerchantMap(
+      height: MediaQuery.of(context).size.height * 0.8,
+      child: Container(
+        color: Colors.white,
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.75,
+        child: MerchantMap(
           source: source,
           destination: destination,
           destAddress: destAddress,
@@ -45,12 +44,5 @@ class BottomSheetMapTemplate extends StatelessWidget{
         ),
       ),
     );
-
   }
-
-
-
-
-
 }
-

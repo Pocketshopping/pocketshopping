@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
-
 abstract class ProductEvent extends Equatable {
   const ProductEvent();
 
@@ -88,7 +87,6 @@ class ImageFromCamera extends ProductEvent {
   String toString() => 'ImageFromCamera { image :$image }';
 }
 
-
 class Submitted extends ProductEvent {
   final String stock;
   final String category;
@@ -106,20 +104,11 @@ class Submitted extends ProductEvent {
     @required this.price,
     @required this.unit,
     @required this.user,
-
   });
 
   @override
-  List<Object> get props => [
-    stock,
-    category,
-    name,
-    description,
-    price,
-    unit,
-    user
-
-  ];
+  List<Object> get props =>
+      [stock, category, name, description, price, unit, user];
 
   @override
   String toString() {
@@ -132,6 +121,4 @@ class Submitted extends ProductEvent {
         'stock:$stock, '
         'user:$user }';
   }
-
-
 }

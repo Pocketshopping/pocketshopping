@@ -1,4 +1,3 @@
-
 import 'package:geolocator/geolocator.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/business/business.dart';
@@ -14,9 +13,6 @@ class GeoFenceState {
   final bool isFailure;
   final int selected;
 
-
-
-
   GeoFenceState({
     this.selected,
     this.nearByMerchants,
@@ -26,7 +22,6 @@ class GeoFenceState {
     @required this.isLoading,
     @required this.isSuccess,
     @required this.isFailure,
-
   });
 
   factory GeoFenceState.empty() {
@@ -37,24 +32,22 @@ class GeoFenceState {
       selected: 0,
       currentPosition: null,
       category: 'Restuarant',
-      categories: ['Restuarant','Eatery','Bar','Store','Park'],
+      categories: ['Restuarant', 'Eatery', 'Bar', 'Store', 'Park'],
       nearByMerchants: [],
-
-
     );
   }
 
   factory GeoFenceState.loading({
-    String category= 'Restuarant',
+    String category = 'Restuarant',
     List<Merchant> nearByMerchants,
     List<String> categories,
-    int selected=0,
+    int selected = 0,
     Position currentPosition,
-}) {
+  }) {
     return GeoFenceState(
       categories: categories,
       category: category,
-      nearByMerchants: nearByMerchants??[],
+      nearByMerchants: nearByMerchants ?? [],
       selected: selected,
       currentPosition: currentPosition,
       isLoading: true,
@@ -63,20 +56,18 @@ class GeoFenceState {
     );
   }
 
-
-  factory GeoFenceState.failure({
-    String category= 'Restuarant',
-    List<Merchant> nearByMerchants,
-    List<String> categories,
-    int selected,
-    Position currentPosition
-  }) {
+  factory GeoFenceState.failure(
+      {String category = 'Restuarant',
+      List<Merchant> nearByMerchants,
+      List<String> categories,
+      int selected,
+      Position currentPosition}) {
     return GeoFenceState(
       categories: categories,
-      nearByMerchants: nearByMerchants??[],
+      nearByMerchants: nearByMerchants ?? [],
       category: category,
       selected: 0,
-      currentPosition:currentPosition,
+      currentPosition: currentPosition,
       isLoading: false,
       isSuccess: false,
       isFailure: true,
@@ -84,15 +75,15 @@ class GeoFenceState {
   }
 
   factory GeoFenceState.success({
-    String category= 'Restuarant',
+    String category = 'Restuarant',
     List<Merchant> nearByMerchants,
     List<String> categories,
-    int selected=0,
+    int selected = 0,
     Position currentPosition,
   }) {
     return GeoFenceState(
       categories: categories,
-      nearByMerchants: nearByMerchants??[],
+      nearByMerchants: nearByMerchants ?? [],
       category: category,
       selected: selected,
       currentPosition: currentPosition,
@@ -102,13 +93,12 @@ class GeoFenceState {
     );
   }
 
-  GeoFenceState update({
-    String category,
-    List<Merchant> nearByMerchants,
-    List<String> categories,
-    int selected,
-    Position currentPosition
-  }) {
+  GeoFenceState update(
+      {String category,
+      List<Merchant> nearByMerchants,
+      List<String> categories,
+      int selected,
+      Position currentPosition}) {
     return copyWith(
       categories: categories,
       nearByMerchants: nearByMerchants,
@@ -132,11 +122,11 @@ class GeoFenceState {
     bool isFailure,
   }) {
     return GeoFenceState(
-      categories: categories??this.categories,
-      category: category??this.category,
-      selected: selected??this.selected,
-      currentPosition: currentPosition??this.currentPosition,
-      nearByMerchants: nearByMerchants??this.nearByMerchants,
+      categories: categories ?? this.categories,
+      category: category ?? this.category,
+      selected: selected ?? this.selected,
+      currentPosition: currentPosition ?? this.currentPosition,
+      nearByMerchants: nearByMerchants ?? this.nearByMerchants,
       isLoading: isLoading ?? this.isLoading,
       isSuccess: isSuccess ?? this.isSuccess,
       isFailure: isFailure ?? this.isFailure,
@@ -156,4 +146,3 @@ class GeoFenceState {
     }''';
   }
 }
-

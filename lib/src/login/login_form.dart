@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 
@@ -42,7 +42,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR =  MediaQuery.of(context).size.width;
+    double marginLR = MediaQuery.of(context).size.width;
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state.isFailure) {
@@ -83,112 +83,122 @@ class _LoginFormState extends State<LoginForm> {
             padding: EdgeInsets.only(left: 0, right: 0),
             children: <Widget>[
               Center(
-                  child:Container(
-                  padding: EdgeInsets.only(left: marginLR*0.02, right: marginLR*0.02),
-              margin: EdgeInsets.only(top: marginLR*0.3),
-              child:
-              psCard(
-                  color: PRIMARYCOLOR,
-                  title: 'Sign In',
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey,
-                      //offset: Offset(1.0, 0), //(x,y)
-                      blurRadius: 6.0,
-                    ),
-                  ],
-                  child: Form(
-          child:
-          Column(
-          children: <Widget>[
-          SizedBox(height: 10,),
-          Center(
-          child: Image.asset(
-          //placeholder: kTransparentImage,
-          'assets/images/blogo.png',
-          fit: BoxFit.cover,
-          height: MediaQuery.of(context).size.height*0.15,),
-          ),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide( //                   <--- left side
-                    color: Colors.black12,
-                    width: 1.0,
-                  ),
-                ),
-              ),
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-              child: TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  hintText: 'Email',
-                  border: InputBorder.none,
-                ),
-                keyboardType: TextInputType.emailAddress,
-                autovalidate: true,
-                autocorrect: false,
-                validator: (_) {
-                  return !state.isEmailValid ? 'Invalid Email' : null;
-                },
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide( //                   <--- left side
-                    color: Colors.black12,
-                    width: 1.0,
-                  ),
-                ),
-              ),
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
-              child: TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  hintText: 'Password',
-                  border: InputBorder.none,
-                ),
-                obscureText: true,
-                autovalidate: true,
-                autocorrect: false,
-                validator: (_) {
-                  return !state.isPasswordValid ? 'Invalid Password' : null;
-                },
-              ),
-            ),
-            Container(
-              child: Padding(
-          padding: EdgeInsets.symmetric(vertical: marginLR*0.008,horizontal:marginLR*0.08 ),
-          child: RaisedButton(
-          onPressed: isLoginButtonEnabled(state)
-          ? _onFormSubmitted
-              : null,
-          padding: EdgeInsets.all(12),
-          color: Color.fromRGBO(0, 21, 64, 1),
-          child: Center(child: Text('Sign In', style: TextStyle(color: Colors.white)),),
-          )
-              ),
-            ),
-            Container(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    CreateAccountButton(userRepository: _userRepository),
-                  ],
-                ),
-              ),
-            ),
-                     ]
-                   )
-                  )
-
-                  )
-                  )
-
-              ),
+                  child: Container(
+                      padding: EdgeInsets.only(
+                          left: marginLR * 0.02, right: marginLR * 0.02),
+                      margin: EdgeInsets.only(top: marginLR * 0.3),
+                      child: psCard(
+                          color: PRIMARYCOLOR,
+                          title: 'Sign In',
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey,
+                              //offset: Offset(1.0, 0), //(x,y)
+                              blurRadius: 6.0,
+                            ),
+                          ],
+                          child: Form(
+                              child: Column(children: <Widget>[
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Center(
+                              child: Image.asset(
+                                //placeholder: kTransparentImage,
+                                'assets/images/blogo.png',
+                                fit: BoxFit.cover,
+                                height:
+                                    MediaQuery.of(context).size.height * 0.15,
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    //                   <--- left side
+                                    color: Colors.black12,
+                                    width: 1.0,
+                                  ),
+                                ),
+                              ),
+                              padding: EdgeInsets.all(
+                                  MediaQuery.of(context).size.width * 0.02),
+                              child: TextFormField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: 'Email',
+                                  border: InputBorder.none,
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                                autovalidate: true,
+                                autocorrect: false,
+                                validator: (_) {
+                                  return !state.isEmailValid
+                                      ? 'Invalid Email'
+                                      : null;
+                                },
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    //                   <--- left side
+                                    color: Colors.black12,
+                                    width: 1.0,
+                                  ),
+                                ),
+                              ),
+                              padding: EdgeInsets.all(
+                                  MediaQuery.of(context).size.width * 0.02),
+                              child: TextFormField(
+                                controller: _passwordController,
+                                decoration: InputDecoration(
+                                  hintText: 'Password',
+                                  border: InputBorder.none,
+                                ),
+                                obscureText: true,
+                                autovalidate: true,
+                                autocorrect: false,
+                                validator: (_) {
+                                  return !state.isPasswordValid
+                                      ? 'Invalid Password'
+                                      : null;
+                                },
+                              ),
+                            ),
+                            Container(
+                              child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: marginLR * 0.008,
+                                      horizontal: marginLR * 0.08),
+                                  child: RaisedButton(
+                                    onPressed: isLoginButtonEnabled(state)
+                                        ? _onFormSubmitted
+                                        : null,
+                                    padding: EdgeInsets.all(12),
+                                    color: Color.fromRGBO(0, 21, 64, 1),
+                                    child: Center(
+                                      child: Text('Sign In',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                    ),
+                                  )),
+                            ),
+                            Container(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    CreateAccountButton(
+                                        userRepository: _userRepository),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ]))))),
             ],
           );
         },

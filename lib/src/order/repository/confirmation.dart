@@ -1,10 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
-
 
 @immutable
 class Confirmation {
-
   final dynamic confirmedAt;
   final String confirmOTP;
   final bool isConfirmed;
@@ -12,7 +9,7 @@ class Confirmation {
   Confirmation({
     this.confirmedAt,
     this.confirmOTP,
-    this.isConfirmed=false,
+    this.isConfirmed = false,
   });
 
   Confirmation copyWith({
@@ -21,12 +18,11 @@ class Confirmation {
     bool isConfirmed,
   }) {
     return Confirmation(
-        confirmedAt: confirmedAt??this.confirmedAt,
-        confirmOTP: confirmOTP??this.confirmOTP,
-        isConfirmed: isConfirmed??this.isConfirmed,
+      confirmedAt: confirmedAt ?? this.confirmedAt,
+      confirmOTP: confirmOTP ?? this.confirmOTP,
+      isConfirmed: isConfirmed ?? this.isConfirmed,
     );
   }
-
 
   @override
   int get hashCode =>
@@ -35,21 +31,18 @@ class Confirmation {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Confirmation &&
-              runtimeType == other.runtimeType &&
-              confirmedAt == other.confirmedAt &&
-              confirmOTP == other.confirmOTP &&
-              isConfirmed == other.isConfirmed;
-
-
+      other is Confirmation &&
+          runtimeType == other.runtimeType &&
+          confirmedAt == other.confirmedAt &&
+          confirmOTP == other.confirmOTP &&
+          isConfirmed == other.isConfirmed;
 
   @override
   String toString() {
     return '''Confirmation {confirmedAt: $confirmedAt,}''';
   }
 
-  Map<String,dynamic> toMap(){
-
+  Map<String, dynamic> toMap() {
     return {
       'confirmedAt': this.confirmedAt,
       'confirmOTP': this.confirmOTP,
@@ -57,13 +50,11 @@ class Confirmation {
     };
   }
 
-  static Confirmation fromMap(Map<String,dynamic> confirmation){
-
+  static Confirmation fromMap(Map<String, dynamic> confirmation) {
     return Confirmation(
       confirmedAt: confirmation['confirmedAt'],
       confirmOTP: confirmation['confirmOTP'],
       isConfirmed: confirmation['isConfirmed'],
     );
   }
-
 }

@@ -1,16 +1,11 @@
+abstract class Data {
+  save() {}
 
+  getOne() {}
 
-abstract class Data{
+  getAll() {}
 
-save(){}
+  getLimit({int limit = 10}) {}
 
-getOne(){}
-
-getAll(){}
-
-getLimit({int limit=10}){}
-
-upDate(){}
-
-
+  upDate() {}
 }

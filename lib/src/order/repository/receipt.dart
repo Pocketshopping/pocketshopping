@@ -1,14 +1,10 @@
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
-
 @immutable
 class Receipt {
-
-
   final String PsStatus;
   final String reference;
-
 
   Receipt({
     this.PsStatus,
@@ -20,25 +16,21 @@ class Receipt {
     String reference,
   }) {
     return Receipt(
-        PsStatus: PsStatus??this.PsStatus,
-        reference: reference??this.reference,
+      PsStatus: PsStatus ?? this.PsStatus,
+      reference: reference ?? this.reference,
     );
   }
 
-
   @override
-  int get hashCode =>
-      PsStatus.hashCode ^ PsStatus.hashCode;
+  int get hashCode => PsStatus.hashCode ^ PsStatus.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Receipt &&
-              runtimeType == other.runtimeType &&
-              PsStatus == other.PsStatus &&
-              reference == other.reference;
-
-
+      other is Receipt &&
+          runtimeType == other.runtimeType &&
+          PsStatus == other.PsStatus &&
+          reference == other.reference;
 
   @override
   String toString() {
@@ -46,10 +38,14 @@ class Receipt {
   }
 
   Future<http.Response> receiptDetail() async {
-
-
-    final response = await http.get('https://api.paystack.co/transaction/verify/${reference}', headers: {"Accept":"application/json",
-      "Authorization":"Bearer sk_test_8c0cf47e2e690e41c984c7caca0966e763121968"},);
+    final response = await http.get(
+      'https://api.paystack.co/transaction/verify/${reference}',
+      headers: {
+        "Accept": "application/json",
+        "Authorization":
+            "Bearer sk_test_8c0cf47e2e690e41c984c7caca0966e763121968"
+      },
+    );
     if (response.statusCode == 200) {
       return response;
     } else {
@@ -57,18 +53,17 @@ class Receipt {
     }
   }
 
-  Map<String,dynamic> toMap(){
+  Map<String, dynamic> toMap() {
     return {
       'PsStatus': PsStatus,
       'reference': reference,
     };
   }
 
-  static Receipt fromMap(Map<String,dynamic> receipt){
+  static Receipt fromMap(Map<String, dynamic> receipt) {
     return Receipt(
       PsStatus: receipt['PsStatus'],
       reference: receipt['reference'],
     );
   }
-
 }

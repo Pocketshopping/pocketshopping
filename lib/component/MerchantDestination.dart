@@ -6,21 +6,18 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/page/user.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 
-
 const double CAMERA_ZOOM = 17.1234452;
 const double CAMERA_TILT = 0;
 const double CAMERA_BEARING = 30;
 const LatLng SOURCE_LOCATION = LatLng(9.0866644, 7.4592741);
 const LatLng DEST_LOCATION = LatLng(9.0866644, 7.4472742);
 
-
 class MerchantDestination extends StatefulWidget {
   static String tag = 'MerchantMap-page';
+
   @override
   State<MerchantDestination> createState() => _MerchantDestinationState();
 }
-
-
 
 class _MerchantDestinationState extends State<MerchantDestination> {
   int _polylineCount = 1;
@@ -31,11 +28,12 @@ class _MerchantDestinationState extends State<MerchantDestination> {
 
   @override
   void initState() {
-    pinLocationIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+    pinLocationIcon =
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
   }
 
   GoogleMapPolyline _googleMapPolyline =
-  new GoogleMapPolyline(apiKey: "AIzaSyCAab1Mr7q2KGcQeWeIqL0v0grGtrSbzv8");
+      new GoogleMapPolyline(apiKey: "AIzaSyCAab1Mr7q2KGcQeWeIqL0v0grGtrSbzv8");
 
   //Polyline patterns
   List<List<PatternItem>> patterns = <List<PatternItem>>[
@@ -61,12 +59,10 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   _onMapCreated(GoogleMapController controller) {
     setState(() {
       _controller = controller;
-      _markers.add(
-          Marker(
-              markerId: MarkerId('<MARKER_ID>'),
-              position: _mapInitLocation,
-              icon: pinLocationIcon
-          ));
+      _markers.add(Marker(
+          markerId: MarkerId('<MARKER_ID>'),
+          position: _mapInitLocation,
+          icon: pinLocationIcon));
     });
   }
 
@@ -74,10 +70,10 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   _getPolylinesWithLocation() async {
     //_setLoadingMenu(true);
     List<LatLng> _coordinates =
-    await _googleMapPolyline.getCoordinatesWithLocation(
-        origin: _originLocation,
-        destination: _destinationLocation,
-        mode: RouteMode.driving);
+        await _googleMapPolyline.getCoordinatesWithLocation(
+            origin: _originLocation,
+            destination: _destinationLocation,
+            mode: RouteMode.driving);
 
     setState(() {
       _polylines.clear();
@@ -90,10 +86,10 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   _getPolylinesWithAddress() async {
     _setLoadingMenu(true);
     List<LatLng> _coordinates =
-    await _googleMapPolyline.getPolylineCoordinatesWithAddress(
-        origin: '55 Kingston Ave, Brooklyn, NY 11213, USA',
-        destination: '8007 Cypress Ave, Glendale, NY 11385, USA',
-        mode: RouteMode.driving);
+        await _googleMapPolyline.getPolylineCoordinatesWithAddress(
+            origin: '55 Kingston Ave, Brooklyn, NY 11213, USA',
+            destination: '8007 Cypress Ave, Glendale, NY 11385, USA',
+            mode: RouteMode.driving);
 
     setState(() {
       _polylines.clear();
@@ -128,24 +124,26 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   Widget build(BuildContext context) {
     _getPolylinesWithLocation();
     return MaterialApp(
-     // darkTheme: ThemeData(brightness: Brightness.dark),
+      // darkTheme: ThemeData(brightness: Brightness.dark),
       home: Scaffold(
-        body:  GoogleMap(
-                      markers: _markers,
-                      onMapCreated: _onMapCreated,
-                      polylines: Set<Polyline>.of(_polylines.values),
-                      initialCameraPosition: CameraPosition(
-                        target: _mapInitLocation,
-                        zoom: 16.1234452,
-                      ),
-                    ),
-                       floatingActionButton: FloatingActionButton.extended(
-                       backgroundColor: const Color(0xff33805D),
-                       onPressed: (){Navigator.pop(context);},
-                        label: Text('Back'),
-                        icon: Icon(Icons.arrow_back),
+        body: GoogleMap(
+          markers: _markers,
+          onMapCreated: _onMapCreated,
+          polylines: Set<Polyline>.of(_polylines.values),
+          initialCameraPosition: CameraPosition(
+            target: _mapInitLocation,
+            zoom: 16.1234452,
+          ),
         ),
-                  ),
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: const Color(0xff33805D),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          label: Text('Back'),
+          icon: Icon(Icons.arrow_back),
+        ),
+      ),
 
       debugShowCheckedModeBanner: false,
     );

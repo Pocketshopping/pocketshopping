@@ -4,50 +4,49 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/model/DataModel/categoryData.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
-
-class GeoFence extends StatefulWidget{
-
-
+class GeoFence extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _GeoFenceState();
 }
 
-class _GeoFenceState extends State<GeoFence>{
-
+class _GeoFenceState extends State<GeoFence> {
   final TextEditingController _filter = new TextEditingController();
   String _searchText = "";
-  Icon _searchIcon = new Icon(Icons.search,color: PRIMARYCOLOR,);
-  Widget _appBarTitle = new Text("PocketShopping",style: TextStyle(color: PRIMARYCOLOR,fontSize: 20), );
+  Icon _searchIcon = new Icon(
+    Icons.search,
+    color: PRIMARYCOLOR,
+  );
+  Widget _appBarTitle = new Text(
+    "PocketShopping",
+    style: TextStyle(color: PRIMARYCOLOR, fontSize: 20),
+  );
   ViewModel vmodel;
   String barcode = "";
-  int _value=0;
-  int loader=0;
-  List<String> categories =[];
+  int _value = 0;
+  int loader = 0;
+  List<String> categories = [];
   ScrollController _scrollController = new ScrollController();
   Session CurrentUser;
   GeoFenceBloc gBloc;
+
   @override
   void initState() {
-
     super.initState();
-    loader=6;
-    categories=['Restuarant','Bar'];
+    loader = 6;
+    categories = ['Restuarant', 'Bar'];
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
-    gBloc=GeoFenceBloc();
-
-
+    gBloc = GeoFenceBloc();
   }
 
-  setCategory()async{
-    await CategoryData().getAll().then((value) => {
-      categories.addAll(value),
-      setState(() { })
-    });
+  setCategory() async {
+    await CategoryData()
+        .getAll()
+        .then((value) => {categories.addAll(value), setState(() {})});
     //print(categories.length);
   }
 
@@ -64,7 +63,7 @@ class _GeoFenceState extends State<GeoFence>{
       } else {
         setState(() => this.barcode = 'Unknown error: $e');
       }
-    } on FormatException{
+    } on FormatException {
       setState(() => this.barcode = 'you cancelled the QRcode search');
     } catch (e) {
       setState(() => this.barcode = 'Unknown error: $e');
@@ -74,11 +73,14 @@ class _GeoFenceState extends State<GeoFence>{
   void _searchPressed() {
     setState(() {
       if (this._searchIcon.icon == Icons.search) {
-        this._searchIcon =  Icon(Icons.close,color: PRIMARYCOLOR,);
-        this._appBarTitle =  TextFormField(
+        this._searchIcon = Icon(
+          Icons.close,
+          color: PRIMARYCOLOR,
+        );
+        this._appBarTitle = TextFormField(
           controller: _filter,
-          decoration:  InputDecoration(
-              prefixIcon:  Icon(Icons.search),
+          decoration: InputDecoration(
+              prefixIcon: Icon(Icons.search),
               hintText: 'Search by Name...',
               filled: true,
               fillColor: Colors.white.withOpacity(0.3),
@@ -87,78 +89,88 @@ class _GeoFenceState extends State<GeoFence>{
               ),
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-              )
-
-          ),
+              )),
         );
       } else {
-        this._searchIcon =  Icon(Icons.search,color: PRIMARYCOLOR,);
-        this._appBarTitle =  Text("PocketShopping",style: TextStyle(color: PRIMARYCOLOR),);
-
+        this._searchIcon = Icon(
+          Icons.search,
+          color: PRIMARYCOLOR,
+        );
+        this._appBarTitle = Text(
+          "PocketShopping",
+          style: TextStyle(color: PRIMARYCOLOR),
+        );
       }
     });
   }
 
-  _SeacrhUsingQRCode(){
+  _SeacrhUsingQRCode() {
     showModalBottomSheet(
       context: context,
-      builder: (context) =>
-          BottomSheetTemplate(
-            height: MediaQuery.of(context).size.height*0.6,
-            opacity: 0.2,
-            child: Center(
-              child: new Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child:
-
-                    Container(
-
-                      child: FlatButton(
-
-                        onPressed: () => {
-                          this.scan()
-                        },
-
-                        padding: EdgeInsets.all(10.0),
-                        child: Column( // Replace with a Row for horizontal icon + text
-                          children: <Widget>[
-                            Center(child:Text("Search Using QRcode/Barcode",style: TextStyle(fontSize:14, color: Colors.black54),textAlign: TextAlign.center,)),
-                            Container(height: 10,),
-                            FittedBox(fit:BoxFit.contain,child:Icon(Icons.camera,color: Colors.green, size: MediaQuery.of(context).size.height*0.1,)),
-                            Center(child:Text("Scan QRCode to search for product",style: TextStyle(color: Colors.black54),textAlign: TextAlign.center,)),
-                          ],
+      builder: (context) => BottomSheetTemplate(
+        height: MediaQuery.of(context).size.height * 0.6,
+        opacity: 0.2,
+        child: Center(
+          child: new Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Container(
+                  child: FlatButton(
+                    onPressed: () => {this.scan()},
+                    padding: EdgeInsets.all(10.0),
+                    child: Column(
+                      // Replace with a Row for horizontal icon + text
+                      children: <Widget>[
+                        Center(
+                            child: Text(
+                          "Search Using QRcode/Barcode",
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        )),
+                        Container(
+                          height: 10,
                         ),
-                      ),
+                        FittedBox(
+                            fit: BoxFit.contain,
+                            child: Icon(
+                              Icons.camera,
+                              color: Colors.green,
+                              size: MediaQuery.of(context).size.height * 0.1,
+                            )),
+                        Center(
+                            child: Text(
+                          "Scan QRCode to search for product",
+                          style: TextStyle(color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        )),
+                      ],
                     ),
-
-
-
-                  )
-                  ,
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Text(barcode, textAlign: TextAlign.center,),
-                  )
-                  ,
-                ],
+                  ),
+                ),
               ),
-            ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Text(
+                  barcode,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
       isScrollControlled: true,
     );
   }
-
 
   _GeoFenceState() {
     _filter.addListener(() {
       if (_filter.text.isEmpty) {
         setState(() {
           _searchText = "";
-
         });
       } else {
         setState(() {
@@ -169,26 +181,24 @@ class _GeoFenceState extends State<GeoFence>{
     });
   }
 
-
   @override
   void dispose() {
     gBloc.close();
     super.dispose();
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
-    double height=MediaQuery.of(context).size.height;
+    double height = MediaQuery.of(context).size.height;
     return BlocProvider<GeoFenceBloc>(
       create: (context) => gBloc..add(NearByMerchant(category: 'Restuarant')),
-      child: BlocBuilder<GeoFenceBloc,GeoFenceState>(
-        builder: (context,state){
+      child: BlocBuilder<GeoFenceBloc, GeoFenceState>(
+        builder: (context, state) {
           return Scaffold(
             appBar: PreferredSize(
-              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height*0.2), // here the desired height
+              preferredSize: Size.fromHeight(
+                  MediaQuery.of(context).size.height *
+                      0.2), // here the desired height
               child: AppBar(
                 elevation: 0.0,
                 centerTitle: true,
@@ -207,38 +217,45 @@ class _GeoFenceState extends State<GeoFence>{
                   IconButton(
                     icon: _searchIcon,
                     onPressed: _searchPressed,
-
                   ),
                 ],
                 bottom: PreferredSize(
-                    preferredSize: Size.fromHeight(MediaQuery.of(context).size.height*0.15),
+                    preferredSize: Size.fromHeight(
+                        MediaQuery.of(context).size.height * 0.15),
                     child: Container(
-                        padding: EdgeInsets.only(left: 10,right: 10),
+                        padding: EdgeInsets.only(left: 10, right: 10),
                         //margin: EdgeInsets.only(bottom: 20),
                         child: Column(
                           children: <Widget>[
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
-                                Text("Categories", style: TextStyle(fontSize: height*0.04,fontWeight:
-                                FontWeight.bold),),
-                                Badge(
-                                    badgeContent: Text('1',style: TextStyle(color:Colors.white),),
-                                    position: BadgePosition.topRight(top:1, right: 1),
-                                    child: IconButton(
-                                      onPressed: (){},
-                                      color: Colors.grey,
-                                      icon: Icon(Icons.shopping_basket,size: height*0.05,),
-                                    )
+                                Text(
+                                  "Categories",
+                                  style: TextStyle(
+                                      fontSize: height * 0.04,
+                                      fontWeight: FontWeight.bold),
                                 ),
-
-
+                                Badge(
+                                    badgeContent: Text(
+                                      '1',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    position: BadgePosition.topRight(
+                                        top: 1, right: 1),
+                                    child: IconButton(
+                                      onPressed: () {},
+                                      color: Colors.grey,
+                                      icon: Icon(
+                                        Icons.shopping_basket,
+                                        size: height * 0.05,
+                                      ),
+                                    )),
                               ],
                             ),
                             Container(
-                              height: height*0.06,
-                              child:
-                              ListView(
+                              height: height * 0.06,
+                              child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: <Widget>[
                                   Wrap(
@@ -246,28 +263,25 @@ class _GeoFenceState extends State<GeoFence>{
                                     children: List<Widget>.generate(
                                       // psProvider.of(context).value['category'].length,
                                       state.categories.length,
-                                          (int index) {
+                                      (int index) {
                                         return ChoiceChip(
-
-                                          label: Text(
-                                              state.categories[index]
-                                              ,style: TextStyle(color:
-                                          Colors.grey)),
-
+                                          label: Text(state.categories[index],
+                                              style: TextStyle(
+                                                  color: Colors.grey)),
                                           selected: _value == index,
                                           backgroundColor: Colors.white,
                                           onSelected: (bool selected) {
                                             setState(() {
                                               _value = selected ? index : null;
                                             });
-                                            print('index: ${ state.categories[index]}');
+                                            print(
+                                                'index: ${state.categories[index]}');
 
-                                            BlocProvider.of<GeoFenceBloc>(context)
-                                            .add(NearByMerchant(
-                                            category: state.categories[index]
-                                            ));
-
-
+                                            BlocProvider.of<GeoFenceBloc>(
+                                                    context)
+                                                .add(NearByMerchant(
+                                                    category: state
+                                                        .categories[index]));
                                           },
                                         );
                                       },
@@ -276,143 +290,134 @@ class _GeoFenceState extends State<GeoFence>{
                                 ],
                               ),
                             )
-
                           ],
-                        )
-                    )
-                ),
-
-                title:_appBarTitle,
-
+                        ))),
+                title: _appBarTitle,
                 automaticallyImplyLeading: false,
               ),
             ),
             backgroundColor: Colors.white,
             body: Container(
-              padding: EdgeInsets.only(right: 10,left: 10),
+              padding: EdgeInsets.only(right: 10, left: 10),
               child: CustomScrollView(
                 controller: _scrollController,
-
                 slivers: <Widget>[
-
                   if (state.isLoading)
-          SliverList(
-          delegate: SliverChildListDelegate(
-          [
-                    SizedBox(height: 20,),
-                    Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ]
-          )
-          ),
-
-                  if (state.isSuccess)
-                    state.nearByMerchants.isNotEmpty?
                     SliverList(
-                        delegate: SliverChildListDelegate(
-                            [
-                              Container(
-                                child: Text('${state.category} within a 50km radius',
-                                style: TextStyle(color: Colors.black54),),
-                                margin: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                width: MediaQuery.of(context).size.width*0.8,
-
-                              ),
-                            ]
-                        )
-                    ):SliverList(delegate: SliverChildListDelegate([Container()]),),
-
-                  if (state.isSuccess)
-                    state.nearByMerchants.isNotEmpty?
-                  SliverGrid(
-                    gridDelegate:
-                    SliverGridDelegateWithMaxCrossAxisExtent (
-                      maxCrossAxisExtent: MediaQuery.of(context).size.width*0.5,
-                      //maxCrossAxisExtent :200,
-                      mainAxisSpacing: 5.0,
-                      crossAxisSpacing: 5.0,
-                      childAspectRatio: 1,
-                    ),
-                    delegate: new SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
-                            final page = SinglePlaceWidget(
-                              merchant: state.nearByMerchants[index],
-                              cPosition: GeoFirePoint(
-                                  state.currentPosition.latitude,
-                                  state.currentPosition.longitude
-                              ),
-                              user: CurrentUser.user,
-
-                            );
-                        return page;
-                      },
-                      childCount: state.nearByMerchants.length,
-                    ),
-                  ):
-          SliverList(
-          delegate: SliverChildListDelegate(
-          [
-            Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Image.asset('assets/images/emptyPlace.png'),
-                          Text('No ${state.category} within a 50km radius',
-                          style: TextStyle(color: Colors.black54),)
-                        ],
-
-                        ),
+                        delegate: SliverChildListDelegate([
+                      SizedBox(
+                        height: 20,
                       ),
-
-          ]
-          )
-          ),
-                  if (state.nearByMerchants.length>9)
-                  SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          Container(
-                            color: Color.fromRGBO(246, 246, 250, 1),
-                            //height: MediaQuery.of(context).size.height*0.2,
-                            child: FlatButton(
-                              onPressed: () => {
-                                this.setState(() {loader +=3;}),
-                                this. _scrollController.animateTo(_scrollController.position.maxScrollExtent
-                                    +MediaQuery.of(context).size.height*0.5
-                                    , duration: const Duration(milliseconds: 500), curve: Curves.easeOut)
+                      Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ])),
+                  if (state.isSuccess)
+                    state.nearByMerchants.isNotEmpty
+                        ? SliverList(
+                            delegate: SliverChildListDelegate([
+                            Container(
+                              child: Text(
+                                '${state.category} within a 50km radius',
+                                style: TextStyle(color: Colors.black54),
+                              ),
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10),
+                              width: MediaQuery.of(context).size.width * 0.8,
+                            ),
+                          ]))
+                        : SliverList(
+                            delegate: SliverChildListDelegate([Container()]),
+                          ),
+                  if (state.isSuccess)
+                    state.nearByMerchants.isNotEmpty
+                        ? SliverGrid(
+                            gridDelegate:
+                                SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent:
+                                  MediaQuery.of(context).size.width * 0.5,
+                              //maxCrossAxisExtent :200,
+                              mainAxisSpacing: 5.0,
+                              crossAxisSpacing: 5.0,
+                              childAspectRatio: 1,
+                            ),
+                            delegate: new SliverChildBuilderDelegate(
+                              (BuildContext context, int index) {
+                                final page = SinglePlaceWidget(
+                                  merchant: state.nearByMerchants[index],
+                                  cPosition: GeoFirePoint(
+                                      state.currentPosition.latitude,
+                                      state.currentPosition.longitude),
+                                  user: CurrentUser.user,
+                                );
+                                return page;
                               },
-                              color: Colors.black12,
-                              padding: EdgeInsets.all(0.0),
-                              child: Column( // Replace with a Row for horizontal icon + text
+                              childCount: state.nearByMerchants.length,
+                            ),
+                          )
+                        : SliverList(
+                            delegate: SliverChildListDelegate([
+                            Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
-                                  Text("Load More",style: TextStyle(color: Colors.black54),)
+                                  Image.asset('assets/images/emptyPlace.png'),
+                                  Text(
+                                    'No ${state.category} within a 50km radius',
+                                    style: TextStyle(color: Colors.black54),
+                                  )
                                 ],
                               ),
                             ),
-
+                          ])),
+                  if (state.nearByMerchants.length > 9)
+                    SliverList(
+                        delegate: SliverChildListDelegate(
+                      [
+                        Container(
+                          color: Color.fromRGBO(246, 246, 250, 1),
+                          //height: MediaQuery.of(context).size.height*0.2,
+                          child: FlatButton(
+                            onPressed: () => {
+                              this.setState(() {
+                                loader += 3;
+                              }),
+                              this._scrollController.animateTo(
+                                  _scrollController.position.maxScrollExtent +
+                                      MediaQuery.of(context).size.height * 0.5,
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeOut)
+                            },
+                            color: Colors.black12,
+                            padding: EdgeInsets.all(0.0),
+                            child: Column(
+                              // Replace with a Row for horizontal icon + text
+                              children: <Widget>[
+                                Text(
+                                  "Load More",
+                                  style: TextStyle(color: Colors.black54),
+                                )
+                              ],
+                            ),
                           ),
-                        ],
-                      )
-                  ),
+                        ),
+                      ],
+                    )),
                 ],
               ),
             ),
-
           );
         },
       ),
     );
-
-
   }
 
-  //@override
-  //void dispose() {
-    //context.bloc().close();
-    //super.dispose();
-  //}
+//@override
+//void dispose() {
+//context.bloc().close();
+//super.dispose();
+//}
 }
 
 class ChatBubbleTriangle extends CustomPainter {

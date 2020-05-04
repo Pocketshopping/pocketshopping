@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-
 class AwareListItem extends StatefulWidget {
   final Function itemCreated;
   final Widget child;
+
   const AwareListItem({
     Key key,
     this.itemCreated,
@@ -25,8 +25,6 @@ class _AwareListItemState extends State<AwareListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return
-
-      widget.child;
+    return widget.child;
   }
 }

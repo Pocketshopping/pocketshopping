@@ -1,22 +1,19 @@
-
+import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/order.dart';
-import 'package:flutter/services.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 
 import 'bloc/user.dart';
 
-
 class StaffScreen extends StatefulWidget {
-
   final UserRepository _userRepository;
 
   StaffScreen({Key key, @required UserRepository userRepository})
@@ -29,7 +26,6 @@ class StaffScreen extends StatefulWidget {
 }
 
 class _StaffScreenState extends State<StaffScreen> {
-
   int _selectedIndex;
   FirebaseUser CurrentUser;
 
@@ -39,8 +35,7 @@ class _StaffScreenState extends State<StaffScreen> {
       textColor: Colors.white,
       position: BottomNavigationBadgePosition.topRight,
       textSize: 8);
-  List<BottomNavigationBarItem>items=
-  <BottomNavigationBarItem>[
+  List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Icon(Icons.dashboard),
       title: Text('Workplace'),
@@ -60,7 +55,7 @@ class _StaffScreenState extends State<StaffScreen> {
   ];
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _selectedIndex = 0;
     CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
@@ -74,65 +69,55 @@ class _StaffScreenState extends State<StaffScreen> {
 
   @override
   Widget build(BuildContext context) {
-    setState(() {
-
-    });
+    setState(() {});
     return WillPopScope(
       onWillPop: _onWillPop,
-      child:
-      BlocProvider(
+      child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),
         )..add(LoadUser(CurrentUser.uid)),
-        child: BlocBuilder<UserBloc, UserState>(
-
-            builder: (context, state) {
-              if(state is UserLoaded)
-              {
-                print(state.user.user.uid);
-                return Scaffold(
-                  drawer: DrawerScreen(userRepository: widget._userRepository,user: state.user.user,),
-                  body: Container(
-
-                      child:Center(
-                        child: <Widget>[
-                          DashBoardScreen(),
-                          GeoFence(),
-                          Favourite(),
-                          OrderWidget(PRIMARYCOLOR),
-                        ].elementAt(_selectedIndex),
-                      ),
-                      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black54.withOpacity(0.2))))
+        child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
+          if (state is UserLoaded) {
+            print(state.user.user.uid);
+            return Scaffold(
+              drawer: DrawerScreen(
+                userRepository: widget._userRepository,
+                user: state.user.user,
+              ),
+              body: Container(
+                  child: Center(
+                    child: <Widget>[
+                      DashBoardScreen(),
+                      GeoFence(),
+                      Favourite(),
+                      OrderWidget(PRIMARYCOLOR),
+                    ].elementAt(_selectedIndex),
                   ),
-                  bottomNavigationBar: BottomNavigationBar(
-                    items: items,
-                    currentIndex: _selectedIndex,
-                    selectedItemColor: PRIMARYCOLOR,
-                    unselectedItemColor: Colors.black54,
-                    showUnselectedLabels: true,
-                    onTap: _onItemTapped,
-                  ),
-                );
-              }
-              else{
-                return Scaffold(
-                  body: Center(
-                    child:Image.asset("assets/images/loading.gif",
-                      width: MediaQuery.of(context).size.width*0.3,),),
-                );
-              }
-
-
-
-            }
-        ),
-      )
-
-      ,
-
-
-
-
+                  decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.black54.withOpacity(0.2))))),
+              bottomNavigationBar: BottomNavigationBar(
+                items: items,
+                currentIndex: _selectedIndex,
+                selectedItemColor: PRIMARYCOLOR,
+                unselectedItemColor: Colors.black54,
+                showUnselectedLabels: true,
+                onTap: _onItemTapped,
+              ),
+            );
+          } else {
+            return Scaffold(
+              body: Center(
+                child: Image.asset(
+                  "assets/images/loading.gif",
+                  width: MediaQuery.of(context).size.width * 0.3,
+                ),
+              ),
+            );
+          }
+        }),
+      ),
     );
   }
 
@@ -148,12 +133,12 @@ class _StaffScreenState extends State<StaffScreen> {
             child: new Text('No'),
           ),
           new FlatButton(
-            onPressed: () => SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+            onPressed: () =>
+                SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
             child: new Text('Yes'),
           ),
         ],
       ),
     ));
-
   }
 }

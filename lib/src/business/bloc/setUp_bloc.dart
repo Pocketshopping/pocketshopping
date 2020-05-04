@@ -1,112 +1,91 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:devicelocale/devicelocale.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:pocketshopping/src/validators.dart';
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:devicelocale/devicelocale.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
-
+import 'package:pocketshopping/src/validators.dart';
 
 class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
-
   Geolocator geolocator = Geolocator();
   StreamSubscription _positionSubscription;
-
 
   @override
   BusinessState get initialState => BusinessState.empty();
 
-
-
   @override
   Stream<BusinessState> mapEventToState(
-      BusinessEvent event,
-      ) async* {
+    BusinessEvent event,
+  ) async* {
     if (event is AddressChanged) {
       yield* _mapAddressChangedToState(event.address);
     } else if (event is CategoryChanged) {
       yield* _mapCategoryChangedToState(event.category);
-    }else if (event is CaptureCordinate) {
+    } else if (event is CaptureCordinate) {
       yield* _mapCaptureChangedToState();
-    }else if (event is NameChanged) {
+    } else if (event is NameChanged) {
       yield* _mapNameChangedToState(event.name);
-    }else if (event is TelephoneChanged) {
+    } else if (event is TelephoneChanged) {
       yield* _mapTelephoneChangedToState(event.telephone);
-    }else if (event is CountryCodeChanged) {
+    } else if (event is CountryCodeChanged) {
       yield* _mapCountryCodeChangedToState(event.country);
-    }else if (event is DeliveryChanged) {
+    } else if (event is DeliveryChanged) {
       yield* _mapDeliveryChangedToState(event.delivery);
-    }else if (event is CaptureUpdated) {
+    } else if (event is CaptureUpdated) {
       yield* _mapCaptureUpdatedToState(event.position);
-    }else if (event is Submitted) {
+    } else if (event is Submitted) {
       yield* _mapFormSubmittedToState(
           event.address,
           //event.category,
           event.name,
           event.telephone,
-          event.user
-      );
+          event.user);
     }
   }
 
-  Stream<BusinessState> _mapDeliveryChangedToState(String delivery)async*{
+  Stream<BusinessState> _mapDeliveryChangedToState(String delivery) async* {
     yield state.update(delivery: delivery);
   }
 
-  Stream<BusinessState> _mapCaptureUpdatedToState (Position _position)async*{
-    if(state.position == null)
+  Stream<BusinessState> _mapCaptureUpdatedToState(Position _position) async* {
+    if (state.position == null)
       yield state.update(position: _position);
-    else if(_position.accuracy<state.position.accuracy)
+    else if (_position.accuracy < state.position.accuracy)
       yield state.update(position: _position);
-    else{
-     // print('from state: ${state.position.accuracy}');
+    else {
+      // print('from state: ${state.position.accuracy}');
       //print('${_position.accuracy}');
     }
   }
 
   Stream<BusinessState> _mapCountryCodeChangedToState(String country) async* {
-    yield state.update(
-        code: country
-    );
+    yield state.update(code: country);
   }
 
   Stream<BusinessState> _mapAddressChangedToState(String address) async* {
-
-      yield state.update(
-        isAddressValid: Validators.isValidAddress(address),
-      );
-
-
+    yield state.update(
+      isAddressValid: Validators.isValidAddress(address),
+    );
   }
 
   Stream<BusinessState> _mapCaptureChangedToState() async* {
-      yield state.update(isCapturing: "YES");
-      try {
-        _positionSubscription?.cancel();
-        _positionSubscription = geolocator
-            .getPositionStream(LocationOptions(
-            accuracy: LocationAccuracy.bestForNavigation, timeInterval: 1000))
-            .listen((position) {
-                add(CaptureUpdated(position));
-            });
-      } catch (e) {
-
-      }
-
-      await Future.delayed(Duration(seconds: 15));
+    yield state.update(isCapturing: "YES");
+    try {
       _positionSubscription?.cancel();
-      yield state.update(isCapturing: "COMPLETED",
-      isCaptureValid: true);
+      _positionSubscription = geolocator
+          .getPositionStream(LocationOptions(
+              accuracy: LocationAccuracy.bestForNavigation, timeInterval: 1000))
+          .listen((position) {
+        add(CaptureUpdated(position));
+      });
+    } catch (e) {}
 
-
-
-
-
-
-
+    await Future.delayed(Duration(seconds: 15));
+    _positionSubscription?.cancel();
+    yield state.update(isCapturing: "COMPLETED", isCaptureValid: true);
   }
 
   Stream<BusinessState> _mapCategoryChangedToState(String category) async* {
@@ -123,27 +102,26 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
 
   Stream<BusinessState> _mapTelephoneChangedToState(String telephone) async* {
     yield state.update(
-      isTelephoneValid: Validators.isValidTelephone(telephone,ccode: state.code),
+      isTelephoneValid:
+          Validators.isValidTelephone(telephone, ccode: state.code),
     );
   }
 
   Stream<BusinessState> _mapFormSubmittedToState(
-      String address,
-      //String category,
-      String name,
-      String telephone,
-      FirebaseUser user,
-      ) async* {
+    String address,
+    //String category,
+    String name,
+    String telephone,
+    FirebaseUser user,
+  ) async* {
     yield BusinessState.loading(
-      isUploading: false,
-      isCapturing: state.isCapturing,
-      position: state.position,
-      delivery: state.delivery,
-      code: state.code,
-      category: state.category
-
-    );
-    try{
+        isUploading: false,
+        isCapturing: state.isCapturing,
+        position: state.position,
+        delivery: state.delivery,
+        code: state.code,
+        category: state.category);
+    try {
       await MerchantRepo().save(
         bAddress: address,
         bBranchUnique: "",
@@ -153,7 +131,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         bDescription: "",
         bEmail: user.email,
         bOpenTime: "06:00",
-        bTelephone: state.code+(telephone.substring(1)),
+        bTelephone: state.code + (telephone.substring(1)),
         bName: name,
         bTelephone2: "",
         bID: "",
@@ -165,27 +143,22 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         isBranch: false,
         uid: user.uid,
         bGeopint: GeoPoint(state.position.latitude, state.position.longitude),
-
       );
       await UserRepository().upDateUserRole('admin', user);
       yield BusinessState.success();
-    }catch(_){
+    } catch (_) {
       yield state.update(isCapturing: _.toString());
       yield BusinessState.failure(
-        isUploading: false,
-        isCapturing: state.isCapturing,
-        position: state.position,
-        delivery: state.delivery,
-        code: state.code,
-        category: state.category
-      );
+          isUploading: false,
+          isCapturing: state.isCapturing,
+          position: state.position,
+          delivery: state.delivery,
+          code: state.code,
+          category: state.category);
     }
-
 
     //yield BusinessState.loading(false);
     //await Future.delayed(Duration(milliseconds: 5000));
-
-
   }
 
   @override

@@ -73,6 +73,12 @@ async function getCategories(merchant) {
 
 }); */
 
+exports.PickupETA = functions.https.onCall((data, context) => {
+  var eta =360;
+
+    return eta;
+});
+
 exports.DeliveryETA = functions.https.onCall((data, context) => {
   var distance =data['distance']; 
   var eta=0;

@@ -33,44 +33,42 @@ class ProductEntity extends Equatable {
       this.pQRCode,
       this.pUploader,
       this.pUnit,
-      this.pCreatedAt
-      );
+      this.pCreatedAt);
 
   Map<String, Object> toJson() {
     return {
-      'pID':pID,
-      'mID':mID,
-      'pName':pName,
-      'pPrice':pPrice,
-      'pCategory':pCategory,
-      'pDesc':pDesc,
-      'pPhoto':pPhoto,
-      'pGroup':pGroup,
-      'pStockCount':pStockCount,
-      'pQRCode':pQRCode,
-      'pUploader':pUploader,
-      'pUnit':pUnit,
-      'pCreatedAt':pCreatedAt
-
+      'pID': pID,
+      'mID': mID,
+      'pName': pName,
+      'pPrice': pPrice,
+      'pCategory': pCategory,
+      'pDesc': pDesc,
+      'pPhoto': pPhoto,
+      'pGroup': pGroup,
+      'pStockCount': pStockCount,
+      'pQRCode': pQRCode,
+      'pUploader': pUploader,
+      'pUnit': pUnit,
+      'pCreatedAt': pCreatedAt
     };
   }
 
   @override
   List<Object> get props => [
-    pID,
-    mID,
-    pName,
-    pPrice,
-    pCategory,
-    pDesc,
-    pPhoto,
-    pGroup,
-    pStockCount,
-    pQRCode,
-    pUploader,
-    pUnit,
-    pCreatedAt
-  ];
+        pID,
+        mID,
+        pName,
+        pPrice,
+        pCategory,
+        pDesc,
+        pPhoto,
+        pGroup,
+        pStockCount,
+        pQRCode,
+        pUploader,
+        pUnit,
+        pCreatedAt
+      ];
 
   @override
   String toString() {
@@ -80,19 +78,19 @@ class ProductEntity extends Equatable {
 
   static ProductEntity fromJson(Map<String, Object> json) {
     return ProductEntity(
-      json['pID'] as  String,
-      json['mID'] as  DocumentReference,
-      json['pName'] as  String,
-      json['pPrice'] as  double,
-      json['pCategory'] as  String,
-      json['pDesc'] as  String,
-      json['pPhoto'] as  List,
-      json['pGroup'] as  String,
-      json['pStockCount'] as  int,
-      json['pQRCode'] as  String,
-      json['pUploader'] as  String,
-      json['pUnit'] as  String,
-      json['pCreatedAt'] as  Timestamp,
+      json['pID'] as String,
+      json['mID'] as DocumentReference,
+      json['pName'] as String,
+      json['pPrice'] as double,
+      json['pCategory'] as String,
+      json['pDesc'] as String,
+      json['pPhoto'] as List,
+      json['pGroup'] as String,
+      json['pStockCount'] as int,
+      json['pQRCode'] as String,
+      json['pUploader'] as String,
+      json['pUnit'] as String,
+      json['pCreatedAt'] as Timestamp,
     );
   }
 
@@ -117,19 +115,19 @@ class ProductEntity extends Equatable {
 
   Map<String, Object> toDocument() {
     return {
-      'pID':pID,
-      'mID':mID,
-      'pName':pName,
-      'pPrice':pPrice,
-      'pCategory':pCategory,
-      'pDesc':pDesc,
-      'pPhoto':pPhoto,
-      'pGroup':pGroup,
-      'pStockCount':pStockCount,
-      'pQRCode':pQRCode,
-      'pUploader':pUploader,
-      'pUnit':pUnit,
-      'pCreatedAt':pCreatedAt
+      'pID': pID,
+      'mID': mID,
+      'pName': pName,
+      'pPrice': pPrice,
+      'pCategory': pCategory,
+      'pDesc': pDesc,
+      'pPhoto': pPhoto,
+      'pGroup': pGroup,
+      'pStockCount': pStockCount,
+      'pQRCode': pQRCode,
+      'pUploader': pUploader,
+      'pUnit': pUnit,
+      'pCreatedAt': pCreatedAt
     };
   }
 }

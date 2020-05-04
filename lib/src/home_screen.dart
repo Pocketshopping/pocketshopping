@@ -26,8 +26,12 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Center(child: Image.asset("assets/images/loading.gif",
-          width: MediaQuery.of(context).size.width*0.3,),),
+          Center(
+            child: Image.asset(
+              "assets/images/loading.gif",
+              width: MediaQuery.of(context).size.width * 0.3,
+            ),
+          ),
         ],
       ),
     );

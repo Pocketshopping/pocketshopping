@@ -1,10 +1,10 @@
 import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/user/bloc/user_event.dart';
 import 'package:pocketshopping/src/user/bloc/user_state.dart';
 import 'package:pocketshopping/src/user/repository/userRepo.dart';
-
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepo _userRepository;
@@ -27,8 +27,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       yield* _mapUpdateUserToState(event);
     } else if (event is DeleteUser) {
       yield* _mapDeleteUserToState(event);
-    }
-    else if (event is UserUpdated) {
+    } else if (event is UserUpdated) {
       yield* _mapUserUpdatedToState(event);
     }
   }
@@ -37,8 +36,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     _userSubscription?.cancel();
     _userSubscription = _userRepository.getOne(uid: event.uid).listen(
           (user) => add(UserUpdated(user)),
-
-    );
+        );
   }
 
   Stream<UserState> _mapAddUserToState(AddUser event) async* {
@@ -56,9 +54,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   Stream<UserState> _mapUserUpdatedToState(UserUpdated event) async* {
     yield UserLoaded(event.user);
   }
-
-
-
 
   @override
   Future<void> close() {

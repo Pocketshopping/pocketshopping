@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
 
-
 @immutable
 class OrderMode {
-
   final String mode;
   final String tableNumber;
   final GeoPoint coordinate;
@@ -31,46 +29,46 @@ class OrderMode {
     String deliveryMan,
     String acceptedBy,
     int fee,
-
   }) {
     return OrderMode(
-        mode: mode??this.mode,
-        tableNumber: tableNumber??this.tableNumber,
-        coordinate: coordinate??this.coordinate,
-        address: address??this.address,
-        deliveryMan:deliveryMan??this.deliveryMan,
-        acceptedBy:acceptedBy??this.acceptedBy,
-        fee: fee??this.fee
-    );
+        mode: mode ?? this.mode,
+        tableNumber: tableNumber ?? this.tableNumber,
+        coordinate: coordinate ?? this.coordinate,
+        address: address ?? this.address,
+        deliveryMan: deliveryMan ?? this.deliveryMan,
+        acceptedBy: acceptedBy ?? this.acceptedBy,
+        fee: fee ?? this.fee);
   }
-
 
   @override
   int get hashCode =>
-      mode.hashCode ^ tableNumber.hashCode ^ coordinate.hashCode ^ address.hashCode ^
-      deliveryMan.hashCode ^ acceptedBy.hashCode ^ fee.hashCode;
+      mode.hashCode ^
+      tableNumber.hashCode ^
+      coordinate.hashCode ^
+      address.hashCode ^
+      deliveryMan.hashCode ^
+      acceptedBy.hashCode ^
+      fee.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is OrderMode &&
-              runtimeType == other.runtimeType &&
-              mode == other.mode &&
-              tableNumber == other.tableNumber &&
-              coordinate == other.coordinate &&
-              address == other.address &&
-              deliveryMan == other.deliveryMan &&
-              acceptedBy == other.acceptedBy &&
-              fee == other.fee;
-
-
+      other is OrderMode &&
+          runtimeType == other.runtimeType &&
+          mode == other.mode &&
+          tableNumber == other.tableNumber &&
+          coordinate == other.coordinate &&
+          address == other.address &&
+          deliveryMan == other.deliveryMan &&
+          acceptedBy == other.acceptedBy &&
+          fee == other.fee;
 
   @override
   String toString() {
     return '''OrderMode {mode: $mode,}''';
   }
 
-  Map<String,dynamic>  toMap(){
+  Map<String, dynamic> toMap() {
     return {
       'mode': mode,
       'tableNumber': tableNumber,
@@ -82,7 +80,7 @@ class OrderMode {
     };
   }
 
-  static OrderMode fromMap(Map<String,dynamic> ordermode){
+  static OrderMode fromMap(Map<String, dynamic> ordermode) {
     return OrderMode(
       mode: ordermode['mode'],
       tableNumber: ordermode['tableNumber'],
@@ -93,5 +91,4 @@ class OrderMode {
       fee: ordermode['fee'],
     );
   }
-
 }

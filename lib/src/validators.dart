@@ -24,28 +24,27 @@ class Validators {
     return password == cpassword;
   }
 
-  static isValidName(String name){
+  static isValidName(String name) {
     return RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
   }
 
-  static isValidAddress(String name){
+  static isValidAddress(String name) {
     return RegExp(r'^[a-zA-Z0-9,\s]+$').hasMatch(name);
   }
 
-  static isValidTelephone(String telephone,{String ccode}){
+  static isValidTelephone(String telephone, {String ccode}) {
     print('validator ccode $ccode');
     String code = ccode ?? '+234';
- if (code.toString() == '+234'){
-      if(telephone.length< 11)
+    if (code.toString() == '+234') {
+      if (telephone.length < 11)
         return false;
       else
         return true;
-    }
-    else{
-   if (telephone.length<6)
-     return false;
-   else
-      return true;
+    } else {
+      if (telephone.length < 6)
+        return false;
+      else
+        return true;
     }
   }
 }

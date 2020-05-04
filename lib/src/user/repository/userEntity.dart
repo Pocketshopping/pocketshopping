@@ -20,55 +20,50 @@ class UserEntity extends Equatable {
   final String country;
 
   const UserEntity(
-  this.uid,
-  this.fname,
-  this.email,
-  this.telephone,
-  this.profile,
-  this.notificationID,
-  this.defaultAddress,
-  this.role,
-  this.bid,
-  this.createdat,
-
-  this.behaviour,
-  this.country,
-      );
+    this.uid,
+    this.fname,
+    this.email,
+    this.telephone,
+    this.profile,
+    this.notificationID,
+    this.defaultAddress,
+    this.role,
+    this.bid,
+    this.createdat,
+    this.behaviour,
+    this.country,
+  );
 
   Map<String, Object> toJson() {
     return {
       'fname': fname,
       'email': email,
       'telephone': telephone,
-      'profile':profile,
-      'notificationID':notificationID,
-      'defaultAddress':defaultAddress,
-      'role':role,
-      'business':bid,
-      'createdAt':createdat,
-      'behaviour':behaviour,
-      'country':country
-
-
+      'profile': profile,
+      'notificationID': notificationID,
+      'defaultAddress': defaultAddress,
+      'role': role,
+      'business': bid,
+      'createdAt': createdat,
+      'behaviour': behaviour,
+      'country': country
     };
   }
 
   @override
   List<Object> get props => [
-    uid,
-    fname,
-    email,
-    telephone,
-    notificationID,
-    defaultAddress,
-    role,
-    bid,
-    profile,
-
-
-    behaviour,
-    country,
-  ];
+        uid,
+        fname,
+        email,
+        telephone,
+        notificationID,
+        defaultAddress,
+        role,
+        bid,
+        profile,
+        behaviour,
+        country,
+      ];
 
   @override
   String toString() {
@@ -90,23 +85,22 @@ class UserEntity extends Equatable {
     return UserEntity(
         json['uid'] as String,
         json['fname'] as String,
-        json['email']as String,
+        json['email'] as String,
         json['telephone'] as String,
-        json['profile']as String,
+        json['profile'] as String,
         json['notificationID'] as String,
         json['defaultAddress'] as String,
         json['role'] as String,
         json['business'] as DocumentReference,
         json['createdAt'] as Timestamp,
         json['behaviour'] as DocumentReference,
-        json['country'] as String
-    );
+        json['country'] as String);
   }
 
   static UserEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
     return UserEntity(
-        snap.documentID,
+      snap.documentID,
       snap.data['fname'],
       snap.data['email'],
       snap.data['telephone'],
@@ -126,14 +120,14 @@ class UserEntity extends Equatable {
       'fname': fname,
       'email': email,
       'telephone': telephone,
-      'profile':profile,
-      'notificationID':notificationID,
-      'defaultAddress':defaultAddress,
-      'role':role,
-      'business':bid,
-      'createdAt':createdat,
-      'behaviour':behaviour,
-      'country':country
+      'profile': profile,
+      'notificationID': notificationID,
+      'defaultAddress': defaultAddress,
+      'role': role,
+      'business': bid,
+      'createdAt': createdat,
+      'behaviour': behaviour,
+      'country': country
     };
   }
 }

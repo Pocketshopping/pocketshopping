@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-
 class AwareListItem extends StatefulWidget {
   final Function itemCreated;
   final Widget child;
+
   const AwareListItem({
     Key key,
     this.itemCreated,

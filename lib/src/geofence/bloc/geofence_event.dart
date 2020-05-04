@@ -1,11 +1,7 @@
-
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/business/business.dart';
-
 
 abstract class GeoFenceEvent extends Equatable {
   const GeoFenceEvent();
@@ -36,7 +32,8 @@ class FetchNearByMerchant extends GeoFenceEvent {
   List<Object> get props => [category];
 
   @override
-  String toString() => 'FetchNearByMerchant { category :$category, position:$position }';
+  String toString() =>
+      'FetchNearByMerchant { category :$category, position:$position }';
 }
 
 class UpdateMerchant extends GeoFenceEvent {
@@ -62,4 +59,3 @@ class CategorySelected extends GeoFenceEvent {
   @override
   String toString() => 'CategorySelected { selected :$selected }';
 }
-

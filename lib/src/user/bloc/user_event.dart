@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
-
 abstract class UserEvent extends Equatable {
   const UserEvent();
 
@@ -65,7 +64,3 @@ class DeleteUser extends UserEvent {
   @override
   String toString() => 'DeleteUser { user: $user }';
 }
-
-
-
-

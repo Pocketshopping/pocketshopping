@@ -58,9 +58,11 @@ dependencies:
   flutter_credit_card:
     path: ./packages/flutter_credit_card
   step_progress_indicator: ^0.2.2+5
-  timeline_node: ^0.1.0
   get: ^2.0.8-dev
   random_string: ^2.0.1
+  date_format: ^1.0.8
+  qr_flutter: ^3.2.0
+  bubble: ^1.1.9+1
 
 dev_dependencies:
   flutter_test:

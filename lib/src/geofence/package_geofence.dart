@@ -1,4 +1,4 @@
-export './geofence.dart';
 export './bloc/geofence.dart';
-export './singleMerchant.dart';
+export './geofence.dart';
 export './place.dart';
+export './singleMerchant.dart';

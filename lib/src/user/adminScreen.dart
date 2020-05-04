@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
@@ -13,18 +14,15 @@ import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart'
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 
-
 import 'bloc/user.dart';
 
-
-
 class AdminScreen extends StatefulWidget {
-
   final UserRepository _userRepository;
 
   AdminScreen({Key key, @required UserRepository userRepository})
@@ -37,16 +35,14 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-
   int _selectedIndex;
   FirebaseUser CurrentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   final TextEditingController _comment = TextEditingController();
-  final String serverToken='AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
+  final String serverToken =
+      'AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
   String userName;
-
-
 
   BottomNavigationBadge badger = new BottomNavigationBadge(
       backgroundColor: Colors.red,
@@ -54,8 +50,7 @@ class _AdminScreenState extends State<AdminScreen> {
       textColor: Colors.white,
       position: BottomNavigationBadgePosition.topRight,
       textSize: 8);
-  List<BottomNavigationBarItem>items=
-  <BottomNavigationBarItem>[
+  List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Icon(Icons.dashboard),
       title: Text('DashBoard'),
@@ -75,14 +70,16 @@ class _AdminScreenState extends State<AdminScreen> {
   ];
 
   @override
-  void initState(){
+  void initState() {
     //LocalNotificationService.instance.start();
-    userName='';
+    userName = '';
     _selectedIndex = 0;
     CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
-    UserRepo().upDate(uid: CurrentUser.uid,notificationID: 'fcm').then((value)=>null);
+    UserRepo()
+        .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
+        .then((value) => null);
     //sendAndRetrieveMessage();
-     if (Platform.isIOS) {
+    if (Platform.isIOS) {
       iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
         //print(data);
       });
@@ -93,117 +90,141 @@ class _AdminScreenState extends State<AdminScreen> {
       onMessage: (Map<String, dynamic> message) async {
         var data = Map<String, dynamic>.from(message);
         var payload = jsonDecode(data['data']['payload']);
-        print("onMessage: ${data['data']}");
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
-        //NotificationsBloc.instance.clearNotification();
+        print("onMessage: $message");
+        final notification = LocalNotification(
+            "notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
         //GetBar(title: 'tdsd',messageText: Text('sdsd'),
-         // duration: Duration(seconds: 5),
-       // ).show();
-          //print(payload['Items'].first['productName']);
-          switch(payload['NotificationType']){
-            case 'OrderRequest':
-              if(!Get.isDialogOpen)
-                Get.defaultDialog(
-                  title: '${payload['type']} Request',
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Can you execute this ${payload['type']} order'),
-                      SizedBox(height: 20,),
-                      Column(
-                        children: List<Widget>.generate(payload['Items'].length,
-                                (index) => Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text('${payload['Items'][index]['productName']}'),
-                                ),
-                                Expanded(
-                                  child: Text('${payload['Items'][index]['productCount']}'),
-                                ),
-                              ],
-                            )).toList(),
-                      ),
-                      SizedBox(height: 10,),
-                      Align(alignment:Alignment.centerLeft,child: Text('Amount: \u20A6 ${payload['Amount']}'),),
-                      payload['type']=='Delivery'?
-                      Align(alignment:Alignment.centerLeft,child:Text('delivery Fee: \u20A6${payload['deliveryFee']}')):Container(),
-                      payload['type']=='Delivery'?
-                      Align(alignment:Alignment.centerLeft,child:Text('Total Fee: \u20A6${payload['deliveryFee']+payload['Amount']}',style: TextStyle(fontWeight: FontWeight.bold),)):Container(),
-                      SizedBox(height: 10,),
-                      payload['type']=='Delivery'?
-                      Align(alignment:Alignment.centerLeft,child:Text('Address: ${payload['Address']}')):Container(),
-                      payload['type']=='Delivery'?
-                      Align(alignment:Alignment.centerLeft,child:Text('Distance: ${payload['deliveryDistance']/1000}km')):Container(),
-                    ],
-                  ),
-                  confirm: FlatButton(
-                    child: Text('Yes'),
-                    onPressed: ()async{
-                      await Respond(true,'',payload['fcmToken']);
-                      NotificationsBloc.instance.clearNotification();
-                      Get.back();
-                    },
-                  ),
-                  cancel: FlatButton(
-                    child: Text('No'),
-                    onPressed: ()async{
-                      await Respond(false,'',payload['fcmToken']);
-                      NotificationsBloc.instance.clearNotification();
-                      Get.back();
-                      },
-                  ),
-
-                );
-              break;
-          }
-
-
-
-
+        // duration: Duration(seconds: 5),
+        // ).show();
+        //print(payload['Items'].first['productName']);
+        switch (payload['NotificationType']) {
+          case 'OrderRequest':
+            if (!Get.isDialogOpen)
+              Get.defaultDialog(
+                title: '${payload['type']} Request',
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Can you execute this ${payload['type']} order'),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Column(
+                      children: List<Widget>.generate(
+                          payload['Items'].length,
+                          (index) => Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                        '${payload['Items'][index]['productName']}'),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                        '${payload['Items'][index]['productCount']}'),
+                                  ),
+                                ],
+                              )).toList(),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Amount: \u20A6 ${payload['Amount']}'),
+                    ),
+                    payload['type'] == 'Delivery'
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                                'delivery Fee: \u20A6${payload['deliveryFee']}'))
+                        : Container(),
+                    payload['type'] == 'Delivery'
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Total Fee: \u20A6${payload['deliveryFee'] + payload['Amount']}',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ))
+                        : Container(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    payload['type'] == 'Delivery'
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('Address: ${payload['Address']}'))
+                        : Container(),
+                    payload['type'] == 'Delivery'
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                                'Distance: ${payload['deliveryDistance'] / 1000}km'))
+                        : Container(),
+                  ],
+                ),
+                confirm: FlatButton(
+                  child: Text('Yes'),
+                  onPressed: () async {
+                    await Respond(true, '', payload['fcmToken']);
+                    NotificationsBloc.instance.clearNotification();
+                    Get.back();
+                  },
+                ),
+                cancel: FlatButton(
+                  child: Text('No'),
+                  onPressed: () async {
+                    await Respond(false, '', payload['fcmToken']);
+                    NotificationsBloc.instance.clearNotification();
+                    Get.back();
+                  },
+                ),
+              );
+            break;
+          case 'OrderResolutionResponse':
+            print('OrderResolutionResponse');
+            if (!Get.isDialogOpen)
+              Get.dialog(Resolution(
+                payload: payload,
+              ));
+            break;
+        }
       },
-      onBackgroundMessage: Platform.isIOS?null:BackgroundMessageHandler,
+      onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
       onLaunch: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
         print("onLaunch: ${message['data']}");
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
+        final notification = LocalNotification(
+            "notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
         // TODO optional
       },
       onResume: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
         print("onResume: $message");
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
+        final notification = LocalNotification(
+            "notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
         // TODO optional
       },
     );
 
-
-
-
     super.initState();
-
   }
 
-
-  static Future<dynamic> BackgroundMessageHandler(Map<String,dynamic>message){
-    if(message.containsKey('data')){
+  static Future<dynamic> BackgroundMessageHandler(
+      Map<String, dynamic> message) {
+    if (message.containsKey('data')) {
       final dynamic data = message['data'];
     }
-    if(message.containsKey('notification')){
+    if (message.containsKey('notification')) {
       final dynamic data = message['notification'];
     }
-
   }
 
-
-  unpackNotification(dynamic data){
-
-  }
-
-
+  unpackNotification(dynamic data) {}
 
   @override
   void dispose() {
@@ -221,62 +242,54 @@ class _AdminScreenState extends State<AdminScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-      child:
-      BlocProvider(
+      child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),
         )..add(LoadUser(CurrentUser.uid)),
-        child: BlocBuilder<UserBloc, UserState>(
-
-            builder: (context, state) {
-              if(state is UserLoaded)
-              {
-                //setState(() {
-                  userName=state.user.user.fname;
-               // });
-                return Scaffold(
-                  drawer: DrawerScreen(userRepository: widget._userRepository,user: state.user.user,),
-                  body: Container(
-
-                      child:Center(
-                        child: <Widget>[
-                          DashBoardScreen(),
-                          GeoFence(),
-                          Favourite(),
-                          OrderWidget(PRIMARYCOLOR),
-                        ].elementAt(_selectedIndex),
-                      ),
-                      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black54.withOpacity(0.2))))
+        child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
+          if (state is UserLoaded) {
+            //setState(() {
+            userName = state.user.user.fname;
+            // });
+            return Scaffold(
+              drawer: DrawerScreen(
+                userRepository: widget._userRepository,
+                user: state.user.user,
+              ),
+              body: Container(
+                  child: Center(
+                    child: <Widget>[
+                      DashBoardScreen(),
+                      GeoFence(),
+                      Favourite(),
+                      MyOrders(),
+                    ].elementAt(_selectedIndex),
                   ),
-                  bottomNavigationBar: BottomNavigationBar(
-                    items: items,
-                    currentIndex: _selectedIndex,
-                    selectedItemColor: PRIMARYCOLOR,
-                    unselectedItemColor: Colors.black54,
-                    showUnselectedLabels: true,
-                    onTap: _onItemTapped,
-                  ),
-                );
-              }
-              else{
-                return Scaffold(
-                  body: Center(
-                    child:Image.asset("assets/images/loading.gif",
-                      width: MediaQuery.of(context).size.width*0.3,),),
-                );
-              }
-
-
-
-            }
-        ),
-      )
-
-      ,
-
-
-
-
+                  decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.black54.withOpacity(0.2))))),
+              bottomNavigationBar: BottomNavigationBar(
+                items: items,
+                currentIndex: _selectedIndex,
+                selectedItemColor: PRIMARYCOLOR,
+                unselectedItemColor: Colors.black54,
+                showUnselectedLabels: true,
+                onTap: _onItemTapped,
+              ),
+            );
+          } else {
+            return Scaffold(
+              body: Center(
+                child: Image.asset(
+                  "assets/images/loading.gif",
+                  width: MediaQuery.of(context).size.width * 0.3,
+                ),
+              ),
+            );
+          }
+        }),
+      ),
     );
   }
 
@@ -292,47 +305,319 @@ class _AdminScreenState extends State<AdminScreen> {
             child: new Text('No'),
           ),
           new FlatButton(
-            onPressed: () => SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+            onPressed: () =>
+                SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
             child: new Text('Yes'),
           ),
         ],
       ),
     ));
-
   }
 
-
-  Future<void> Respond(bool yesNo,String response,String fcm)async{
+  Future<void> Respond(bool yesNo, String response, String fcm) async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(sound: true,badge: true,alert: true,provisional: false),
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
     );
     await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String,String>{
-          'Content-Type':'application/json',
-          'Authorization':'key=$serverToken'
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
         },
-        body: jsonEncode(<String,dynamic>{
-          'notification':<String,dynamic>{
-            'body':yesNo?'Your order has been accepted':'Your order has been decline',
-            'title':'Order Confirmation'
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': yesNo
+                ? 'Your order has been accepted'
+                : 'Your order has been decline',
+            'title': 'Order Confirmation'
           },
-          'priority':'high',
-          'data':<String,dynamic>{
-            'click_action':'FLUTTER_NOTIFICATION_CLICK',
-            'id':'1',
-            'status':'done',
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
             'payload': {
-              'NotificationType':'OrderRequestResponse',
-              'Response':yesNo,
-              'Reason':response,
-              'acceptedBy':userName
+              'NotificationType': 'OrderRequestResponse',
+              'Response': yesNo,
+              'Reason': response,
+              'acceptedBy': userName
             }
           },
-          'to':fcm,
-        })
-    );
+          'to': fcm,
+        }));
+  }
+}
+
+class Resolution extends StatefulWidget {
+  Resolution({this.payload});
+
+  final dynamic payload;
+
+  @override
+  State<StatefulWidget> createState() => _ResolutionState();
+}
+
+class _ResolutionState extends State<Resolution> {
+  Map<String, dynamic> payload;
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  final _formKey = GlobalKey<FormState>();
+  var _delay = TextEditingController();
+  var _telephone = TextEditingController();
+  int delay;
+
+  @override
+  void initState() {
+    delay = 5;
+    payload = widget.payload as Map<String, dynamic>;
+    super.initState();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: Colors.black.withOpacity(0.3),
+          body: Align(
+            alignment: Alignment.center,
+            child: Container(
+              alignment: Alignment.center,
+              color: Colors.white,
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Column(
+                children: [
+                  Expanded(
+                    flex: 0,
+                    child: Center(
+                      child: Text(
+                          'Hello. I have not recieved my package and its already time',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: ListView(
+                      children: [
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Column(
+                          //mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Column(
+                              children: List<Widget>.generate(
+                                  payload['Items'].length,
+                                  (index) => Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                  '${payload['Items'][index]['ProductName']}'),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                  '${payload['Items'][index]['count']}'),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                  '\u20A6 ${payload['Items'][index]['ProductPrice']}'),
+                                            ),
+                                          ),
+                                        ],
+                                      )).toList(),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child:
+                                  Text('Amount: \u20A6 ${payload['Amount']}'),
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Align(
+                                alignment: Alignment.centerLeft,
+                                child:
+                                    Text('Telephone: ${payload['telephone']}')),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            payload['type'] == 'Delivery'
+                                ? Align(
+                                    alignment: Alignment.centerLeft,
+                                    child:
+                                        Text('Address: ${payload['Address']}'))
+                                : Container(),
+                            SizedBox(
+                              height: 10,
+                            ),
+                          ],
+                        ),
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _delay,
+                                validator: (value) {
+                                  if (value.isEmpty) {
+                                    return 'Give reason';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Enter Reason',
+                                  filled: true,
+                                  fillColor: Colors.grey.withOpacity(0.2),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.text,
+                                autofocus: true,
+                                maxLines: 5,
+                                maxLength: 120,
+                                maxLengthEnforced: true,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              TextFormField(
+                                controller: _telephone,
+                                validator: (value) {
+                                  if (value.isEmpty) {
+                                    return 'Delivery Man Telephone';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Delivery Man Telephone',
+                                  filled: true,
+                                  fillColor: Colors.grey.withOpacity(0.2),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text('Extend duration by:(min)')),
+                              DropdownButtonFormField<int>(
+                                value: delay,
+                                items: [5, 10, 15]
+                                    .map((label) => DropdownMenuItem(
+                                          child: Text(
+                                            '$label',
+                                            style: TextStyle(
+                                                color: Colors.black54),
+                                          ),
+                                          value: label,
+                                        ))
+                                    .toList(),
+                                hint: Text('How many minute delay'),
+                                decoration:
+                                    InputDecoration(border: InputBorder.none),
+                                onChanged: (value) {
+                                  setState(() {
+                                    delay = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 0,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      color: PRIMARYCOLOR,
+                      child: FlatButton(
+                        color: PRIMARYCOLOR,
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            Respond(delay, _delay.text, payload['fcmToken'],
+                                    _telephone.text, payload['oID'])
+                                .then((value) => null);
+                            Get.back();
+                          }
+                        },
+                        child: Text(
+                          'Reply',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+            ),
+          ),
+        ));
+  }
 
+  Future<void> Respond(int delay, String comment, String fcm, String telephone,
+      String oID) async {
+    //print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': '$comment',
+            'title': 'Resolution'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'OrderResolutionMerchantResponse',
+              'orderID': oID,
+              'delay': delay,
+              'comment': comment,
+              'deliveryman': telephone,
+              'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
+            }
+          },
+          'to': fcm,
+        }));
+  }
 }

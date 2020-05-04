@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/register/register.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
 
 class RegisterScreen extends StatelessWidget {
   final UserRepository _userRepository;

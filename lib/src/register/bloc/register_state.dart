@@ -15,8 +15,14 @@ class RegisterState {
   final String code;
   final String password;
 
-  bool get isFormValid => isEmailValid && isPasswordValid && isNameValid && isTelephoneValid
-  && isConfirmPasswordValid && isAgreedValid && isNewUser;
+  bool get isFormValid =>
+      isEmailValid &&
+      isPasswordValid &&
+      isNameValid &&
+      isTelephoneValid &&
+      isConfirmPasswordValid &&
+      isAgreedValid &&
+      isNewUser;
 
   RegisterState({
     @required this.isNameValid,
@@ -35,59 +41,49 @@ class RegisterState {
 
   factory RegisterState.empty() {
     return RegisterState(
-      isNameValid:true,
-      isTelephoneValid:true,
+      isNameValid: true,
+      isTelephoneValid: true,
       isEmailValid: true,
       isPasswordValid: true,
       isAgreedValid: false,
-      isConfirmPasswordValid:true,
-      code:'+234',
-      password:'',
-      isNewUser:true,
+      isConfirmPasswordValid: true,
+      code: '+234',
+      password: '',
+      isNewUser: true,
       isSubmitting: false,
       isSuccess: false,
       isFailure: false,
-
-
     );
   }
 
-  factory RegisterState.loading(
-        {
-    String code='+234'
-}
-      ) {
+  factory RegisterState.loading({String code = '+234'}) {
     return RegisterState(
-      isNameValid:true,
-      isTelephoneValid:true,
+      isNameValid: true,
+      isTelephoneValid: true,
       isEmailValid: true,
       isPasswordValid: true,
       isAgreedValid: true,
-      code:code,
-      password:'',
-      isConfirmPasswordValid:true,
-      isNewUser:true,
+      code: code,
+      password: '',
+      isConfirmPasswordValid: true,
+      isNewUser: true,
       isSubmitting: true,
       isSuccess: false,
       isFailure: false,
     );
   }
 
-  factory RegisterState.failure(
-      {
-        String code='+234'
-      }
-      ) {
+  factory RegisterState.failure({String code = '+234'}) {
     return RegisterState(
-      isNameValid:true,
-      isTelephoneValid:true,
+      isNameValid: true,
+      isTelephoneValid: true,
       isEmailValid: true,
       isPasswordValid: true,
       isAgreedValid: true,
-      code:code,
-      password:'',
-      isConfirmPasswordValid:true,
-      isNewUser:true,
+      code: code,
+      password: '',
+      isConfirmPasswordValid: true,
+      isNewUser: true,
       isSubmitting: false,
       isSuccess: false,
       isFailure: true,
@@ -96,15 +92,15 @@ class RegisterState {
 
   factory RegisterState.success() {
     return RegisterState(
-      isNameValid:true,
-      isTelephoneValid:true,
+      isNameValid: true,
+      isTelephoneValid: true,
       isEmailValid: true,
       isPasswordValid: true,
       isAgreedValid: true,
-      isConfirmPasswordValid:true,
-      isNewUser:true,
-      code:'+234',
-      password:'',
+      isConfirmPasswordValid: true,
+      isNewUser: true,
+      code: '+234',
+      password: '',
       isSubmitting: false,
       isSuccess: true,
       isFailure: false,
@@ -125,13 +121,13 @@ class RegisterState {
     return copyWith(
       isEmailValid: isEmailValid,
       isPasswordValid: isPasswordValid,
-      isNameValid:isNameValid,
-      isTelephoneValid:isTelephoneValid,
-      isAgreedValid:isAgreedValid,
-      isConfirmPasswordValid:isConfirmPasswordValid,
-      isNewUser:isNewUser,
-      code:code,
-      password:password,
+      isNameValid: isNameValid,
+      isTelephoneValid: isTelephoneValid,
+      isAgreedValid: isAgreedValid,
+      isConfirmPasswordValid: isConfirmPasswordValid,
+      isNewUser: isNewUser,
+      code: code,
+      password: password,
       isSubmitting: false,
       isSuccess: false,
       isFailure: false,
@@ -156,13 +152,14 @@ class RegisterState {
     return RegisterState(
       isEmailValid: isEmailValid ?? this.isEmailValid,
       isPasswordValid: isPasswordValid ?? this.isPasswordValid,
-      isNameValid: isNameValid??this.isNameValid,
-      isTelephoneValid:isTelephoneValid??this.isTelephoneValid,
-      isConfirmPasswordValid:isConfirmPasswordValid??this.isConfirmPasswordValid,
-      isAgreedValid:isAgreedValid??this.isAgreedValid,
-      isNewUser:isNewUser??this.isNewUser,
-      code: code??this.code,
-      password:password??this.password,
+      isNameValid: isNameValid ?? this.isNameValid,
+      isTelephoneValid: isTelephoneValid ?? this.isTelephoneValid,
+      isConfirmPasswordValid:
+          isConfirmPasswordValid ?? this.isConfirmPasswordValid,
+      isAgreedValid: isAgreedValid ?? this.isAgreedValid,
+      isNewUser: isNewUser ?? this.isNewUser,
+      code: code ?? this.code,
+      password: password ?? this.password,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
       isFailure: isFailure ?? this.isFailure,
@@ -185,14 +182,12 @@ class RegisterState {
       isFailure: $isFailure,
     }''';
   }
-  }
+}
 
-
-class CCode extends RegisterState{
+class CCode extends RegisterState {
   final String code;
 
-   CCode([this.code]);
-
+  CCode([this.code]);
 
   List<Object> get props => [code];
 

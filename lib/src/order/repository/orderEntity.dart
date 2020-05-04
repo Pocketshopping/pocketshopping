@@ -4,16 +4,14 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:meta/meta.dart';
+import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
-import 'package:pocketshopping/src/order/repository/confirmation.dart';
 
 class OrderEntity extends Equatable {
-  final List<OrderItem>orderItem;
+  final List<OrderItem> orderItem;
   final double orderAmount;
   final Customer orderCustomer;
   final String orderMerchant;
@@ -25,6 +23,7 @@ class OrderEntity extends Equatable {
   final String orderID;
   final String docID;
   final Confirmation orderConfirmation;
+  final String customerID;
 
   const OrderEntity(
       this.orderItem,
@@ -38,41 +37,43 @@ class OrderEntity extends Equatable {
       this.status,
       this.orderID,
       this.docID,
-      this.orderConfirmation
-      );
+      this.orderConfirmation,
+      this.customerID);
 
   Map<String, Object> toJson() {
     return {
-      'orderItem':orderItem,
-      'orderAmount':orderAmount,
-      'orderCustomer':orderCustomer,
-      'orderMerchant':orderMerchant,
-      'orderCreatedAt':orderCreatedAt,
-      'orderMode':orderMode,
-      'orderETA':orderETA,
-      'receipt':receipt,
-      'status':status,
-      'orderID':orderID,
-      'docID':docID,
-      'orderConfirmation':orderConfirmation,
+      'orderItem': orderItem,
+      'orderAmount': orderAmount,
+      'orderCustomer': orderCustomer,
+      'orderMerchant': orderMerchant,
+      'orderCreatedAt': orderCreatedAt,
+      'orderMode': orderMode,
+      'orderETA': orderETA,
+      'receipt': receipt,
+      'status': status,
+      'orderID': orderID,
+      'docID': docID,
+      'orderConfirmation': orderConfirmation,
+      'customerID': customerID
     };
   }
 
   @override
   List<Object> get props => [
-    orderItem,
-    orderAmount,
-    orderCustomer,
-    orderMerchant,
-    orderCreatedAt,
-    orderMode,
-    orderETA,
-    receipt,
-    status,
-    orderID,
-    docID,
-    orderConfirmation
-  ];
+        orderItem,
+        orderAmount,
+        orderCustomer,
+        orderMerchant,
+        orderCreatedAt,
+        orderMode,
+        orderETA,
+        receipt,
+        status,
+        orderID,
+        docID,
+        orderConfirmation,
+        customerID
+      ];
 
   @override
   String toString() {
@@ -81,53 +82,54 @@ class OrderEntity extends Equatable {
 
   static OrderEntity fromJson(Map<String, Object> json) {
     return OrderEntity(
-      json['orderItem'] as  List,
-      json['orderAmount'] as  double,
-      json['orderCustomer'] as  Customer,
-      json['orderMerchant'] as  String,
-      json['orderCreatedAt'] as  dynamic,
-      json['orderMode'] as  OrderMode,
-      json['orderETA'] as  int,
-      json['receipt'] as  Receipt,
-      json['status'] as  String,
-      json['orderID'] as  String,
-      json['docID'] as  String,
-      json['orderConfirmation'] as Confirmation,
-    );
+        json['orderItem'] as List,
+        json['orderAmount'] as double,
+        json['orderCustomer'] as Customer,
+        json['orderMerchant'] as String,
+        json['orderCreatedAt'] as dynamic,
+        json['orderMode'] as OrderMode,
+        json['orderETA'] as int,
+        json['receipt'] as Receipt,
+        json['status'] as String,
+        json['orderID'] as String,
+        json['docID'] as String,
+        json['orderConfirmation'] as Confirmation,
+        json['customerID'] as String);
   }
 
   static OrderEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
     return OrderEntity(
-      OrderItem.fromListMap(snap.data['orderItem']),
-      snap.data['orderAmount'],
-      Customer.fromMap(snap.data['orderCustomer']),
-      snap.data['orderMerchant'],
-      snap.data['orderCreatedAt'],
-      OrderMode.fromMap(snap.data['orderMode']),
-      snap.data['orderETA'],
-      Receipt.fromMap(snap.data['receipt']),
-      snap.data['status'],
-      snap.data['orderID'],
-      snap.documentID,
-      Confirmation.fromMap(snap.data['orderConfirmation']),
-    );
+        OrderItem.fromListMap(snap.data['orderItem']),
+        snap.data['orderAmount'],
+        Customer.fromMap(snap.data['orderCustomer']),
+        snap.data['orderMerchant'],
+        snap.data['orderCreatedAt'],
+        OrderMode.fromMap(snap.data['orderMode']),
+        snap.data['orderETA'],
+        Receipt.fromMap(snap.data['receipt']),
+        snap.data['status'],
+        snap.data['orderID'],
+        snap.documentID,
+        Confirmation.fromMap(snap.data['orderConfirmation']),
+        snap.data['customerID']);
   }
 
   Map<String, Object> toDocument() {
     return {
-      'orderItem':orderItem,
-      'orderAmount':orderAmount,
-      'orderCustomer':orderCustomer,
-      'orderMerchant':orderMerchant,
-      'orderCreatedAt':orderCreatedAt,
-      'orderMode':orderMode,
-      'orderETA':orderETA,
-      'receipt':receipt,
-      'status':status,
-      'orderID':orderID,
-      'docID':docID,
-      'orderConfirmation':orderConfirmation,
+      'orderItem': orderItem,
+      'orderAmount': orderAmount,
+      'orderCustomer': orderCustomer,
+      'orderMerchant': orderMerchant,
+      'orderCreatedAt': orderCreatedAt,
+      'orderMode': orderMode,
+      'orderETA': orderETA,
+      'receipt': receipt,
+      'status': status,
+      'orderID': orderID,
+      'docID': docID,
+      'orderConfirmation': orderConfirmation,
+      'customerID': customerID
     };
   }
 }

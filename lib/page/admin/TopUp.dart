@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 
-
-
-class TopUp extends StatefulWidget{
+class TopUp extends StatefulWidget {
   @override
   _TopUpState createState() => new _TopUpState();
 }
