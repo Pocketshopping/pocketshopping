@@ -5,7 +5,6 @@ import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/model/DataModel/merchantData.dart';
 import 'package:share/share.dart';
 
-//import 'package:camera_utils/camera_utils.dart';
 
 class AddBranch extends StatefulWidget {
   AddBranch({this.coverUrl = '', this.color = null});

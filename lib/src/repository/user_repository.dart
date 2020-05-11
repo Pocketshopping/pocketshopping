@@ -21,7 +21,7 @@ class UserRepository {
     AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
     FirebaseUser user = result.user;
-    upDateUserRole(role, user);
+    await upDateUserRole(role, user);
     return user.uid;
   }
 

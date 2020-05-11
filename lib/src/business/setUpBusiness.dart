@@ -12,7 +12,8 @@ class SetupBusiness extends StatelessWidget {
             child: Text(
           'PocketShopping',
           style: TextStyle(color: PRIMARYCOLOR),
-        )),
+        ),
+        ),
         elevation: 0,
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,

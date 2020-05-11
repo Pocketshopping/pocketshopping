@@ -79,10 +79,19 @@ exports.PickupETA = functions.https.onCall((data, context) => {
     return eta;
 });
 
-exports.DeliveryETA = functions.https.onCall((data, context) => {
-  var distance =data['distance']; 
-  var eta=0;
+exports.ETA = functions.https.onCall((data, context) => {
+  var distance =data['distance'];
+  var type =data['type']; 
+  var ttc = data['ttc'];
+  var server = data['server'];
+  var top = data['top'];
+  var eta=0.0;
+  if(type == 'Delivery')
     eta = (distance/8.33333)+960;
+  else if(type == 'Pickup') 
+    eta = top;
+  else
+    eta = (ttc/server)+top;   
 
     return eta;
 });

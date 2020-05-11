@@ -1,12 +1,13 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/category/repository/merchatCategoryObj.dart';
 
 @immutable
 class GeoFenceState {
   final String category;
   final Position currentPosition;
-  final List<String> categories;
+  final List<MCategory> categories;
   final List<Merchant> nearByMerchants;
   final bool isLoading;
   final bool isSuccess;
@@ -32,7 +33,20 @@ class GeoFenceState {
       selected: 0,
       currentPosition: null,
       category: 'Restuarant',
-      categories: ['Restuarant', 'Eatery', 'Bar', 'Store', 'Park'],
+      categories: [
+        MCategory(categoryName: 'Restuarant',
+        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Frestuarant.jpg?alt=media&token=a4c93ec0-6889-4849-9fdf-74d8da74252f',
+        categoryView: 10),
+        MCategory(categoryName: 'Store',
+        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2FpsCover.png?alt=media&token=690ccf94-1c3a-4263-9e88-f898116d4aa2',
+        categoryView: 9),
+        MCategory(categoryName: 'Bar',
+        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbar.jpeg?alt=media&token=77b0124e-acfe-423a-a006-5ad2e597bd9a',
+        categoryView: 7),
+        MCategory(categoryName: 'Bakery&Pastry',
+        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbakery.png?alt=media&token=b962f7ca-7572-4a3b-b625-84d9d6c4dc3a',
+        categoryView: 6),
+        ],
       nearByMerchants: [],
     );
   }
@@ -40,7 +54,7 @@ class GeoFenceState {
   factory GeoFenceState.loading({
     String category = 'Restuarant',
     List<Merchant> nearByMerchants,
-    List<String> categories,
+    List<MCategory> categories,
     int selected = 0,
     Position currentPosition,
   }) {
@@ -59,7 +73,7 @@ class GeoFenceState {
   factory GeoFenceState.failure(
       {String category = 'Restuarant',
       List<Merchant> nearByMerchants,
-      List<String> categories,
+      List<MCategory> categories,
       int selected,
       Position currentPosition}) {
     return GeoFenceState(
@@ -77,7 +91,7 @@ class GeoFenceState {
   factory GeoFenceState.success({
     String category = 'Restuarant',
     List<Merchant> nearByMerchants,
-    List<String> categories,
+    List<MCategory> categories,
     int selected = 0,
     Position currentPosition,
   }) {
@@ -96,7 +110,7 @@ class GeoFenceState {
   GeoFenceState update(
       {String category,
       List<Merchant> nearByMerchants,
-      List<String> categories,
+      List<MCategory> categories,
       int selected,
       Position currentPosition}) {
     return copyWith(
@@ -114,7 +128,7 @@ class GeoFenceState {
   GeoFenceState copyWith({
     String category,
     List<Merchant> nearByMerchants,
-    List<String> categories,
+    List<MCategory> categories,
     int selected,
     Position currentPosition,
     bool isLoading,
@@ -135,14 +149,6 @@ class GeoFenceState {
 
   @override
   String toString() {
-    return '''GeoFenceState { 
-       category:$category,  
-      isLoading: $isLoading,
-      isSuccess: $isSuccess,
-      isFailure: $isFailure,
-      selected:$selected,
-      currentPosition:$currentPosition,
-      nearByMerchants:${nearByMerchants.length}
-    }''';
+    return '''GeoFenceState {nearByMerchants:${nearByMerchants.length}}''';
   }
 }

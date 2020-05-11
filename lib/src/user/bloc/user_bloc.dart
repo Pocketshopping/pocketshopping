@@ -43,7 +43,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     _userRepository.save(event.user);
   }
 
-  Stream<UserState> _mapUpdateUserToState(UpdateUser event) async* {
+  Stream<UserState> _mapUpdateUserToState
+      (UpdateUser event) async* {
     //_userRepository.updateUser(event.user);
   }
 

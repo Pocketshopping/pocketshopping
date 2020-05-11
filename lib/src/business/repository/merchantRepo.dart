@@ -1,13 +1,17 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:pocketshopping/component/dynamicLinks.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:geocoder/geocoder.dart' as geocode;
+import 'package:geolocator/geolocator.dart';
 
 class MerchantRepo {
   final databaseReference = Firestore.instance;
+  final FirebaseMessaging _fcm = FirebaseMessaging();
   Geoflutterfire geo = Geoflutterfire();
 
   Future<String> save({
@@ -57,13 +61,34 @@ class MerchantRepo {
       'businessCountry': bCountry,
       'branchUnique': bBranchUnique,
       'businessCreatedAt': DateTime.now(),
+      'index':makeIndexList(bName)
     });
-
-    //print('sdsd');
     await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
-    await this.CategoryMaker(bCategory);
+    await ChannelMaker(bid.documentID,uid);
 
     return bid.documentID;
+  }
+
+  List<String> makeIndexList(String bName) {
+    List<String> indexList = [];
+    var temp = bName.split(' ');
+    for (int i = 0; i < temp.length; i++) {
+      for (int y = 1; y < temp[i].length + 1; y++) {
+        indexList.add(temp[i].substring(0, y).toLowerCase());
+      }
+    }
+    return indexList;
+  }
+
+  Future<void> ChannelMaker(String mid,String uid) async {
+    String fcm = await _fcm.getToken();
+     await databaseReference.collection("channels")
+         .document(mid).setData({
+       'Messaging':{uid:fcm},
+       'Ordering':{uid:fcm},
+       'Delivery&Pickup':{uid:fcm},
+       'Cashier':{uid:fcm}
+     });
   }
 
   Future<void> CategoryMaker(String category) async {
@@ -222,4 +247,13 @@ class MerchantRepo {
     // print(suggestion);
     return suggestion;
   }
+
+  static Future<List<String>> regio(Position position)async {
+    final coordinates =
+    new geocode.Coordinates(position.latitude, position.longitude);
+    var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
+    //print(address.);
+    return [];
+  }
+
 }

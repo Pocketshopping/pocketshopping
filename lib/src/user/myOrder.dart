@@ -33,8 +33,8 @@ class _OrdersState extends State<MyOrders> {
             backgroundColor: Colors.white,
             elevation: 0,
             title: Text(
-              "History",
-              style: TextStyle(color: PRIMARYCOLOR),
+              "My Order(s)",
+              style: TextStyle(color: Colors.black),
             ),
             bottom: TabBar(
               labelColor: PRIMARYCOLOR,
@@ -53,7 +53,7 @@ class _OrdersState extends State<MyOrders> {
         body: TabBarView(
           children: [
             OpenOrder(user: CurrentUser),
-            CloseOrder(),
+            CloseOrder(user: CurrentUser),
           ],
         ),
       ),

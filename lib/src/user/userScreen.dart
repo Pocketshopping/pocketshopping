@@ -1,15 +1,22 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
+import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 
 import 'bloc/user.dart';
 
@@ -29,7 +36,8 @@ class _UserScreenState extends State<UserScreen> {
   int _selectedIndex;
   Color fabColor;
   FirebaseUser CurrentUser;
-
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  StreamSubscription iosSubscription;
   BottomNavigationBadge badger = new BottomNavigationBadge(
       backgroundColor: Colors.red,
       badgeShape: BottomNavigationBadgeShape.circle,
@@ -53,49 +61,54 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   void initState() {
-    super.initState();
     _selectedIndex = 0;
     fabColor = PRIMARYCOLOR;
     CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
     UserRepo()
         .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
         .then((value) => null);
-    //CategoryData().getAll().then((value) => psProvider.of(context).value['category']=value);
-
-    /*SchedulerBinding.instance.addPostFrameCallback((_) {
-
-      if(psProvider.of(context).value['user']['fname'] != null) {
-        UserData(uid: psProvider
-            .of(context)
-            .value['uid']).getOne().then((value) =>
-        {
-          psProvider
-              .of(context)
-              .value['user'] = value
-        });
-      }
-      NotificationDataModel(uid:psProvider.of(context).value['uid'],nCleared: false).getAll().then((value) => {
-        if(value.length>0){
-          psProvider.of(context).value['notifications']=value,
-          Scaffold.of(context).showSnackBar(
-              SnackBar(
-                duration: Duration(seconds: 5),
-                content: Text('You have very important notification that needs your attention'),
-                action: SnackBarAction(
-                  label: "View Now",
-                  textColor: Colors.white,
-                  //disabledTextColor: TEXT_BLACK_LIGHT,
-                  onPressed: () {
-                    print("I know you are testing the action in the SnackBar!");
-                  },
-                ),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-              )
-          )
-        }
+    if (Platform.isIOS) {
+      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
       });
-    });*/
+
+      _fcm.requestNotificationPermissions(IosNotificationSettings());
+    }
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        var data = Map<String, dynamic>.from(message);
+        var payload = jsonDecode(data['data']['payload']);
+        print("onMessage: $message");
+        final notification = LocalNotification(
+            "notification", Map<String, dynamic>.from(message));
+        NotificationsBloc.instance.newNotification(notification);
+      },
+      onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
+      onLaunch: (Map<String, dynamic> message) async {
+        _fcm.onTokenRefresh;
+        print("onLaunch: ${message['data']}");
+        final notification = LocalNotification(
+            "notification", Map<String, dynamic>.from(message));
+        NotificationsBloc.instance.newNotification(notification);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        _fcm.onTokenRefresh;
+        print("onResume: $message");
+        final notification = LocalNotification(
+            "notification", Map<String, dynamic>.from(message));
+        NotificationsBloc.instance.newNotification(notification);
+      },
+    );
+    super.initState();
+  }
+
+  static Future<dynamic> BackgroundMessageHandler(
+      Map<String, dynamic> message) {
+    if (message.containsKey('data')) {
+      final dynamic data = message['data'];
+    }
+    if (message.containsKey('notification')) {
+      final dynamic data = message['notification'];
+    }
   }
 
   void _onItemTapped(int index) {
@@ -146,10 +159,10 @@ class _UserScreenState extends State<UserScreen> {
           } else {
             return Scaffold(
               body: Center(
-                child: Image.asset(
-                  "assets/images/loading.gif",
-                  width: MediaQuery.of(context).size.width * 0.3,
-                ),
+                child: JumpingDotsProgressIndicator(
+                  fontSize: MediaQuery.of(context).size.height*0.12,
+                  color: PRIMARYCOLOR,
+                )
               ),
             );
           }

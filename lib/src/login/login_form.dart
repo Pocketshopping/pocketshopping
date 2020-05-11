@@ -5,11 +5,16 @@ import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
+import 'package:get/get.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 
 class LoginForm extends StatefulWidget {
   final UserRepository _userRepository;
+  final bool fromSignup;
+  final Uri linkdata;
 
-  LoginForm({Key key, @required UserRepository userRepository})
+  LoginForm({Key key, @required UserRepository userRepository,
+    this.fromSignup=false,this.linkdata})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -63,11 +68,15 @@ class _LoginFormState extends State<LoginForm> {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
+                backgroundColor: PRIMARYCOLOR,
                 content: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Logging In...'),
-                    CircularProgressIndicator(),
+                    Text('Logging In...',style: TextStyle(color: Colors.white),),
+                    JumpingDotsProgressIndicator(
+                      fontSize: MediaQuery.of(context).size.height*0.05,
+                      color: Colors.white,
+                    )
                   ],
                 ),
               ),
@@ -75,6 +84,9 @@ class _LoginFormState extends State<LoginForm> {
         }
         if (state.isSuccess) {
           BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
+          if(widget.fromSignup)
+          Get.back();
+          //Navigator.pop(context);
         }
       },
       child: BlocBuilder<LoginBloc, LoginState>(

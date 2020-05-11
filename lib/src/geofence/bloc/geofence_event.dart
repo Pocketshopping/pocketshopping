@@ -59,3 +59,5 @@ class CategorySelected extends GeoFenceEvent {
   @override
   String toString() => 'CategorySelected { selected :$selected }';
 }
+
+class Categories extends GeoFenceEvent {}

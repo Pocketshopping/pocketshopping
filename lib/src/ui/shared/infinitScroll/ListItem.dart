@@ -2,10 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderTimer.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
@@ -18,6 +20,7 @@ class ListItem extends StatelessWidget {
   final DynamicValue callback;
   final dynamic data;
 
+
   const ListItem({Key key, this.title, this.template, this.callback, this.data})
       : super(key: key);
 
@@ -25,8 +28,10 @@ class ListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    OrderGlobalState odState = Get.find();
-    print(odState.order);
+    OrderGlobalState odState;
+    try{odState = Get.find();}catch(_){}
+
+    //print(odState.order);
     void showMore() {
       showModalBottomSheet(
         context: context,
@@ -166,6 +171,38 @@ class ListItem extends StatelessWidget {
                             (title as Order).orderETA,
                           ) > 0 ? '' : 'Have you collected your package. click here to take further action'}"),
                     )
+                  ],
+                ),
+                Divider(),
+              ],
+            ),
+            trailing: Icon(Icons.keyboard_arrow_right),
+          );
+          break;
+        case MyClosedOrderIndicatorTitle:
+          temp = ListTile(
+            onTap: () {
+              callback(title);
+            },
+            leading: CircleAvatar(
+                radius: 30.0,
+                backgroundColor: Colors.white,
+                child: Center(child: Icon(Icons.check),)
+            ),
+            title: Text(
+              "${(title as Order).orderItem[0].ProductName}"
+                  " ${(title as Order).orderItem.length > 1 ? '+${(title as Order).orderItem.length - 1} more' : ''}",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text("${(title as Order).orderMode.mode}"),
+                    Text("${(title as Order).orderAmount}")
                   ],
                 ),
                 Divider(),
@@ -392,6 +429,40 @@ class ListItem extends StatelessWidget {
               ],
             ),
             trailing: Icon(Icons.keyboard_arrow_right),
+          );
+          break;
+
+        case SearchEmptyOrderIndicatorTitle:
+          temp = ListTile(
+            title: Image.asset('assets/images/empty.gif'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Center(
+                  child: Text(
+                    'Empty',
+                    style: TextStyle(
+                        fontSize: MediaQuery.of(context).size.height * 0.06),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Text("You do not have any open order",
+                        textAlign: TextAlign.center,),
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            ),
           );
           break;
         case SearchEmptyIndicatorTitle:
@@ -722,7 +793,7 @@ class ListItem extends StatelessWidget {
                                     ))),
                             Expanded(
                               child: FlatButton(
-                                color: Colors.orangeAccent,
+                                color: PRIMARYCOLOR,
                                 onPressed: () {
                                   callback(
                                       {'callType': 'ORDER', 'payload': title});
@@ -799,7 +870,16 @@ class ListItem extends StatelessWidget {
         ? Container(
             height: 100,
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-            child: CircularProgressIndicator(),
+            child: ListSkeleton(
+              style: SkeletonStyle(
+                theme: SkeletonTheme.Light,
+                isShowAvatar: false,
+                barCount: 3,
+                colors: [Colors.grey.withOpacity(0.5), Colors.grey,
+                  Colors.grey.withOpacity(0.5)],
+                isAnimation: true,
+              ),
+            ),
             alignment: Alignment.center,
           )
         : templateChooser(template);

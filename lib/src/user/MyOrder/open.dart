@@ -34,7 +34,7 @@ class _OpenOrderState extends State<OpenOrder> {
 
   @override
   Widget build(BuildContext context) {
-    print("callbackVal $callbackVal");
+    //print("callbackVal $callbackVal");
     void detail(String name) {
       showModalBottomSheet(
         context: context,
@@ -61,7 +61,9 @@ class _OpenOrderState extends State<OpenOrder> {
               },
               child: ListItem(
                 title: model.items[index],
-                template: MyOpenOrderIndicatorTitle,
+                template: model.items[0] != SearchEmptyOrderIndicatorTitle
+                    ? MyOpenOrderIndicatorTitle
+                    : SearchEmptyOrderIndicatorTitle,
                 callback: (value) {
                   Get.to(OrderTrackerWidget(
                     order: value,

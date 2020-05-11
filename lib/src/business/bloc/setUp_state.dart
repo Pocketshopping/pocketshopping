@@ -13,6 +13,7 @@ class BusinessState {
   final bool isUploading;
   final bool isSuccess;
   final bool isFailure;
+  final bool isAgreedValid;
   final String code;
   final Position position;
   final String isCapturing;
@@ -24,7 +25,7 @@ class BusinessState {
       isNameValid &&
       isTelephoneValid &&
       isDeliveryValid &&
-      isCaptureValid;
+      isAgreedValid;
 
   BusinessState(
       {@required this.isNameValid,
@@ -39,6 +40,7 @@ class BusinessState {
       @required this.isFailure,
       @required this.code,
       @required this.category,
+      @required this.isAgreedValid,
       this.position,
       this.isCapturing,
       this.delivery});
@@ -51,6 +53,7 @@ class BusinessState {
       isCategoryValid: true,
       isCaptureValid: false,
       isDeliveryValid: true,
+      isAgreedValid: false,
       code: '+234',
       position: null,
       isCapturing: 'NO',
@@ -76,6 +79,7 @@ class BusinessState {
       isAddressValid: true,
       isCategoryValid: true,
       isCaptureValid: true,
+      isAgreedValid: true,
       code: code,
       category: category,
       position: position,
@@ -102,6 +106,7 @@ class BusinessState {
       isAddressValid: true,
       isCategoryValid: true,
       isCaptureValid: true,
+      isAgreedValid: true,
       code: code,
       category: category,
       position: position,
@@ -123,6 +128,7 @@ class BusinessState {
       isCategoryValid: true,
       isCaptureValid: true,
       isDeliveryValid: true,
+      isAgreedValid: true,
       code: '+234',
       category: category,
       isCapturing: 'COMPLETED',
@@ -140,6 +146,7 @@ class BusinessState {
       bool isTelephoneValid,
       bool isDeliveryValid,
       bool isCaptureValid,
+      bool isAgreedValid,
       String code,
       Position position,
       String password,
@@ -154,6 +161,7 @@ class BusinessState {
       isTelephoneValid: isTelephoneValid,
       isCaptureValid: isCaptureValid,
       isDeliveryValid: isDeliveryValid,
+      isAgreedValid:isAgreedValid,
       code: code,
       category: category,
       delivery: delivery,
@@ -175,6 +183,7 @@ class BusinessState {
       bool isDeliveryValid,
       bool isCaptureValid,
       bool isNameValid,
+      bool isAgreedValid,
       String code,
       Position position,
       String password,
@@ -193,6 +202,7 @@ class BusinessState {
       isDeliveryValid: isDeliveryValid ?? this.isDeliveryValid,
       isCaptureValid: isCaptureValid ?? this.isCaptureValid,
       code: code ?? this.code,
+      isAgreedValid: isAgreedValid??this.isAgreedValid,
       category: category ?? this.category,
       delivery: delivery ?? this.delivery,
       isCapturing: isCapturing ?? this.isCapturing,

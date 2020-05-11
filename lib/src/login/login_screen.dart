@@ -5,8 +5,11 @@ import 'package:pocketshopping/src/repository/user_repository.dart';
 
 class LoginScreen extends StatelessWidget {
   final UserRepository _userRepository;
+  final bool fromSignup;
+  final Uri linkdata;
 
-  LoginScreen({Key key, @required UserRepository userRepository})
+  LoginScreen({Key key, @required UserRepository userRepository,
+    this.fromSignup=false,this.linkdata})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -16,7 +19,8 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       body: BlocProvider<LoginBloc>(
         create: (context) => LoginBloc(userRepository: _userRepository),
-        child: LoginForm(userRepository: _userRepository),
+        child: LoginForm(userRepository: _userRepository,
+          fromSignup: fromSignup,linkdata: linkdata,),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 
 class HomeScreen extends StatelessWidget {
   final String name;
@@ -10,7 +12,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: Text('Home'),
         actions: <Widget>[
           IconButton(
@@ -22,15 +24,15 @@ class HomeScreen extends StatelessWidget {
             },
           )
         ],
-      ),
+      ),*/
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Center(
-            child: Image.asset(
-              "assets/images/loading.gif",
-              width: MediaQuery.of(context).size.width * 0.3,
-            ),
+            child: JumpingDotsProgressIndicator(
+              fontSize: MediaQuery.of(context).size.height*0.12,
+              color: PRIMARYCOLOR,
+            )
           ),
         ],
       ),

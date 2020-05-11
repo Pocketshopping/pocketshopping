@@ -8,9 +8,16 @@ import 'package:pocketshopping/page/drawer/usetting.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/ui/shared/drawer/referral.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:get/get.dart';
+import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
+import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
+import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 
-class DrawerScreen extends StatelessWidget {
+
+class DrawerScreen extends StatefulWidget {
   final UserRepository _userRepository;
   final User user;
 
@@ -18,6 +25,19 @@ class DrawerScreen extends StatelessWidget {
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
+  _DrawerScreenState createState() => new _DrawerScreenState();
+}
+
+class _DrawerScreenState extends State<DrawerScreen> {
+  Stream<Wallet> _walletStream;
+  Wallet _wallet;
+
+  @override
+  void initState() {
+    _walletStream = WalletBloc.instance.walletStream;
+    _walletStream.listen((wallet) {if(mounted){_wallet = wallet;if(mounted)setState(() { });}});
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,27 +49,29 @@ class DrawerScreen extends StatelessWidget {
             color: Colors.white,
             height: MediaQuery.of(context).size.height * 0.35,
             child: DrawerHeader(
-              child: new Center(
-                  child: new Column(
+              child:  Center(
+                  child:  Column(
                 //crossAxisAlignment: CrossAxisAlignment.center,
                 //mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  new Container(
+                  Container(
                       width: MediaQuery.of(context).size.width * 0.3,
                       height: MediaQuery.of(context).size.height * 0.15,
-                      decoration: new BoxDecoration(
+                      decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          image: new DecorationImage(
+                          image: DecorationImage(
                               fit: BoxFit.fill,
                               image: new NetworkImage(
                                   "https://i.imgur.com/BoN9kdC.png")))),
-                  new Text(user.fname, textScaleFactor: 1),
-                  new Text("Balance: \u20A6 456.09", textScaleFactor: 1.3),
+                  Text(widget.user.fname, textScaleFactor: 1),
+                  if(_wallet != null)
+                  Text("PocketBalance: \u20A6 ${_wallet.pocketBalance}", textScaleFactor: 1.3),
+                  if(_wallet != null)
                   Expanded(
                     child: FlatButton(
                       onPressed: () {},
-                      color: Colors.white,
-                      child: Text("TopUp"),
+                      color: PRIMARYCOLOR,
+                      child: Text("TopUp",style: TextStyle(color: Colors.white),),
                     ),
                   ),
                 ],
@@ -78,6 +100,15 @@ class DrawerScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => PocketPage()));
             },
           ),
+          //if(_wallet != null)
+          ListTile(
+            leading: Icon(Icons.people),
+            title: Text("referral"),
+            onTap: () {
+              Get.back();
+              Get.to(Referral(walletId: widget.user.walletId));
+            },
+          ),
           ListTile(
             leading: Icon(Icons.notifications_active),
             title: Text("Request"),
@@ -87,7 +118,7 @@ class DrawerScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => NotificationPage()));
             },
           ),
-          if (user.role == 'user')
+          if (widget.user.role == 'user')
             ListTile(
               leading: Icon(Icons.business),
               title: Text("Business"),
@@ -112,9 +143,8 @@ class DrawerScreen extends StatelessWidget {
             leading: Icon(Icons.info),
             title: Text("AboutUs"),
             onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => AboutUsPage()));
+              Get.back();
+              Get.to(BSetup(userRepository: widget._userRepository,));
             },
           ),
           ListTile(

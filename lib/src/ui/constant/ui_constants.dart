@@ -23,6 +23,7 @@ const String SettingsIndicatorTitle = 'SEI';
 const String BranchIndicatorTitle = 'BIT';
 const String AccountIndicatorTitle = 'AIT';
 const String SearchEmptyIndicatorTitle = 'SET';
+const String SearchEmptyOrderIndicatorTitle = 'EET';
 const String SourceProductIndicatorTitle = 'SPI';
 const String CompletedOrderIndicatorTitle = 'COI';
 const String CancelledOrderIndicatorTitle = 'CAI';
@@ -31,9 +32,11 @@ const String NewCustomerIndicatorTitle = 'NIT';
 const String OldCustomerIndicatorTitle = 'OIT';
 const String MerchantUIIndicatorTitle = 'MUT';
 const String MyOpenOrderIndicatorTitle = 'MYO';
+const MyClosedOrderIndicatorTitle = 'MYC';
 const String PocketShoppingDefaultCover =
     'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2FpsCover.png?alt=media&token=690ccf94-1c3a-4263-9e88-f898116d4aa2';
 const String PocketShoppingDefaultAvatar =
     'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Favatar.png?alt=media&token=7ef0593e-2289-4d25-ad27-34dc08d85040';
 const String serverToken =
     'AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
+const String WALLETAPI ='http://wallet.homlyng.com/api/v1/';

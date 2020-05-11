@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 
@@ -17,11 +18,7 @@ class CreateAccountButton extends StatelessWidget {
         'Create an Account',
       ),
       onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) {
-            return RegisterScreen(userRepository: _userRepository);
-          }),
-        );
+        Get.to(RegisterScreen(userRepository: _userRepository));
       },
     );
   }

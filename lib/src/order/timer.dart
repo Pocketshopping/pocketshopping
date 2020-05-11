@@ -52,9 +52,14 @@ class _TimerState extends State<TimerWidget> {
               });
               NotificationsBloc.instance.clearNotification();
               break;
+
+            default:
+              NotificationsBloc.instance.clearNotification();
+              break;
           }
         }
       }
+
     });
     super.initState();
   }

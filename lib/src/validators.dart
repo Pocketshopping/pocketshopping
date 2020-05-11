@@ -25,7 +25,7 @@ class Validators {
   }
 
   static isValidName(String name) {
-    return RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
+    return RegExp(r'^[a-zA-Z\s.-]+$').hasMatch(name);
   }
 
   static isValidAddress(String name) {

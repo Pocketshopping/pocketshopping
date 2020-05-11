@@ -14,11 +14,13 @@ import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart'
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/user/logistic.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
+import 'package:progress_indicators/progress_indicators.dart';
 
 import 'bloc/user.dart';
 
@@ -40,8 +42,6 @@ class _AdminScreenState extends State<AdminScreen> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   final TextEditingController _comment = TextEditingController();
-  final String serverToken =
-      'AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
   String userName;
 
   BottomNavigationBadge badger = new BottomNavigationBadge(
@@ -65,7 +65,7 @@ class _AdminScreenState extends State<AdminScreen> {
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.folder),
-      title: Text('Order'),
+      title: Text('My Order(s)'),
     ),
   ];
 
@@ -75,16 +75,10 @@ class _AdminScreenState extends State<AdminScreen> {
     userName = '';
     _selectedIndex = 0;
     CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
-    UserRepo()
-        .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
-        .then((value) => null);
+    UserRepo().upDate(uid: CurrentUser.uid, notificationID: 'fcm').then((value) => null);
     //sendAndRetrieveMessage();
-    if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
-        //print(data);
-      });
-
-      _fcm.requestNotificationPermissions(IosNotificationSettings());
+    if (Platform.isIOS) {iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
+    _fcm.requestNotificationPermissions(IosNotificationSettings());
     }
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
@@ -259,7 +253,7 @@ class _AdminScreenState extends State<AdminScreen> {
               body: Container(
                   child: Center(
                     child: <Widget>[
-                      DashBoardScreen(),
+                      state.user.merchant.bCategory == 'Logistic'?LogisticDashBoardScreen():DashBoardScreen(),
                       GeoFence(),
                       Favourite(),
                       MyOrders(),
@@ -281,10 +275,10 @@ class _AdminScreenState extends State<AdminScreen> {
           } else {
             return Scaffold(
               body: Center(
-                child: Image.asset(
-                  "assets/images/loading.gif",
-                  width: MediaQuery.of(context).size.width * 0.3,
-                ),
+                child: JumpingDotsProgressIndicator(
+                  fontSize: MediaQuery.of(context).size.height*0.12,
+                  color: PRIMARYCOLOR,
+                )
               ),
             );
           }
@@ -620,4 +614,6 @@ class _ResolutionState extends State<Resolution> {
           'to': fcm,
         }));
   }
+
+
 }

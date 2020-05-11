@@ -10,6 +10,7 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 
 class SinglePlaceWidget extends StatefulWidget {
   SinglePlaceWidget({this.merchant, this.user, this.cPosition});
@@ -17,6 +18,7 @@ class SinglePlaceWidget extends StatefulWidget {
   final Merchant merchant;
   final GeoFirePoint cPosition;
   final User user;
+
 
   @override
   State<StatefulWidget> createState() => _SinglePlaceWidgetUIState();
@@ -64,20 +66,6 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                 longitude: widget.cPosition.longitude),
           );
           Get.to(page);
-
-          //Navigator.of(context).push(
-          //MaterialPageRoute(
-          //builder: (_) {
-          //return BlocProvider.value(
-          //value: BlocProvider.of<GeoFenceBloc>(context),
-          //child: BlocProvider.value(
-          //value: BlocProvider.of<UserBloc>(context),
-          //child: page,
-          //),
-          //);
-          //},
-          //),
-          //);
         },
         child: Container(
           decoration: BoxDecoration(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pocketshopping/page/admin/addStaff.dart';
 import 'package:pocketshopping/page/admin/manageStaff.dart';
+import 'package:pocketshopping/src/logistic/vehicle/newVehicle.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 
@@ -30,7 +30,7 @@ class VehicleBottomPage extends StatelessWidget {
                 child: Column(
                   children: <Widget>[
                     Text(
-                      "Vehicle",
+                      "Automobile",
                       style: TextStyle(
                         fontSize: 17,
                       ),
@@ -54,8 +54,8 @@ class VehicleBottomPage extends StatelessWidget {
                   size: MediaQuery.of(context).size.width * 0.16,
                   color: PRIMARYCOLOR.withOpacity(0.8),
                 ),
-                title: 'Add Vehicle',
-                page: AddStaff(color: PRIMARYCOLOR)),
+                title: 'Add Automobile',
+                page: VehicleForm()),
             BsMenuItem(
               height: gridHeight,
               icon: Icon(
@@ -63,7 +63,7 @@ class VehicleBottomPage extends StatelessWidget {
                 size: MediaQuery.of(context).size.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
-              title: 'Manage Vehicle',
+              title: 'Manage Automobile',
               page: ManageStaff(),
             ),
           ]),

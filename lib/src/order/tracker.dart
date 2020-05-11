@@ -1,19 +1,25 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
+import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 
@@ -42,17 +48,26 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   int reply;
   List<Widget> bubble;
   dynamic delayTime;
+  bool rating;
+  var _review = TextEditingController();
+  double _rating;
 
   //Session CurrentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   var scroller = ScrollController();
   bool pingStart;
   OrderGlobalState odState;
+  Order _order;
+  bool loading;
+  Review review;
 
   @override
   void initState() {
+    loading=false;
+    _order = widget.order;
     odState = Get.find();
-    //print('buuble: ${getItem('bubble')}');
+    rating = false;
+    _rating = 1.0;
     resolution = isNotEmpty() ? getItem('resolution') : 'START';
     comment = isNotEmpty() ? getItem('comment') : '';
     deliveryman = isNotEmpty() ? getItem('deliveryman') : '';
@@ -61,15 +76,15 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     bubble = isNotEmpty() ? getItem('bubble') : [];
     _start = isNotEmpty()
         ? setStartCount(getItem('delayTime'), getItem('moreSec'))
-        : setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
+        : setStartCount(_order.orderCreatedAt, _order.orderETA);
     counter =
-        '${isNotEmpty() ? (setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (setStartCount(widget.order.orderCreatedAt, widget.order.orderETA) / 60).round()} min to ${widget.order.orderMode.mode}';
+        '${isNotEmpty() ? (setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
     startTimer();
-    MerchantRepo.getMerchant(widget.order.orderMerchant)
+    MerchantRepo.getMerchant(_order.orderMerchant)
         .then((value) => setState(() {
               merchant = value;
             }));
-    moreSec = isNotEmpty() ? getItem('moreSec') : widget.order.orderETA;
+    moreSec = isNotEmpty() ? getItem('moreSec') : _order.orderETA;
     delayTime = isNotEmpty() ? getItem('delayTime') : null;
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
@@ -128,15 +143,38 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
       }
     });
 
+    setRate();
     super.initState();
   }
 
   dynamic getItem(String key) {
-    return odState.order[widget.order.docID][key];
+    return odState.order[_order.docID][key];
+  }
+
+  setRate(){
+    if(_order.orderCustomer.customerReview.isNotEmpty)
+      ReviewRepo.getOne(_order.orderCustomer.customerReview).then((value) =>
+      setState((){
+        review = value;
+      }));
+  }
+
+  Order refreshOrder(){
+
+    setState(() {
+      loading=true;
+    });
+    OrderRepo.getOne(_order.docID).then((value) =>
+    setState((){
+      _order = value;
+      loading=false;
+    })
+    );
+    setRate();
   }
 
   void globalStateUpdate() {
-    odState.adder(widget.order.docID, {
+    odState.adder(_order.docID, {
       'resolution': resolution,
       'comment': comment,
       'deliveryman': deliveryman,
@@ -150,7 +188,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   }
 
   bool isNotEmpty() {
-    return odState.order.containsKey(widget.order.docID);
+    return odState.order.containsKey(_order.docID);
   }
 
   @override
@@ -178,7 +216,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
           ),
           automaticallyImplyLeading: false,
         ),
-        body: ListView(children: [
+        body: !loading?ListView(children: [
           Center(
             child: Container(
               margin: EdgeInsets.symmetric(vertical: 20),
@@ -190,18 +228,20 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                       padding:
                           EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       child: Text(
-                        'Status: ${widget.order.orderConfirmation.isConfirmed ? 'Completed' : 'Processing'}',
+                        'Status: ${_order.orderConfirmation.isConfirmed ? 'Completed' : 'Processing'}',
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
                   ),
                   _start > 0
-                      ? !widget.order.orderConfirmation.isConfirmed
+                      ? !_order.orderConfirmation.isConfirmed
                           ? Loader(_start, moreSec, counter)
-                          : Container()
-                      : widget.order.orderMode.mode == 'Delivery'
+                          : Rating()
+                      : _order.orderConfirmation.isConfirmed?
+                  Rating()
+                  :_order.orderMode.mode == 'Delivery'
                           ? Resolution()
-                          : widget.order.orderMode.mode == 'Pickup'
+                          : _order.orderMode.mode == 'Pickup'
                               ? Container(
                                   child: psHeadlessCard(
                                       boxShadow: [
@@ -246,7 +286,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                 children: bubble.toList() ?? Container(),
                               )))
                       : Container(),
-                  !widget.order.orderConfirmation.isConfirmed && _start > 0
+                  (!_order.orderConfirmation.isConfirmed && _start > 0) || (_order.orderMode.mode=='Pickup' && !_order.orderConfirmation.isConfirmed)
                       ? psHeadlessCard(
                           boxShadow: [
                               BoxShadow(
@@ -258,6 +298,29 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                           child: Container(
                             color: PRIMARYCOLOR,
                             child: FlatButton(
+                              onPressed: (){
+                                Get.defaultDialog(
+                                  title: 'Confirmation',
+                                  content: Text('Confirming this order implies you have recieved your package.'
+                                      ' please note this action can not be undone.'),
+                                  cancel: FlatButton(
+                                    onPressed: (){Get.back();},
+                                    child: Text('No'),
+                                  ),
+                                  confirm: FlatButton(
+                                    onPressed: (){
+                                      Get.back();
+                                      confirm(_order.docID, Confirmation(
+                                        confirmOTP: _order.orderConfirmation.confirmOTP,
+                                        confirmedAt: DateTime.now(),
+                                        isConfirmed: true,
+                                      ));
+                                      //refreshOrder();
+                                    },
+                                    child: Text('Yes Confirm'),
+                                  ),
+                                );
+                              },
                               child: Center(
                                 child: Text(
                                   'Confirm Order',
@@ -340,11 +403,10 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: Text('Confirmation code:'),
+                                    child: Text('Confirmed:'),
                                   ),
                                   Expanded(
-                                    child: Text(widget
-                                        .order.orderConfirmation.confirmOTP),
+                                    child: Text('${_order.orderConfirmation.confirmedAt==null?'-':presentDate(DateTime.parse((_order.orderConfirmation.confirmedAt as Timestamp).toDate().toString()))}'),
                                   )
                                 ],
                               )),
@@ -466,7 +528,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                   child: Text('Mode:'),
                                 ),
                                 Expanded(
-                                  child: Text('${widget.order.orderMode.mode}'),
+                                  child: Text('${_order.orderMode.mode}'),
                                 )
                               ],
                             )),
@@ -489,7 +551,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                      '${presentDate(DateTime.parse((widget.order.orderCreatedAt as Timestamp).toDate().toString()))}'),
+                                      '${presentDate(DateTime.parse((_order.orderCreatedAt as Timestamp).toDate().toString()))}'),
                                 )
                               ],
                             )),
@@ -511,7 +573,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                   child: Text('OrderId:'),
                                 ),
                                 Expanded(
-                                  child: Text('${widget.order.docID}'),
+                                  child: Text('${_order.docID}'),
                                 )
                               ],
                             ))
@@ -548,7 +610,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                             )),
                         Column(
                             children: List.generate(
-                                widget.order.orderItem.length,
+                                _order.orderItem.length,
                                 (index) => Container(
                                     decoration: BoxDecoration(
                                       border: Border(
@@ -566,15 +628,15 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                       children: <Widget>[
                                         Expanded(
                                           child: Text(
-                                              '${widget.order.orderItem[index].ProductName}'),
+                                              '${_order.orderItem[index].ProductName}'),
                                         ),
                                         Expanded(
                                           child: Text(
-                                              '${widget.order.orderItem[index].count}'),
+                                              '${_order.orderItem[index].count}'),
                                         ),
                                         Expanded(
                                           child: Text(
-                                              '${widget.order.orderItem[index].totalAmount}'),
+                                              '${_order.orderItem[index].totalAmount}'),
                                         )
                                       ],
                                     ))).toList()),
@@ -596,11 +658,11 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                   child: Text('Item Total:'),
                                 ),
                                 Expanded(
-                                  child: Text('${widget.order.orderAmount}'),
+                                  child: Text('${_order.orderAmount}'),
                                 )
                               ],
                             )),
-                        widget.order.orderMode.mode == 'Delivery'
+                        _order.orderMode.mode == 'Delivery'
                             ? Container(
                                 decoration: BoxDecoration(
                                   border: Border(
@@ -620,7 +682,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                     ),
                                     Expanded(
                                       child:
-                                          Text('${widget.order.orderMode.fee}'),
+                                          Text('${_order.orderMode.fee}'),
                                     ),
                                   ],
                                 ))
@@ -648,7 +710,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    '${widget.order.orderMode.mode != 'Delivery' ? widget.order.orderAmount : (widget.order.orderAmount + widget.order.orderMode.fee)}',
+                                    '${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                   ),
@@ -665,13 +727,18 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                         ),
                       ],
                       child: QrImage(
-                        data: widget.order.docID,
+                        data: _order.docID,
                       ))
                 ],
               ),
             ),
           ),
-        ]),
+        ]):Center(
+          child: JumpingDotsProgressIndicator(
+            fontSize: MediaQuery.of(context).size.height*0.12,
+            color: PRIMARYCOLOR,
+          )
+        ),
       ),
     );
   }
@@ -733,11 +800,11 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     second = (sec % 60) * 60;
     if (minute > 0)
       setState(() {
-        counter = '$minute min to ${widget.order.orderMode.mode}';
+        counter = '$minute min to ${_order.orderMode.mode}';
       });
     else
       setState(() {
-        counter = '$_start sec to ${widget.order.orderMode.mode}';
+        counter = '$_start sec to ${_order.orderMode.mode}';
       });
   }
 
@@ -808,7 +875,29 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         FlatButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Get.defaultDialog(
+                              title: 'Confirmation',
+                              content: Text('Confirming this order implies you have recieved your package.'
+                                  ' please note this action can not be undone.'),
+                              cancel: FlatButton(
+                                onPressed: (){Get.back();},
+                                child: Text('No'),
+                              ),
+                              confirm: FlatButton(
+                                onPressed: (){
+                                  Get.back();
+                                  confirm(_order.docID, Confirmation(
+                                    confirmOTP: _order.orderConfirmation.confirmOTP,
+                                    confirmedAt: DateTime.now(),
+                                    isConfirmed: true,
+                                  ));
+                                  //refreshOrder();
+                                },
+                                child: Text('Yes Confirm'),
+                              ),
+                            );
+                          },
                           child: Text(
                             'Yes',
                             style: TextStyle(color: Colors.white),
@@ -912,6 +1001,161 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     }
   }
 
+  Widget Rating(){
+    if(_order.orderCustomer.customerReview.isNotEmpty){
+      return review !=null?Container(
+          child: psHeadlessCard(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  //offset: Offset(1.0, 0), //(x,y)
+                  blurRadius: 6.0,
+                ),
+              ],
+              child: Column(
+                children: [
+                  Center(child: Text('Your Review'),),
+                  RatingBar(
+                    //onRatingUpdate: (rate){},
+                    initialRating: review.reviewRating,
+                    minRating: 1,
+                    maxRating: 5,
+                    itemSize: MediaQuery.of(context).size.width * 0.08,
+                    direction: Axis.horizontal,
+                    allowHalfRating: true,
+                    ignoreGestures: true,
+                    itemCount: 5,
+                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                    itemBuilder: (context, _) => Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                  ),
+                  SizedBox(height: 10,),
+                  Center(
+                    child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child:Text(review.reviewText)),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                      child: Text('${presentDate(DateTime.parse((review.reviewedAt).toDate().toString()))}'),
+                    ),
+                  ),
+                ],
+              )
+          )
+      ):Container();
+    }
+    else{
+      return !rating?Container(
+          child: psHeadlessCard(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  //offset: Offset(1.0, 0), //(x,y)
+                  blurRadius: 6.0,
+                ),
+              ],
+              child: Column(
+                children: [
+                  Center(child: Text('Rate ${merchant != null ?merchant.bName:''}',
+                  style: TextStyle(fontSize: 16),),),
+                  SizedBox(height: 10,),
+                  Center(child: Text('click star to increase rate',),),
+                  RatingBar(
+                    onRatingUpdate: (rate) {setState(() {
+                      _rating = rate;
+                    });},
+                    initialRating: 1,
+                    minRating: 1,
+                    maxRating: 5,
+                    itemSize: MediaQuery.of(context).size.width * 0.1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: true,
+                    itemCount: 5,
+                    itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                    itemBuilder: (context, _) => Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                  ),
+                  TextFormField(
+                    controller: _review,
+                    decoration: InputDecoration(
+                      labelText: 'Your Review',
+                      filled: true,
+                      fillColor: Colors.grey.withOpacity(0.2),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Colors.white.withOpacity(0.3)),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Colors.white.withOpacity(0.3)),
+                      ),
+                    ),
+                    keyboardType: TextInputType.text,
+                    autofocus: false,
+                    maxLines: 5,
+                    maxLength: 120,
+                    maxLengthEnforced: true,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child:
+                  FlatButton(
+                    onPressed: (){
+                      setState(() {
+                        rating=true;
+                      });
+                      ReviewRepo.save(Review(
+                        reviewText: _review.text,
+                        reviewRating: _rating,
+                        reviewedMerchant: merchant.mID,
+                        reviewedAt: Timestamp.now(),
+                        customerId: _order.customerID,
+                        customerName: _order.orderCustomer.customerName
+
+                      )).then((value) =>
+                      OrderRepo.review(_order.docID,
+                      Customer(
+                        customerName: _order.orderCustomer.customerName,
+                        customerTelephone: _order.orderCustomer.customerTelephone,
+                        customerReview: value,
+                      )
+                      ).then((value) => setState(() {
+                        rating=false;
+                        refreshOrder();
+                      }))
+                      );
+
+                    },
+                    child: Text('Submit',style: TextStyle(color: Colors.white),),
+                    color: PRIMARYCOLOR,
+                  ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                    child: Text('Your review is very important to us.'),
+                  ),
+                ],
+              )
+
+          )
+      ):Center(
+        child: JumpingDotsProgressIndicator(
+          fontSize: MediaQuery.of(context).size.height*0.12,
+          color: PRIMARYCOLOR,
+        ),
+      )
+
+      ;
+    }
+  }
+
   Widget Loader(int current, int total, String message) {
     return Container(
         width: MediaQuery.of(context).size.width * 0.3,
@@ -960,14 +1204,14 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
             'status': 'done',
             'payload': {
               'NotificationType': 'OrderResolutionResponse',
-              'orderID': widget.order.docID,
-              'Items': OrderItem.toListMap(widget.order.orderItem),
-              'Amount': widget.order.orderAmount,
-              'type': widget.order.orderMode.mode,
-              'Address': widget.order.orderMode.mode == 'Delivery'
-                  ? widget.order.orderMode.address
+              'orderID': _order.docID,
+              'Items': OrderItem.toListMap(_order.orderItem),
+              'Amount': _order.orderAmount,
+              'type': _order.orderMode.mode,
+              'Address': _order.orderMode.mode == 'Delivery'
+                  ? _order.orderMode.address
                   : '',
-              'telephone': widget.order.orderCustomer.customerTelephone,
+              'telephone': _order.orderCustomer.customerTelephone,
               'fcmToken': widget.user.notificationID,
             }
           },
@@ -975,5 +1219,26 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
             'fI8U-GHOSEKhEZXU3egwdU:APA91bEl8iZXRSNKsqcxzdfP9MYpwf52Bfht3Zk5e7tLDSgZ-u8yIHoYVVtK6qyl5S3-0BC01CnFBLBj5ZOD3jSVuWC1ni0uFWPQuoRki4HH0bD1Yg_OI8L9OLD4vCU0lIMwoRvA9X6f',
           ],
         }));
+  }
+
+  bool confirm(String oid,Confirmation confirmation){
+    bool isDone=true;
+    OrderRepo.confirm(oid, confirmation).catchError((onError){
+      isDone =false;
+    });
+
+    if(isDone) {
+      refreshOrder();
+      GetBar(title: 'Order Confirmed',
+        messageText: Text(
+          'Take your time to rate this merchant your rating will help us '
+              ' improve our service', style: TextStyle(color: Colors.white),),
+        duration: Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+
+    }
+
+    return isDone;
   }
 }

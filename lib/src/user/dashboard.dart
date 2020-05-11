@@ -13,6 +13,7 @@ import 'package:pocketshopping/page/admin/settings.dart';
 import 'package:pocketshopping/page/admin/viewItem.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -25,6 +26,10 @@ import 'package:pocketshopping/widget/staffs.dart';
 import 'package:pocketshopping/widget/statistic.dart';
 import 'package:pocketshopping/widget/status.dart';
 import 'package:pocketshopping/widget/unit.dart';
+import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
+import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
+import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
 
 class DashBoardScreen extends StatefulWidget {
   static String tag = 'DashBoard-page';
@@ -39,23 +44,24 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   Session CurrentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
-  final String serverToken =
-      'AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
+  Stream<Wallet> _walletStream;
+  Wallet _wallet;
 
   @override
   void initState() {
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
-
     _notificationsStream.listen((notification) {
-      // TODO: Implement your logic here
-      // You might want to incement notificationCouter using above mentioned logic.
-      //print('Notifications: ${notification.data}');
       showBottom();
-      //NotificationsBloc.instance.clearNotification();
     });
+
+    WalletRepo.getWallet(CurrentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    _walletStream = WalletBloc.instance.walletStream;
+    _walletStream.listen((wallet) {if(mounted) {_wallet = wallet;setState(() { });}});
+
+    ChannelRepo.update(CurrentUser.merchant.mID, CurrentUser.user.uid);
     super.initState();
   }
 
@@ -65,6 +71,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
   @override
   void dispose() {
+    _notificationsStream=null;
+    _walletStream=null;
+    iosSubscription?.cancel();
     super.dispose();
   }
 
@@ -127,52 +136,101 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           left: marginLR * 0.01, right: marginLR * 0.01),
                       child: Column(
                         children: <Widget>[
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text('Hi ${CurrentUser.user.fname}')),
+                          if(_wallet !=null)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
                             children: <Widget>[
                               Expanded(
-                                child: Center(
-                                    child: Text(
-                                  "PocketUnit: 12345678.90",
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
-                                )),
+                                flex:1,
+                                child: Column(
+                                  children: [
+                                    Center(
+                                        child: Text(
+                                          "Business Revenue",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )
+                                    ),
+                                    SizedBox(height: 10,),
+                                    Center(
+                                        child: Text(
+                                          "\u20A6 ${_wallet.businessMoney}",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )
+                                    ),
+                                    SizedBox(height: 10,),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: PRIMARYCOLOR.withOpacity(0.5)),
+                                        color: PRIMARYCOLOR.withOpacity(0.5),
+                                      ),
+                                      child: FlatButton(
+                                        onPressed: () => {
+                                          sendAndRetrieveMessage()
+                                              .then((value) => null)
+                                        },
+                                        child: Center(
+                                            child: Text(
+                                              "Withdraw",
+                                              style: TextStyle(color: Colors.white),
+                                            )
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                )
                               ),
+                              Expanded(flex:0,child: SizedBox(width: 10,),),
                               Expanded(
-                                  flex: 0,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      border: Border.all(
-                                          color: PRIMARYCOLOR.withOpacity(0.5)),
-                                      color: PRIMARYCOLOR.withOpacity(0.6),
-                                    ),
-                                    margin: EdgeInsets.only(
-                                        left:
-                                            MediaQuery.of(context).size.width *
-                                                0.01),
-                                    //width: MediaQuery.of(context).size.width*0.2,
-                                    child: FlatButton(
-                                      onPressed: () => {
-                                        sendAndRetrieveMessage()
-                                            .then((value) => null)
-
-                                        //Navigator.push(
-                                        //  context,
-                                        //MaterialPageRoute(
-                                        //  builder: (context) =>TopUp()    ))
-                                      },
-                                      child: Center(
+                                  flex:1,
+                                  child: Column(
+                                    children: [
+                                      Center(
                                           child: Text(
-                                        "TopUp",
-                                        style: TextStyle(color: Colors.white),
-                                      )),
-                                    ),
-                                  )),
+                                            "PocketUnit",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          )
+                                      ),
+                                      SizedBox(height: 10,),
+                                      Center(
+                                          child: Text(
+                                            "${_wallet.pocketUnitBalance}",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          )
+                                      ),
+                                      SizedBox(height: 10,),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: PRIMARYCOLOR.withOpacity(0.5)),
+                                          color: PRIMARYCOLOR.withOpacity(0.5),
+                                        ),
+                                        child: FlatButton(
+                                          onPressed: () => {
+                                            //sendAndRetrieveMessage()
+                                              //  .then((value) => null)
+                                             DynamicLinks.createLinkWithParams({
+                                        'merchant': 'rerereg',
+                                        'OTP': 'randomNumber.toString()',
+                                        'route': 'branch'
+                                        }).then((value) => print(value))
+                                          },
+                                          child: Center(
+                                              child: Text(
+                                                "TopUp",
+                                                style: TextStyle(color: Colors.white),
+                                              )
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  )
+                              ),
                             ],
                           ),
                         ],

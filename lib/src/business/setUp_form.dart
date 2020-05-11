@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:recase/recase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
+import 'package:get/get.dart';
 
 class BusinessSetupForm extends StatefulWidget {
   BusinessSetupForm({this.data});
@@ -28,6 +30,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
   FirebaseUser CurrentUser;
   Timer _timer;
   int _start = 15;
+  final bool auto =false;
+  List<String> categoria;
+  List<String> deliveria;
 
   bool get isPopulated =>
       _addressController.text.isNotEmpty &&
@@ -40,8 +45,20 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
 
   @override
   void initState() {
+    categoria = [
+      'Restuarant',
+      'Store',
+      'Super Market',
+      'Bar',
+    ];
+    deliveria = [
+      'No',
+      'Yes, I have my own delivery service',
+    ];
+    CategoryRepo.categoria().then((value) => setState((){categoria=value;}));
+    CategoryRepo.deliveria().then((value) => setState((){deliveria=value;}));
     super.initState();
-    _businessBloc = BlocProvider.of<BusinessBloc>(context);
+    _businessBloc = BlocProvider.of<BusinessBloc>(context)..add(CaptureCordinate());
     _nameController.addListener(_onNameChanged);
     _telephoneController.addListener(_onTelephoneChanged);
     _addressController.addListener(_onAddressChanged);
@@ -113,7 +130,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                           fit: BoxFit.cover,
                         ),
                         Text(
-                          "Loading",
+                          "Settingup business please wait",
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ],
@@ -131,7 +148,10 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
           ..showSnackBar(
             SnackBar(
               backgroundColor: Colors.white,
-              content: Container(
+              content: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragStart: (_) => debugPrint("no can do!"),
+                child: Container(
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   child: Container(
@@ -178,9 +198,10 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                               ),
                               FlatButton(
                                 onPressed: () {
-                                  BlocProvider.of<AuthenticationBloc>(context)
-                                      .add(LoggedIn());
-                                  Navigator.of(context).pop();
+                                  BlocProvider.of<AuthenticationBloc>(context).add(
+                                    AppStarted(),
+                                  );
+                                  Get.back();
                                 },
                                 color: PRIMARYCOLOR,
                                 child: Padding(
@@ -200,9 +221,13 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                         // Progress bar
                       ],
                     ),
-                  )),
+                  )
+                ),
+              ),
               duration: Duration(days: 365),
+
             ),
+
           );
       }
       if (state.isFailure) {
@@ -213,7 +238,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
               content: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Registration Failure'),
+                  Text('Registration Failure.. check your network and try agian'),
                   Icon(Icons.error),
                 ],
               ),
@@ -256,6 +281,36 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
+                                    Container(
+                                        padding: EdgeInsets.all(
+                                            MediaQuery.of(context).size.width * 0.02),
+                                        child:Center(
+                                          child: Text('Read Me First',style: TextStyle(fontSize: 18),),
+                                        )
+
+                                    ),
+                              Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                bottom: BorderSide(
+                                //                   <--- left side
+                                color: Colors.black12,
+                                width: 1.0,
+                              ),
+                          ),
+                        ),
+                        padding: EdgeInsets.all(
+                            MediaQuery.of(context).size.width * 0.02),
+                        child:Center(
+                          child: Text('Please Ensure You Are In Your Business Premises '
+                              'Before SettingUp Business, Because Business Location Will Be Captured '
+                              'And The Availability Of Your Business Depends On It. Be Informed You Can Not Change The '
+                              ' Coordinate In Later Times Except In The Case Of Relocation Which Will Require '
+                              ' Serious Verification. Note. It Vital You Are Directly '
+                              'Outside Your Business Premises In Other To Get An Accuracy Coordinate'),
+                        )
+
+                              ),
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border(
@@ -430,13 +485,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                             )),
                                         DropdownButtonFormField<String>(
                                           value: state.category,
-                                          items: [
-                                            'Restuarant',
-                                            'Store',
-                                            'Super Market',
-                                            'Bar',
-                                            'Park'
-                                          ]
+                                          items: categoria
                                               .map((label) => DropdownMenuItem(
                                                     child: Text(
                                                       label,
@@ -458,6 +507,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         )
                                       ],
                                     )),
+                                if(state.category != 'Logistic')
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border(
@@ -481,11 +531,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                           )),
                                       DropdownButtonFormField<String>(
                                         value: state.delivery,
-                                        items: [
-                                          'No',
-                                          'Yes, I have my own delivery service',
-                                          'Yes, Use pocketshooping logistic(only in Abuja and lagos)'
-                                        ]
+                                        items: deliveria
                                             .map((label) => DropdownMenuItem(
                                                   child: Text(
                                                     label,
@@ -496,7 +542,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                                 ))
                                             .toList(),
                                         isExpanded: true,
-                                        hint: Text('Rating'),
+                                        hint: Text('Delivery Service'),
                                         decoration: InputDecoration(
                                             border: InputBorder.none),
                                         onChanged: (value) {
@@ -507,6 +553,50 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     ],
                                   ),
                                 ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(
+                                          MediaQuery.of(context).size.width * 0.02),
+                                      child: CheckboxListTile(
+                                        title: GestureDetector(
+                                          onTap: () {
+                                            if(!Get.isBottomSheetOpen)
+                                              Get.bottomSheet(builder: (_){
+                                                return Container(
+                                                  height: MediaQuery.of(context).size.height*0.8,
+                                                  color: Colors.white,
+                                                  child: Text('dfdfdf'),
+                                                );
+                                              },
+                                                isScrollControlled: true,
+                                              );
+                                          },
+                                          child: Text(
+                                            "I Agree to Terms and Conditions",
+                                            style: TextStyle(
+                                              color: Colors.blueAccent,
+                                            ),
+                                          ),
+                                        ),
+                                        value: state.isAgreedValid,
+                                        onChanged: (bool value) {
+                                          _businessBloc.add(
+                                            AgreedChanged(agreed: value),
+                                          );
+                                        },
+                                        controlAffinity:
+                                        ListTileControlAffinity.leading,
+                                      ),
+                                    ),
+                                auto?
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border(
@@ -603,7 +693,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                                   : Container(),
                                     ],
                                   ),
-                                ),
+                                ):Container(),
                                 Container(
                                   padding: EdgeInsets.all(
                                       MediaQuery.of(context).size.width * 0.02),
@@ -631,11 +721,10 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                               horizontal: marginLR * 0.08),
                                           child: FlatButton(
                                             onPressed: () {
-                                              BlocProvider.of<
-                                                          AuthenticationBloc>(
-                                                      context)
-                                                  .add(LoggedIn());
-                                              Navigator.of(context).pop();
+                                              BlocProvider.of<AuthenticationBloc>(context).add(
+                                                AppStarted(),
+                                              );
+                                              Get.back();
                                             },
                                             color: PRIMARYCOLOR,
                                             child: Center(

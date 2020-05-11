@@ -121,3 +121,14 @@ class Submitted extends BusinessEvent {
     return 'Submitted { address: $address, category: $category, name: $name, telephone: $telephone, uid:$user }';
   }
 }
+class AgreedChanged extends BusinessEvent {
+  final bool agreed;
+
+  const AgreedChanged({@required this.agreed});
+
+  @override
+  List<Object> get props => [agreed];
+
+  @override
+  String toString() => 'Agreed { agreed: $agreed }';
+}

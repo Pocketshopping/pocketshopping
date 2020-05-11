@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 class FirstBusinessPage extends StatelessWidget {
   final Color themecolor;
-  final String cover;
 
   FirstBusinessPage(
-      {this.themecolor = PRIMARYCOLOR,
-      this.cover = PocketShoppingDefaultCover});
+      {this.themecolor = PRIMARYCOLOR,});
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +80,7 @@ class FirstBusinessPage extends StatelessWidget {
                             MediaQuery.of(context).size.width * 0.02),
                         child: FlatButton(
                           onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => SetupBusiness()));
+                            Get.off(SetupBusiness());
                           },
                           color: themecolor,
                           child: Text(

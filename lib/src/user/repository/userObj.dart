@@ -16,6 +16,7 @@ class User {
   final DocumentReference behaviour;
   final Timestamp createdat;
   final String country;
+  final String walletId;
 
   User(this.uid,
       {this.fname = "",
@@ -28,7 +29,9 @@ class User {
       this.role = "",
       this.behaviour,
       this.country = "NG",
-      this.createdat});
+      this.createdat,
+      this.walletId,
+      });
 
   User copyWith({
     String fname,
@@ -43,6 +46,7 @@ class User {
     DocumentReference behaviour,
     String country,
     DateTime createdat,
+    String walletId,
   }) {
     return User(uid ?? this.uid,
         fname: fname ?? this.fname,
@@ -55,7 +59,9 @@ class User {
         role: role ?? this.role,
         behaviour: behaviour ?? this.behaviour,
         country: country ?? this.country,
-        createdat: createdat ?? this.createdat);
+        createdat: createdat ?? this.createdat,
+      walletId: walletId??this.walletId,
+    );
   }
 
   @override
@@ -71,7 +77,8 @@ class User {
       role.hashCode ^
       behaviour.hashCode ^
       country.hashCode ^
-      createdat.hashCode;
+      createdat.hashCode ^
+      walletId.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -89,22 +96,12 @@ class User {
           role == other.role &&
           behaviour == other.behaviour &&
           country == other.country &&
-          createdat == other.createdat;
+          createdat == other.createdat &&
+          walletId == other.walletId;
 
   @override
   String toString() {
-    return '''User {
-        fname: $fname,
-    email: $email,
-    telephone: $telephone,
-    profile:$profile,
-    notificationID:$notificationID,
-    defaultAddress:$defaultAddress,
-    role:$role,
-    business:$bid,
-    createdAt:$createdat,
-    behaviour:$behaviour,
-    country:$country}''';
+    return '''User {uid: $uid,}''';
   }
 
   UserEntity toEntity() {
@@ -121,6 +118,7 @@ class User {
       createdat,
       behaviour,
       country,
+      walletId,
     );
   }
 
@@ -136,6 +134,9 @@ class User {
         role: user.role ?? '',
         behaviour: user.behaviour,
         country: user.country ?? '',
-        createdat: user.createdat);
+        createdat: user.createdat,
+        walletId: user.walletId ?? '',
+
+    );
   }
 }

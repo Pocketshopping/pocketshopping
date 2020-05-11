@@ -24,7 +24,8 @@ class UserRepo {
       'business': user.bid,
       'createdAt': DateTime.now(),
       'behaviour': user.behaviour,
-      'country': user.country
+      'country': user.country,
+      'wallet':user.walletId
     });
 
     return data;

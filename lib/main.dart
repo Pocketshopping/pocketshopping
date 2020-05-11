@@ -65,22 +65,24 @@ var appState = new AppState({'instanceID':'34','cart':0});
 
 import 'dart:async';
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart' as _get;
-
-//import 'package:get/get.dart' as _get;
+import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/home_screen.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/splash_screen.dart';
 import 'package:pocketshopping/src/simple_bloc_delegate.dart';
-import 'package:custom_splash/custom_splash.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
+import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,15 +117,7 @@ class MyApp extends StatelessWidget {
         bottomSheetTheme:
             BottomSheetThemeData(backgroundColor: Colors.black.withOpacity(0)),
       ),
-      home: CustomSplash(
-        imagePath: 'assets/images/blogo.png',
-        backGroundColor: Colors.white,
-        animationEffect: 'fade-in',
-        logoSize: 200,
-        home: App(userRepository: _userRepository),
-        duration: 2000,
-        type: CustomSplashType.StaticDuration,
-      ),
+      home:Splash(userRepository: _userRepository,),
       defaultTransition: _get.Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 500),
     );
@@ -143,8 +137,11 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
+  bool isNew;
   @override
   void initState() {
+    processInstallationStatus();
+    handleDynamicLinks();
     super.initState();
   }
 
@@ -154,9 +151,15 @@ class AppState extends State<App> {
       body: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state is Unauthenticated) {
-            return LoginScreen(userRepository: widget._userRepository);
+
+            if (!isNew) {
+              return Introduction(userRepository: widget._userRepository,linkdata: state.link,);
+            } else {
+              return LoginScreen(userRepository: widget._userRepository,linkdata: state.link,);
+            }
           }
           if (state is Authenticated) {
+            //print('i got here this is me ${state.user.displayName}');
             if (state.user.displayName == 'user')
               return UserScreen(userRepository: widget._userRepository);
             else if (state.user.displayName == 'admin')
@@ -164,11 +167,51 @@ class AppState extends State<App> {
             else if (state.user.displayName == 'staff')
               return StaffScreen(userRepository: widget._userRepository);
             else
-              return HomeScreen(name: state.user.email);
+              return LoginScreen(userRepository: widget._userRepository);
+          }
+          if (state is DLink) {
+            print(state.props[1]);
+          }
+          if(state is SetupBusiness){
+            return BSetup(userRepository: widget._userRepository,);
           }
           return SplashScreen();
         },
       ),
     );
   }
+
+  Future<bool> processInstallationStatus() async{
+    SharedPreferences prefs= await SharedPreferences.getInstance();
+
+    if (prefs.containsKey('uid')) {
+      isNew = true;
+    } else {
+      isNew =  false;
+    }
+    setState(() {});
+  }
+
+  Future handleDynamicLinks() async {
+    print('i am working');
+    final PendingDynamicLinkData data =
+    await FirebaseDynamicLinks.instance.getInitialLink();
+    _handleDeepLink(data);
+    FirebaseDynamicLinks.instance.onLink(
+        onSuccess: (PendingDynamicLinkData dynamicLink) async {
+          _handleDeepLink(dynamicLink);
+        }, onError: (OnLinkErrorException e) async {
+      print('Link Failed: ${e.message}');
+    });
+  }
+
+  void _handleDeepLink(PendingDynamicLinkData data) async {
+    final Uri deepLink = data?.link;
+    if (deepLink != null) {BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(deepLink));}
+
+  }
+
+
+
+
 }

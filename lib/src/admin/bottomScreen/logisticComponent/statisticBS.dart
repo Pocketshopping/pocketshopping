@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:pocketshopping/page/admin/customerStats.dart';
 import 'package:pocketshopping/page/admin/finStats.dart';
 import 'package:pocketshopping/page/admin/orderStats.dart';
 import 'package:pocketshopping/page/admin/productStats.dart';
 import 'package:pocketshopping/page/admin/staffStats.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 
-class StatisticBottomPage extends StatelessWidget {
-  StatisticBottomPage({this.themeColor = Colors.black54});
-
-  final Color themeColor;
+class LogisticStatBottomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
     double marginLR = MediaQuery.of(context).size.width;
     double gridHeight = MediaQuery.of(context).size.height * 0.1;
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: MediaQuery.of(context).size.height * 0.5,
       width: marginLR,
       child: CustomScrollView(
         slivers: <Widget>[
@@ -54,52 +53,31 @@ class StatisticBottomPage extends StatelessWidget {
             BsMenuItem(
               height: gridHeight,
               icon: Icon(
-                Icons.show_chart,
+                MaterialIcons.pie_chart,
                 size: MediaQuery.of(context).size.width * 0.16,
-                color: themeColor.withOpacity(0.8),
+                color: PRIMARYCOLOR.withOpacity(0.8),
               ),
-              title: 'Financial Stats',
+              title: 'General Stats',
               page: FinStats(),
             ),
             BsMenuItem(
               height: gridHeight,
-              icon: Icon(
-                Icons.fastfood,
+              icon: Icon(MaterialIcons.local_taxi,
                 size: MediaQuery.of(context).size.width * 0.16,
-                color: themeColor.withOpacity(0.8),
+                color: PRIMARYCOLOR.withOpacity(0.8),
               ),
-              title: 'Product Stats',
+              title: 'Vehicle Stats',
               page: ProductStats(),
             ),
             BsMenuItem(
               height: gridHeight,
               icon: Icon(
-                Icons.supervisor_account,
+                MaterialIcons.motorcycle,
                 size: MediaQuery.of(context).size.width * 0.16,
-                color: themeColor.withOpacity(0.8),
+                color: PRIMARYCOLOR.withOpacity(0.8),
               ),
-              title: 'Staffs Stats',
+              title: 'Agent Stats',
               page: StaffStats(),
-            ),
-            BsMenuItem(
-              height: gridHeight,
-              icon: Icon(
-                Icons.people_outline,
-                size: MediaQuery.of(context).size.width * 0.16,
-                color: themeColor.withOpacity(0.8),
-              ),
-              title: 'Customer Stats',
-              page: CustomerStats(),
-            ),
-            BsMenuItem(
-              height: gridHeight,
-              icon: Icon(
-                Icons.folder_special,
-                size: MediaQuery.of(context).size.width * 0.16,
-                color: themeColor.withOpacity(0.8),
-              ),
-              title: 'Orders Stats',
-              page: OrderStats(),
             ),
           ]),
         ],

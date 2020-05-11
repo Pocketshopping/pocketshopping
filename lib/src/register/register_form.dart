@@ -1,12 +1,24 @@
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
+import 'package:pocketshopping/src/login/login.dart' as login;
 import 'package:pocketshopping/src/register/register.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
+import 'package:progress_indicators/progress_indicators.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterForm extends StatefulWidget {
+  final UserRepository _userRepository;
+  final Uri linkdata;
+
+  RegisterForm({Key key, @required UserRepository userRepository,this.linkdata})
+      : assert(userRepository != null),
+        _userRepository = userRepository,
+        super(key: key);
   State<RegisterForm> createState() => _RegisterFormState();
 }
 
@@ -15,8 +27,7 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
-  final TextEditingController _confirmpasswordController =
-      TextEditingController();
+  final TextEditingController _confirmpasswordController = TextEditingController();
   RegisterBloc _registerBloc;
 
   bool get isPopulated =>
@@ -25,6 +36,8 @@ class _RegisterFormState extends State<RegisterForm> {
       _nameController.text.isNotEmpty &&
       _telephoneController.text.isNotEmpty &&
       _confirmpasswordController.text.isNotEmpty;
+
+  UserRepository get _userRepository => widget._userRepository;
 
   bool isRegisterButtonEnabled(RegisterState state) {
     return state.isFormValid && isPopulated && !state.isSubmitting;
@@ -39,6 +52,7 @@ class _RegisterFormState extends State<RegisterForm> {
     _nameController.addListener((_onNameChanged));
     _telephoneController.addListener((_onTelephoneChanged));
     _confirmpasswordController.addListener((_onConfirmPasswordChanged));
+    //print(widget.linkdata.queryParameters['referralID']);
   }
 
   @override
@@ -51,19 +65,39 @@ class _RegisterFormState extends State<RegisterForm> {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               SnackBar(
+                backgroundColor: PRIMARYCOLOR,
                 content: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Registering...'),
-                    CircularProgressIndicator(),
+                    Text('Registering...',style: TextStyle(color: Colors.white),),
+                    JumpingDotsProgressIndicator(
+                      fontSize: MediaQuery.of(context).size.height*0.05,
+                      color: Colors.white,
+                    )
                   ],
                 ),
               ),
             );
         }
         if (state.isSuccess) {
-          BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
-          Navigator.of(context).pop();
+          FirstTimer();
+          if(widget.linkdata != null)
+            {
+              if(widget.linkdata.queryParameters.containsKey('referralID')) {
+                BlocProvider.of<AuthenticationBloc>(context).add(Setup());
+                Get.back();
+              }
+              else{
+                BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(widget.linkdata));
+                Get.back();
+              }
+
+            }
+          else
+            {
+              BlocProvider.of<AuthenticationBloc>(context).add(Setup());
+              Get.back();
+            }
         }
         if (state.isFailure) {
           Scaffold.of(context)
@@ -285,7 +319,18 @@ class _RegisterFormState extends State<RegisterForm> {
                                   MediaQuery.of(context).size.width * 0.02),
                               child: CheckboxListTile(
                                 title: GestureDetector(
-                                  onTap: () {},
+                                  onTap: () {
+                                    if(!Get.isBottomSheetOpen)
+                                      Get.bottomSheet(builder: (_){
+                                        return Container(
+                                          height: MediaQuery.of(context).size.height*0.8,
+                                          color: Colors.white,
+                                          child: Text('dfdfdf'),
+                                        );
+                                      },
+                                        isScrollControlled: true,
+                                      );
+                                  },
                                   child: Text(
                                     "I Agree to Terms and Conditions",
                                     style: TextStyle(
@@ -301,7 +346,8 @@ class _RegisterFormState extends State<RegisterForm> {
                                 },
                                 controlAffinity:
                                     ListTileControlAffinity.leading,
-                              )),
+                              ),
+                          ),
                           Container(
                             child: Padding(
                                 padding: EdgeInsets.symmetric(
@@ -319,7 +365,27 @@ class _RegisterFormState extends State<RegisterForm> {
                                   ),
                                 )),
                           ),
-                        ]))))
+                              Container(
+                                child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: marginLR * 0.008,
+                                        horizontal: marginLR * 0.08),
+                                    child: FlatButton(
+                                      onPressed: (){Get.off(login.LoginScreen(userRepository: _userRepository,fromSignup: true,),);},
+                                      padding: EdgeInsets.all(12),
+                                      child: Center(
+                                        child: Text('Have an account! Sign In',
+                                            style: TextStyle(color: Colors.black)),
+                                      ),
+                                    )
+                                ),
+                              ),
+
+                        ]
+                            )
+                        )
+                    )
+                )
               ],
             ),
           );
@@ -373,7 +439,16 @@ class _RegisterFormState extends State<RegisterForm> {
           email: _emailController.text,
           password: _passwordController.text,
           name: _nameController.text,
-          telephone: _telephoneController.text),
+          telephone: _telephoneController.text,
+          referral: widget.linkdata != null?
+          widget.linkdata.queryParameters.containsKey('referralID')?
+          widget.linkdata.queryParameters['referralID']:'':'',
+      ),
     );
+  }
+
+  FirstTimer({String uid ='newUser'}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('uid', uid);
   }
 }

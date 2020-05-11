@@ -18,6 +18,7 @@ class UserEntity extends Equatable {
   final Timestamp createdat;
   final DocumentReference behaviour;
   final String country;
+  final String walletId;
 
   const UserEntity(
     this.uid,
@@ -32,6 +33,7 @@ class UserEntity extends Equatable {
     this.createdat,
     this.behaviour,
     this.country,
+    this.walletId
   );
 
   Map<String, Object> toJson() {
@@ -46,7 +48,8 @@ class UserEntity extends Equatable {
       'business': bid,
       'createdAt': createdat,
       'behaviour': behaviour,
-      'country': country
+      'country': country,
+      'walletId': walletId
     };
   }
 
@@ -63,22 +66,13 @@ class UserEntity extends Equatable {
         profile,
         behaviour,
         country,
+        walletId,
+        uid,
       ];
 
   @override
   String toString() {
-    return '''UserEntity {
-        fname: $fname,
-    email: $email,
-    telephone: $telephone,
-    profile:$profile,
-    notificationID:$notificationID,
-    defaultAddress:$defaultAddress,
-    role:$role,
-    business:$bid,
-    createdAt:$createdat,
-    behaviour:$behaviour,
-    country:$country}''';
+    return '''UserEntity {uid: $uid,}''';
   }
 
   static UserEntity fromJson(Map<String, Object> json) {
@@ -94,7 +88,9 @@ class UserEntity extends Equatable {
         json['business'] as DocumentReference,
         json['createdAt'] as Timestamp,
         json['behaviour'] as DocumentReference,
-        json['country'] as String);
+        json['country'] as String,
+        json['walletId'] as String
+    );
   }
 
   static UserEntity fromSnapshot(DocumentSnapshot snap) {
@@ -112,6 +108,7 @@ class UserEntity extends Equatable {
       snap.data['createdAt'],
       snap.data['behaviour'],
       snap.data['country'],
+      snap.data['wallet'],
     );
   }
 

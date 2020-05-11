@@ -61,8 +61,8 @@ class ViewModel extends ChangeNotifier {
     var pageToRequest = itemPosition ~/ ItemRequestThreshold;
 
     if (requestMoreData && pageToRequest > _currentPage) {
-      print('handleItemCreated | pageToRequest: $pageToRequest');
-      print(items[items.length - 1]);
+      //print('handleItemCreated | pageToRequest: $pageToRequest');
+      //print(items[items.length - 1]);
       _currentPage = pageToRequest;
       await delayer(items[items.length - 1], query['category']);
     } else {}

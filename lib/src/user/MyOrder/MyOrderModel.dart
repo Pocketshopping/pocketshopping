@@ -21,11 +21,11 @@ class MyOrderModel extends ChangeNotifier {
     switch (query['category']) {
       case 'PROCESSING':
         var result = await OrderRepo.get(lastItem, category, uid);
-        _items.clear();
-        if (result.isNotEmpty)
-          _items.addAll(result);
-        else
-          _items.add(SearchEmptyIndicatorTitle);
+        _items.addAll(result);
+        break;
+      case 'COMPLETED':
+        var result = await OrderRepo.get(lastItem, category, uid);
+        _items.addAll(result);
         break;
       default:
         _items = [];
@@ -41,8 +41,6 @@ class MyOrderModel extends ChangeNotifier {
     var pageToRequest = itemPosition ~/ ItemRequestThreshold;
 
     if (requestMoreData && pageToRequest > _currentPage) {
-      print('handleItemCreated | pageToRequest: $pageToRequest');
-      print(items[items.length - 1]);
       _currentPage = pageToRequest;
       await delayer(items[items.length - 1], query['category'], query['uid']);
     } else {}

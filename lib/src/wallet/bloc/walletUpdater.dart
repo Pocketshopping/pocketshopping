@@ -1,33 +1,29 @@
 import 'package:rxdart/rxdart.dart';
+import '../repository/walletObj.dart';
 
-class LocalNotification {
-  final String type;
-  final Map data;
 
-  LocalNotification(this.type, this.data);
-}
 
-class NotificationsBloc {
-  NotificationsBloc._internal();
+class WalletBloc {
+  WalletBloc._internal();
 
-  static final NotificationsBloc instance = NotificationsBloc._internal();
+  static final WalletBloc instance = WalletBloc._internal();
 
-  BehaviorSubject<LocalNotification> _notificationsStreamController =
-  BehaviorSubject<LocalNotification>();
+  BehaviorSubject<Wallet> _walletStreamController =
+  BehaviorSubject<Wallet>();
 
-  Stream<LocalNotification> get notificationsStream {
-    return _notificationsStreamController;
+  Stream<Wallet> get walletStream {
+    return _walletStreamController;
   }
 
-  void newNotification(LocalNotification notification) {
-    _notificationsStreamController.sink.add(notification);
+  void newWallet(Wallet wallet) {
+    _walletStreamController.sink.add(wallet);
   }
 
-  void clearNotification() {
-    _notificationsStreamController.sink.add(null);
+  void clearWallet() {
+    _walletStreamController.sink.add(null);
   }
 
   void dispose() {
-    _notificationsStreamController?.close();
+    _walletStreamController?.close();
   }
 }

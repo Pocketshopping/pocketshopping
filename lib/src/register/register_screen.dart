@@ -5,8 +5,9 @@ import 'package:pocketshopping/src/repository/user_repository.dart';
 
 class RegisterScreen extends StatelessWidget {
   final UserRepository _userRepository;
+  final Uri linkdata;
 
-  RegisterScreen({Key key, @required UserRepository userRepository})
+  RegisterScreen({Key key, @required UserRepository userRepository,this.linkdata})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -17,7 +18,7 @@ class RegisterScreen extends StatelessWidget {
       body: Center(
         child: BlocProvider<RegisterBloc>(
           create: (context) => RegisterBloc(userRepository: _userRepository),
-          child: RegisterForm(),
+          child: RegisterForm(userRepository: _userRepository,linkdata: linkdata,),
         ),
       ),
     );

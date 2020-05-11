@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:devicelocale/devicelocale.dart';
@@ -9,6 +9,8 @@ import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/validators.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
+import 'dart:convert';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   final UserRepository _userRepository;
@@ -66,8 +68,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     } else if (event is CountryCodeChanged) {
       yield* _mapCountryCodeChangedToState(event.country);
     } else if (event is Submitted) {
-      yield* _mapFormSubmittedToState(
-          event.email, event.password, event.name, event.telephone);
+      yield* _mapFormSubmittedToState(event.email, event.password, event.name, event.telephone, event.referral );
     }
   }
 
@@ -128,29 +129,62 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     String password,
     String name,
     String telephone,
+    String referral,
   ) async* {
     yield RegisterState.loading(code: state.code);
     try {
-      var uid = await _userRepository.signUp(
-        role: 'user',
-        email: email,
-        password: password,
-      );
-      User user = User(uid,
-          fname: name,
-          email: email,
-          telephone: state.code + (telephone.substring(1)),
-          bid: Firestore.instance.document('merchants/null'),
-          behaviour: Firestore.instance.document('userBehaviour/null'),
-          profile: "",
-          role: "user",
-          defaultAddress: '',
-          country: await Devicelocale.currentLocale);
-      await UserRepo().save(user);
-      yield RegisterState.success();
+      var wID = await makeWallet(name, email, telephone, referral);
+      if(wID.isNotEmpty)
+        {
+          var uid = await _userRepository.signUp(
+            role: 'user',
+            email: email,
+            password: password,
+          );
+          User user = User(uid,
+            fname: name,
+            email: email,
+            telephone: state.code + (telephone.substring(1)),
+            bid: Firestore.instance.document('merchants/null'),
+            behaviour: Firestore.instance.document('userBehaviour/null'),
+            profile: "",
+            role: "user",
+            defaultAddress: '',
+            country: await Devicelocale.currentLocale,
+            walletId: wID,
+          );
+          await UserRepo().save(user);
+          yield RegisterState.success();
+        }
+      else{
+        yield RegisterState.failure(code: state.code);
+      }
+
     } catch (_) {
       print(_.toString());
       yield RegisterState.failure(code: state.code);
+    }
+  }
+
+  Future<String> makeWallet(String name,String email,String telephone,String refferal)async{
+    final response = await http.post(
+      "$WALLETAPI/new/pocket",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(<String, dynamic>{
+        "Email":"$email",
+        "CustomerName":"$name",
+        "PhoneNumber":"$telephone",
+        "Refferal":"$refferal",
+      },
+    ));
+    //print(response.body);
+    if (response.statusCode == 200) {
+      var result = jsonDecode(response.body);
+      return result['PocketID'].toString();
+    } else {
+      return '';
     }
   }
 }
