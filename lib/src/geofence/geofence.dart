@@ -1,4 +1,3 @@
-import 'package:badges/badges.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,11 +7,11 @@ import 'package:pocketshopping/model/DataModel/categoryData.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 class GeoFence extends StatefulWidget {
   @override
@@ -43,15 +42,20 @@ class _GeoFenceState extends State<GeoFence> {
 
   @override
   void initState() {
-
     loader = 6;
     categories = ['Restuarant', 'Bar'];
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     gBloc = GeoFenceBloc();
-    WalletRepo.getWallet(CurrentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(CurrentUser.user.walletId)
+        .then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
-    _walletStream.listen((wallet) {if(mounted) {_wallet = wallet;setState(() { });}});
-
+    _walletStream.listen((wallet) {
+      if (mounted) {
+        _wallet = wallet;
+        setState(() {});
+      }
+    });
+    Utility.locationAccess();
     super.initState();
   }
 
@@ -243,56 +247,61 @@ class _GeoFenceState extends State<GeoFence> {
                               height: height * 0.18,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
-                                children:  List<Widget>.generate(
-                                      // psProvider.of(context).value['category'].length,
-                                      state.categories.length,
-                                      (int index) {
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 10),
-                                          child: Column(
-                                            children: [
-                                              FlatButton(
-                                                child: CircleAvatar(
-                                                  radius: 30,
-                                                  backgroundColor: Colors.white,
-                                                  backgroundImage: NetworkImage(state.categories[index].categoryURI),
-                                                ),
-                                                onPressed: (){
-                                                  setState(() {
-                                                    _value = index;
-                                                  });
-                                                  BlocProvider.of<GeoFenceBloc>(
-                                                      context)
-                                                      .add(NearByMerchant(
-                                                      category: state
-                                                          .categories[index].categoryName));
-                                                },
-                                              ),
-                                              ChoiceChip(
-                                                label: Text(state.categories[index].categoryName,),
-                                                selected: _value == index,
+                                children: List<Widget>.generate(
+                                  // psProvider.of(context).value['category'].length,
+                                  state.categories.length,
+                                  (int index) {
+                                    return Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10),
+                                        child: Column(
+                                          children: [
+                                            FlatButton(
+                                              child: CircleAvatar(
+                                                radius: 30,
                                                 backgroundColor: Colors.white,
-                                                onSelected: (bool selected) {
-                                                  setState(() {
-                                                    _value = index;
-                                                  });
-                                                  BlocProvider.of<GeoFenceBloc>(
-                                                      context)
-                                                      .add(NearByMerchant(
-                                                      category: state
-                                                          .categories[index].categoryName));
-                                                },
-                                                selectedColor: PRIMARYCOLOR,
-
-                                                labelStyle: TextStyle(color: Colors.grey),
-                                              )
-                                            ],
-                                          )
-                                        );
-                                      },
-                                    ).toList(),
-
-
+                                                backgroundImage: NetworkImage(
+                                                    state.categories[index]
+                                                        .categoryURI),
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _value = index;
+                                                });
+                                                BlocProvider.of<GeoFenceBloc>(
+                                                        context)
+                                                    .add(NearByMerchant(
+                                                        category: state
+                                                            .categories[index]
+                                                            .categoryName));
+                                              },
+                                            ),
+                                            ChoiceChip(
+                                              label: Text(
+                                                state.categories[index]
+                                                    .categoryName,
+                                              ),
+                                              selected: _value == index,
+                                              backgroundColor: Colors.white,
+                                              onSelected: (bool selected) {
+                                                setState(() {
+                                                  _value = index;
+                                                });
+                                                BlocProvider.of<GeoFenceBloc>(
+                                                        context)
+                                                    .add(NearByMerchant(
+                                                        category: state
+                                                            .categories[index]
+                                                            .categoryName));
+                                              },
+                                              selectedColor: PRIMARYCOLOR,
+                                              labelStyle:
+                                                  TextStyle(color: Colors.grey),
+                                            )
+                                          ],
+                                        ));
+                                  },
+                                ).toList(),
                               ),
                             )
                           ],
@@ -315,7 +324,7 @@ class _GeoFenceState extends State<GeoFence> {
                       ),
                       Center(
                         child: JumpingDotsProgressIndicator(
-                          fontSize: MediaQuery.of(context).size.height*0.12,
+                          fontSize: MediaQuery.of(context).size.height * 0.12,
                           color: PRIMARYCOLOR,
                         ),
                       ),

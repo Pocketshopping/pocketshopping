@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:recase/recase.dart';
 
 class ProductRepo {

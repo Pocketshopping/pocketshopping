@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/page/drawer/aboutus.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/order.dart';
 import 'package:flutter/services.dart';
@@ -21,7 +22,7 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:progress_indicators/progress_indicators.dart';
-
+import 'package:pocketshopping/src/admin/ping.dart';
 import 'bloc/user.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -75,10 +76,13 @@ class _AdminScreenState extends State<AdminScreen> {
     userName = '';
     _selectedIndex = 0;
     CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
-    UserRepo().upDate(uid: CurrentUser.uid, notificationID: 'fcm').then((value) => null);
+    UserRepo()
+        .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
+        .then((value) => null);
     //sendAndRetrieveMessage();
-    if (Platform.isIOS) {iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
-    _fcm.requestNotificationPermissions(IosNotificationSettings());
+    if (Platform.isIOS) {
+      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
+      _fcm.requestNotificationPermissions(IosNotificationSettings());
     }
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
@@ -95,94 +99,19 @@ class _AdminScreenState extends State<AdminScreen> {
         switch (payload['NotificationType']) {
           case 'OrderRequest':
             if (!Get.isDialogOpen)
-              Get.defaultDialog(
-                title: '${payload['type']} Request',
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Can you execute this ${payload['type']} order'),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Column(
-                      children: List<Widget>.generate(
-                          payload['Items'].length,
-                          (index) => Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                        '${payload['Items'][index]['productName']}'),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                        '${payload['Items'][index]['productCount']}'),
-                                  ),
-                                ],
-                              )).toList(),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Amount: \u20A6 ${payload['Amount']}'),
-                    ),
-                    payload['type'] == 'Delivery'
-                        ? Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                                'delivery Fee: \u20A6${payload['deliveryFee']}'))
-                        : Container(),
-                    payload['type'] == 'Delivery'
-                        ? Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Total Fee: \u20A6${payload['deliveryFee'] + payload['Amount']}',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ))
-                        : Container(),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    payload['type'] == 'Delivery'
-                        ? Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Address: ${payload['Address']}'))
-                        : Container(),
-                    payload['type'] == 'Delivery'
-                        ? Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                                'Distance: ${payload['deliveryDistance'] / 1000}km'))
-                        : Container(),
-                  ],
-                ),
-                confirm: FlatButton(
-                  child: Text('Yes'),
-                  onPressed: () async {
-                    await Respond(true, '', payload['fcmToken']);
-                    NotificationsBloc.instance.clearNotification();
-                    Get.back();
-                  },
-                ),
-                cancel: FlatButton(
-                  child: Text('No'),
-                  onPressed: () async {
-                    await Respond(false, '', payload['fcmToken']);
-                    NotificationsBloc.instance.clearNotification();
-                    Get.back();
-                  },
-                ),
-              );
+              Get.dialog(PingWidget(
+                ndata: notification.data,
+                uid: CurrentUser.uid,
+              ));
             break;
           case 'OrderResolutionResponse':
             print('OrderResolutionResponse');
             if (!Get.isDialogOpen)
-              Get.dialog(Resolution(
-                payload: payload,
+              Get.dialog(PingWidget(
+                ndata: notification.data,
+                uid: CurrentUser.uid,
               ));
+            //Get.dialog(Resolution(payload: payload,));
             break;
         }
       },
@@ -253,7 +182,9 @@ class _AdminScreenState extends State<AdminScreen> {
               body: Container(
                   child: Center(
                     child: <Widget>[
-                      state.user.merchant.bCategory == 'Logistic'?LogisticDashBoardScreen():DashBoardScreen(),
+                      state.user.merchant.bCategory == 'Logistic'
+                          ? LogisticDashBoardScreen()
+                          : DashBoardScreen(),
                       GeoFence(),
                       Favourite(),
                       MyOrders(),
@@ -275,11 +206,10 @@ class _AdminScreenState extends State<AdminScreen> {
           } else {
             return Scaffold(
               body: Center(
-                child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height*0.12,
-                  color: PRIMARYCOLOR,
-                )
-              ),
+                  child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+                color: PRIMARYCOLOR,
+              )),
             );
           }
         }),
@@ -614,6 +544,4 @@ class _ResolutionState extends State<Resolution> {
           'to': fcm,
         }));
   }
-
-
 }

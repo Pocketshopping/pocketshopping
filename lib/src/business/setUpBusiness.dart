@@ -9,10 +9,10 @@ class SetupBusiness extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Center(
-            child: Text(
-          'PocketShopping',
-          style: TextStyle(color: PRIMARYCOLOR),
-        ),
+          child: Text(
+            'PocketShopping',
+            style: TextStyle(color: PRIMARYCOLOR),
+          ),
         ),
         elevation: 0,
         backgroundColor: Colors.white,

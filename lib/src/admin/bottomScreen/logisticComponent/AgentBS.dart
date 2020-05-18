@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:pocketshopping/page/admin/addStaff.dart';
 import 'package:pocketshopping/page/admin/manageStaff.dart';
-import 'package:pocketshopping/src/ui/constant/appColor.dart';
-import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 
 class AgentBottomPage extends StatelessWidget {
+  AgentBottomPage({this.session});
 
+  final Session session;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +58,9 @@ class AgentBottomPage extends StatelessWidget {
                   color: PRIMARYCOLOR.withOpacity(0.8),
                 ),
                 title: 'Add Agent',
-                page: AgentForm()),
+                page: AgentForm(
+                  session: session,
+                )),
             BsMenuItem(
               height: gridHeight,
               icon: Icon(

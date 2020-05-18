@@ -57,7 +57,7 @@ class _CloseOrderState extends State<CloseOrder> {
             itemBuilder: (context, index) => AwareListItem(
               itemCreated: () {
                 SchedulerBinding.instance.addPostFrameCallback(
-                        (duration) => model.handleItemCreated(index));
+                    (duration) => model.handleItemCreated(index));
               },
               child: ListItem(
                 title: model.items[index],

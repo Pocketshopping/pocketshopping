@@ -154,7 +154,8 @@ class RegisterState {
       isPasswordValid: isPasswordValid ?? this.isPasswordValid,
       isNameValid: isNameValid ?? this.isNameValid,
       isTelephoneValid: isTelephoneValid ?? this.isTelephoneValid,
-      isConfirmPasswordValid: isConfirmPasswordValid ?? this.isConfirmPasswordValid,
+      isConfirmPasswordValid:
+          isConfirmPasswordValid ?? this.isConfirmPasswordValid,
       isAgreedValid: isAgreedValid ?? this.isAgreedValid,
       isNewUser: isNewUser ?? this.isNewUser,
       code: code ?? this.code,
@@ -168,11 +169,7 @@ class RegisterState {
   @override
   String toString() {
     return '''RegisterState {
-    Form:${isTelephoneValid && isNameValid &&
-      isEmailValid &&
-      isAgreedValid && isConfirmPasswordValid &&
-      isNewUser &&
-      isPasswordValid },
+    Form:${isTelephoneValid && isNameValid && isEmailValid && isAgreedValid && isConfirmPasswordValid && isNewUser && isPasswordValid},
     }''';
   }
 }

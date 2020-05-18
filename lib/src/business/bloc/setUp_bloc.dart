@@ -38,7 +38,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
       yield* _mapCaptureUpdatedToState(event.position);
     } else if (event is AgreedChanged) {
       yield* _mapAgreedChangedToState(event.agreed);
-    }else if (event is Submitted) {
+    } else if (event is Submitted) {
       yield* _mapFormSubmittedToState(
           event.address,
           //event.category,
@@ -85,7 +85,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           .getPositionStream(LocationOptions(
               accuracy: LocationAccuracy.bestForNavigation, timeInterval: 1000))
           .listen((position) {
-            print(position);
+        print(position);
         add(CaptureUpdated(position));
       });
     } catch (e) {

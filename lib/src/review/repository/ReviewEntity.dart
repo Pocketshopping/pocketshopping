@@ -4,11 +4,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:pocketshopping/src/order/repository/confirmation.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
-import 'package:pocketshopping/src/order/repository/orderItem.dart';
-import 'package:pocketshopping/src/order/repository/orderMode.dart';
-import 'package:pocketshopping/src/order/repository/receipt.dart';
 
 class ReviewEntity extends Equatable {
   final double reviewRating;
@@ -20,16 +15,14 @@ class ReviewEntity extends Equatable {
   final String reviewId;
 
   const ReviewEntity(
-
-      this.reviewRating,
-      this.reviewText,
-      this.reviewedAt,
-      this.reviewedMerchant,
-      this.customerId,
-      this.customerName,
-      this.reviewId,
-
-      );
+    this.reviewRating,
+    this.reviewText,
+    this.reviewedAt,
+    this.reviewedMerchant,
+    this.customerId,
+    this.customerName,
+    this.reviewId,
+  );
 
   Map<String, Object> toJson() {
     return {
@@ -39,20 +32,20 @@ class ReviewEntity extends Equatable {
       'reviewedMerchant': reviewedMerchant,
       'customerId': customerId,
       'customerName': customerName,
-      'reviewId':reviewId
+      'reviewId': reviewId
     };
   }
 
   @override
   List<Object> get props => [
-    reviewRating,
-    reviewText,
-    reviewedAt,
-    reviewedMerchant,
-    customerId,
-    customerName,
-    reviewId,
-  ];
+        reviewRating,
+        reviewText,
+        reviewedAt,
+        reviewedMerchant,
+        customerId,
+        customerName,
+        reviewId,
+      ];
 
   @override
   String toString() {
@@ -61,14 +54,14 @@ class ReviewEntity extends Equatable {
 
   static ReviewEntity fromJson(Map<String, Object> json) {
     return ReviewEntity(
-        json['reviewRating'] as double,
-        json['reviewText'] as String,
-        json['reviewedAt'] as Timestamp,
-        json['reviewedMerchant'] as String,
-        json['customerId'] as String,
-        json['customerName'] as String,
+      json['reviewRating'] as double,
+      json['reviewText'] as String,
+      json['reviewedAt'] as Timestamp,
+      json['reviewedMerchant'] as String,
+      json['customerId'] as String,
+      json['customerName'] as String,
       json['reviewId'] as String,
-       );
+    );
   }
 
   static ReviewEntity fromSnapshot(DocumentSnapshot snap) {
@@ -80,8 +73,7 @@ class ReviewEntity extends Equatable {
         snap.data['reviewedMerchant'],
         snap.data['customerId'],
         snap.data['customerName'],
-        snap.documentID
-    );
+        snap.documentID);
   }
 
   Map<String, Object> toDocument() {

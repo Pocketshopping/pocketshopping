@@ -121,6 +121,7 @@ class Submitted extends BusinessEvent {
     return 'Submitted { address: $address, category: $category, name: $name, telephone: $telephone, uid:$user }';
   }
 }
+
 class AgreedChanged extends BusinessEvent {
   final bool agreed;
 

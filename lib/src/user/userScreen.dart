@@ -6,17 +6,22 @@ import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/request/repository/requestRepo.dart';
+import 'package:pocketshopping/src/request/request.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'bloc/user.dart';
 
@@ -68,9 +73,7 @@ class _UserScreenState extends State<UserScreen> {
         .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
         .then((value) => null);
     if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {
-      });
-
+      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
       _fcm.requestNotificationPermissions(IosNotificationSettings());
     }
     _fcm.configure(
@@ -98,6 +101,41 @@ class _UserScreenState extends State<UserScreen> {
         NotificationsBloc.instance.newNotification(notification);
       },
     );
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      RequestRepo.getAll(CurrentUser.uid).then((value) {
+        if (value.length > 0)
+          GetBar(
+            title: 'Rquest',
+            messageText: Text(
+              'You have an important request to attend to',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: PRIMARYCOLOR,
+            mainButton: FlatButton(
+              onPressed: () {
+                Get.back();
+                Get.to(RequestScreen(
+                  requests: value,
+                ));
+              },
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white, width: 1),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  child: Text(
+                    'View',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ).show();
+      });
+    });
+    Workmanager.cancelAll();
     super.initState();
   }
 
@@ -159,11 +197,10 @@ class _UserScreenState extends State<UserScreen> {
           } else {
             return Scaffold(
               body: Center(
-                child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height*0.12,
-                  color: PRIMARYCOLOR,
-                )
-              ),
+                  child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+                color: PRIMARYCOLOR,
+              )),
             );
           }
         }),

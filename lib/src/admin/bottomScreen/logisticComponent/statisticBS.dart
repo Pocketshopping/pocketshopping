@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:pocketshopping/page/admin/customerStats.dart';
 import 'package:pocketshopping/page/admin/finStats.dart';
-import 'package:pocketshopping/page/admin/orderStats.dart';
 import 'package:pocketshopping/page/admin/productStats.dart';
 import 'package:pocketshopping/page/admin/staffStats.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 
 class LogisticStatBottomPage extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     double marginLR = MediaQuery.of(context).size.width;
@@ -62,7 +59,8 @@ class LogisticStatBottomPage extends StatelessWidget {
             ),
             BsMenuItem(
               height: gridHeight,
-              icon: Icon(MaterialIcons.local_taxi,
+              icon: Icon(
+                MaterialIcons.local_taxi,
                 size: MediaQuery.of(context).size.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocketshopping/page/drawer/aboutus.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/page/drawer/notification.dart';
 import 'package:pocketshopping/page/drawer/pocket.dart';
 import 'package:pocketshopping/page/drawer/profile.dart';
@@ -8,14 +8,12 @@ import 'package:pocketshopping/page/drawer/usetting.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/ui/shared/drawer/referral.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:get/get.dart';
-import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/ui/constant/appColor.dart';
-
 
 class DrawerScreen extends StatefulWidget {
   final UserRepository _userRepository;
@@ -25,6 +23,7 @@ class DrawerScreen extends StatefulWidget {
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
+
   _DrawerScreenState createState() => new _DrawerScreenState();
 }
 
@@ -35,7 +34,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
   @override
   void initState() {
     _walletStream = WalletBloc.instance.walletStream;
-    _walletStream.listen((wallet) {if(mounted){_wallet = wallet;if(mounted)setState(() { });}});
+    _walletStream.listen((wallet) {
+      if (mounted) {
+        _wallet = wallet;
+        if (mounted) setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -49,8 +53,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             color: Colors.white,
             height: MediaQuery.of(context).size.height * 0.35,
             child: DrawerHeader(
-              child:  Center(
-                  child:  Column(
+              child: Center(
+                  child: Column(
                 //crossAxisAlignment: CrossAxisAlignment.center,
                 //mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -64,16 +68,20 @@ class _DrawerScreenState extends State<DrawerScreen> {
                               image: new NetworkImage(
                                   "https://i.imgur.com/BoN9kdC.png")))),
                   Text(widget.user.fname, textScaleFactor: 1),
-                  if(_wallet != null)
-                  Text("PocketBalance: \u20A6 ${_wallet.pocketBalance}", textScaleFactor: 1.3),
-                  if(_wallet != null)
-                  Expanded(
-                    child: FlatButton(
-                      onPressed: () {},
-                      color: PRIMARYCOLOR,
-                      child: Text("TopUp",style: TextStyle(color: Colors.white),),
+                  if (_wallet != null)
+                    Text("PocketBalance: \u20A6 ${_wallet.pocketBalance}",
+                        textScaleFactor: 1.3),
+                  if (_wallet != null)
+                    Expanded(
+                      child: FlatButton(
+                        onPressed: () {},
+                        color: PRIMARYCOLOR,
+                        child: Text(
+                          "TopUp",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
-                  ),
                 ],
               )),
               decoration: BoxDecoration(
@@ -144,7 +152,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
             title: Text("AboutUs"),
             onTap: () {
               Get.back();
-              Get.to(BSetup(userRepository: widget._userRepository,));
+              Get.to(BSetup(
+                userRepository: widget._userRepository,
+              ));
             },
           ),
           ListTile(

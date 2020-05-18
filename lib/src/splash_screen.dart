@@ -6,11 +6,11 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: JumpingDotsProgressIndicator(
-        fontSize: MediaQuery.of(context).size.height*0.12,
+      body: Center(
+          child: JumpingDotsProgressIndicator(
+        fontSize: MediaQuery.of(context).size.height * 0.12,
         color: PRIMARYCOLOR,
-      )
-      ),
+      )),
     );
   }
 }

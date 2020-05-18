@@ -30,6 +30,7 @@ import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
+import 'package:workmanager/workmanager.dart';
 
 class DashBoardScreen extends StatefulWidget {
   static String tag = 'DashBoard-page';
@@ -56,12 +57,17 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     _notificationsStream.listen((notification) {
       showBottom();
     });
-
-    WalletRepo.getWallet(CurrentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(CurrentUser.user.walletId)
+        .then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
-    _walletStream.listen((wallet) {if(mounted) {_wallet = wallet;setState(() { });}});
-
+    _walletStream.listen((wallet) {
+      if (mounted) {
+        _wallet = wallet;
+        setState(() {});
+      }
+    });
     ChannelRepo.update(CurrentUser.merchant.mID, CurrentUser.user.uid);
+    Workmanager.cancelAll();
     super.initState();
   }
 
@@ -71,8 +77,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
   @override
   void dispose() {
-    _notificationsStream=null;
-    _walletStream=null;
+    _notificationsStream = null;
+    _walletStream = null;
     iosSubscription?.cancel();
     super.dispose();
   }
@@ -136,103 +142,115 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           left: marginLR * 0.01, right: marginLR * 0.01),
                       child: Column(
                         children: <Widget>[
-                          if(_wallet !=null)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
-                            children: <Widget>[
-                              Expanded(
-                                flex:1,
-                                child: Column(
-                                  children: [
-                                    Center(
-                                        child: Text(
+                          if (_wallet != null)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      children: [
+                                        Center(
+                                            child: Text(
                                           "Business Revenue",
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
-                                        )
-                                    ),
-                                    SizedBox(height: 10,),
-                                    Center(
-                                        child: Text(
+                                        )),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Center(
+                                            child: Text(
                                           "\u20A6 ${_wallet.businessMoney}",
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
-                                        )
-                                    ),
-                                    SizedBox(height: 10,),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: PRIMARYCOLOR.withOpacity(0.5)),
-                                        color: PRIMARYCOLOR.withOpacity(0.5),
-                                      ),
-                                      child: FlatButton(
-                                        onPressed: () => {
-                                          sendAndRetrieveMessage()
-                                              .then((value) => null)
-                                        },
-                                        child: Center(
-                                            child: Text(
-                                              "Withdraw",
-                                              style: TextStyle(color: Colors.white),
-                                            )
+                                        )),
+                                        SizedBox(
+                                          height: 10,
                                         ),
-                                      ),
-                                    )
-                                  ],
-                                )
-                              ),
-                              Expanded(flex:0,child: SizedBox(width: 10,),),
-                              Expanded(
-                                  flex:1,
-                                  child: Column(
-                                    children: [
-                                      Center(
-                                          child: Text(
-                                            "PocketUnit",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          )
-                                      ),
-                                      SizedBox(height: 10,),
-                                      Center(
-                                          child: Text(
-                                            "${_wallet.pocketUnitBalance}",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          )
-                                      ),
-                                      SizedBox(height: 10,),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: PRIMARYCOLOR.withOpacity(0.5)),
-                                          color: PRIMARYCOLOR.withOpacity(0.5),
-                                        ),
-                                        child: FlatButton(
-                                          onPressed: () => {
-                                            //sendAndRetrieveMessage()
-                                              //  .then((value) => null)
-                                             DynamicLinks.createLinkWithParams({
-                                        'merchant': 'rerereg',
-                                        'OTP': 'randomNumber.toString()',
-                                        'route': 'branch'
-                                        }).then((value) => print(value))
-                                          },
-                                          child: Center(
-                                              child: Text(
-                                                "TopUp",
-                                                style: TextStyle(color: Colors.white),
-                                              )
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: PRIMARYCOLOR
+                                                    .withOpacity(0.5)),
+                                            color:
+                                                PRIMARYCOLOR.withOpacity(0.5),
                                           ),
+                                          child: FlatButton(
+                                            onPressed: () => {
+                                              sendAndRetrieveMessage()
+                                                  .then((value) => null)
+                                            },
+                                            child: Center(
+                                                child: Text(
+                                              "Withdraw",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            )),
+                                          ),
+                                        )
+                                      ],
+                                    )),
+                                Expanded(
+                                  flex: 0,
+                                  child: SizedBox(
+                                    width: 10,
+                                  ),
+                                ),
+                                Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      children: [
+                                        Center(
+                                            child: Text(
+                                          "PocketUnit",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                        SizedBox(
+                                          height: 10,
                                         ),
-                                      )
-                                    ],
-                                  )
-                              ),
-                            ],
-                          ),
+                                        Center(
+                                            child: Text(
+                                          "${_wallet.pocketUnitBalance}",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: PRIMARYCOLOR
+                                                    .withOpacity(0.5)),
+                                            color:
+                                                PRIMARYCOLOR.withOpacity(0.5),
+                                          ),
+                                          child: FlatButton(
+                                            onPressed: () => {
+                                              //sendAndRetrieveMessage()
+                                              //  .then((value) => null)
+                                              DynamicLinks
+                                                  .createLinkWithParams({
+                                                'merchant': 'rerereg',
+                                                'OTP':
+                                                    'randomNumber.toString()',
+                                                'route': 'branch'
+                                              }).then((value) => print(value))
+                                            },
+                                            child: Center(
+                                                child: Text(
+                                              "TopUp",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            )),
+                                          ),
+                                        )
+                                      ],
+                                    )),
+                              ],
+                            ),
                         ],
                       ),
                     ),

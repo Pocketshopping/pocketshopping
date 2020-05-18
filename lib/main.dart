@@ -65,12 +65,16 @@ var appState = new AppState({'instanceID':'34','cart':0});
 
 import 'dart:async';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' as _get;
 import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
@@ -80,12 +84,67 @@ import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/splash_screen.dart';
 import 'package:pocketshopping/src/simple_bloc_delegate.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
+import 'package:workmanager/workmanager.dart';
+//import 'package:workmanager/workmanager.dart';
 
-void main() {
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
+
+// Streams are created so that app can respond to notification-related events since the plugin is initialised in the `main` function
+final BehaviorSubject<ReceivedNotification> didReceiveLocalNotificationSubject =
+BehaviorSubject<ReceivedNotification>();
+
+final BehaviorSubject<String> selectNotificationSubject =
+BehaviorSubject<String>();
+
+NotificationAppLaunchDetails notificationAppLaunchDetails;
+
+class ReceivedNotification {
+  final int id;
+  final String title;
+  final String body;
+  final String payload;
+
+  ReceivedNotification({
+    @required this.id,
+    @required this.title,
+    @required this.body,
+    @required this.payload,
+  });
+}
+
+void main()async{
   WidgetsFlutterBinding.ensureInitialized();
+  Workmanager.initialize(callbackDispatcher, isInDebugMode: true);
+  notificationAppLaunchDetails =
+  await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+
+  var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+  // Note: permissions aren't requested here just to demonstrate that can be done later using the `requestPermissions()` method
+  // of the `IOSFlutterLocalNotificationsPlugin` class
+  var initializationSettingsIOS = IOSInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      onDidReceiveLocalNotification:
+          (int id, String title, String body, String payload) async {
+        didReceiveLocalNotificationSubject.add(ReceivedNotification(
+            id: id, title: title, body: body, payload: payload));
+      });
+  var initializationSettings = InitializationSettings(
+      initializationSettingsAndroid, initializationSettingsIOS);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+      onSelectNotification: (String payload) async {
+        if (payload != null) {
+          debugPrint('notification payload: ' + payload);
+        }
+        selectNotificationSubject.add(payload);
+      });
   BlocSupervisor.delegate = SimpleBlocDelegate();
   final UserRepository userRepository = UserRepository();
   runApp(
@@ -96,6 +155,95 @@ void main() {
       child: MyApp(userRepository: userRepository),
     ),
   );
+
+
+}
+
+void callbackDispatcher() {
+  Workmanager.executeTask((task, inputData)async{
+    bool enable = await Geolocator().isLocationServiceEnabled();
+    final FirebaseMessaging _fcm = FirebaseMessaging();
+    GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
+    if(enable){
+      if(permit == GeolocationStatus.granted){
+        Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,locationPermissionLevel: GeolocationPermission.locationAlways);
+        final databaseReference = Firestore.instance;
+        if(position != null){
+          String fcmToken = await _fcm.getToken();
+          Geoflutterfire geo = Geoflutterfire();
+          GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
+          await databaseReference.collection("agentLocationUpdate")
+              .document(inputData['agentID'])
+              .setData({
+            'agentLocation':agentLocation.data,
+            'agentAutomobile':inputData['agentAutomobile'],
+            'agentName':inputData['agentName'],
+            'agentTelephone':inputData['agentTelephone'],
+            'availability':inputData['availability'],
+            'device':fcmToken,
+            'UpdatedAt':Timestamp.now(),
+          });
+        }
+        print(position.toString());
+      }
+      else{
+        var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+            '1', 'LocationUpdate', 'LocationUpdate',
+          importance: Importance.Max,
+          priority: Priority.High,
+          ticker: 'ticker',
+          icon: 'app_icon',
+          ongoing: true,
+          enableVibration: true,
+          enableLights: true,
+          playSound: true,
+        );
+        var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+        var platformChannelSpecifics = NotificationDetails(
+            androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+        await flutterLocalNotificationsPlugin.show(
+            0,
+            'Permission',
+            'Grant Location Access to PocketShopping',
+            platformChannelSpecifics,
+            payload: 'LocationUpdate',
+
+
+        );
+        print('Permission not granted');
+      }
+    }
+    else{
+      var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        '1', 'LocationUpdate', 'LocationUpdate',
+        importance: Importance.Max,
+        priority: Priority.High,
+        ticker: 'ticker',
+        icon: 'app_icon',
+        ongoing: true,
+        enableVibration: true,
+        enableLights: true,
+        playSound: true,
+      );
+      var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+      var platformChannelSpecifics = NotificationDetails(
+          androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+      await flutterLocalNotificationsPlugin.show(
+        0,
+        'Location',
+        'Enable Location',
+        platformChannelSpecifics,
+        payload: 'LocationUpdate',
+
+
+      );
+      print('No location enabled');
+    }
+
+
+    //print("Native called background task at ${DateTime.now().toString()}");
+    return Future.value(true);
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -193,7 +341,7 @@ class AppState extends State<App> {
   }
 
   Future handleDynamicLinks() async {
-    print('i am working');
+    //print('i am working');
     final PendingDynamicLinkData data =
     await FirebaseDynamicLinks.instance.getInitialLink();
     _handleDeepLink(data);
@@ -201,7 +349,7 @@ class AppState extends State<App> {
         onSuccess: (PendingDynamicLinkData dynamicLink) async {
           _handleDeepLink(dynamicLink);
         }, onError: (OnLinkErrorException e) async {
-      print('Link Failed: ${e.message}');
+      //print('Link Failed: ${e.message}');
     });
   }
 
@@ -210,6 +358,7 @@ class AppState extends State<App> {
     if (deepLink != null) {BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(deepLink));}
 
   }
+
 
 
 

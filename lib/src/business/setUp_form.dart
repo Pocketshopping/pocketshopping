@@ -1,15 +1,14 @@
 import 'dart:async';
+
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:get/get.dart';
+import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:recase/recase.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
-import 'package:get/get.dart';
 
 class BusinessSetupForm extends StatefulWidget {
   BusinessSetupForm({this.data});
@@ -30,7 +29,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
   FirebaseUser CurrentUser;
   Timer _timer;
   int _start = 15;
-  final bool auto =false;
+  final bool auto = false;
   List<String> categoria;
   List<String> deliveria;
 
@@ -55,10 +54,15 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
       'No',
       'Yes, I have my own delivery service',
     ];
-    CategoryRepo.categoria().then((value) => setState((){categoria=value;}));
-    CategoryRepo.deliveria().then((value) => setState((){deliveria=value;}));
+    CategoryRepo.categoria().then((value) => setState(() {
+          categoria = value;
+        }));
+    CategoryRepo.deliveria().then((value) => setState(() {
+          deliveria = value;
+        }));
     super.initState();
-    _businessBloc = BlocProvider.of<BusinessBloc>(context)..add(CaptureCordinate());
+    _businessBloc = BlocProvider.of<BusinessBloc>(context)
+      ..add(CaptureCordinate());
     _nameController.addListener(_onNameChanged);
     _telephoneController.addListener(_onTelephoneChanged);
     _addressController.addListener(_onAddressChanged);
@@ -152,82 +156,80 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                 behavior: HitTestBehavior.opaque,
                 onVerticalDragStart: (_) => debugPrint("no can do!"),
                 child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: Container(
-                    color: Colors.white,
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: MediaQuery.of(context).size.height * 0.1),
-                          padding: EdgeInsets.only(
-                            left: MediaQuery.of(context).size.height * 0.05,
-                            right: MediaQuery.of(context).size.height * 0.05,
-                          ),
-                          child: Center(
-                              child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Image.asset(
-                                'assets/images/completed.gif',
-                                width: MediaQuery.of(context).size.width,
-                                height:
-                                    MediaQuery.of(context).size.height * 0.4,
-                                fit: BoxFit.cover,
-                              ),
-                              Text(
-                                "Your business setup is complete",
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.black54),
-                              ),
-                              Container(
-                                height: 10,
-                              ),
-                              Center(
-                                  child: Text(
-                                "Note your business will be activated once you add atleast one product "
-                                "so head straight to your dashboard and start adding product."
-                                "",
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.black54),
-                              )),
-                              Container(
-                                height: 10,
-                              ),
-                              FlatButton(
-                                onPressed: () {
-                                  BlocProvider.of<AuthenticationBloc>(context).add(
-                                    AppStarted(),
-                                  );
-                                  Get.back();
-                                },
-                                color: PRIMARYCOLOR,
-                                child: Padding(
-                                  padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.height *
-                                          0.02),
-                                  child: Text(
-                                    "DashBoard",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.1),
+                            padding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.height * 0.05,
+                              right: MediaQuery.of(context).size.height * 0.05,
+                            ),
+                            child: Center(
+                                child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Image.asset(
+                                  'assets/images/completed.gif',
+                                  width: MediaQuery.of(context).size.width,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.4,
+                                  fit: BoxFit.cover,
                                 ),
-                              )
-                            ],
-                          )),
-                        ),
+                                Text(
+                                  "Your business setup is complete",
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.black54),
+                                ),
+                                Container(
+                                  height: 10,
+                                ),
+                                Center(
+                                    child: Text(
+                                  "Note your business will be activated once you add atleast one product "
+                                  "so head straight to your dashboard and start adding product."
+                                  "",
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.black54),
+                                )),
+                                Container(
+                                  height: 10,
+                                ),
+                                FlatButton(
+                                  onPressed: () {
+                                    BlocProvider.of<AuthenticationBloc>(context)
+                                        .add(
+                                      AppStarted(),
+                                    );
+                                    Get.back();
+                                  },
+                                  color: PRIMARYCOLOR,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.height *
+                                            0.02),
+                                    child: Text(
+                                      "DashBoard",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            )),
+                          ),
 
-                        // Progress bar
-                      ],
-                    ),
-                  )
-                ),
+                          // Progress bar
+                        ],
+                      ),
+                    )),
               ),
               duration: Duration(days: 365),
-
             ),
-
           );
       }
       if (state.isFailure) {
@@ -238,7 +240,8 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
               content: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Registration Failure.. check your network and try agian'),
+                  Text(
+                      'Registration Failure.. check your network and try agian'),
                   Icon(Icons.error),
                 ],
               ),
@@ -281,36 +284,38 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    Container(
-                                        padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width * 0.02),
-                                        child:Center(
-                                          child: Text('Read Me First',style: TextStyle(fontSize: 18),),
-                                        )
-
+                                Container(
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
+                                    child: Center(
+                                      child: Text(
+                                        'Read Me First',
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                                    )),
+                                Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
                                     ),
-                              Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                bottom: BorderSide(
-                                //                   <--- left side
-                                color: Colors.black12,
-                                width: 1.0,
-                              ),
-                          ),
-                        ),
-                        padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width * 0.02),
-                        child:Center(
-                          child: Text('Please Ensure You Are In Your Business Premises '
-                              'Before SettingUp Business, Because Business Location Will Be Captured '
-                              'And The Availability Of Your Business Depends On It. Be Informed You Can Not Change The '
-                              ' Coordinate In Later Times Except In The Case Of Relocation Which Will Require '
-                              ' Serious Verification. Note. It Vital You Are Directly '
-                              'Outside Your Business Premises In Other To Get An Accuracy Coordinate'),
-                        )
-
-                              ),
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
+                                    child: Center(
+                                      child: Text(
+                                          'Please Ensure You Are In Your Business Premises '
+                                          'Before SettingUp Business, Because Business Location Will Be Captured '
+                                          'And The Availability Of Your Business Depends On It. Be Informed You Can Not Change The '
+                                          ' Coordinate In Later Times Except In The Case Of Relocation Which Will Require '
+                                          ' Serious Verification. Note. It Vital You Are Directly '
+                                          'Outside Your Business Premises In Other To Get An Accuracy Coordinate'),
+                                    )),
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border(
@@ -507,7 +512,54 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         )
                                       ],
                                     )),
-                                if(state.category != 'Logistic')
+                                if (state.category != 'Logistic')
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              "Will you offer delivery service",
+                                              style: TextStyle(
+                                                  color: Colors.black54),
+                                            )),
+                                        DropdownButtonFormField<String>(
+                                          value: state.delivery,
+                                          items: deliveria
+                                              .map((label) => DropdownMenuItem(
+                                                    child: Text(
+                                                      label,
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.black54),
+                                                    ),
+                                                    value: label,
+                                                  ))
+                                              .toList(),
+                                          isExpanded: true,
+                                          hint: Text('Delivery Service'),
+                                          decoration: InputDecoration(
+                                              border: InputBorder.none),
+                                          onChanged: (value) {
+                                            _businessBloc.add(DeliveryChanged(
+                                                delivery: value));
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 Container(
                                   decoration: BoxDecoration(
                                     border: Border(
@@ -520,180 +572,147 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   ),
                                   padding: EdgeInsets.all(
                                       MediaQuery.of(context).size.width * 0.02),
-                                  child: Column(
-                                    children: <Widget>[
-                                      Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            "Will you offer delivery service",
-                                            style: TextStyle(
-                                                color: Colors.black54),
-                                          )),
-                                      DropdownButtonFormField<String>(
-                                        value: state.delivery,
-                                        items: deliveria
-                                            .map((label) => DropdownMenuItem(
-                                                  child: Text(
-                                                    label,
-                                                    style: TextStyle(
-                                                        color: Colors.black54),
-                                                  ),
-                                                  value: label,
-                                                ))
-                                            .toList(),
-                                        isExpanded: true,
-                                        hint: Text('Delivery Service'),
-                                        decoration: InputDecoration(
-                                            border: InputBorder.none),
-                                        onChanged: (value) {
-                                          _businessBloc.add(
-                                              DeliveryChanged(delivery: value));
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            //                   <--- left side
-                                            color: Colors.black12,
-                                            width: 1.0,
-                                          ),
+                                  child: CheckboxListTile(
+                                    title: GestureDetector(
+                                      onTap: () {
+                                        if (!Get.isBottomSheetOpen)
+                                          Get.bottomSheet(
+                                            builder: (_) {
+                                              return Container(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.8,
+                                                color: Colors.white,
+                                                child: Text('dfdfdf'),
+                                              );
+                                            },
+                                            isScrollControlled: true,
+                                          );
+                                      },
+                                      child: Text(
+                                        "I Agree to Terms and Conditions",
+                                        style: TextStyle(
+                                          color: Colors.blueAccent,
                                         ),
                                       ),
-                                      padding: EdgeInsets.all(
-                                          MediaQuery.of(context).size.width * 0.02),
-                                      child: CheckboxListTile(
-                                        title: GestureDetector(
-                                          onTap: () {
-                                            if(!Get.isBottomSheetOpen)
-                                              Get.bottomSheet(builder: (_){
-                                                return Container(
-                                                  height: MediaQuery.of(context).size.height*0.8,
-                                                  color: Colors.white,
-                                                  child: Text('dfdfdf'),
-                                                );
-                                              },
-                                                isScrollControlled: true,
-                                              );
-                                          },
-                                          child: Text(
-                                            "I Agree to Terms and Conditions",
-                                            style: TextStyle(
-                                              color: Colors.blueAccent,
+                                    ),
+                                    value: state.isAgreedValid,
+                                    onChanged: (bool value) {
+                                      _businessBloc.add(
+                                        AgreedChanged(agreed: value),
+                                      );
+                                    },
+                                    controlAffinity:
+                                        ListTileControlAffinity.leading,
+                                  ),
+                                ),
+                                auto
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              //                   <--- left side
+                                              color: Colors.black12,
+                                              width: 1.0,
                                             ),
                                           ),
                                         ),
-                                        value: state.isAgreedValid,
-                                        onChanged: (bool value) {
-                                          _businessBloc.add(
-                                            AgreedChanged(agreed: value),
-                                          );
-                                        },
-                                        controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                      ),
-                                    ),
-                                auto?
-                                Container(
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        //                   <--- left side
-                                        color: Colors.black12,
-                                        width: 1.0,
-                                      ),
-                                    ),
-                                  ),
-                                  padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Center(
-                                        child: Text(
-                                          "Capture Business Premise Cordinate",
-                                          style:
-                                              TextStyle(color: Colors.black54),
-                                        ),
-                                      ),
-                                      state.isCapturing == "NO" ||
-                                              state.isCapturing == "FAIL"
-                                          ? Column(children: <Widget>[
-                                              FlatButton(
-                                                onPressed: startCapture,
-                                                child: Center(
-                                                    child: Icon(
-                                                  Icons.location_on,
-                                                  color: PRIMARYCOLOR,
-                                                  size: MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.2,
-                                                )),
+                                        padding: EdgeInsets.all(
+                                            MediaQuery.of(context).size.width *
+                                                0.02),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: <Widget>[
+                                            Center(
+                                              child: Text(
+                                                "Capture Business Premise Cordinate",
+                                                style: TextStyle(
+                                                    color: Colors.black54),
                                               ),
-                                              Center(
-                                                child: Text(
-                                                    "Click the button above to start capturing",
-                                                    style: TextStyle(
-                                                        color: Colors.black54)),
-                                              ),
-                                            ])
-                                          : state.isCapturing == "YES"
-                                              ? Column(
-                                                  children: <Widget>[
-                                                    Image.asset(
-                                                      'assets/images/place.gif',
-                                                      //color: PRIMARYCOLOR,
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.4,
-                                                      height:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .height *
-                                                              0.2,
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                    Center(
-                                                      child: Text(
-                                                          "Capturing Please wait...$_start",
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .black54)),
-                                                    ),
-                                                  ],
-                                                )
-                                              : state.isCapturing == "COMPLETED"
-                                                  ? Column(children: <Widget>[
-                                                      Center(
+                                            ),
+                                            state.isCapturing == "NO" ||
+                                                    state.isCapturing == "FAIL"
+                                                ? Column(children: <Widget>[
+                                                    FlatButton(
+                                                      onPressed: startCapture,
+                                                      child: Center(
                                                           child: Icon(
-                                                        Icons.check,
-                                                        color: Colors.green,
+                                                        Icons.location_on,
+                                                        color: PRIMARYCOLOR,
                                                         size: MediaQuery.of(
                                                                     context)
                                                                 .size
                                                                 .width *
                                                             0.2,
                                                       )),
-                                                      Center(
-                                                        child: Text(
-                                                            "Cordinate successfully captured",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .black54)),
-                                                      ),
-                                                    ])
-                                                  : Container(),
-                                    ],
-                                  ),
-                                ):Container(),
+                                                    ),
+                                                    Center(
+                                                      child: Text(
+                                                          "Click the button above to start capturing",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .black54)),
+                                                    ),
+                                                  ])
+                                                : state.isCapturing == "YES"
+                                                    ? Column(
+                                                        children: <Widget>[
+                                                          Image.asset(
+                                                            'assets/images/place.gif',
+                                                            //color: PRIMARYCOLOR,
+                                                            width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.4,
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
+                                                                0.2,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                          Center(
+                                                            child: Text(
+                                                                "Capturing Please wait...$_start",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .black54)),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    : state.isCapturing ==
+                                                            "COMPLETED"
+                                                        ? Column(
+                                                            children: <Widget>[
+                                                                Center(
+                                                                    child: Icon(
+                                                                  Icons.check,
+                                                                  color: Colors
+                                                                      .green,
+                                                                  size: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      0.2,
+                                                                )),
+                                                                Center(
+                                                                  child: Text(
+                                                                      "Cordinate successfully captured",
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.black54)),
+                                                                ),
+                                                              ])
+                                                        : Container(),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(),
                                 Container(
                                   padding: EdgeInsets.all(
                                       MediaQuery.of(context).size.width * 0.02),
@@ -721,7 +740,10 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                               horizontal: marginLR * 0.08),
                                           child: FlatButton(
                                             onPressed: () {
-                                              BlocProvider.of<AuthenticationBloc>(context).add(
+                                              BlocProvider.of<
+                                                          AuthenticationBloc>(
+                                                      context)
+                                                  .add(
                                                 AppStarted(),
                                               );
                                               Get.back();

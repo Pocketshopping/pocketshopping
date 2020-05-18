@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 
 class OrderRepo {
@@ -41,33 +41,32 @@ class OrderRepo {
     snap.documents.forEach((doc) {
       orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
     });
-    if(orders.length>0)
-        return orders;
+    if (orders.length > 0)
+      return orders;
     else
       return [SearchEmptyOrderIndicatorTitle];
   }
 
-  static Future<void> confirm(String oid,Confirmation confirmation)async{
-     await databaseReference.collection("orders").document(oid).updateData({
-       'orderConfirmation':confirmation.toMap(),
-       'status':'COMPLETED'
-     });
+  static Future<void> confirm(String oid, Confirmation confirmation) async {
+    await databaseReference.collection("orders").document(oid).updateData(
+        {'orderConfirmation': confirmation.toMap(), 'status': 'COMPLETED'});
   }
 
-  static Future<Order> getOne(String oid)async{
+  static Future<Order> getOne(String oid) async {
     var doc = await databaseReference.collection("orders").document(oid).get();
     return Order.fromEntity(OrderEntity.fromSnapshot(doc));
   }
 
-  static Future<void> review(String oid,Customer orderCustomer)async{
+  static Future<void> review(String oid, Customer orderCustomer) async {
     await databaseReference.collection("orders").document(oid).updateData({
-      'orderCustomer':orderCustomer.toMap(),
+      'orderCustomer': orderCustomer.toMap(),
     });
   }
 
-  static Future<void> isComplete(String oid,Confirmation confirmation)async{
-    await databaseReference.collection("orders").document(oid).updateData({
-      'status':'COMPLETED'
-    });
+  static Future<void> isComplete(String oid, Confirmation confirmation) async {
+    await databaseReference
+        .collection("orders")
+        .document(oid)
+        .updateData({'status': 'COMPLETED'});
   }
 }

@@ -15,7 +15,6 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -77,9 +76,9 @@ class _MerchantUIState extends State<MerchantUI> {
       functionName: "FetchMerchantsProductCategory",
     )
         .call({'mID': widget.merchant.mID}).then((value) => setState(() {
-      category = value.data;
-      if (category.isNotEmpty) selectedCategory = category[0];
-    }));
+              category = value.data;
+              if (category.isNotEmpty) selectedCategory = category[0];
+            }));
     location.changeSettings(
         accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
@@ -193,10 +192,10 @@ class _MerchantUIState extends State<MerchantUI> {
                       children: <Widget>[
                         Center(
                             child: Text(
-                              "Search Using QRcode/Barcode",
-                              style: TextStyle(fontSize: 14, color: Colors.black54),
-                              textAlign: TextAlign.center,
-                            )),
+                          "Search Using QRcode/Barcode",
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        )),
                         Container(
                           height: 10,
                         ),
@@ -209,10 +208,10 @@ class _MerchantUIState extends State<MerchantUI> {
                             )),
                         Center(
                             child: Text(
-                              "Scan QRCode to search for product",
-                              style: TextStyle(color: Colors.black54),
-                              textAlign: TextAlign.center,
-                            )),
+                          "Scan QRCode to search for product",
+                          style: TextStyle(color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        )),
                       ],
                     ),
                   ),
@@ -246,247 +245,264 @@ class _MerchantUIState extends State<MerchantUI> {
 
     return category != null
         ? category.isNotEmpty
-        ? Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(
-            MediaQuery.of(context).size.height *
-                0.3), // here the desired height
-        child: AppBar(
-          elevation: 0.0,
-          centerTitle: true,
-          backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: Colors.grey,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          actions: <Widget>[
-            IconButton(
-              icon: _searchIcon,
-              onPressed: _searchPressed,
-            ),
-          ],
-          bottom: PreferredSize(
-              preferredSize: Size.fromHeight(
-                  MediaQuery.of(context).size.height * 0.15),
-              child: Builder(
-                  builder: (context) => Container(
-                      padding: EdgeInsets.only(left: 10, right: 10),
-                      //margin: EdgeInsets.only(bottom: 20),
-                      child: Column(
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              category != null
-                                  ? Text(
-                                !searchMode
-                                    ? "Categories"
-                                    : 'Search',
-                                style: TextStyle(
-                                    fontSize: height * 0.04,
-                                    fontWeight:
-                                    FontWeight.bold),
-                              )
-                                  : Container(),
-                              Row(
-                                children: <Widget>[
-                                  cart.length > 0?
-                                  AvatarGlow(
-                                    startDelay: Duration(milliseconds: 1000),
-                                    glowColor: Colors.red,
-                                    endRadius: 40.0,
-                                    duration: Duration(milliseconds: 2000),
-                                    repeat: true,
-                                    showTwoGlows: true,
-                                    repeatPauseDuration: Duration(milliseconds: 100),
-                                    child: Material(
-                                      elevation: 8.0,
-                                      shape: CircleBorder(),
-                                      child: Badge(
-                                        badgeContent: Text(
-                                          cart.length.toString(),
-                                          style: TextStyle(
-                                              color: Colors.white),
-                                        ),
-                                        position: BadgePosition.topRight(
-                                            top: 1, right: 1),
-                                        child: IconButton(
-                                          onPressed: () {
-                                            if (cart.length > 0)
-                                              ShowCart(cart);
-                                            else
-                                              Scaffold.of(context)
-                                                ..hideCurrentSnackBar()
-                                                ..showSnackBar(SnackBar(
-                                                  content: Text(
-                                                      'basket is empty'),
-                                                  backgroundColor:
-                                                  Colors.redAccent,
-                                                  behavior:
-                                                  SnackBarBehavior
-                                                      .floating,
-                                                ));
-                                          },
-                                          color: PRIMARYCOLOR,
-                                          icon: Icon(
-                                            Icons.shopping_basket,
-                                            size: height * 0.05,
-                                          ),
-                                        ),
-                                        showBadge: cart.length > 0
-                                            ? true
-                                            : false,
-                                        animationDuration:
-                                        Duration(seconds: 5),
-                                      ),
-                                    ),
-                                    shape: BoxShape.circle,
-                                    animate: true,
-                                    curve: Curves.fastOutSlowIn,
-                                  )
-                                      :Badge(
-                                    badgeContent: Text(
-                                      cart.length.toString(),
-                                      style: TextStyle(
-                                          color: Colors.white),
-                                    ),
-                                    position: BadgePosition.topRight(
-                                        top: 1, right: 1),
-                                    child: IconButton(
-                                      onPressed: () {
-                                        if (cart.length > 0)
-                                          ShowCart(cart);
-                                        else
-                                          Scaffold.of(context)
-                                            ..hideCurrentSnackBar()
-                                            ..showSnackBar(SnackBar(
-                                              content: Text(
-                                                  'basket is empty'),
-                                              backgroundColor:
-                                              Colors.redAccent,
-                                              behavior:
-                                              SnackBarBehavior
-                                                  .floating,
-                                            ));
-                                      },
-                                      color: PRIMARYCOLOR,
-                                      icon: Icon(
-                                        Icons.shopping_basket,
-                                        size: height * 0.05,
-                                      ),
-                                    ),
-                                    showBadge: cart.length > 0
-                                        ? true
-                                        : false,
-                                    animationDuration:
-                                    Duration(seconds: 5),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.call,
-                                      color: PRIMARYCOLOR,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.place,
-                                      color: PRIMARYCOLOR,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                          category != null
-                              ? searchMode
-                              ? Column(
-                            children: <Widget>[
-                              Align(
-                                alignment:
-                                Alignment.centerLeft,
-                                child: Text(
-                                  _searchText.isNotEmpty
-                                      ? 'Showing result for $_searchText'
-                                      : 'Search for product in ${widget.merchant.bName}',
-                                ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                            ],
-                          )
-                              : Column(
-                            children: <Widget>[
-                              Container(
-                                height: height * 0.1,
-                                child: ListView(
-                                  scrollDirection:
-                                  Axis.horizontal,
+            ? Scaffold(
+                backgroundColor: Colors.white,
+                appBar: PreferredSize(
+                  preferredSize: Size.fromHeight(
+                      MediaQuery.of(context).size.height *
+                          0.3), // here the desired height
+                  child: AppBar(
+                    elevation: 0.0,
+                    centerTitle: true,
+                    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+                    leading: IconButton(
+                      icon: Icon(
+                        Icons.arrow_back_ios,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    actions: <Widget>[
+                      IconButton(
+                        icon: _searchIcon,
+                        onPressed: _searchPressed,
+                      ),
+                    ],
+                    bottom: PreferredSize(
+                        preferredSize: Size.fromHeight(
+                            MediaQuery.of(context).size.height * 0.15),
+                        child: Builder(
+                            builder: (context) => Container(
+                                padding: EdgeInsets.only(left: 10, right: 10),
+                                //margin: EdgeInsets.only(bottom: 20),
+                                child: Column(
                                   children: <Widget>[
-                                    Wrap(
-                                      spacing: 2.0,
-                                      children: List<
-                                          Widget>.generate(
-                                        category.length,
-                                            (int index) {
-                                          return ChoiceChip(
-                                            label: Text(
-                                              '${category[index]}',
-                                              style: TextStyle(
-                                                  color: Colors
-                                                      .grey),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        category != null
+                                            ? Text(
+                                                !searchMode
+                                                    ? "Categories"
+                                                    : 'Search',
+                                                style: TextStyle(
+                                                    fontSize: height * 0.04,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )
+                                            : Container(),
+                                        Row(
+                                          children: <Widget>[
+                                            cart.length > 0
+                                                ? AvatarGlow(
+                                                    startDelay: Duration(
+                                                        milliseconds: 1000),
+                                                    glowColor: Colors.red,
+                                                    endRadius: 40.0,
+                                                    duration: Duration(
+                                                        milliseconds: 2000),
+                                                    repeat: true,
+                                                    showTwoGlows: true,
+                                                    repeatPauseDuration:
+                                                        Duration(
+                                                            milliseconds: 100),
+                                                    child: Material(
+                                                      elevation: 8.0,
+                                                      shape: CircleBorder(),
+                                                      child: Badge(
+                                                        badgeContent: Text(
+                                                          cart.length
+                                                              .toString(),
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                        position: BadgePosition
+                                                            .topRight(
+                                                                top: 1,
+                                                                right: 1),
+                                                        child: IconButton(
+                                                          onPressed: () {
+                                                            if (cart.length > 0)
+                                                              ShowCart(cart);
+                                                            else
+                                                              Scaffold.of(
+                                                                  context)
+                                                                ..hideCurrentSnackBar()
+                                                                ..showSnackBar(
+                                                                    SnackBar(
+                                                                  content: Text(
+                                                                      'basket is empty'),
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .redAccent,
+                                                                  behavior:
+                                                                      SnackBarBehavior
+                                                                          .floating,
+                                                                ));
+                                                          },
+                                                          color: PRIMARYCOLOR,
+                                                          icon: Icon(
+                                                            Icons
+                                                                .shopping_basket,
+                                                            size: height * 0.05,
+                                                          ),
+                                                        ),
+                                                        showBadge:
+                                                            cart.length > 0
+                                                                ? true
+                                                                : false,
+                                                        animationDuration:
+                                                            Duration(
+                                                                seconds: 5),
+                                                      ),
+                                                    ),
+                                                    shape: BoxShape.circle,
+                                                    animate: true,
+                                                    curve: Curves.fastOutSlowIn,
+                                                  )
+                                                : Badge(
+                                                    badgeContent: Text(
+                                                      cart.length.toString(),
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                    position:
+                                                        BadgePosition.topRight(
+                                                            top: 1, right: 1),
+                                                    child: IconButton(
+                                                      onPressed: () {
+                                                        if (cart.length > 0)
+                                                          ShowCart(cart);
+                                                        else
+                                                          Scaffold.of(context)
+                                                            ..hideCurrentSnackBar()
+                                                            ..showSnackBar(
+                                                                SnackBar(
+                                                              content: Text(
+                                                                  'basket is empty'),
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .redAccent,
+                                                              behavior:
+                                                                  SnackBarBehavior
+                                                                      .floating,
+                                                            ));
+                                                      },
+                                                      color: PRIMARYCOLOR,
+                                                      icon: Icon(
+                                                        Icons.shopping_basket,
+                                                        size: height * 0.05,
+                                                      ),
+                                                    ),
+                                                    showBadge: cart.length > 0
+                                                        ? true
+                                                        : false,
+                                                    animationDuration:
+                                                        Duration(seconds: 5),
+                                                  ),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.call,
+                                                color: PRIMARYCOLOR,
+                                              ),
                                             ),
-                                            selected:
-                                            _value ==
-                                                index,
-                                            backgroundColor:
-                                            Color
-                                                .fromRGBO(
-                                                255,
-                                                255,
-                                                255,
-                                                1),
-                                            onSelected: (bool
-                                            selected) {
-                                              setState(() {
-                                                int lastIndex =
-                                                    _value;
-                                                _value = selected
-                                                    ? index
-                                                    : null;
-                                                if (_value ==
-                                                    null) {
-                                                  _value =
-                                                      lastIndex;
-                                                  selectedCategory =
-                                                  category[
-                                                  _value];
-                                                } else {
-                                                  selectedCategory =
-                                                  category[
-                                                  _value];
-                                                }
-                                                // selectedCategory = selected ? category[index] : "";
-                                                vmodel.handleChangeCategory(
-                                                    category:
-                                                    selectedCategory);
-                                              });
-                                            },
-                                          );
-                                        },
-                                      ).toList(),
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.place,
+                                                color: PRIMARYCOLOR,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                              /*dist>0.1?
+                                    category != null
+                                        ? searchMode
+                                            ? Column(
+                                                children: <Widget>[
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      _searchText.isNotEmpty
+                                                          ? 'Showing result for $_searchText'
+                                                          : 'Search for product in ${widget.merchant.bName}',
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    height: 10,
+                                                  ),
+                                                ],
+                                              )
+                                            : Column(
+                                                children: <Widget>[
+                                                  Container(
+                                                    height: height * 0.1,
+                                                    child: ListView(
+                                                      scrollDirection:
+                                                          Axis.horizontal,
+                                                      children: <Widget>[
+                                                        Wrap(
+                                                          spacing: 2.0,
+                                                          children: List<
+                                                              Widget>.generate(
+                                                            category.length,
+                                                            (int index) {
+                                                              return ChoiceChip(
+                                                                label: Text(
+                                                                  '${category[index]}',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .grey),
+                                                                ),
+                                                                selected:
+                                                                    _value ==
+                                                                        index,
+                                                                backgroundColor:
+                                                                    Color
+                                                                        .fromRGBO(
+                                                                            255,
+                                                                            255,
+                                                                            255,
+                                                                            1),
+                                                                onSelected: (bool
+                                                                    selected) {
+                                                                  setState(() {
+                                                                    int lastIndex =
+                                                                        _value;
+                                                                    _value = selected
+                                                                        ? index
+                                                                        : null;
+                                                                    if (_value ==
+                                                                        null) {
+                                                                      _value =
+                                                                          lastIndex;
+                                                                      selectedCategory =
+                                                                          category[
+                                                                              _value];
+                                                                    } else {
+                                                                      selectedCategory =
+                                                                          category[
+                                                                              _value];
+                                                                    }
+                                                                    // selectedCategory = selected ? category[index] : "";
+                                                                    vmodel.handleChangeCategory(
+                                                                        category:
+                                                                            selectedCategory);
+                                                                  });
+                                                                },
+                                                              );
+                                                            },
+                                                          ).toList(),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  /*dist>0.1?
                               widget.merchant.bDelivery == 'No'?
                               Container(
                                 margin: EdgeInsets.only(bottom: 10),
@@ -502,166 +518,166 @@ class _MerchantUIState extends State<MerchantUI> {
                                   style: TextStyle(color: Colors.green,),),
                               )
                                   :Container()*/
-                            ],
-                          )
-                              : Container()
-                        ],
-                      )))),
-          title: _appBarTitle,
-          automaticallyImplyLeading: false,
-        ),
-      ),
-      body: ChangeNotifierProvider<ViewModel>(
-        create: (context) => ViewModel(query: {
-          'typeOf': 'PRODUCT',
-          'mid': widget.merchant.mID,
-          'category': selectedCategory,
-        }),
-        child: Consumer<ViewModel>(
-          builder: (context, model, child) => ListView.builder(
-            itemCount: model.items.length,
-            itemBuilder: (context, index) => AwareListItem(
-              itemCreated: () {
-                vmodel = model;
-                return SchedulerBinding.instance.addPostFrameCallback(
-                        (duration) => model.handleItemCreated(index));
-              },
-              child: ListItem(
-                title: model.items[index],
-                template: model.items[0] != SearchEmptyIndicatorTitle
-                    ? MerchantUIIndicatorTitle
-                    : SearchEmptyIndicatorTitle,
-                callback: (value) {
-                  switch (value['callType']) {
-                    case 'ORDER':
-                      orderCallback(value['payload']);
-                      break;
-                    case 'DETAIL':
-                      detailCallback();
-                      break;
-                    case 'CART':
-                      CartCallback(value['payload'], context);
-                      break;
-                    default:
-                      detailCallback();
-                      break;
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    )
-        : Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: Column(
-            children: <Widget>[
-              Container(
-                height: MediaQuery.of(context).size.height * 0.4,
-                child: ShaderMask(
-                  shaderCallback: (rect) {
-                    return LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.black, Colors.transparent],
-                    ).createShader(
-                        Rect.fromLTRB(0, 0, rect.width, rect.height));
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: FadeInImage.memoryNetwork(
-                    placeholder: kTransparentImage,
-                    image: widget.merchant.bPhoto.isNotEmpty
-                        ? widget.merchant.bPhoto
-                        : PocketShoppingDefaultCover,
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width,
-                    height: height * 0.4,
+                                                ],
+                                              )
+                                        : Container()
+                                  ],
+                                )))),
+                    title: _appBarTitle,
+                    automaticallyImplyLeading: false,
                   ),
                 ),
-              ),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.6,
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      widget.merchant.bName ?? 'Merchant',
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.06,
-                          color: Colors.black54),
+                body: ChangeNotifierProvider<ViewModel>(
+                  create: (context) => ViewModel(query: {
+                    'typeOf': 'PRODUCT',
+                    'mid': widget.merchant.mID,
+                    'category': selectedCategory,
+                  }),
+                  child: Consumer<ViewModel>(
+                    builder: (context, model, child) => ListView.builder(
+                      itemCount: model.items.length,
+                      itemBuilder: (context, index) => AwareListItem(
+                        itemCreated: () {
+                          vmodel = model;
+                          return SchedulerBinding.instance.addPostFrameCallback(
+                              (duration) => model.handleItemCreated(index));
+                        },
+                        child: ListItem(
+                          title: model.items[index],
+                          template: model.items[0] != SearchEmptyIndicatorTitle
+                              ? MerchantUIIndicatorTitle
+                              : SearchEmptyIndicatorTitle,
+                          callback: (value) {
+                            switch (value['callType']) {
+                              case 'ORDER':
+                                orderCallback(value['payload']);
+                                break;
+                              case 'DETAIL':
+                                detailCallback();
+                                break;
+                              case 'CART':
+                                CartCallback(value['payload'], context);
+                                break;
+                              default:
+                                detailCallback();
+                                break;
+                            }
+                          },
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 20),
-                    Text(
-                      'We are currently setting up our pocketshopping account.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.03,
-                          color: Colors.black54),
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Visit Us',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.03,
-                          color: Colors.black54),
-                    ),
-                    SizedBox(height: 10),
-                    FlatButton(
-                      onPressed: () {},
-                      child: Icon(Icons.place,
-                          size:
-                          MediaQuery.of(context).size.height * 0.1,
-                          color: Colors.black54),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Contact Us',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.02,
-                          color: Colors.black54),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      widget.merchant.bTelephone ?? '',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height *
-                              0.025,
-                          color: Colors.black54),
-                    ),
-                  ],
+                  ),
                 ),
               )
-            ],
-          ),
-        ))
+            : Scaffold(
+                backgroundColor: Colors.white,
+                body: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        child: ShaderMask(
+                          shaderCallback: (rect) {
+                            return LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.black, Colors.transparent],
+                            ).createShader(
+                                Rect.fromLTRB(0, 0, rect.width, rect.height));
+                          },
+                          blendMode: BlendMode.dstIn,
+                          child: FadeInImage.memoryNetwork(
+                            placeholder: kTransparentImage,
+                            image: widget.merchant.bPhoto.isNotEmpty
+                                ? widget.merchant.bPhoto
+                                : PocketShoppingDefaultCover,
+                            fit: BoxFit.cover,
+                            width: MediaQuery.of(context).size.width,
+                            height: height * 0.4,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.6,
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              widget.merchant.bName ?? 'Merchant',
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.06,
+                                  color: Colors.black54),
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              'We are currently setting up our pocketshopping account.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                  color: Colors.black54),
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              'Visit Us',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                  color: Colors.black54),
+                            ),
+                            SizedBox(height: 10),
+                            FlatButton(
+                              onPressed: () {},
+                              child: Icon(Icons.place,
+                                  size:
+                                      MediaQuery.of(context).size.height * 0.1,
+                                  color: Colors.black54),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Contact Us',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.02,
+                                  color: Colors.black54),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              widget.merchant.bTelephone ?? '',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.025,
+                                  color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ))
         : Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: JumpingDotsProgressIndicator(
-          fontSize: MediaQuery.of(context).size.height*0.12,
-          color: PRIMARYCOLOR,
-        ),
-      ),
-    );
+            backgroundColor: Colors.white,
+            body: Center(
+              child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+                color: PRIMARYCOLOR,
+              ),
+            ),
+          );
   }
 
   detailCallback() {
     showModalBottomSheet(
         context: context,
         builder: (context) => BottomSheetTemplate(
-          height: MediaQuery.of(context).size.height * 0.4,
-          child: Container(
-            child: Container(),
-          ),
-        ));
+              height: MediaQuery.of(context).size.height * 0.4,
+              child: Container(
+                child: Container(),
+              ),
+            ));
   }
 
   CartCallback(dynamic data, BuildContext cntx) {

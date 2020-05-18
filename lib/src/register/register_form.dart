@@ -15,10 +15,12 @@ class RegisterForm extends StatefulWidget {
   final UserRepository _userRepository;
   final Uri linkdata;
 
-  RegisterForm({Key key, @required UserRepository userRepository,this.linkdata})
+  RegisterForm(
+      {Key key, @required UserRepository userRepository, this.linkdata})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
+
   State<RegisterForm> createState() => _RegisterFormState();
 }
 
@@ -27,7 +29,8 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
-  final TextEditingController _confirmpasswordController = TextEditingController();
+  final TextEditingController _confirmpasswordController =
+      TextEditingController();
   RegisterBloc _registerBloc;
 
   bool get isPopulated =>
@@ -69,9 +72,12 @@ class _RegisterFormState extends State<RegisterForm> {
                 content: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Registering...',style: TextStyle(color: Colors.white),),
+                    Text(
+                      'Registering...',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height*0.05,
+                      fontSize: MediaQuery.of(context).size.height * 0.05,
                       color: Colors.white,
                     )
                   ],
@@ -81,23 +87,19 @@ class _RegisterFormState extends State<RegisterForm> {
         }
         if (state.isSuccess) {
           FirstTimer();
-          if(widget.linkdata != null)
-            {
-              if(widget.linkdata.queryParameters.containsKey('referralID')) {
-                BlocProvider.of<AuthenticationBloc>(context).add(Setup());
-                Get.back();
-              }
-              else{
-                BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(widget.linkdata));
-                Get.back();
-              }
-
-            }
-          else
-            {
+          if (widget.linkdata != null) {
+            if (widget.linkdata.queryParameters.containsKey('referralID')) {
               BlocProvider.of<AuthenticationBloc>(context).add(Setup());
               Get.back();
+            } else {
+              BlocProvider.of<AuthenticationBloc>(context)
+                  .add(DeepLink(widget.linkdata));
+              Get.back();
             }
+          } else {
+            BlocProvider.of<AuthenticationBloc>(context).add(Setup());
+            Get.back();
+          }
         }
         if (state.isFailure) {
           Scaffold.of(context)
@@ -306,47 +308,50 @@ class _RegisterFormState extends State<RegisterForm> {
                             ),
                           ),
                           Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.black12,
-                                    width: 1.0,
-                                  ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  //                   <--- left side
+                                  color: Colors.black12,
+                                  width: 1.0,
                                 ),
                               ),
-                              padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
-                              child: CheckboxListTile(
-                                title: GestureDetector(
-                                  onTap: () {
-                                    if(!Get.isBottomSheetOpen)
-                                      Get.bottomSheet(builder: (_){
+                            ),
+                            padding: EdgeInsets.all(
+                                MediaQuery.of(context).size.width * 0.02),
+                            child: CheckboxListTile(
+                              title: GestureDetector(
+                                onTap: () {
+                                  if (!Get.isBottomSheetOpen)
+                                    Get.bottomSheet(
+                                      builder: (_) {
                                         return Container(
-                                          height: MediaQuery.of(context).size.height*0.8,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.8,
                                           color: Colors.white,
                                           child: Text('dfdfdf'),
                                         );
                                       },
-                                        isScrollControlled: true,
-                                      );
-                                  },
-                                  child: Text(
-                                    "I Agree to Terms and Conditions",
-                                    style: TextStyle(
-                                      color: Colors.blueAccent,
-                                    ),
+                                      isScrollControlled: true,
+                                    );
+                                },
+                                child: Text(
+                                  "I Agree to Terms and Conditions",
+                                  style: TextStyle(
+                                    color: Colors.blueAccent,
                                   ),
                                 ),
-                                value: state.isAgreedValid,
-                                onChanged: (bool value) {
-                                  _registerBloc.add(
-                                    AgreedChanged(agreed: value),
-                                  );
-                                },
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
                               ),
+                              value: state.isAgreedValid,
+                              onChanged: (bool value) {
+                                _registerBloc.add(
+                                  AgreedChanged(agreed: value),
+                                );
+                              },
+                              controlAffinity: ListTileControlAffinity.leading,
+                            ),
                           ),
                           Container(
                             child: Padding(
@@ -365,27 +370,28 @@ class _RegisterFormState extends State<RegisterForm> {
                                   ),
                                 )),
                           ),
-                              Container(
-                                child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: marginLR * 0.008,
-                                        horizontal: marginLR * 0.08),
-                                    child: FlatButton(
-                                      onPressed: (){Get.off(login.LoginScreen(userRepository: _userRepository,fromSignup: true,),);},
-                                      padding: EdgeInsets.all(12),
-                                      child: Center(
-                                        child: Text('Have an account! Sign In',
-                                            style: TextStyle(color: Colors.black)),
+                          Container(
+                            child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: marginLR * 0.008,
+                                    horizontal: marginLR * 0.08),
+                                child: FlatButton(
+                                  onPressed: () {
+                                    Get.off(
+                                      login.LoginScreen(
+                                        userRepository: _userRepository,
+                                        fromSignup: true,
                                       ),
-                                    )
-                                ),
-                              ),
-
-                        ]
-                            )
-                        )
-                    )
-                )
+                                    );
+                                  },
+                                  padding: EdgeInsets.all(12),
+                                  child: Center(
+                                    child: Text('Have an account! Sign In',
+                                        style: TextStyle(color: Colors.black)),
+                                  ),
+                                )),
+                          ),
+                        ]))))
               ],
             ),
           );
@@ -436,18 +442,20 @@ class _RegisterFormState extends State<RegisterForm> {
   void _onFormSubmitted() {
     _registerBloc.add(
       Submitted(
-          email: _emailController.text,
-          password: _passwordController.text,
-          name: _nameController.text,
-          telephone: _telephoneController.text,
-          referral: widget.linkdata != null?
-          widget.linkdata.queryParameters.containsKey('referralID')?
-          widget.linkdata.queryParameters['referralID']:'':'',
+        email: _emailController.text,
+        password: _passwordController.text,
+        name: _nameController.text,
+        telephone: _telephoneController.text,
+        referral: widget.linkdata != null
+            ? widget.linkdata.queryParameters.containsKey('referralID')
+                ? widget.linkdata.queryParameters['referralID']
+                : ''
+            : '',
       ),
     );
   }
 
-  FirstTimer({String uid ='newUser'}) async {
+  FirstTimer({String uid = 'newUser'}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('uid', uid);
   }

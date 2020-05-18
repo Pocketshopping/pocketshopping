@@ -21,20 +21,19 @@ class UserEntity extends Equatable {
   final String walletId;
 
   const UserEntity(
-    this.uid,
-    this.fname,
-    this.email,
-    this.telephone,
-    this.profile,
-    this.notificationID,
-    this.defaultAddress,
-    this.role,
-    this.bid,
-    this.createdat,
-    this.behaviour,
-    this.country,
-    this.walletId
-  );
+      this.uid,
+      this.fname,
+      this.email,
+      this.telephone,
+      this.profile,
+      this.notificationID,
+      this.defaultAddress,
+      this.role,
+      this.bid,
+      this.createdat,
+      this.behaviour,
+      this.country,
+      this.walletId);
 
   Map<String, Object> toJson() {
     return {
@@ -89,8 +88,7 @@ class UserEntity extends Equatable {
         json['createdAt'] as Timestamp,
         json['behaviour'] as DocumentReference,
         json['country'] as String,
-        json['walletId'] as String
-    );
+        json['walletId'] as String);
   }
 
   static UserEntity fromSnapshot(DocumentSnapshot snap) {

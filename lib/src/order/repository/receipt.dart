@@ -1,5 +1,5 @@
-import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 @immutable
 class Receipt {

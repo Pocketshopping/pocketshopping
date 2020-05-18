@@ -6,8 +6,9 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 class FirstBusinessPage extends StatelessWidget {
   final Color themecolor;
 
-  FirstBusinessPage(
-      {this.themecolor = PRIMARYCOLOR,});
+  FirstBusinessPage({
+    this.themecolor = PRIMARYCOLOR,
+  });
 
   @override
   Widget build(BuildContext context) {

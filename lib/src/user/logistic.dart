@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,38 +8,30 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/component/scanScreen.dart';
-import 'package:pocketshopping/page/admin/message.dart';
-import 'package:pocketshopping/page/admin/openOrder.dart';
 import 'package:pocketshopping/page/admin/settings.dart';
 import 'package:pocketshopping/page/admin/viewItem.dart';
-import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
-import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/widget/account.dart';
-import 'package:pocketshopping/widget/branch.dart';
-import 'package:pocketshopping/widget/customers.dart';
-import 'package:pocketshopping/widget/manageOrder.dart';
-import 'package:pocketshopping/widget/reviews.dart';
-import 'package:pocketshopping/widget/staffs.dart';
-import 'package:pocketshopping/widget/statistic.dart';
-import 'package:pocketshopping/widget/status.dart';
-import 'package:pocketshopping/widget/unit.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
+import 'package:pocketshopping/widget/account.dart';
+import 'package:pocketshopping/widget/reviews.dart';
+import 'package:pocketshopping/widget/status.dart';
+
+import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 
 class LogisticDashBoardScreen extends StatefulWidget {
   LogisticDashBoardScreen();
 
   @override
-  _LogisticDashBoardScreenState createState() => new _LogisticDashBoardScreenState();
+  _LogisticDashBoardScreenState createState() =>
+      new _LogisticDashBoardScreenState();
 }
 
 class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
@@ -58,9 +51,15 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
       showBottom();
     });
 
-    WalletRepo.getWallet(CurrentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(CurrentUser.user.walletId)
+        .then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
-    _walletStream.listen((wallet) {if(mounted) {_wallet = wallet;setState(() { });}});
+    _walletStream.listen((wallet) {
+      if (mounted) {
+        _wallet = wallet;
+        setState(() {});
+      }
+    });
 
     ChannelRepo.update(CurrentUser.merchant.mID, CurrentUser.user.uid);
     super.initState();
@@ -72,8 +71,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
 
   @override
   void dispose() {
-    _notificationsStream=null;
-    _walletStream=null;
+    _notificationsStream = null;
+    _walletStream = null;
     iosSubscription?.cancel();
     super.dispose();
   }
@@ -126,75 +125,82 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
               slivers: <Widget>[
                 SliverList(
                     delegate: SliverChildListDelegate(
-                      [
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        Container(
-                          color: Colors.white,
-                          //margin:  MediaQuery.of(context).size.height*0.05,
-                          margin: EdgeInsets.only(
-                              left: marginLR * 0.01, right: marginLR * 0.01),
-                          child: Column(
-                            children: <Widget>[
-                              if(_wallet !=null)
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
-                                  children: <Widget>[
-                                    Expanded(
-                                        flex:1,
-                                        child: Column(
-                                          children: [
-                                            Center(
+                  [
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    Container(
+                      color: Colors.white,
+                      //margin:  MediaQuery.of(context).size.height*0.05,
+                      margin: EdgeInsets.only(
+                          left: marginLR * 0.01, right: marginLR * 0.01),
+                      child: Column(
+                        children: <Widget>[
+                          if (_wallet != null)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      children: [
+                                        Center(
+                                            child: Text(
+                                          "Business Revenue",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Center(
+                                            child: Text(
+                                          "\u20A6 ${_wallet.businessMoney}",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: PRIMARYCOLOR
+                                                    .withOpacity(0.5)),
+                                            color:
+                                                PRIMARYCOLOR.withOpacity(0.5),
+                                          ),
+                                          child: FlatButton(
+                                            onPressed: () => {
+                                              sendAndRetrieveMessage()
+                                                  .then((value) => null)
+                                            },
+                                            child: Center(
                                                 child: Text(
-                                                  "Business Revenue",
-                                                  style: TextStyle(
-                                                      fontWeight: FontWeight.bold),
-                                                )
-                                            ),
-                                            SizedBox(height: 10,),
-                                            Center(
-                                                child: Text(
-                                                  "\u20A6 ${_wallet.businessMoney}",
-                                                  style: TextStyle(
-                                                      fontWeight: FontWeight.bold),
-                                                )
-                                            ),
-                                            SizedBox(height: 10,),
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                    color: PRIMARYCOLOR.withOpacity(0.5)),
-                                                color: PRIMARYCOLOR.withOpacity(0.5),
-                                              ),
-                                              child: FlatButton(
-                                                onPressed: () => {
-                                                  sendAndRetrieveMessage()
-                                                      .then((value) => null)
-                                                },
-                                                child: Center(
-                                                    child: Text(
-                                                      "Withdraw",
-                                                      style: TextStyle(color: Colors.white),
-                                                    )
-                                                ),
-                                              ),
-                                            )
-                                          ],
+                                              "Withdraw",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            )),
+                                          ),
                                         )
-                                    ),
-                                    Expanded(flex:0,child: SizedBox(width: 10,),),
-                                  ],
+                                      ],
+                                    )),
+                                Expanded(
+                                  flex: 0,
+                                  child: SizedBox(
+                                    width: 10,
+                                  ),
                                 ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                      ],
-                    )),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                  ],
+                )),
                 SliverGrid.count(crossAxisCount: 3, children: [
                   ViewItem(
                     gridHeight,
@@ -227,31 +233,31 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                 ]),
                 SliverList(
                     delegate: SliverChildListDelegate([
-                      Container(
-                        height: MediaQuery.of(context).size.height * 0.02,
-                      ),
-                    ])),
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.02,
+                  ),
+                ])),
                 SliverList(
                     delegate: SliverChildListDelegate(
-                      [
-                        Container(
-                          decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                    width: 0.5,
-                                    color: PRIMARYCOLOR.withOpacity(0.5)),
-                              ),
-                              color: Colors.white),
-                          padding: EdgeInsets.only(left: marginLR * 0.04),
-                          child: Text(
-                            "Menu",
-                            style: TextStyle(
-                              fontSize: 17,
-                            ),
+                  [
+                    Container(
+                      decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                                width: 0.5,
+                                color: PRIMARYCOLOR.withOpacity(0.5)),
                           ),
+                          color: Colors.white),
+                      padding: EdgeInsets.only(left: marginLR * 0.04),
+                      child: Text(
+                        "Menu",
+                        style: TextStyle(
+                          fontSize: 17,
                         ),
-                      ],
-                    )),
+                      ),
+                    ),
+                  ],
+                )),
                 SliverGrid.count(
                   crossAxisCount: 3,
                   children: [
@@ -271,7 +277,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'AutoMobile(s)',
                       border: PRIMARYCOLOR,
-                      content: VehicleBottomPage(),
+                      content: VehicleBottomPage(
+                        session: CurrentUser,
+                      ),
                     ),
                     MenuItem(
                       gridHeight,
@@ -280,7 +288,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Agent',
                       border: PRIMARYCOLOR,
-                      content: AgentBottomPage(),
+                      content: AgentBottomPage(
+                        session: CurrentUser,
+                      ),
                     ),
                     MenuItem(
                       gridHeight,
@@ -320,13 +330,13 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                 ),
                 SliverList(
                     delegate: SliverChildListDelegate(
-                      [
-                        Container(
-                          color: Colors.white,
-                          height: MediaQuery.of(context).size.height * 0.1,
-                        ),
-                      ],
-                    )),
+                  [
+                    Container(
+                      color: Colors.white,
+                      height: MediaQuery.of(context).size.height * 0.1,
+                    ),
+                  ],
+                )),
               ],
             )));
   }

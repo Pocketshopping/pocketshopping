@@ -6,10 +6,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/validators.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/admin/package_admin.dart';
 
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   StreamSubscription _countSubscription;

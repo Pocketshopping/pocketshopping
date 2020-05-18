@@ -39,4 +39,4 @@ const String PocketShoppingDefaultAvatar =
     'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Favatar.png?alt=media&token=7ef0593e-2289-4d25-ad27-34dc08d85040';
 const String serverToken =
     'AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
-const String WALLETAPI ='http://wallet.homlyng.com/api/v1/';
+const String WALLETAPI = 'http://wallet.homlyng.com/api/v1/';

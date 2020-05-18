@@ -7,10 +7,9 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:progress_indicators/progress_indicators.dart';
-import 'package:transparent_image/transparent_image.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderTimer.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
+import 'package:pocketshopping/src/user/MyOrder/orderTimer.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 typedef DynamicValue = Function(dynamic);
 
@@ -20,16 +19,16 @@ class ListItem extends StatelessWidget {
   final DynamicValue callback;
   final dynamic data;
 
-
   const ListItem({Key key, this.title, this.template, this.callback, this.data})
       : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     OrderGlobalState odState;
-    try{odState = Get.find();}catch(_){}
+    try {
+      odState = Get.find();
+    } catch (_) {}
 
     //print(odState.order);
     void showMore() {
@@ -187,11 +186,12 @@ class ListItem extends StatelessWidget {
             leading: CircleAvatar(
                 radius: 30.0,
                 backgroundColor: Colors.white,
-                child: Center(child: Icon(Icons.check),)
-            ),
+                child: Center(
+                  child: Icon(Icons.check),
+                )),
             title: Text(
               "${(title as Order).orderItem[0].ProductName}"
-                  " ${(title as Order).orderItem.length > 1 ? '+${(title as Order).orderItem.length - 1} more' : ''}",
+              " ${(title as Order).orderItem.length > 1 ? '+${(title as Order).orderItem.length - 1} more' : ''}",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
@@ -455,8 +455,10 @@ class ListItem extends StatelessWidget {
                     Expanded(
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text("You do not have any open order",
-                        textAlign: TextAlign.center,),
+                        child: Text(
+                          "You do not have any open order",
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     )
                   ],
@@ -875,8 +877,11 @@ class ListItem extends StatelessWidget {
                 theme: SkeletonTheme.Light,
                 isShowAvatar: false,
                 barCount: 3,
-                colors: [Colors.grey.withOpacity(0.5), Colors.grey,
-                  Colors.grey.withOpacity(0.5)],
+                colors: [
+                  Colors.grey.withOpacity(0.5),
+                  Colors.grey,
+                  Colors.grey.withOpacity(0.5)
+                ],
                 isAnimation: true,
               ),
             ),

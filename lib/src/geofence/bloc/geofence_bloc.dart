@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
+import 'package:pocketshopping/src/geofence/package_geofence.dart';
 
 class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
   Geolocator geolocator = Geolocator();
@@ -31,7 +31,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
       yield* _mapCategorySelectedToState(event.selected);
     } else if (event is UpdateMerchant) {
       yield* _mapUpdateMerchantToState(event.merchant);
-    }else if (event is Categories) {
+    } else if (event is Categories) {
       yield* _mapCategoriesToState();
     }
   }
@@ -46,15 +46,12 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
 
   Stream<GeoFenceState> _mapUpdateMerchantToState(
       List<Merchant> merchant) async* {
-
     yield state.update(nearByMerchants: merchant);
     yield GeoFenceState.success(
         category: state.category,
         nearByMerchants: merchant,
         categories: state.categories,
         currentPosition: state.currentPosition);
-
-
   }
 
   Stream<GeoFenceState> _mapFetchNearByMerchantToState(

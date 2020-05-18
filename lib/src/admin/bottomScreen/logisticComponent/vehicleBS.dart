@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:pocketshopping/page/admin/manageStaff.dart';
 import 'package:pocketshopping/src/logistic/vehicle/newVehicle.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 
 class VehicleBottomPage extends StatelessWidget {
+  VehicleBottomPage({this.session});
 
+  final Session session;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,9 @@ class VehicleBottomPage extends StatelessWidget {
                   color: PRIMARYCOLOR.withOpacity(0.8),
                 ),
                 title: 'Add Automobile',
-                page: VehicleForm()),
+                page: VehicleForm(
+                  session: session,
+                )),
             BsMenuItem(
               height: gridHeight,
               icon: Icon(

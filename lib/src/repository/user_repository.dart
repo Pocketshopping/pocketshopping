@@ -35,6 +35,13 @@ class UserRepository {
     return result;
   }
 
+  Future<void> changeRole(String role) async {
+    FirebaseUser user = await getCurrentUser();
+    UserUpdateInfo info = UserUpdateInfo();
+    info.displayName = role;
+    await user.updateProfile(info);
+  }
+
   Future<void> upDateUserRole(String role, FirebaseUser user) async {
     UserUpdateInfo info = UserUpdateInfo();
     info.displayName = role;

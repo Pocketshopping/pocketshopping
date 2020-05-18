@@ -8,11 +8,17 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 
 class TimerWidget extends StatefulWidget {
-  TimerWidget({this.seconds, this.message = '', this.onFinish, this.onRepeat});
+  TimerWidget(
+      {this.seconds,
+      this.message = '',
+      this.onFinish,
+      this.onAgent,
+      this.onMerchant});
 
   final int seconds;
   final Function onFinish;
-  final Function onRepeat;
+  final Function onAgent;
+  final Function onMerchant;
   final String message;
 
   @override
@@ -24,15 +30,19 @@ class _TimerState extends State<TimerWidget> {
   String counter;
   Timer _timer;
   Stream<LocalNotification> _notificationsStream;
-  bool responded;
+  bool mResponded;
+  bool aResponded;
   bool querying;
   String acceptedBy;
+  int responseCount;
 
   @override
   void initState() {
+    responseCount = 0;
     _start = widget.seconds;
     counter = '${(widget.seconds / 60)}';
-    responded = null;
+    mResponded = null;
+    aResponded = null;
     querying = true;
     acceptedBy = '';
     startTimer();
@@ -47,8 +57,22 @@ class _TimerState extends State<TimerWidget> {
           switch (payload['NotificationType']) {
             case 'OrderRequestResponse':
               setState(() {
-                responded = payload['Response'] as bool;
+                mResponded = payload['Response'] as bool;
                 acceptedBy = payload['acceptedBy'] as String;
+              });
+              NotificationsBloc.instance.clearNotification();
+              break;
+            case 'AgentRequestResponse':
+              setState(() {
+                if (payload['Response']) {
+                  aResponded = payload['Response'] as bool;
+                  acceptedBy = payload['acceptedBy'] as String;
+                } else {
+                  responseCount += 1;
+                  if (responseCount == (payload['agentCount'] as int)) {
+                    aResponded = false;
+                  }
+                }
               });
               NotificationsBloc.instance.clearNotification();
               break;
@@ -59,7 +83,6 @@ class _TimerState extends State<TimerWidget> {
           }
         }
       }
-
     });
     super.initState();
   }
@@ -176,8 +199,8 @@ class _TimerState extends State<TimerWidget> {
                     () {
                       if (_start < 1) {
                         timer.cancel();
-                        if (responded != null) {
-                          if (responded) {
+                        if (mResponded != null) {
+                          if (mResponded) {
                             _start = 1;
                             widget.onFinish(acceptedBy);
                           } else {
@@ -187,14 +210,36 @@ class _TimerState extends State<TimerWidget> {
                         } else {
                           querying = false;
                         }
-                      } else {
-                        if (_start % 20 == 0) {
-                          widget.onRepeat();
+
+                        if (aResponded != null) {
+                          if (aResponded) {
+                            widget.onMerchant();
+                            aResponded = null;
+                          } else {
+                            querying = false;
+                            _start = 1;
+                          }
                         }
-                        if (responded != null) {
-                          if (responded)
+                      } else {
+                        if (_start == 119) {
+                          if (widget.onAgent != null)
+                            widget.onAgent();
+                          else
+                            widget.onMerchant();
+                        }
+                        if (mResponded != null) {
+                          if (mResponded)
                             widget.onFinish(acceptedBy);
                           else {
+                            querying = false;
+                            _start = 1;
+                          }
+                        }
+                        if (aResponded != null) {
+                          if (aResponded) {
+                            widget.onMerchant();
+                            aResponded = null;
+                          } else {
                             querying = false;
                             _start = 1;
                           }

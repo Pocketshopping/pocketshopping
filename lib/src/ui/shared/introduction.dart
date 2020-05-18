@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 
-
 class Introduction extends StatefulWidget {
   final Uri linkdata;
   final UserRepository _userRepository;
-  Introduction({Key key, @required UserRepository userRepository,this.linkdata})
+
+  Introduction(
+      {Key key, @required UserRepository userRepository, this.linkdata})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
+
   State<Introduction> createState() => _IntroductionState();
 }
 
 class _IntroductionState extends State<Introduction> {
-
-
-
   @override
   Widget build(BuildContext context) {
     //SchedulerBinding.instance.addPostFrameCallback((_) {});
@@ -95,11 +93,17 @@ class _IntroductionState extends State<Introduction> {
       return IntroductionScreen(
         pages: pages,
         onDone: () {
-          Get.to( RegisterScreen(userRepository: widget._userRepository,linkdata: widget.linkdata,));
+          Get.to(RegisterScreen(
+            userRepository: widget._userRepository,
+            linkdata: widget.linkdata,
+          ));
         },
         onSkip: () {
-          Get.to(RegisterScreen(userRepository: widget._userRepository,linkdata: widget.linkdata,) );
-              //SignUpPage(linkdata: linkdata,)
+          Get.to(RegisterScreen(
+            userRepository: widget._userRepository,
+            linkdata: widget.linkdata,
+          ));
+          //SignUpPage(linkdata: linkdata,)
         },
         showSkipButton: true,
         next: Icon(

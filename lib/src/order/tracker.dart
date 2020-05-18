@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
@@ -9,6 +10,8 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/channels/repository/channelObj.dart';
+import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
@@ -19,6 +22,7 @@ import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
@@ -60,10 +64,11 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   Order _order;
   bool loading;
   Review review;
+  Channels channel;
 
   @override
   void initState() {
-    loading=false;
+    loading = false;
     _order = widget.order;
     odState = Get.find();
     rating = false;
@@ -75,15 +80,14 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     pingStart = isNotEmpty() ? getItem('pingStart') : false;
     bubble = isNotEmpty() ? getItem('bubble') : [];
     _start = isNotEmpty()
-        ? setStartCount(getItem('delayTime'), getItem('moreSec'))
-        : setStartCount(_order.orderCreatedAt, _order.orderETA);
+        ? Utility.setStartCount(getItem('delayTime'), getItem('moreSec'))
+        : Utility.setStartCount(_order.orderCreatedAt, _order.orderETA);
     counter =
-        '${isNotEmpty() ? (setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
+        '${isNotEmpty() ? (Utility.setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (Utility.setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
     startTimer();
-    MerchantRepo.getMerchant(_order.orderMerchant)
-        .then((value) => setState(() {
-              merchant = value;
-            }));
+    MerchantRepo.getMerchant(_order.orderMerchant).then((value) => setState(() {
+          merchant = value;
+        }));
     moreSec = isNotEmpty() ? getItem('moreSec') : _order.orderETA;
     delayTime = isNotEmpty() ? getItem('delayTime') : null;
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
@@ -100,7 +104,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                 moreSec = (payload['delay'] as int) * 60;
                 resolution = 'START';
                 delayTime = Timestamp(payload['time'][0], payload['time'][1]);
-                _start = setStartCount(delayTime, moreSec);
+                _start = Utility.setStartCount(delayTime, moreSec);
                 startTimer();
                 bubble.add(Bubble(
                   alignment: Alignment.center,
@@ -142,7 +146,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
         }
       }
     });
-
+    ChannelRepo.get(_order.orderMerchant).then((value) => channel = value);
     setRate();
     super.initState();
   }
@@ -151,25 +155,22 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     return odState.order[_order.docID][key];
   }
 
-  setRate(){
-    if(_order.orderCustomer.customerReview.isNotEmpty)
-      ReviewRepo.getOne(_order.orderCustomer.customerReview).then((value) =>
-      setState((){
-        review = value;
-      }));
+  setRate() {
+    if (_order.orderCustomer.customerReview.isNotEmpty)
+      ReviewRepo.getOne(_order.orderCustomer.customerReview)
+          .then((value) => setState(() {
+                review = value;
+              }));
   }
 
-  Order refreshOrder(){
-
+  Order refreshOrder() {
     setState(() {
-      loading=true;
+      loading = true;
     });
-    OrderRepo.getOne(_order.docID).then((value) =>
-    setState((){
-      _order = value;
-      loading=false;
-    })
-    );
+    OrderRepo.getOne(_order.docID).then((value) => setState(() {
+          _order = value;
+          loading = false;
+        }));
     setRate();
   }
 
@@ -216,402 +217,143 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
           ),
           automaticallyImplyLeading: false,
         ),
-        body: !loading?ListView(children: [
-          Center(
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: <Widget>[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                      child: Text(
-                        'Status: ${_order.orderConfirmation.isConfirmed ? 'Completed' : 'Processing'}',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    ),
-                  ),
-                  _start > 0
-                      ? !_order.orderConfirmation.isConfirmed
-                          ? Loader(_start, moreSec, counter)
-                          : Rating()
-                      : _order.orderConfirmation.isConfirmed?
-                  Rating()
-                  :_order.orderMode.mode == 'Delivery'
-                          ? Resolution()
-                          : _order.orderMode.mode == 'Pickup'
-                              ? Container(
-                                  child: psHeadlessCard(
-                                      boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey,
-                                        //offset: Offset(1.0, 0), //(x,y)
-                                        blurRadius: 6.0,
-                                      ),
-                                    ],
-                                      child: Column(
-                                        children: [
-                                          SizedBox(
-                                            height: 20,
-                                          ),
-                                          Center(
-                                            child: Text(
-                                              'Your order is ready for pickup.',
-                                              style: TextStyle(fontSize: 18),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 20,
-                                          ),
-                                        ],
-                                      )))
-                              : Container(),
-                  pingStart
-                      ? psHeadlessCard(
-                          boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey,
-                                //offset: Offset(1.0, 0), //(x,y)
-                                blurRadius: 6.0,
-                              ),
-                            ],
-                          child: Container(
-                              height: MediaQuery.of(context).size.height * 0.4,
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 10),
-                              child: ListView(
-                                controller: scroller,
-                                children: bubble.toList() ?? Container(),
-                              )))
-                      : Container(),
-                  (!_order.orderConfirmation.isConfirmed && _start > 0) || (_order.orderMode.mode=='Pickup' && !_order.orderConfirmation.isConfirmed)
-                      ? psHeadlessCard(
-                          boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey,
-                                //offset: Offset(1.0, 0), //(x,y)
-                                blurRadius: 6.0,
-                              ),
-                            ],
-                          child: Container(
-                            color: PRIMARYCOLOR,
-                            child: FlatButton(
-                              onPressed: (){
-                                Get.defaultDialog(
-                                  title: 'Confirmation',
-                                  content: Text('Confirming this order implies you have recieved your package.'
-                                      ' please note this action can not be undone.'),
-                                  cancel: FlatButton(
-                                    onPressed: (){Get.back();},
-                                    child: Text('No'),
-                                  ),
-                                  confirm: FlatButton(
-                                    onPressed: (){
-                                      Get.back();
-                                      confirm(_order.docID, Confirmation(
-                                        confirmOTP: _order.orderConfirmation.confirmOTP,
-                                        confirmedAt: DateTime.now(),
-                                        isConfirmed: true,
-                                      ));
-                                      //refreshOrder();
-                                    },
-                                    child: Text('Yes Confirm'),
-                                  ),
-                                );
-                              },
-                              child: Center(
-                                child: Text(
-                                  'Confirm Order',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ))
-                      : Container(),
-                  psHeadlessCard(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          //offset: Offset(1.0, 0), //(x,y)
-                          blurRadius: 6.0,
-                        ),
-                      ],
-                      child: Column(
-                        children: [
-                          Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.black12,
-                                    width: 1.0,
-                                  ),
-                                ),
-                              ),
-                              padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Text('Confirmed:'),
-                                  ),
-                                  Expanded(
-                                    child: Text(widget
-                                            .order.orderConfirmation.isConfirmed
-                                        ? "Yes"
-                                        : 'No'),
-                                  )
-                                ],
-                              )),
-                          Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.black12,
-                                    width: 1.0,
-                                  ),
-                                ),
-                              ),
-                              padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Text('Confirmation code:'),
-                                  ),
-                                  Expanded(
-                                    child: Text(widget
-                                        .order.orderConfirmation.confirmOTP),
-                                  )
-                                ],
-                              )),
-                          Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.black12,
-                                    width: 1.0,
-                                  ),
-                                ),
-                              ),
-                              padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Text('Confirmed:'),
-                                  ),
-                                  Expanded(
-                                    child: Text('${_order.orderConfirmation.confirmedAt==null?'-':presentDate(DateTime.parse((_order.orderConfirmation.confirmedAt as Timestamp).toDate().toString()))}'),
-                                  )
-                                ],
-                              )),
-                        ],
-                      )),
-                  psHeadlessCard(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey,
-                        //offset: Offset(1.0, 0), //(x,y)
-                        blurRadius: 6.0,
-                      ),
-                    ],
+        body: !loading
+            ? ListView(children: [
+                Center(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 20),
                     child: Column(
                       children: <Widget>[
-                        Container(
-                            decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.black12,
-                                    width: 1.0,
-                                  ),
-                                ),
-                                color: PRIMARYCOLOR),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Order Deatils',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            )),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: Text(
+                              'Status: ${_order.orderConfirmation.isConfirmed ? 'Completed' : 'Processing'}',
+                              style: TextStyle(fontSize: 20),
                             ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('Merchant:'),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                      '${merchant != null ? merchant.bName : ''}'),
-                                )
-                              ],
-                            )),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('Merchant Contact:'),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                      '${merchant != null ? merchant.bTelephone : ''}'),
-                                )
-                              ],
-                            )),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('Category:'),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                      '${merchant != null ? merchant.bCategory : ''}'),
-                                )
-                              ],
-                            )),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('Mode:'),
-                                ),
-                                Expanded(
-                                  child: Text('${_order.orderMode.mode}'),
-                                )
-                              ],
-                            )),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('Placed:'),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                      '${presentDate(DateTime.parse((_order.orderCreatedAt as Timestamp).toDate().toString()))}'),
-                                )
-                              ],
-                            )),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('OrderId:'),
-                                ),
-                                Expanded(
-                                  child: Text('${_order.docID}'),
-                                )
-                              ],
-                            ))
-                      ],
-                    ),
-                  ),
-                  psHeadlessCard(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          //offset: Offset(1.0, 0), //(x,y)
-                          blurRadius: 6.0,
+                          ),
                         ),
-                      ],
-                      child: Column(children: [
-                        Container(
-                            decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    //                   <--- left side
-                                    color: Colors.black12,
-                                    width: 1.0,
+                        _start > 0
+                            ? !_order.orderConfirmation.isConfirmed
+                                ? Loader(_start, moreSec, counter)
+                                : Rating()
+                            : _order.orderConfirmation.isConfirmed
+                                ? Rating()
+                                : _order.orderMode.mode == 'Delivery'
+                                    ? Resolution()
+                                    : _order.orderMode.mode == 'Pickup'
+                                        ? Container(
+                                            child: psHeadlessCard(
+                                                boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey,
+                                                  //offset: Offset(1.0, 0), //(x,y)
+                                                  blurRadius: 6.0,
+                                                ),
+                                              ],
+                                                child: Column(
+                                                  children: [
+                                                    SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                    Center(
+                                                      child: Text(
+                                                        'Your order is ready for pickup.',
+                                                        style: TextStyle(
+                                                            fontSize: 18),
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                  ],
+                                                )))
+                                        : Container(),
+                        pingStart
+                            ? psHeadlessCard(
+                                boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey,
+                                      //offset: Offset(1.0, 0), //(x,y)
+                                      blurRadius: 6.0,
+                                    ),
+                                  ],
+                                child: Container(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.4,
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 10),
+                                    child: ListView(
+                                      controller: scroller,
+                                      children: bubble.toList() ?? Container(),
+                                    )))
+                            : Container(),
+                        (!_order.orderConfirmation.isConfirmed && _start > 0) ||
+                                (_order.orderMode.mode == 'Pickup' &&
+                                    !_order.orderConfirmation.isConfirmed)
+                            ? psHeadlessCard(
+                                boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey,
+                                      //offset: Offset(1.0, 0), //(x,y)
+                                      blurRadius: 6.0,
+                                    ),
+                                  ],
+                                child: Container(
+                                  color: PRIMARYCOLOR,
+                                  child: FlatButton(
+                                    onPressed: () {
+                                      Get.defaultDialog(
+                                        title: 'Confirmation',
+                                        content: Text(
+                                            'Confirming this order implies you have recieved your package.'
+                                            ' please note this action can not be undone.'),
+                                        cancel: FlatButton(
+                                          onPressed: () {
+                                            Get.back();
+                                          },
+                                          child: Text('No'),
+                                        ),
+                                        confirm: FlatButton(
+                                          onPressed: () {
+                                            Get.back();
+                                            confirm(
+                                                _order.docID,
+                                                Confirmation(
+                                                  confirmOTP: _order
+                                                      .orderConfirmation
+                                                      .confirmOTP,
+                                                  confirmedAt: DateTime.now(),
+                                                  isConfirmed: true,
+                                                ));
+                                            //refreshOrder();
+                                          },
+                                          child: Text('Yes Confirm'),
+                                        ),
+                                      );
+                                    },
+                                    child: Center(
+                                      child: Text(
+                                        'Confirm Order',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                color: PRIMARYCOLOR),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Order Items',
-                                style: TextStyle(color: Colors.white),
+                                ))
+                            : Container(),
+                        psHeadlessCard(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey,
+                                //offset: Offset(1.0, 0), //(x,y)
+                                blurRadius: 6.0,
                               ),
-                            )),
-                        Column(
-                            children: List.generate(
-                                _order.orderItem.length,
-                                (index) => Container(
+                            ],
+                            child: Column(
+                              children: [
+                                Container(
                                     decoration: BoxDecoration(
                                       border: Border(
                                         bottom: BorderSide(
@@ -627,118 +369,396 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                     child: Row(
                                       children: <Widget>[
                                         Expanded(
-                                          child: Text(
-                                              '${_order.orderItem[index].ProductName}'),
+                                          child: Text('Confirmed:'),
                                         ),
                                         Expanded(
-                                          child: Text(
-                                              '${_order.orderItem[index].count}'),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                              '${_order.orderItem[index].totalAmount}'),
+                                          child: Text(widget.order
+                                                  .orderConfirmation.isConfirmed
+                                              ? "Yes"
+                                              : 'No'),
                                         )
                                       ],
-                                    ))).toList()),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text('Item Total:'),
-                                ),
-                                Expanded(
-                                  child: Text('${_order.orderAmount}'),
-                                )
+                                    )),
+                                Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: Text('Confirmation code:'),
+                                        ),
+                                        Expanded(
+                                          child: Text(widget.order
+                                              .orderConfirmation.confirmOTP),
+                                        )
+                                      ],
+                                    )),
+                                Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: Text('Confirmed:'),
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                              '${_order.orderConfirmation.confirmedAt == null ? '-' : presentDate(DateTime.parse((_order.orderConfirmation.confirmedAt as Timestamp).toDate().toString()))}'),
+                                        )
+                                      ],
+                                    )),
                               ],
                             )),
-                        _order.orderMode.mode == 'Delivery'
-                            ? Container(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      //                   <--- left side
-                                      color: Colors.black12,
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                ),
-                                padding: EdgeInsets.all(
-                                    MediaQuery.of(context).size.width * 0.02),
-                                child: Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Text('Delivery Fee:'),
-                                    ),
-                                    Expanded(
-                                      child:
-                                          Text('${_order.orderMode.fee}'),
-                                    ),
-                                  ],
-                                ))
-                            : Container(),
-                        Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  //                   <--- left side
-                                  color: Colors.black12,
-                                  width: 1.0,
-                                ),
-                              ),
+                        psHeadlessCard(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey,
+                              //offset: Offset(1.0, 0), //(x,y)
+                              blurRadius: 6.0,
                             ),
-                            padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(
-                                    'Total:',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                          ],
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                      color: PRIMARYCOLOR),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Order Deatils',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  )),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('Merchant:'),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                            '${merchant != null ? merchant.bName : ''}'),
+                                      )
+                                    ],
+                                  )),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
                                   ),
-                                )
-                              ],
-                            )),
-                      ])),
-                  psHeadlessCard(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          //offset: Offset(1.0, 0), //(x,y)
-                          blurRadius: 6.0,
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('Merchant Contact:'),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                            '${merchant != null ? merchant.bTelephone : ''}'),
+                                      )
+                                    ],
+                                  )),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('Category:'),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                            '${merchant != null ? merchant.bCategory : ''}'),
+                                      )
+                                    ],
+                                  )),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('Mode:'),
+                                      ),
+                                      Expanded(
+                                        child: Text('${_order.orderMode.mode}'),
+                                      )
+                                    ],
+                                  )),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('Placed:'),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                            '${presentDate(DateTime.parse((_order.orderCreatedAt as Timestamp).toDate().toString()))}'),
+                                      )
+                                    ],
+                                  )),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('OrderId:'),
+                                      ),
+                                      Expanded(
+                                        child: Text('${_order.docID}'),
+                                      )
+                                    ],
+                                  ))
+                            ],
+                          ),
                         ),
+                        psHeadlessCard(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey,
+                                //offset: Offset(1.0, 0), //(x,y)
+                                blurRadius: 6.0,
+                              ),
+                            ],
+                            child: Column(children: [
+                              Container(
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                      color: PRIMARYCOLOR),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Order Items',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  )),
+                              Column(
+                                  children: List.generate(
+                                      _order.orderItem.length,
+                                      (index) => Container(
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                //                   <--- left side
+                                                color: Colors.black12,
+                                                width: 1.0,
+                                              ),
+                                            ),
+                                          ),
+                                          padding: EdgeInsets.all(
+                                              MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.02),
+                                          child: Row(
+                                            children: <Widget>[
+                                              Expanded(
+                                                child: Text(
+                                                    '${_order.orderItem[index].ProductName}'),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                    '${_order.orderItem[index].count}'),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                    '${_order.orderItem[index].totalAmount}'),
+                                              )
+                                            ],
+                                          ))).toList()),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text('Item Total:'),
+                                      ),
+                                      Expanded(
+                                        child: Text('${_order.orderAmount}'),
+                                      )
+                                    ],
+                                  )),
+                              _order.orderMode.mode == 'Delivery'
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(
+                                          MediaQuery.of(context).size.width *
+                                              0.02),
+                                      child: Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Text('Delivery Fee:'),
+                                          ),
+                                          Expanded(
+                                            child:
+                                                Text('${_order.orderMode.fee}'),
+                                          ),
+                                        ],
+                                      ))
+                                  : Container(),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        //                   <--- left side
+                                        color: Colors.black12,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.all(
+                                      MediaQuery.of(context).size.width * 0.02),
+                                  child: Row(
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: Text(
+                                          'Total:',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          '${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      )
+                                    ],
+                                  )),
+                            ])),
+                        psHeadlessCard(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey,
+                                //offset: Offset(1.0, 0), //(x,y)
+                                blurRadius: 6.0,
+                              ),
+                            ],
+                            child: QrImage(
+                              data: _order.docID,
+                            ))
                       ],
-                      child: QrImage(
-                        data: _order.docID,
-                      ))
-                ],
-              ),
-            ),
-          ),
-        ]):Center(
-          child: JumpingDotsProgressIndicator(
-            fontSize: MediaQuery.of(context).size.height*0.12,
-            color: PRIMARYCOLOR,
-          )
-        ),
+                    ),
+                  ),
+                ),
+              ])
+            : Center(
+                child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+                color: PRIMARYCOLOR,
+              )),
       ),
     );
   }
@@ -808,17 +828,6 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
       });
   }
 
-  int setStartCount(dynamic dtime, int second) {
-    print(dtime);
-    var otime = DateTime.parse((dtime as Timestamp).toDate().toString())
-        .add(Duration(seconds: second));
-    int diff = otime.difference(DateTime.now()).inSeconds;
-    if (diff > 0)
-      return diff;
-    else
-      return 0;
-  }
-
   dynamic presentDate(dynamic datetime) {
     var result;
     bool yesterday = false;
@@ -878,20 +887,26 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                           onPressed: () {
                             Get.defaultDialog(
                               title: 'Confirmation',
-                              content: Text('Confirming this order implies you have recieved your package.'
+                              content: Text(
+                                  'Confirming this order implies you have recieved your package.'
                                   ' please note this action can not be undone.'),
                               cancel: FlatButton(
-                                onPressed: (){Get.back();},
+                                onPressed: () {
+                                  Get.back();
+                                },
                                 child: Text('No'),
                               ),
                               confirm: FlatButton(
-                                onPressed: (){
+                                onPressed: () {
                                   Get.back();
-                                  confirm(_order.docID, Confirmation(
-                                    confirmOTP: _order.orderConfirmation.confirmOTP,
-                                    confirmedAt: DateTime.now(),
-                                    isConfirmed: true,
-                                  ));
+                                  confirm(
+                                      _order.docID,
+                                      Confirmation(
+                                        confirmOTP:
+                                            _order.orderConfirmation.confirmOTP,
+                                        confirmedAt: DateTime.now(),
+                                        isConfirmed: true,
+                                      ));
                                   //refreshOrder();
                                 },
                                 child: Text('Yes Confirm'),
@@ -1001,158 +1016,167 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     }
   }
 
-  Widget Rating(){
-    if(_order.orderCustomer.customerReview.isNotEmpty){
-      return review !=null?Container(
-          child: psHeadlessCard(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey,
-                  //offset: Offset(1.0, 0), //(x,y)
-                  blurRadius: 6.0,
-                ),
-              ],
-              child: Column(
-                children: [
-                  Center(child: Text('Your Review'),),
-                  RatingBar(
-                    //onRatingUpdate: (rate){},
-                    initialRating: review.reviewRating,
-                    minRating: 1,
-                    maxRating: 5,
-                    itemSize: MediaQuery.of(context).size.width * 0.08,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    ignoreGestures: true,
-                    itemCount: 5,
-                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
-                  ),
-                  SizedBox(height: 10,),
-                  Center(
-                    child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child:Text(review.reviewText)),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                      child: Text('${presentDate(DateTime.parse((review.reviewedAt).toDate().toString()))}'),
-                    ),
+  Widget Rating() {
+    if (_order.orderCustomer.customerReview.isNotEmpty) {
+      return review != null
+          ? Container(
+              child: psHeadlessCard(
+                  boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
                   ),
                 ],
-              )
-          )
-      ):Container();
-    }
-    else{
-      return !rating?Container(
-          child: psHeadlessCard(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey,
-                  //offset: Offset(1.0, 0), //(x,y)
-                  blurRadius: 6.0,
-                ),
-              ],
-              child: Column(
-                children: [
-                  Center(child: Text('Rate ${merchant != null ?merchant.bName:''}',
-                  style: TextStyle(fontSize: 16),),),
-                  SizedBox(height: 10,),
-                  Center(child: Text('click star to increase rate',),),
-                  RatingBar(
-                    onRatingUpdate: (rate) {setState(() {
-                      _rating = rate;
-                    });},
-                    initialRating: 1,
-                    minRating: 1,
-                    maxRating: 5,
-                    itemSize: MediaQuery.of(context).size.width * 0.1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _review,
-                    decoration: InputDecoration(
-                      labelText: 'Your Review',
-                      filled: true,
-                      fillColor: Colors.grey.withOpacity(0.2),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.white.withOpacity(0.3)),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Text('Your Review'),
                       ),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.white.withOpacity(0.3)),
+                      RatingBar(
+                        //onRatingUpdate: (rate){},
+                        initialRating: review.reviewRating,
+                        minRating: 1,
+                        maxRating: 5,
+                        itemSize: MediaQuery.of(context).size.width * 0.08,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        ignoreGestures: true,
+                        itemCount: 5,
+                        //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                        itemBuilder: (context, _) => Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
                       ),
-                    ),
-                    keyboardType: TextInputType.text,
-                    autofocus: false,
-                    maxLines: 5,
-                    maxLength: 120,
-                    maxLengthEnforced: true,
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    child:
-                  FlatButton(
-                    onPressed: (){
-                      setState(() {
-                        rating=true;
-                      });
-                      ReviewRepo.save(Review(
-                        reviewText: _review.text,
-                        reviewRating: _rating,
-                        reviewedMerchant: merchant.mID,
-                        reviewedAt: Timestamp.now(),
-                        customerId: _order.customerID,
-                        customerName: _order.orderCustomer.customerName
-
-                      )).then((value) =>
-                      OrderRepo.review(_order.docID,
-                      Customer(
-                        customerName: _order.orderCustomer.customerName,
-                        customerTelephone: _order.orderCustomer.customerTelephone,
-                        customerReview: value,
-                      )
-                      ).then((value) => setState(() {
-                        rating=false;
-                        refreshOrder();
-                      }))
-                      );
-
-                    },
-                    child: Text('Submit',style: TextStyle(color: Colors.white),),
-                    color: PRIMARYCOLOR,
-                  ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
-                    child: Text('Your review is very important to us.'),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Center(
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: Text(review.reviewText)),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 10),
+                          child: Text(
+                              '${presentDate(DateTime.parse((review.reviewedAt).toDate().toString()))}'),
+                        ),
+                      ),
+                    ],
+                  )))
+          : Container();
+    } else {
+      return !rating
+          ? Container(
+              child: psHeadlessCard(
+                  boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
                   ),
                 ],
-              )
-
-          )
-      ):Center(
-        child: JumpingDotsProgressIndicator(
-          fontSize: MediaQuery.of(context).size.height*0.12,
-          color: PRIMARYCOLOR,
-        ),
-      )
-
-      ;
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Text(
+                          'Rate ${merchant != null ? merchant.bName : ''}',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Center(
+                        child: Text(
+                          'click star to increase rate',
+                        ),
+                      ),
+                      RatingBar(
+                        onRatingUpdate: (rate) {
+                          setState(() {
+                            _rating = rate;
+                          });
+                        },
+                        initialRating: 1,
+                        minRating: 1,
+                        maxRating: 5,
+                        itemSize: MediaQuery.of(context).size.width * 0.1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        itemCount: 5,
+                        itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                        itemBuilder: (context, _) => Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _review,
+                        decoration: InputDecoration(
+                          labelText: 'Your Review',
+                          filled: true,
+                          fillColor: Colors.grey.withOpacity(0.2),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.white.withOpacity(0.3)),
+                          ),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.white.withOpacity(0.3)),
+                          ),
+                        ),
+                        keyboardType: TextInputType.text,
+                        autofocus: false,
+                        maxLines: 5,
+                        maxLength: 120,
+                        maxLengthEnforced: true,
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        child: FlatButton(
+                          onPressed: () {
+                            setState(() {
+                              rating = true;
+                            });
+                            ReviewRepo.save(Review(reviewText: _review.text, reviewRating: _rating, reviewedMerchant: merchant.mID, reviewedAt: Timestamp.now(), customerId: _order.customerID, customerName: _order.orderCustomer.customerName)).then((value) => OrderRepo
+                                .review(
+                                    _order.docID,
+                                    Customer(
+                                      customerName:
+                                          _order.orderCustomer.customerName,
+                                      customerTelephone: _order
+                                          .orderCustomer.customerTelephone,
+                                      customerReview: value,
+                                    )).then((value) => setState(() {
+                                  rating = false;
+                                  refreshOrder();
+                                })));
+                          },
+                          child: Text(
+                            'Submit',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          color: PRIMARYCOLOR,
+                        ),
+                      ),
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        child: Text('Your review is very important to us.'),
+                      ),
+                    ],
+                  )))
+          : Center(
+              child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+                color: PRIMARYCOLOR,
+              ),
+            );
     }
   }
 
@@ -1215,28 +1239,28 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
               'fcmToken': widget.user.notificationID,
             }
           },
-          'registration_ids': [
-            'fI8U-GHOSEKhEZXU3egwdU:APA91bEl8iZXRSNKsqcxzdfP9MYpwf52Bfht3Zk5e7tLDSgZ-u8yIHoYVVtK6qyl5S3-0BC01CnFBLBj5ZOD3jSVuWC1ni0uFWPQuoRki4HH0bD1Yg_OI8L9OLD4vCU0lIMwoRvA9X6f',
-          ],
+          'registration_ids': channel.dChannels,
         }));
   }
 
-  bool confirm(String oid,Confirmation confirmation){
-    bool isDone=true;
-    OrderRepo.confirm(oid, confirmation).catchError((onError){
-      isDone =false;
+  bool confirm(String oid, Confirmation confirmation) {
+    bool isDone = true;
+    OrderRepo.confirm(oid, confirmation).catchError((onError) {
+      isDone = false;
     });
 
-    if(isDone) {
+    if (isDone) {
       refreshOrder();
-      GetBar(title: 'Order Confirmed',
+      GetBar(
+        title: 'Order Confirmed',
         messageText: Text(
           'Take your time to rate this merchant your rating will help us '
-              ' improve our service', style: TextStyle(color: Colors.white),),
+          ' improve our service',
+          style: TextStyle(color: Colors.white),
+        ),
         duration: Duration(seconds: 10),
         backgroundColor: PRIMARYCOLOR,
       ).show();
-
     }
 
     return isDone;

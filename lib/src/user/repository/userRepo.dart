@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,13 +27,12 @@ class UserRepo {
       'createdAt': DateTime.now(),
       'behaviour': user.behaviour,
       'country': user.country,
-      'wallet':user.walletId
+      'wallet': user.walletId
     });
 
     return data;
   }
 
-  @override
   Future<bool> upDate({
     String fname,
     String email,
@@ -45,9 +46,8 @@ class UserRepo {
     String behaviour,
     String country,
   }) async {
-    bool success = false;
     String fcmToken = await _fcm.getToken();
-    print(fcmToken);
+    //print(fcmToken);
     await databaseReference
         .collection("users")
         .document(uid)
@@ -64,10 +64,9 @@ class UserRepo {
           bid: bid,
           behaviour: behaviour,
           country: country,
-        ))
-        .then((value) => success = true);
+        ));
 
-    return success;
+    return true;
   }
 
   Map<String, dynamic> makeData({
@@ -104,27 +103,25 @@ class UserRepo {
     return data;
   }
 
-  Stream<Session> getOne({String uid}) async* {
+  Future<Session> getOne({String uid}) async {
     Merchant merchant;
     User user;
-    var userRef = Firestore.instance.document('users/$uid');
-    var temp = await Firestore.instance
-        .collection('merchants')
-        .where('businessCreator', isEqualTo: userRef)
-        .getDocuments();
-    yield* Firestore.instance
-        .collection('users')
-        .document(uid)
-        .snapshots()
-        .map((snapshot) {
-      user = User.fromEntity(UserEntity.fromSnapshot(snapshot));
+    Agent agent;
+    Staff staff;
+    var doc = await Firestore.instance.collection('users').document(uid).get();
+    user = User.fromEntity(UserEntity.fromSnapshot(doc));
 
-      if (temp.documents.length > 0) {
-        merchant =
-            Merchant.fromEntity(MerchantEntity.fromSnapshot(temp.documents[0]));
-      }
-      return Session(user: user, merchant: merchant);
-    });
+    if (user.role == 'admin' || user.role == 'staff') {
+      var temp = await user.bid.get();
+      merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(temp));
+      var _agent = await Firestore.instance
+          .collection('agent')
+          .where('agent', isEqualTo: uid)
+          .getDocuments();
+      if (_agent.documents.length > 0)
+        agent = Agent.fromSnap(_agent.documents[0]);
+    }
+    return Session(user: user, merchant: merchant, agent: agent, staff: staff);
   }
 
   Stream<Merchant> getMyMerchant(DocumentReference mid) {
@@ -133,7 +130,7 @@ class UserRepo {
         .document(mid.documentID)
         .snapshots()
         .map((merchantSnap) {
-      print('Roooooole: ${merchantSnap.documentID}');
+      //print('Roooooole: ${merchantSnap.documentID}');
       return Merchant.fromEntity(MerchantEntity.fromSnapshot(merchantSnap));
     });
   }
@@ -164,5 +161,19 @@ class UserRepo {
       return document.documents;
     else
       return [];
+  }
+
+  Future<dynamic> getOneUsingWallet(String wallet) async {
+    var document = await Firestore.instance
+        .collection('users')
+        .where('wallet', isEqualTo: wallet)
+        .getDocuments();
+    if (document.documents.length > 0) if (document.documents[0].data['role'] ==
+        'user')
+      return User.fromEntity(UserEntity.fromSnapshot(document.documents[0]));
+    else
+      return document.documents[0].data['role'];
+    else
+      return null;
   }
 }

@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
-import 'package:get/get.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginForm extends StatefulWidget {
   final UserRepository _userRepository;
   final bool fromSignup;
   final Uri linkdata;
 
-  LoginForm({Key key, @required UserRepository userRepository,
-    this.fromSignup=false,this.linkdata})
+  LoginForm(
+      {Key key,
+      @required UserRepository userRepository,
+      this.fromSignup = false,
+      this.linkdata})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -72,9 +76,12 @@ class _LoginFormState extends State<LoginForm> {
                 content: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Logging In...',style: TextStyle(color: Colors.white),),
+                    Text(
+                      'Logging In...',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height*0.05,
+                      fontSize: MediaQuery.of(context).size.height * 0.05,
                       color: Colors.white,
                     )
                   ],
@@ -83,9 +90,9 @@ class _LoginFormState extends State<LoginForm> {
             );
         }
         if (state.isSuccess) {
+          FirstTimer();
           BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
-          if(widget.fromSignup)
-          Get.back();
+          if (widget.fromSignup) Get.back();
           //Navigator.pop(context);
         }
       },
@@ -235,6 +242,13 @@ class _LoginFormState extends State<LoginForm> {
     _loginBloc.add(
       PasswordChanged(password: _passwordController.text),
     );
+  }
+
+  FirstTimer({String uid = 'newUser'}) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('uid')) {
+      prefs.setString('uid', uid);
+    }
   }
 
   void _onFormSubmitted() {

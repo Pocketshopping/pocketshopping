@@ -34,19 +34,27 @@ class GeoFenceState {
       currentPosition: null,
       category: 'Restuarant',
       categories: [
-        MCategory(categoryName: 'Restuarant',
-        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Frestuarant.jpg?alt=media&token=a4c93ec0-6889-4849-9fdf-74d8da74252f',
-        categoryView: 10),
-        MCategory(categoryName: 'Store',
-        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2FpsCover.png?alt=media&token=690ccf94-1c3a-4263-9e88-f898116d4aa2',
-        categoryView: 9),
-        MCategory(categoryName: 'Bar',
-        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbar.jpeg?alt=media&token=77b0124e-acfe-423a-a006-5ad2e597bd9a',
-        categoryView: 7),
-        MCategory(categoryName: 'Bakery&Pastry',
-        categoryURI: 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbakery.png?alt=media&token=b962f7ca-7572-4a3b-b625-84d9d6c4dc3a',
-        categoryView: 6),
-        ],
+        MCategory(
+            categoryName: 'Restuarant',
+            categoryURI:
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Frestuarant.jpg?alt=media&token=a4c93ec0-6889-4849-9fdf-74d8da74252f',
+            categoryView: 10),
+        MCategory(
+            categoryName: 'Store',
+            categoryURI:
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2FpsCover.png?alt=media&token=690ccf94-1c3a-4263-9e88-f898116d4aa2',
+            categoryView: 9),
+        MCategory(
+            categoryName: 'Bar',
+            categoryURI:
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbar.jpeg?alt=media&token=77b0124e-acfe-423a-a006-5ad2e597bd9a',
+            categoryView: 7),
+        MCategory(
+            categoryName: 'Bakery&Pastry',
+            categoryURI:
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbakery.png?alt=media&token=b962f7ca-7572-4a3b-b625-84d9d6c4dc3a',
+            categoryView: 6),
+      ],
       nearByMerchants: [],
     );
   }

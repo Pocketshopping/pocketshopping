@@ -18,6 +18,7 @@ import 'package:location/location.dart' as loc;
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelObj.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
@@ -48,11 +49,11 @@ class OrderUI extends StatefulWidget {
 
   OrderUI(
       {this.merchant,
-        this.payload,
-        this.user,
-        this.distance,
-        this.initPosition,
-        this.cartOps});
+      this.payload,
+      this.user,
+      this.distance,
+      this.initPosition,
+      this.cartOps});
 
   @override
   State<StatefulWidget> createState() => _OrderUIState();
@@ -99,9 +100,11 @@ class _OrderUIState extends State<OrderUI> {
   Channels channel;
   Stream<Wallet> _walletStream;
   Wallet _wallet;
+  String type;
 
   @override
   void initState() {
+    type = 'MotorBike';
     odState = Get.put(OrderGlobalState());
     eta = '';
     dCut = 0;
@@ -127,8 +130,10 @@ class _OrderUIState extends State<OrderUI> {
     paydone = false;
     position = widget.initPosition;
     location = new loc.Location();
-    location.changeSettings(accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
-    geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
+    location.changeSettings(
+        accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
+    geoStream =
+        location.onLocationChanged.listen((loc.LocationData cLoc) async {
       position = Position(
           latitude: cLoc.latitude,
           longitude: cLoc.longitude,
@@ -147,9 +152,15 @@ class _OrderUIState extends State<OrderUI> {
           accuracy: cLoc.accuracy));
     });
     userChange = false;
-    WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(widget.user.walletId)
+        .then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
-    _walletStream.listen((wallet) {if(mounted) {_wallet = wallet;setState(() { });}});
+    _walletStream.listen((wallet) {
+      if (mounted) {
+        _wallet = wallet;
+        setState(() {});
+      }
+    });
     //print(_wallet.pocketBalance.toString());
     //_notificationsStream = NotificationsBloc.instance.notificationsStream;
     // _notificationsStream.listen((notification) {});
@@ -157,12 +168,15 @@ class _OrderUIState extends State<OrderUI> {
     //deliveryCut(widget.distance * 1000);
     address(widget.initPosition).then((value) => null);
     ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
+    //print('${widget.merchant.bGeoPoint['geopoint']}');
     super.initState();
   }
 
   Future<void> address(Position position) async {
-    final coordinates = geocode.Coordinates(position.latitude, position.longitude);
-    var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
+    final coordinates =
+        geocode.Coordinates(position.latitude, position.longitude);
+    var address =
+        await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
     if (mounted)
       setState(() {
         List<String> temp = address.first.addressLine.split(',');
@@ -254,10 +268,12 @@ class _OrderUIState extends State<OrderUI> {
     )
         .call({'distance': distance}).then((value) =>
 
-    //print('DeliveryCut ${value.data}')
-    setState(() {
-      dCut = value.data;
-    }));
+            //print('DeliveryCut ${value.data}')
+            mounted
+                ? setState(() {
+                    dCut = value.data;
+                  })
+                : null);
     /*int y1 = 50;
     int y2 = 100;
     int c = 300;
@@ -288,19 +304,19 @@ class _OrderUIState extends State<OrderUI> {
       'top': top
     }).then((value) =>
 
-    //print('DeliveryETA ${value.data/60}')
+                //print('DeliveryETA ${value.data/60}')
 
-    {
-      if (mounted)
-        setState(() {
-          dETA = (value.data as int).toDouble();
-          eta =
-              etaDisplay((value.data as int).toDouble()).toString();
-        })
-    }
-      // value.data
+                {
+                  if (mounted)
+                    setState(() {
+                      dETA = 12.12; //(value.data as double).toDouble();
+                      eta =
+                          '0'; //etaDisplay((value.data as double)).toString();
+                    })
+                }
+            // value.data
 
-    );
+            );
   }
 
   Widget DetailMaker() {
@@ -608,7 +624,7 @@ class _OrderUIState extends State<OrderUI> {
       headers: {
         "Accept": "application/json",
         "Authorization":
-        "Bearer sk_test_8c0cf47e2e690e41c984c7caca0966e763121968"
+            "Bearer sk_test_8c0cf47e2e690e41c984c7caca0966e763121968"
       },
     );
     if (response.statusCode == 200) {
@@ -620,38 +636,36 @@ class _OrderUIState extends State<OrderUI> {
 
   inHouseETA(double distance) {}
 
-
-
   List<Widget> ItemMaker(dynamic payload) {
     if (payload.runtimeType == List<CartItem>().runtimeType) {
       return List<Widget>.generate(
           payload.length,
-              (index) => Padding(
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          (index) => Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                child: Column(
                   children: <Widget>[
-                    Expanded(
-                      child: Text(
-                          ' ${payload[index].item.pName} @ ${payload[index].item.pPrice}'),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text('${payload[index].count}'),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text('${payload[index].total}'),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                              ' ${payload[index].item.pName} @ ${payload[index].item.pPrice}'),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text('${payload[index].count}'),
+                          ),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text('${payload[index].total}'),
+                          ),
+                        )
+                      ],
                     )
                   ],
-                )
-              ],
-            ),
-          )).toList();
+                ),
+              )).toList();
     } else {
       return [
         Padding(
@@ -706,7 +720,7 @@ class _OrderUIState extends State<OrderUI> {
                       orderMode: OrderMode(
                         mode: mode,
                         coordinate:
-                        GeoPoint(position.latitude, position.longitude),
+                            GeoPoint(position.latitude, position.longitude),
                         address: _address.text,
                         acceptedBy: accepted,
                         fee: dCut,
@@ -721,9 +735,11 @@ class _OrderUIState extends State<OrderUI> {
                 stage = 'CHECKOUT';
                 setState(() {});
               },
-              onRepeat: () async {
-                await sendAndRetrieveMessage();
-              },
+              onAgent: mode == 'Delivery' &&
+                      widget.merchant.bDelivery == 'Yes, Use pocketLogistics'
+                  ? nearByAgent
+                  : null,
+              onMerchant: queryMerchant,
             ),
           )
         ],
@@ -734,50 +750,50 @@ class _OrderUIState extends State<OrderUI> {
   Widget payDone() {
     return paydone
         ? Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 2,
-            child: Container(
-              child: Image.asset('assets/images/success.gif'),
-            ),
-          ),
-          Expanded(
-              flex: 1,
-              child: Container(
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      'Order successfully placed',
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.04),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      '${_start}s',
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.05),
-                    ),
-                  ],
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    child: Image.asset('assets/images/success.gif'),
+                  ),
                 ),
-              ))
-        ],
-      ),
-    )
+                Expanded(
+                    flex: 1,
+                    child: Container(
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            'Order successfully placed',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.04),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Text(
+                            '${_start}s',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.05),
+                          ),
+                        ],
+                      ),
+                    ))
+              ],
+            ),
+          )
         : Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      child: Center(
-        child: JumpingDotsProgressIndicator(
-          fontSize: MediaQuery.of(context).size.height * 0.12,
-          color: PRIMARYCOLOR,
-        ),
-      ),
-    );
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: Center(
+              child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+                color: PRIMARYCOLOR,
+              ),
+            ),
+          );
   }
 
   Widget payError() {
@@ -830,8 +846,8 @@ class _OrderUIState extends State<OrderUI> {
     int eta = 360;
     CloudFunctions.instance
         .getHttpsCallable(
-      functionName: "PickupETA",
-    )
+          functionName: "PickupETA",
+        )
         .call()
         .then((value) => eta = value.data);
     return eta;
@@ -861,10 +877,10 @@ class _OrderUIState extends State<OrderUI> {
           );
         });
         OrderRepo.save(order).then((value) => setState(() {
-          startTimer();
-          order = order.update(docID: value);
-          paydone = true;
-        }));
+              startTimer();
+              order = order.update(docID: value);
+              paydone = true;
+            }));
       } else {
         print('Important!!! $reference');
         if (reference == 'ERROR') {
@@ -893,7 +909,70 @@ class _OrderUIState extends State<OrderUI> {
     //});
   }
 
-  Future<void> sendAndRetrieveMessage() async {
+  Future<void> nearByAgent() {
+    LogisticRepo.getNearByAgent(
+            Position(
+                latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
+            'MotorBike')
+        .then((value) {
+      print('agent around: $value');
+      queryAgent(value);
+    });
+  }
+
+  Future<void> queryAgent(List<String> nAgent) async {
+    //print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Hi. Can you run this delivery, click for details',
+            'title': 'New Delivery'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'NearByAgent',
+              'Items':
+                  widget.payload.runtimeType == List<CartItem>().runtimeType
+                      ? CartItem.toListMap(widget.payload)
+                      : [
+                          {
+                            'productName': widget.payload.pName,
+                            'productCount': OrderCount
+                          }
+                        ],
+              'merchant': widget.merchant.bName,
+              'mAddress': widget.merchant.bAddress,
+              'Amount': order.orderAmount,
+              'type': order.orderMode.mode,
+              'Address': order.orderMode.mode == 'Delivery'
+                  ? order.orderMode.address
+                  : '',
+              'deliveryFee': order.orderMode.mode == 'Delivery' ? dCut : 0.0,
+              'deliveryDistance':
+                  order.orderMode.mode == 'Delivery' ? dist : 0.0,
+              'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
+              'fcmToken': widget.user.notificationID,
+              'agentCount': nAgent.length,
+            }
+          },
+          'registration_ids': nAgent,
+        }));
+  }
+
+  Future<void> queryMerchant() async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
@@ -907,7 +986,7 @@ class _OrderUIState extends State<OrderUI> {
         body: jsonEncode(<String, dynamic>{
           'notification': <String, dynamic>{
             'body':
-            'Hi. Can you process my order. ${order.orderCustomer.customerName}',
+                'Hi. Can you process my order. ${order.orderCustomer.customerName}',
             'title': 'New Order Request'
           },
           'priority': 'high',
@@ -918,14 +997,14 @@ class _OrderUIState extends State<OrderUI> {
             'payload': {
               'NotificationType': 'OrderRequest',
               'Items':
-              widget.payload.runtimeType == List<CartItem>().runtimeType
-                  ? CartItem.toListMap(widget.payload)
-                  : [
-                {
-                  'productName': widget.payload.pName,
-                  'productCount': OrderCount
-                }
-              ],
+                  widget.payload.runtimeType == List<CartItem>().runtimeType
+                      ? CartItem.toListMap(widget.payload)
+                      : [
+                          {
+                            'productName': widget.payload.pName,
+                            'productCount': OrderCount
+                          }
+                        ],
               'Amount': order.orderAmount,
               'type': order.orderMode.mode,
               'Address': order.orderMode.mode == 'Delivery'
@@ -933,7 +1012,8 @@ class _OrderUIState extends State<OrderUI> {
                   : '',
               'deliveryFee': order.orderMode.mode == 'Delivery' ? dCut : 0.0,
               'deliveryDistance':
-              order.orderMode.mode == 'Delivery' ? dist : 0.0,
+                  order.orderMode.mode == 'Delivery' ? dist : 0.0,
+              'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
               'fcmToken': widget.user.notificationID,
             }
           },
@@ -992,15 +1072,14 @@ class _OrderUIState extends State<OrderUI> {
               ),
               ListTile(
                 onTap: () async {
-                  if(_wallet.pocketBalance > order.orderAmount){
+                  if (_wallet.pocketBalance > order.orderAmount) {
                     setState(() {
                       stage = 'PAY';
                     });
                   }
                   Get.defaultDialog(
                       title: 'Confirmation',
-                      content: Text(
-                          'Do you want to TopUp your Pocket'),
+                      content: Text('Do you want to TopUp your Pocket'),
                       cancel: FlatButton(
                         onPressed: () {
                           Get.back();
@@ -1015,9 +1094,7 @@ class _OrderUIState extends State<OrderUI> {
                           });
                         },
                         child: Text('Yes'),
-                      )
-                  );
-
+                      ));
                 },
                 leading: CircleAvatar(
                   child: Image.asset('assets/images/blogo.png'),
@@ -1031,10 +1108,10 @@ class _OrderUIState extends State<OrderUI> {
                 ),
                 subtitle: Column(
                   children: <Widget>[
-                    _wallet.pocketBalance>order.orderAmount?
-                    Text('Choose this if you want your order delivered to you.')
-                    :
-                    Text('Insufficient Fund. Tap to Topup'),
+                    _wallet.pocketBalance > order.orderAmount
+                        ? Text(
+                            'Choose this if you want your order delivered to you.')
+                        : Text('Insufficient Fund. Tap to Topup'),
                   ],
                 ),
                 trailing: IconButton(
@@ -1116,8 +1193,7 @@ class _OrderUIState extends State<OrderUI> {
                           });
                         },
                         child: Text('Yes Pay'),
-                      )
-                  );
+                      ));
                 },
                 leading: CircleAvatar(
                   child: Image.asset('assets/images/cash.png'),
@@ -1152,126 +1228,126 @@ class _OrderUIState extends State<OrderUI> {
     });
     return Container(
         child: Center(
-          child: Column(
+      child: Column(
+        children: <Widget>[
+          SizedBox(
+              height: MediaQuery.of(context).size.height * 0.4,
+              width: MediaQuery.of(context).size.width,
+              child: Carousel(
+                images: widget.payload.pPhoto.isNotEmpty
+                    ? List<NetworkImage>.generate(widget.payload.pPhoto.length,
+                        (int index) {
+                        return NetworkImage(widget.payload.pPhoto[index]);
+                      }).toList()
+                    : [NetworkImage(PocketShoppingDefaultCover)],
+              )),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            widget.payload.pName,
+            style:
+                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Text(
+            '@ \u20A6 ${widget.payload.pPrice.toString()}',
+            style:
+                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Row(
             children: <Widget>[
-              SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.4,
-                  width: MediaQuery.of(context).size.width,
-                  child: Carousel(
-                    images: widget.payload.pPhoto.isNotEmpty
-                        ? List<NetworkImage>.generate(widget.payload.pPhoto.length,
-                            (int index) {
-                          return NetworkImage(widget.payload.pPhoto[index]);
-                        }).toList()
-                        : [NetworkImage(PocketShoppingDefaultCover)],
-                  )),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                widget.payload.pName,
-                style:
-                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                '@ \u20A6 ${widget.payload.pPrice.toString()}',
-                style:
-                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Row(
-                      children: <Widget>[
-                        GestureDetector(
-                          onTap: () {
-                            if (mounted)
-                              setState(() {
-                                if (OrderCount > 1) OrderCount -= 1;
-                              });
-                          },
-                          child: Container(
-                            margin:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                            padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                            decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.3),
-                                border: Border.all(
-                                  width: 1,
-                                  color: Colors.grey.withOpacity(0.4),
-                                ),
-                                borderRadius: BorderRadius.all(Radius.circular(5))),
-                            child: Text('-'),
-                          ),
-                        ),
-                        Container(
-                          padding:
-                          EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                          child: Text(
-                              '$OrderCount ${widget.payload.pUnit.toString()}'),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            OrderCount += 1;
-                            setState(() {});
-                          },
-                          child: Container(
-                            margin:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                            padding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                            decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.3),
-                                border: Border.all(
-                                  width: 1,
-                                  color: Colors.grey.withOpacity(0.4),
-                                ),
-                                borderRadius: BorderRadius.all(Radius.circular(5))),
-                            child: Text('+'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
+              Expanded(
+                child: Row(
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () {
+                        if (mounted)
+                          setState(() {
+                            if (OrderCount > 1) OrderCount -= 1;
+                          });
+                      },
                       child: Container(
-                        color: PRIMARYCOLOR,
-                        child: FlatButton(
-                          onPressed: () {
-                            setState(() {
-                              order = order.update(
-                                  orderItem: OrderItem.fromCartList([
-                                    CartItem(
-                                        count: OrderCount,
-                                        item: widget.payload,
-                                        total: widget.payload.pPrice * OrderCount)
-                                  ]),
-                                  orderAmount: widget.payload.pPrice * OrderCount);
-                              stage = 'FAROPTION';
-                              screenHeight = 0.8;
-                            });
-                          },
-                          child: Text(
-                            'Next (\u20A6 ${widget.payload.pPrice * OrderCount})',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ))
-                ],
+                        margin:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            border: Border.all(
+                              width: 1,
+                              color: Colors.grey.withOpacity(0.4),
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                        child: Text('-'),
+                      ),
+                    ),
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                      child: Text(
+                          '$OrderCount ${widget.payload.pUnit.toString()}'),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        OrderCount += 1;
+                        setState(() {});
+                      },
+                      child: Container(
+                        margin:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            border: Border.all(
+                              width: 1,
+                              color: Colors.grey.withOpacity(0.4),
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(5))),
+                        child: Text('+'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              Expanded(
+                  child: Container(
+                color: PRIMARYCOLOR,
+                child: FlatButton(
+                  onPressed: () {
+                    setState(() {
+                      order = order.update(
+                          orderItem: OrderItem.fromCartList([
+                            CartItem(
+                                count: OrderCount,
+                                item: widget.payload,
+                                total: widget.payload.pPrice * OrderCount)
+                          ]),
+                          orderAmount: widget.payload.pPrice * OrderCount);
+                      stage = 'FAROPTION';
+                      screenHeight = 0.8;
+                    });
+                  },
+                  child: Text(
+                    'Next (\u20A6 ${widget.payload.pPrice * OrderCount})',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ))
             ],
           ),
-        ));
+          SizedBox(
+            height: 10,
+          ),
+        ],
+      ),
+    ));
   }
 
   Widget stageOneOfList() {
@@ -1302,7 +1378,7 @@ class _OrderUIState extends State<OrderUI> {
                                 vertical: 10, horizontal: 12),
                             decoration: BoxDecoration(
                                 border:
-                                Border.all(width: 1, color: Colors.grey)),
+                                    Border.all(width: 1, color: Colors.grey)),
                             child: Text(
                               'Clear Basket',
                               style: TextStyle(color: Colors.black54),
@@ -1322,7 +1398,7 @@ class _OrderUIState extends State<OrderUI> {
                                 vertical: 10, horizontal: 12),
                             decoration: BoxDecoration(
                                 border:
-                                Border.all(width: 1, color: Colors.grey)),
+                                    Border.all(width: 1, color: Colors.grey)),
                             child: Text(
                               'Close Basket',
                               style: TextStyle(color: Colors.black54),
@@ -1346,7 +1422,7 @@ class _OrderUIState extends State<OrderUI> {
                         decoration: BoxDecoration(
                             border: Border(
                                 bottom:
-                                BorderSide(width: 1, color: Colors.grey))),
+                                    BorderSide(width: 1, color: Colors.grey))),
                         child: ListTile(
                           leading: Image.network(
                               widget.payload[index].item.pPhoto.isNotEmpty
@@ -1359,11 +1435,11 @@ class _OrderUIState extends State<OrderUI> {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   '${widget.payload[index].item.pName} @ \u20A6'
-                                      '${widget.payload[index].item.pPrice}',
+                                  '${widget.payload[index].item.pPrice}',
                                   style: TextStyle(
                                       fontSize:
-                                      MediaQuery.of(context).size.height *
-                                          0.025),
+                                          MediaQuery.of(context).size.height *
+                                              0.025),
                                 ),
                               ),
                               SizedBox(
@@ -1371,7 +1447,7 @@ class _OrderUIState extends State<OrderUI> {
                               ),
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
                                   Expanded(
                                     flex: 1,
@@ -1581,7 +1657,7 @@ class _OrderUIState extends State<OrderUI> {
                           'Item(s)',
                           style: TextStyle(
                               fontSize:
-                              MediaQuery.of(context).size.height * 0.025,
+                                  MediaQuery.of(context).size.height * 0.025,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -1601,7 +1677,7 @@ class _OrderUIState extends State<OrderUI> {
                           'Details(s)',
                           style: TextStyle(
                               fontSize:
-                              MediaQuery.of(context).size.height * 0.025,
+                                  MediaQuery.of(context).size.height * 0.025,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -1676,459 +1752,520 @@ class _OrderUIState extends State<OrderUI> {
           ),
           dist > 100
               ? Column(
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(width: 2))),
-                child: Text(
-                  'How do you want it?',
-                  style: TextStyle(
-                      fontSize:
-                      MediaQuery.of(context).size.height * 0.03),
-                ),
-              ),
-              Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-              widget.merchant.bDelivery != 'No'
-                  ? ListTile(
-                onTap: () {
-                  _address.text = deliveryAddress;
-                  _contact.text = widget.user.telephone;
-                  homeDelivery = homeDelivery ? false : true;
-                  if (mounted) setState(() {});
-                  deliveryETA(
-                      dist != null ? dist : widget.distance * 1000,
-                      'Delivery',
-                      0.0,
-                      0,
-                      0.0);
-                  deliveryCut(
-                      dist != null ? dist : widget.distance * 1000);
-                },
-                leading: CircleAvatar(
-                  child:
-                  Image.asset('assets/images/delivery-man.jpg'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title: Text(
-                  'Delivery',
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height *
-                          0.03),
-                ),
-                subtitle: Column(
                   children: <Widget>[
-                    Text(
-                        'Choose this if you want your order delivered to you.'),
-                    homeDelivery
-                        ? deliveryAddress.isNotEmpty
-                        ? Form(
-                      key: _formKey,
-                      child: Column(
-                        children: <Widget>[
-                          SizedBox(
-                            height: 10,
-                          ),
-                          TextFormField(
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return 'Your mobile number';
-                              } else if (value.length <=
-                                  11) {
-                                return 'Valid Mobile number please';
-                              }
-                              return null;
+                    Container(
+                      margin: EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(width: 2))),
+                      child: Text(
+                        'How do you want it?',
+                        style: TextStyle(
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.03),
+                      ),
+                    ),
+                    Divider(
+                      height: 2,
+                      color: Colors.grey,
+                    ),
+                    widget.merchant.bDelivery != 'No'
+                        ? ListTile(
+                            onTap: () {
+                              _address.text = deliveryAddress;
+                              _contact.text = widget.user.telephone;
+                              homeDelivery = homeDelivery ? false : true;
+                              if (mounted) setState(() {});
+                              deliveryETA(
+                                  dist != null ? dist : widget.distance * 1000,
+                                  'Delivery',
+                                  0.0,
+                                  0,
+                                  0.0);
+                              deliveryCut(
+                                  dist != null ? dist : widget.distance * 1000);
                             },
-                            controller: _contact,
-                            decoration: InputDecoration(
-                              prefixIcon:
-                              Icon(Icons.call),
-                              labelText:
-                              'Contact Telephone',
-                              filled: true,
-                              fillColor: Colors.grey
-                                  .withOpacity(0.2),
-                              focusedBorder:
-                              OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.white
-                                        .withOpacity(
-                                        0.3)),
-                              ),
-                              enabledBorder:
-                              UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.white
-                                        .withOpacity(
-                                        0.3)),
-                              ),
+                            leading: CircleAvatar(
+                              child:
+                                  Image.asset('assets/images/delivery-man.jpg'),
+                              radius: 30,
+                              backgroundColor: Colors.white,
                             ),
-                            autovalidate: mobile,
-                            onChanged: (value) {
-                              setState(() {
-                                mobile = true;
-                              });
-                            },
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          TextFormField(
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return 'Your address';
-                              }
-                              return null;
-                            },
-                            controller: _address,
-                            decoration: InputDecoration(
-                              prefixIcon:
-                              Icon(Icons.place),
-                              labelText:
-                              'Delivery Address',
-                              filled: true,
-                              fillColor: Colors.grey
-                                  .withOpacity(0.2),
-                              focusedBorder:
-                              OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.white
-                                        .withOpacity(
-                                        0.3)),
-                              ),
-                              enabledBorder:
-                              UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Colors.white
-                                        .withOpacity(
-                                        0.3)),
-                              ),
+                            title: Text(
+                              'Delivery',
+                              style: TextStyle(
+                                  fontSize: MediaQuery.of(context).size.height *
+                                      0.03),
                             ),
-                            textInputAction:
-                            TextInputAction.done,
-                            autovalidate: contact,
-                            onChanged: (value) {
-                              setState(() {
-                                userChange = true;
-                                contact = true;
-                              });
-                            },
-                            maxLines: 3,
-                          ),
-                          FlatButton(
+                            subtitle: Column(
+                              children: <Widget>[
+                                Text(
+                                    'Choose this if you want your order delivered to you.'),
+                                homeDelivery
+                                    ? true
+                                        ? Form(
+                                            key: _formKey,
+                                            child: Column(
+                                              children: <Widget>[
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                TextFormField(
+                                                  validator: (value) {
+                                                    if (value.isEmpty) {
+                                                      return 'Your mobile number';
+                                                    } else if (value.length <=
+                                                        11) {
+                                                      return 'Valid Mobile number please';
+                                                    }
+                                                    return null;
+                                                  },
+                                                  controller: _contact,
+                                                  decoration: InputDecoration(
+                                                    prefixIcon:
+                                                        Icon(Icons.call),
+                                                    labelText:
+                                                        'Contact Telephone',
+                                                    filled: true,
+                                                    fillColor: Colors.grey
+                                                        .withOpacity(0.2),
+                                                    focusedBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.white
+                                                              .withOpacity(
+                                                                  0.3)),
+                                                    ),
+                                                    enabledBorder:
+                                                        UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.white
+                                                              .withOpacity(
+                                                                  0.3)),
+                                                    ),
+                                                  ),
+                                                  autovalidate: mobile,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      mobile = true;
+                                                    });
+                                                  },
+                                                ),
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                TextFormField(
+                                                  validator: (value) {
+                                                    if (value.isEmpty) {
+                                                      return 'Your address';
+                                                    }
+                                                    return null;
+                                                  },
+                                                  controller: _address,
+                                                  decoration: InputDecoration(
+                                                    prefixIcon:
+                                                        Icon(Icons.place),
+                                                    labelText:
+                                                        'Delivery Address',
+                                                    filled: true,
+                                                    fillColor: Colors.grey
+                                                        .withOpacity(0.2),
+                                                    focusedBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.white
+                                                              .withOpacity(
+                                                                  0.3)),
+                                                    ),
+                                                    enabledBorder:
+                                                        UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.white
+                                                              .withOpacity(
+                                                                  0.3)),
+                                                    ),
+                                                  ),
+                                                  textInputAction:
+                                                      TextInputAction.done,
+                                                  autovalidate: contact,
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      userChange = true;
+                                                      contact = true;
+                                                    });
+                                                  },
+                                                  maxLines: 3,
+                                                ),
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                if ((widget.merchant
+                                                            .bCategory !=
+                                                        'Restuarant') &&
+                                                    (widget.merchant
+                                                            .bDelivery ==
+                                                        'Yes, Use pocketLogistics'))
+                                                  Container(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.2),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            vertical: 5,
+                                                            horizontal: 5),
+                                                    child: Column(
+                                                      children: <Widget>[
+                                                        Align(
+                                                            alignment: Alignment
+                                                                .centerLeft,
+                                                            child: Text(
+                                                              "Mode",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .black54),
+                                                            )),
+                                                        DropdownButtonFormField<
+                                                            String>(
+                                                          value: type,
+                                                          items: [
+                                                            'MotorBike',
+                                                            'Car',
+                                                            'Van'
+                                                          ]
+                                                              .map((label) =>
+                                                                  DropdownMenuItem(
+                                                                    child: Text(
+                                                                      label,
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.black54),
+                                                                    ),
+                                                                    value:
+                                                                        label,
+                                                                  ))
+                                                              .toList(),
+                                                          isExpanded: true,
+                                                          hint: Text('Mode'),
+                                                          decoration:
+                                                              InputDecoration(
+                                                                  border:
+                                                                      InputBorder
+                                                                          .none),
+                                                          onChanged: (value) {
+                                                            type = value;
+                                                          },
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                FlatButton(
+                                                    onPressed: () {
+                                                      if (_formKey.currentState
+                                                          .validate()) {
+                                                        stage = 'OVERVIEW';
+                                                        mode = 'Delivery';
+                                                        order = order.update(
+                                                          orderMode: OrderMode(
+                                                            mode: mode,
+                                                            coordinate: GeoPoint(
+                                                                position
+                                                                    .latitude,
+                                                                position
+                                                                    .longitude),
+                                                            address:
+                                                                _address.text,
+                                                          ),
+                                                          orderCustomer:
+                                                              Customer(
+                                                            customerName: widget
+                                                                .user.fname,
+                                                            customerReview: '',
+                                                            customerTelephone:
+                                                                _contact.text,
+                                                          ),
+                                                          customerID:
+                                                              widget.user.uid,
+                                                        );
+                                                        setState(() {});
+                                                      }
+                                                    },
+                                                    child: Container(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              vertical: 10,
+                                                              horizontal: 15),
+                                                      color: PRIMARYCOLOR,
+                                                      child: Text(
+                                                        'Submit',
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                    ))
+                                              ],
+                                            ),
+                                          )
+                                        : Center(
+                                            child: JumpingDotsProgressIndicator(
+                                              fontSize: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.12,
+                                              color: PRIMARYCOLOR,
+                                            ),
+                                          )
+                                    : Container()
+                              ],
+                            ),
+                            trailing: IconButton(
                               onPressed: () {
-                                if (_formKey.currentState
-                                    .validate()) {
-                                  stage = 'OVERVIEW';
-                                  mode = 'Delivery';
-                                  order = order.update(
-                                    orderMode: OrderMode(
-                                      mode: mode,
-                                      coordinate: GeoPoint(
-                                          position
-                                              .latitude,
-                                          position
-                                              .longitude),
-                                      address:
-                                      _address.text,
-                                    ),
-                                    orderCustomer:
-                                    Customer(
-                                      customerName: widget
-                                          .user.fname,
-                                      customerReview: '',
-                                      customerTelephone:
-                                      _contact.text,
-                                    ),
-                                    customerID:
-                                    widget.user.uid,
-                                  );
-                                  setState(() {});
-                                }
+                                homeDelivery = homeDelivery ? false : true;
+                                setState(() {});
                               },
-                              child: Container(
-                                padding:
-                                EdgeInsets.symmetric(
-                                    vertical: 10,
-                                    horizontal: 15),
-                                color: PRIMARYCOLOR,
-                                child: Text(
-                                  'Submit',
-                                  style: TextStyle(
-                                      color:
-                                      Colors.white),
-                                ),
-                              ))
-                        ],
-                      ),
-                    )
-                        : Center(
-                      child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context)
-                            .size
-                            .height *
-                            0.12,
-                        color: PRIMARYCOLOR,
-                      ),
-                    )
-                        : Container()
-                  ],
-                ),
-                trailing: IconButton(
-                  onPressed: () {
-                    homeDelivery = homeDelivery ? false : true;
-                    setState(() {});
-                  },
-                  icon: !homeDelivery
-                      ? Icon(Icons.arrow_forward_ios)
-                      : Icon(Icons.close),
-                ),
-              )
-                  : ListTile(
-                leading: CircleAvatar(
-                  child: Icon(
-                    Icons.close,
-                    color: Colors.red,
-                  ),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title: Text(
-                  'Home delivery',
-                  style: TextStyle(
-                      fontSize:
-                      MediaQuery.of(context).size.height * 0.03,
-                      color: Colors.grey),
-                ),
-                subtitle: Text(
-                  'Sorry! we do not offer home delivery service',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-              ListTile(
-                onTap: () {
-                  stage = 'OVERVIEW';
-                  mode = 'Pickup';
-                  order = order.update(
-                    orderMode: OrderMode(
-                      mode: mode,
-                    ),
-                    orderCustomer: Customer(
-                      customerName: widget.user.fname,
-                      customerReview: '',
-                      customerTelephone: _contact.text,
-                    ),
-                    customerID: widget.user.uid,
-                    orderETA: PickupETA(),
-                  );
-                  deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
-                  setState(() {});
-                },
-                leading: CircleAvatar(
-                  child: Image.asset('assets/images/pickup.jpg'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title: Text(
-                  'PickUp',
-                  style: TextStyle(
-                      fontSize:
-                      MediaQuery.of(context).size.height * 0.03),
-                ),
-                subtitle:
-                Text('Choose this if you want to pickup your order.'),
-                trailing: IconButton(
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
-              ),
-              Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-            ],
-          )
-              : ['Restuarant', 'Eatry', 'Bar']
-              .contains(widget.merchant.bCategory)
-              ? Column(
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(width: 2))),
-                child: Text(
-                  'How do you want it?',
-                  style: TextStyle(
-                      fontSize:
-                      MediaQuery.of(context).size.height * 0.03),
-                ),
-              ),
-              Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-              ListTile(
-                onTap: () {
-                  stage = 'OVERVIEW';
-                  mode = 'TakeAway';
-                  order = order.update(
-                    orderMode: OrderMode(
-                      mode: mode,
-                    ),
-                    orderCustomer: Customer(
-                      customerName: widget.user.fname,
-                      customerReview: '',
-                      customerTelephone: _contact.text,
-                    ),
-                    customerID: widget.user.uid,
-                  );
-                  deliveryETA(0, 'TakeAway', 120.0, 5, 180.0);
-                  setState(() {});
-                },
-                leading: CircleAvatar(
-                  child: Image.asset('assets/images/take-away.jpg'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title: Text(
-                  'Take Away',
-                  style: TextStyle(
-                      fontSize:
-                      MediaQuery.of(context).size.height * 0.03),
-                ),
-                subtitle: Text(
-                    'Choose this if you do not want to take your order away.'),
-                trailing: IconButton(
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
-              ),
-              Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-              ListTile(
-                onTap: () {
-                  if (_tableformKey.currentState.validate()) {
-                    stage = 'OVERVIEW';
-                    mode = 'ServeMe';
-                    order = order.update(
-                      orderMode: OrderMode(
-                          mode: mode, tableNumber: _table.text),
-                      orderCustomer: Customer(
-                        customerName: widget.user.fname,
-                        customerReview: '',
-                        customerTelephone: _contact.text,
-                      ),
-                      customerID: widget.user.uid,
-                    );
-                    deliveryETA(0, 'TakeAway', 120.0, 5, 180.0);
-                    setState(() {});
-                  }
-                },
-                leading: CircleAvatar(
-                  child: Image.asset('assets/images/serve.jpg'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title: Text(
-                  'Serve Me',
-                  style: TextStyle(
-                      fontSize:
-                      MediaQuery.of(context).size.height * 0.03),
-                ),
-                subtitle: Column(
-                  children: <Widget>[
-                    Text(
-                        'Choose this if you want to have you order here.'),
-                    Form(
-                      key: _tableformKey,
-                      child: TextFormField(
-                        controller: _table,
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return 'Your table number';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.fastfood),
-                          hintText: 'Enter Table Number',
-                          filled: true,
-                          fillColor: Colors.grey.withOpacity(0.2),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.white.withOpacity(0.3)),
+                              icon: !homeDelivery
+                                  ? Icon(Icons.arrow_forward_ios)
+                                  : Icon(Icons.close),
+                            ),
+                          )
+                        : ListTile(
+                            leading: CircleAvatar(
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.red,
+                              ),
+                              radius: 30,
+                              backgroundColor: Colors.white,
+                            ),
+                            title: Text(
+                              'Home delivery',
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                  color: Colors.grey),
+                            ),
+                            subtitle: Text(
+                              'Sorry! we do not offer home delivery service',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                           ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.white.withOpacity(0.3)),
+                    Divider(
+                      height: 2,
+                      color: Colors.grey,
+                    ),
+                    ListTile(
+                      onTap: () {
+                        stage = 'OVERVIEW';
+                        mode = 'Pickup';
+                        order = order.update(
+                          orderMode: OrderMode(
+                            mode: mode,
+                          ),
+                          orderCustomer: Customer(
+                            customerName: widget.user.fname,
+                            customerReview: '',
+                            customerTelephone: _contact.text,
+                          ),
+                          customerID: widget.user.uid,
+                          orderETA: PickupETA(),
+                        );
+                        deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
+                        setState(() {});
+                      },
+                      leading: CircleAvatar(
+                        child: Image.asset('assets/images/pickup.jpg'),
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                      ),
+                      title: Text(
+                        'PickUp',
+                        style: TextStyle(
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.03),
+                      ),
+                      subtitle:
+                          Text('Choose this if you want to pickup your order.'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.arrow_forward_ios),
+                      ),
+                    ),
+                    Divider(
+                      height: 2,
+                      color: Colors.grey,
+                    ),
+                  ],
+                )
+              : ['Restuarant', 'Eatry', 'Bar']
+                      .contains(widget.merchant.bCategory)
+                  ? Column(
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(width: 2))),
+                          child: Text(
+                            'How do you want it?',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.03),
                           ),
                         ),
-                        keyboardType:
-                        TextInputType.numberWithOptions(),
-                        autovalidate: table,
-                        onChanged: (value) {
-                          setState(() {
-                            table = true;
-                          });
-                        },
-                      ),
+                        Divider(
+                          height: 2,
+                          color: Colors.grey,
+                        ),
+                        ListTile(
+                          onTap: () {
+                            stage = 'OVERVIEW';
+                            mode = 'TakeAway';
+                            order = order.update(
+                              orderMode: OrderMode(
+                                mode: mode,
+                              ),
+                              orderCustomer: Customer(
+                                customerName: widget.user.fname,
+                                customerReview: '',
+                                customerTelephone: _contact.text,
+                              ),
+                              customerID: widget.user.uid,
+                            );
+                            deliveryETA(0, 'TakeAway', 120.0, 5, 180.0);
+                            setState(() {});
+                          },
+                          leading: CircleAvatar(
+                            child: Image.asset('assets/images/take-away.jpg'),
+                            radius: 30,
+                            backgroundColor: Colors.white,
+                          ),
+                          title: Text(
+                            'Take Away',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.03),
+                          ),
+                          subtitle: Text(
+                              'Choose this if you do not want to take your order away.'),
+                          trailing: IconButton(
+                            icon: Icon(Icons.arrow_forward_ios),
+                          ),
+                        ),
+                        Divider(
+                          height: 2,
+                          color: Colors.grey,
+                        ),
+                        ListTile(
+                          onTap: () {
+                            if (_tableformKey.currentState.validate()) {
+                              stage = 'OVERVIEW';
+                              mode = 'ServeMe';
+                              order = order.update(
+                                orderMode: OrderMode(
+                                    mode: mode, tableNumber: _table.text),
+                                orderCustomer: Customer(
+                                  customerName: widget.user.fname,
+                                  customerReview: '',
+                                  customerTelephone: _contact.text,
+                                ),
+                                customerID: widget.user.uid,
+                              );
+                              deliveryETA(0, 'TakeAway', 120.0, 5, 180.0);
+                              setState(() {});
+                            }
+                          },
+                          leading: CircleAvatar(
+                            child: Image.asset('assets/images/serve.jpg'),
+                            radius: 30,
+                            backgroundColor: Colors.white,
+                          ),
+                          title: Text(
+                            'Serve Me',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.03),
+                          ),
+                          subtitle: Column(
+                            children: <Widget>[
+                              Text(
+                                  'Choose this if you want to have you order here.'),
+                              Form(
+                                key: _tableformKey,
+                                child: TextFormField(
+                                  controller: _table,
+                                  validator: (value) {
+                                    if (value.isEmpty) {
+                                      return 'Your table number';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(Icons.fastfood),
+                                    hintText: 'Enter Table Number',
+                                    filled: true,
+                                    fillColor: Colors.grey.withOpacity(0.2),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.white.withOpacity(0.3)),
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.white.withOpacity(0.3)),
+                                    ),
+                                  ),
+                                  keyboardType:
+                                      TextInputType.numberWithOptions(),
+                                  autovalidate: table,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      table = true;
+                                    });
+                                  },
+                                ),
+                              )
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.arrow_forward_ios),
+                          ),
+                        ),
+                        Divider(
+                          height: 2,
+                          color: Colors.grey,
+                        ),
+                      ],
                     )
-                  ],
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
-              ),
-              Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-            ],
-          )
-              : ListTile(
-            onTap: () {
-              stage = 'OVERVIEW';
-              mode = 'Pickup';
-              order = order.update(
-                orderMode: OrderMode(
-                  mode: mode,
-                ),
-                orderCustomer: Customer(
-                  customerName: widget.user.fname,
-                  customerReview: '',
-                  customerTelephone: _contact.text,
-                ),
-                customerID: widget.user.uid,
-                orderETA: PickupETA(),
-              );
-              deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
-              setState(() {});
-            },
-            leading: CircleAvatar(
-              child: Image.asset('assets/images/pickup.jpg'),
-              radius: 30,
-              backgroundColor: Colors.white,
-            ),
-            title: Text(
-              'Buy Now',
-              style: TextStyle(
-                  fontSize:
-                  MediaQuery.of(context).size.height * 0.03),
-            ),
-            subtitle:
-            Text('Choose this if you want to buy this item.'),
-            trailing: IconButton(
-              icon: Icon(Icons.arrow_forward_ios),
-            ),
-          ),
+                  : ListTile(
+                      onTap: () {
+                        stage = 'OVERVIEW';
+                        mode = 'Pickup';
+                        order = order.update(
+                          orderMode: OrderMode(
+                            mode: mode,
+                          ),
+                          orderCustomer: Customer(
+                            customerName: widget.user.fname,
+                            customerReview: '',
+                            customerTelephone: _contact.text,
+                          ),
+                          customerID: widget.user.uid,
+                          orderETA: PickupETA(),
+                        );
+                        deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
+                        setState(() {});
+                      },
+                      leading: CircleAvatar(
+                        child: Image.asset('assets/images/pickup.jpg'),
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                      ),
+                      title: Text(
+                        'Buy Now',
+                        style: TextStyle(
+                            fontSize:
+                                MediaQuery.of(context).size.height * 0.03),
+                      ),
+                      subtitle:
+                          Text('Choose this if you want to buy this item.'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.arrow_forward_ios),
+                      ),
+                    ),
         ],
       ),
     );
@@ -2138,14 +2275,14 @@ class _OrderUIState extends State<OrderUI> {
     const oneSec = const Duration(seconds: 1);
     _timer = new Timer.periodic(
       oneSec,
-          (Timer timer) => setState(
-            () {
+      (Timer timer) => setState(
+        () {
           if (_start < 1) {
             timer.cancel();
             setState(() {
               stage = 'ORDERNOW';
             });
-            Get.to(OrderTrackerWidget(
+            Get.off(OrderTrackerWidget(
               order: order,
               user: widget.user,
             ));
@@ -2168,72 +2305,72 @@ class _OrderUIState extends State<OrderUI> {
   Widget UploadingOrder() {
     return !paydone
         ? Center(
-      child: Container(
-        alignment: Alignment.center,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.8,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Container(
-                width: MediaQuery.of(context).size.width * 0.3,
-                height: MediaQuery.of(context).size.height * 0.18,
-                child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
-                  color: PRIMARYCOLOR,
-                )),
-            Center(
-              child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    'Placing Order please wait..',
-                    style: TextStyle(
-                        fontSize:
-                        MediaQuery.of(context).size.height * 0.025),
-                    textAlign: TextAlign.center,
-                  )),
-            ),
-          ],
-        ),
-      ),
-    )
-        : Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 2,
             child: Container(
-              child: Image.asset('assets/images/success.gif'),
+              alignment: Alignment.center,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                      width: MediaQuery.of(context).size.width * 0.3,
+                      height: MediaQuery.of(context).size.height * 0.18,
+                      child: JumpingDotsProgressIndicator(
+                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        color: PRIMARYCOLOR,
+                      )),
+                  Center(
+                    child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          'Placing Order please wait..',
+                          style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.025),
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-              flex: 1,
-              child: Container(
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      'Order successfully placed',
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.04),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text(
-                      '${_start}s',
-                      style: TextStyle(
-                          fontSize:
-                          MediaQuery.of(context).size.height * 0.05),
-                    ),
-                  ],
+          )
+        : Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    child: Image.asset('assets/images/success.gif'),
+                  ),
                 ),
-              ))
-        ],
-      ),
-    );
+                Expanded(
+                    flex: 1,
+                    child: Container(
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            'Order successfully placed',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.04),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Text(
+                            '${_start}s',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.05),
+                          ),
+                        ],
+                      ),
+                    ))
+              ],
+            ),
+          );
   }
 
   Future<bool> _willPopScope() async {

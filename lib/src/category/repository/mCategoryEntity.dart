@@ -12,28 +12,28 @@ class MCategoryEntity extends Equatable {
   final String categoryId;
 
   const MCategoryEntity(
-      this.categoryName,
-      this.categoryURI,
-      this.categoryView,
-      this.categoryId,
-      );
+    this.categoryName,
+    this.categoryURI,
+    this.categoryView,
+    this.categoryId,
+  );
 
   Map<String, Object> toJson() {
     return {
-      'categoryId':categoryId,
-      'categoryName':categoryName,
-      'categoryURI':categoryURI,
-      'categoryView':categoryView
+      'categoryId': categoryId,
+      'categoryName': categoryName,
+      'categoryURI': categoryURI,
+      'categoryView': categoryView
     };
   }
 
   @override
   List<Object> get props => [
-    categoryName,
-    categoryURI,
-    categoryView,
-    categoryId,
-  ];
+        categoryName,
+        categoryURI,
+        categoryView,
+        categoryId,
+      ];
 
   @override
   String toString() {
@@ -61,10 +61,10 @@ class MCategoryEntity extends Equatable {
 
   Map<String, Object> toDocument() {
     return {
-      'categoryId':categoryId,
-      'categoryName':categoryName,
-      'categoryURI':categoryURI,
-      'categoryView':categoryView
+      'categoryId': categoryId,
+      'categoryName': categoryName,
+      'categoryURI': categoryURI,
+      'categoryView': categoryView
     };
   }
 }

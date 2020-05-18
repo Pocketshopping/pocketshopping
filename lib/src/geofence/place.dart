@@ -10,7 +10,6 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 
 class SinglePlaceWidget extends StatefulWidget {
   SinglePlaceWidget({this.merchant, this.user, this.cPosition});
@@ -18,7 +17,6 @@ class SinglePlaceWidget extends StatefulWidget {
   final Merchant merchant;
   final GeoFirePoint cPosition;
   final User user;
-
 
   @override
   State<StatefulWidget> createState() => _SinglePlaceWidgetUIState();

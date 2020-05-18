@@ -49,10 +49,10 @@ class DLink extends AuthenticationState {
   final FirebaseUser user;
   final Uri link;
 
-  const DLink(this.user,this.link);
+  const DLink(this.user, this.link);
 
   @override
-  List<Object> get props => [user,link];
+  List<Object> get props => [user, link];
 
   @override
   String toString() => 'DLink { link: $link }';

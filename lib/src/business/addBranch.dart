@@ -5,10 +5,8 @@ import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/model/DataModel/merchantData.dart';
 import 'package:share/share.dart';
 
-
 class AddBranch extends StatefulWidget {
   AddBranch();
-
 
   @override
   State<StatefulWidget> createState() => _AddBranchState();
