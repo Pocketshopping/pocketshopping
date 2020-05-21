@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/component/scanScreen.dart';
 import 'package:pocketshopping/page/admin/message.dart';
@@ -31,6 +32,7 @@ import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
 
 class DashBoardScreen extends StatefulWidget {
   static String tag = 'DashBoard-page';
@@ -228,16 +230,18 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                                 PRIMARYCOLOR.withOpacity(0.5),
                                           ),
                                           child: FlatButton(
-                                            onPressed: () => {
+                                            onPressed: ()  {
                                               //sendAndRetrieveMessage()
                                               //  .then((value) => null)
-                                              DynamicLinks
-                                                  .createLinkWithParams({
-                                                'merchant': 'rerereg',
-                                                'OTP':
-                                                    'randomNumber.toString()',
-                                                'route': 'branch'
-                                              }).then((value) => print(value))
+                                              //DynamicLinks
+                                                //  .createLinkWithParams({
+                                                //'merchant': 'rerereg',
+                                                //'OTP':
+                                                  //  'randomNumber.toString()',
+                                                //'route': 'branch'
+                                              //}).then((value) => print(value))
+                                            Get.dialog(TopUp(user: CurrentUser.user,payType: "TOPUPUNIT",));
+
                                             },
                                             child: Center(
                                                 child: Text(

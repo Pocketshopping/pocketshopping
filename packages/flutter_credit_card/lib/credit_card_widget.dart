@@ -279,7 +279,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
               padding: const EdgeInsets.only(left: 16),
               child: Text(
                 widget.cardNumber.isEmpty || widget.cardNumber == null
-                    ? 'XXXX XXXX XXXX XXXX'
+                    ? 'XXXX XXXX XXXX XXXX XXX'
                     : widget.cardNumber,
                 style: widget.textStyle ?? defaultTextStyle,
               ),

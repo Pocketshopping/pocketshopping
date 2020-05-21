@@ -17,6 +17,7 @@ import co.paystack.android.Paystack
 import co.paystack.android.model.Charge
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.util.Log
 import co.paystack.android.Transaction
 
 
@@ -42,12 +43,17 @@ class MainActivity: FlutterActivity() {
                     }
                     else if (call.method =="CardPay"){
                         //PaystackSdk.initialize(getApplicationContext())
-                        val charge = Charge()
 
-                        charge.card = paycard()
-                        charge.email="manuelemeka@gmail.com"
-                        charge.amount=400//sets the card to charge
+                        var month:Int? = call.argument<Int>("month")
+                        var cnumber:String = call.argument<String>("card").toString()
+                        var year:Int? = call.argument<Int>("year")
+                        var cvv:String? = call.argument<String>("cvv")
 
+                        var charge = Charge()
+                        charge.card = Card(cnumber, month, year, cvv)
+                        //Log.e("cnumber",charge.card.toString())
+                        charge.email=call.argument<String>("email").toString()//"manuelemeka@gmail.com"
+                        charge.amount=call.argument<Int>("amount")!!.toInt()//400//sets the card to charge
                         PaystackSdk.chargeCard(this@MainActivity, charge, object : Paystack.TransactionCallback {
                             override fun onSuccess(transaction: Transaction) {
                                 // This is called only after transaction is deemed successful.
@@ -55,7 +61,10 @@ class MainActivity: FlutterActivity() {
                                 // for verification.
                                 //result.success(transaction.reference)
                                 //charge.reference = transaction.reference
-                                result.success(transaction.reference)
+                                val response:MutableMap<String,String> = mutableMapOf()
+                                response["error"]=""
+                                response["reference"]=transaction.reference
+                                result.success(response)
                             }
 
                             override fun beforeValidate(transaction: Transaction) {
@@ -63,18 +72,21 @@ class MainActivity: FlutterActivity() {
                                 // Save reference so you may send to server. If
                                 // error occurs with OTP, you should still verify on server.
                                 //result.success(transaction.reference)
-                                print("fail")
+                                //print("fail")
                             }
 
                             override fun onError(error: Throwable, transaction: Transaction) {
                                 //handle error here
-                                result.success("ERROR")
+                                val response:MutableMap<String,String> = mutableMapOf()
+                                response["error"]=error.message.toString()
+                                response["reference"]=""
+                                result.success(response)
                             }
 
                         })
                     }
                     else{
-                        result.success("fuck kotlin")
+                        result.success("PayStack")
                     }
                 }
 
@@ -82,14 +94,12 @@ class MainActivity: FlutterActivity() {
                     super.configureFlutterEngine(flutterEngine)
                 }
 
-    fun paycard():Card{
-        val cardNumber = "5060666666666666666"
-        val expiryMonth = 3 //any month in the future
-        val expiryYear = 22 // any year in the future. '2018' would work also!
-        val cvv = "123"  // cvv of the test card
-
-        val card = Card(cardNumber, expiryMonth, expiryYear, cvv)
-        return card
+    fun paycard(cNumber: String, eMonth:Int?, eYear:Int?, cvv:String? ):Card{
+        var cardNumber = cNumber//"5060666666666666666"
+        var expiryMonth =3// eMonth //expiryMonth
+        var expiryYear = 22//eYear //expiryYear
+        var cvv = "123"//cvv//"$cvv"//"123"  // cvv of the test card
+        return Card(cardNumber, expiryMonth, expiryYear, cvv)
     }
 
 

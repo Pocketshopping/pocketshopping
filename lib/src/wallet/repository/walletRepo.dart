@@ -9,7 +9,7 @@ class WalletRepo {
   static final databaseReference = Firestore.instance;
 
   static Future<Wallet> getWallet(String pid) async {
-    print(pid);
+    //print(pid);
     final response = await http.get("${WALLETAPI}pocket/detail/$pid", headers: {
       'Content-Type': 'application/json',
     });

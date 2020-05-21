@@ -14,6 +14,7 @@ import 'package:pocketshopping/src/ui/shared/drawer/referral.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
 
 class DrawerScreen extends StatefulWidget {
   final UserRepository _userRepository;
@@ -74,7 +75,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   if (_wallet != null)
                     Expanded(
                       child: FlatButton(
-                        onPressed: () {},
+                        onPressed: () {Get.dialog(TopUp(user: widget.user,));},
                         color: PRIMARYCOLOR,
                         child: Text(
                           "TopUp",

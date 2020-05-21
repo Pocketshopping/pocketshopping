@@ -195,16 +195,8 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         widget.merchant.bDelivery == 'No'
-                            ? Icon(
-                                Icons.close,
-                                color: Colors.red,
-                              )
-                            : Icon(
-                                Icons.check,
-                                color: Colors.green,
-                              ),
-                        Text('Home Delivery',
-                            style: TextStyle(fontSize: 14, color: Colors.white))
+                            ? Text('Home Delivery', style: TextStyle(fontSize: 14, color: Colors.white))
+                      :Container()
                       ],
                     ),
                 ],

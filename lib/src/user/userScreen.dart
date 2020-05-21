@@ -80,24 +80,18 @@ class _UserScreenState extends State<UserScreen> {
       onMessage: (Map<String, dynamic> message) async {
         var data = Map<String, dynamic>.from(message);
         var payload = jsonDecode(data['data']['payload']);
-        print("onMessage: $message");
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
+        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
       },
       onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
       onLaunch: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
-        print("onLaunch: ${message['data']}");
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
+        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
       },
       onResume: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
-        print("onResume: $message");
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
+        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
       },
     );
@@ -139,14 +133,14 @@ class _UserScreenState extends State<UserScreen> {
     super.initState();
   }
 
-  static Future<dynamic> BackgroundMessageHandler(
-      Map<String, dynamic> message) {
+  static Future<dynamic> BackgroundMessageHandler(Map<String, dynamic> message) {
     if (message.containsKey('data')) {
       final dynamic data = message['data'];
     }
     if (message.containsKey('notification')) {
       final dynamic data = message['notification'];
     }
+    print(message);
   }
 
   void _onItemTapped(int index) {

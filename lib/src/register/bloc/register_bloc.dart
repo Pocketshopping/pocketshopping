@@ -168,7 +168,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
   Future<String> makeWallet(
       String name, String email, String telephone, String refferal) async {
-    final response = await http.post("$WALLETAPI/new/pocket",
+    final response = await http.post("${WALLETAPI}new/pocket",
         headers: {
           'Content-Type': 'application/json',
         },

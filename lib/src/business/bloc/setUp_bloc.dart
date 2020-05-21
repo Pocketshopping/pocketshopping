@@ -152,6 +152,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         isBranch: false,
         uid: user.uid,
         bGeopint: GeoPoint(state.position.latitude, state.position.longitude),
+        adminUploaded: false,
       );
       await UserRepository().upDateUserRole('admin', user);
       yield BusinessState.success();

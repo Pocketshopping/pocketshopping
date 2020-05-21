@@ -213,8 +213,7 @@ class _GeoFenceState extends State<GeoFence> {
           return Scaffold(
             appBar: PreferredSize(
               preferredSize: Size.fromHeight(
-                  MediaQuery.of(context).size.height *
-                      0.3), // here the desired height
+                  MediaQuery.of(context).size.height * 0.25), // here the desired height
               child: AppBar(
                 elevation: 0.0,
                 centerTitle: true,
@@ -236,15 +235,15 @@ class _GeoFenceState extends State<GeoFence> {
                   ),
                 ],
                 bottom: PreferredSize(
-                    preferredSize: Size.fromHeight(
-                        MediaQuery.of(context).size.height * 0.25),
+                    preferredSize: Size.zero,
                     child: Container(
                         padding: EdgeInsets.only(left: 10, right: 10),
                         //margin: EdgeInsets.only(bottom: 20),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Container(
-                              height: height * 0.18,
+                              height: height * 0.17,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: List<Widget>.generate(
@@ -259,7 +258,7 @@ class _GeoFenceState extends State<GeoFence> {
                                             FlatButton(
                                               child: CircleAvatar(
                                                 radius: 30,
-                                                backgroundColor: Colors.white,
+                                                backgroundColor: Colors.grey,
                                                 backgroundImage: NetworkImage(
                                                     state.categories[index]
                                                         .categoryURI),
@@ -320,7 +319,7 @@ class _GeoFenceState extends State<GeoFence> {
                     SliverList(
                         delegate: SliverChildListDelegate([
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Center(
                         child: JumpingDotsProgressIndicator(
@@ -388,10 +387,12 @@ class _GeoFenceState extends State<GeoFence> {
                               ),
                             ),
                           ])),
+
                   if (state.nearByMerchants.length > 9)
                     SliverList(
                         delegate: SliverChildListDelegate(
                       [
+                        if (!state.isLoading)
                         Container(
                           color: Color.fromRGBO(246, 246, 250, 1),
                           //height: MediaQuery.of(context).size.height*0.2,

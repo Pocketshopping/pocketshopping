@@ -88,53 +88,59 @@ class _AdminScreenState extends State<AdminScreen> {
       onMessage: (Map<String, dynamic> message) async {
         var data = Map<String, dynamic>.from(message);
         var payload = jsonDecode(data['data']['payload']);
-        print("onMessage: $message");
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
+        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
         //GetBar(title: 'tdsd',messageText: Text('sdsd'),
         // duration: Duration(seconds: 5),
         // ).show();
         //print(payload['Items'].first['productName']);
-        switch (payload['NotificationType']) {
-          case 'OrderRequest':
-            if (!Get.isDialogOpen)
-              Get.dialog(PingWidget(
-                ndata: notification.data,
-                uid: CurrentUser.uid,
-              ));
-            break;
-          case 'OrderResolutionResponse':
-            print('OrderResolutionResponse');
-            if (!Get.isDialogOpen)
-              Get.dialog(PingWidget(
-                ndata: notification.data,
-                uid: CurrentUser.uid,
-              ));
-            //Get.dialog(Resolution(payload: payload,));
-            break;
-        }
+        processNotification(payload,notification);
+
       },
       onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
       onLaunch: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
-        print("onLaunch: ${message['data']}");
+        var data = Map<String, dynamic>.from(message);
+        var payload = jsonDecode(data['data']['payload']);
         final notification = LocalNotification(
             "notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
-        // TODO optional
+        processNotification(payload,notification);
+
       },
       onResume: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
-        print("onResume: $message");
+        var data = Map<String, dynamic>.from(message);
+        var payload = jsonDecode(data['data']['payload']);
         final notification = LocalNotification(
             "notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
-        // TODO optional
+        processNotification(payload,notification);
       },
     );
 
     super.initState();
+  }
+
+  processNotification(dynamic payload,dynamic notification){
+    switch (payload['NotificationType']) {
+      case 'OrderRequest':
+        if (!Get.isDialogOpen)
+          Get.dialog(PingWidget(
+            ndata: notification.data,
+            uid: CurrentUser.uid,
+          ));
+        break;
+      case 'OrderResolutionResponse':
+        print('OrderResolutionResponse');
+        if (!Get.isDialogOpen)
+          Get.dialog(PingWidget(
+            ndata: notification.data,
+            uid: CurrentUser.uid,
+          ));
+        //Get.dialog(Resolution(payload: payload,));
+        break;
+    }
   }
 
   static Future<dynamic> BackgroundMessageHandler(

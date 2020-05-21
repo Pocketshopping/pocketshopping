@@ -35,6 +35,7 @@ class MerchantRepo {
     String bStatus,
     String bCountry,
     String bBranchUnique,
+    bool adminUploaded
   }) async {
     DocumentReference bid;
     GeoFirePoint merchantLocation =
@@ -61,6 +62,7 @@ class MerchantRepo {
       'businessCountry': bCountry,
       'branchUnique': bBranchUnique,
       'businessCreatedAt': DateTime.now(),
+      'adminUploaded':adminUploaded,
       'index': makeIndexList(bName)
     });
     await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);

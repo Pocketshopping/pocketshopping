@@ -28,6 +28,7 @@ class MerchantEntity extends Equatable {
   final String bStatus;
   final Timestamp bCreatedAt;
   final String bCountry;
+  final bool adminUploaded;
 
   const MerchantEntity(
       this.bName,
@@ -51,7 +52,8 @@ class MerchantEntity extends Equatable {
       this.bGeoPoint,
       this.bIsBranch,
       this.bOpen,
-      this.bUnique);
+      this.bUnique,
+      this.adminUploaded);
 
   Map<String, Object> toJson() {
     return {
@@ -77,6 +79,7 @@ class MerchantEntity extends Equatable {
       'bStatus': bStatus,
       'bCreatedAt': bCreatedAt,
       'bCountry': bCountry,
+      'adminUploaded':adminUploaded
     };
   }
 
@@ -103,34 +106,13 @@ class MerchantEntity extends Equatable {
         bGeoPoint,
         bIsBranch,
         bOpen,
-        bUnique
+        bUnique,
+        adminUploaded
       ];
 
   @override
   String toString() {
-    return '''MerchantEntity {
-        bName:$bName ,
-  bEmail:$bEmail ,
-  bTelephone:$bTelephone ,
-  bTelephone2:$bTelephone2 ,
-  bUnique:$bUnique ,
-  bAddress:$bAddress ,
-  bSocial:$bSocial ,
-  bDelivery:$bDelivery ,
-  bCategory:$bCategory ,
-  bDescription:$bDescription ,
-  bGeoPoint:$bGeoPoint ,
-  bID:$bID ,
-  mID:$mID ,
-  bClose:$bClose ,
-  bOpen:$bOpen ,
-  bCreator:$bCreator ,
-  bParent:$bParent ,
-  bIsBranch:$bIsBranch ,
-  bPhoto:$bPhoto ,
-  bStatus:$bStatus ,
-  bCreatedAt:$bCreatedAt ,
-  bCountry:$bCountry}''';
+    return '''Instance of MerchantEntity''';
   }
 
   static MerchantEntity fromJson(Map<String, Object> json) {
@@ -157,6 +139,7 @@ class MerchantEntity extends Equatable {
       json['bIsBranch'] as bool,
       json['bOpen'] as String,
       json['bUnique'] as String,
+      json['adminUploaded'] as bool
     );
   }
 
@@ -185,6 +168,7 @@ class MerchantEntity extends Equatable {
       snap.data['isBranch'],
       snap.data['businessOpenTime'],
       snap.data['branchUnique'],
+      snap.data['adminUploaded']??false,
     );
   }
 
@@ -212,6 +196,7 @@ class MerchantEntity extends Equatable {
       'bStatus': bStatus,
       'bCreatedAt': bCreatedAt,
       'bCountry': bCountry,
+      'adminUploaded':adminUploaded
     };
   }
 }

@@ -50,13 +50,13 @@ class _CreditCardFormState extends State<CreditCardForm> {
   CreditCardModel creditCardModel;
 
   final MaskedTextController _cardNumberController =
-      MaskedTextController(mask: '0000 0000 0000 0000');
+      MaskedTextController(mask: '0000 0000 0000 0000 000');
   final TextEditingController _expiryDateController =
       MaskedTextController(mask: '00/00');
   final TextEditingController _cardHolderNameController =
       TextEditingController();
   final TextEditingController _cvvCodeController =
-      MaskedTextController(mask: '0000');
+      MaskedTextController(mask: '000');
 
   FocusNode cvvFocusNode = FocusNode();
 
@@ -150,9 +150,6 @@ class _CreditCardFormState extends State<CreditCardForm> {
                                 if (value.isEmpty) {
                                   return 'Card Number can not be empty';
                                 }
-                                else if (value.length<19) {
-                                  return 'Invalid Card Number';
-                                }
                                 return null;
                               },
                 cursorColor: widget.cursorColor ?? themeColor,
@@ -204,9 +201,6 @@ class _CreditCardFormState extends State<CreditCardForm> {
                                 if (value.isEmpty) {
                                   return 'CVV can not be empty';
                                 }
-                                else if (value.length<3) {
-                                  return 'Invalid CVV';
-                                }
                                 return null;
                               },
                 focusNode: cvvFocusNode,
@@ -218,7 +212,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'CVV',
-                  hintText: 'XXXX',
+                  hintText: 'XXX',
                 ),
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,

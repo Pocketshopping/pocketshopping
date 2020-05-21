@@ -80,16 +80,16 @@ exports.PickupETA = functions.https.onCall((data, context) => {
 });
 
 exports.ETA = functions.https.onCall((data, context) => {
-  var distance =data['distance'];
-  var type =data['type']; 
-  var ttc = data['ttc'];
-  var server = data['server'];
-  var top = data['top'];
-  var eta=0.0;
+  var distance =data['distance']; //current distance between user and merchant
+  var type =data['type']; //type of order
+  var ttc = data['ttc']; // total time of customer left
+  var server = data['server']; // number of servers in a store
+  var top = data['top']; // time of operation
+  var eta=0.0; // expected time of delivery
   if(type == 'Delivery')
     eta = (distance/8.33333)+960;
   else if(type == 'Pickup') 
-    eta = top;
+    eta = top*1.0;
   else
     eta = (ttc/server)+top;   
 
@@ -102,7 +102,7 @@ exports.DeliveryCut = functions.https.onCall((data, context) => {
   var y2 = 100;
   var c = 300;
   var cut=0;
-  if(distance < 3000)
+  if(distance < 2000)
     cut = 300;
   else if(distance<500)
     cut = Math.round((((distance/1000) - 3)*y1+c));

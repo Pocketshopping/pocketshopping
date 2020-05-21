@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:random_string/random_string.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -50,7 +50,6 @@ class _PingWidgetState extends State<PingWidget> {
             if (mounted) setState(() {});
           }
         }
-
         NotificationsBloc.instance.clearNotification();
       }
     });
@@ -295,6 +294,7 @@ class _CardWidgetState extends State<CardWidget> {
               ),
               onPressed: () async {
                 await Respond(true, '', payload['fcmToken']);
+                if(mounted)
                 setState(() {
                   _start = 1;
                   expired = false;
@@ -631,20 +631,41 @@ class NearByAgent extends StatefulWidget {
 class _NearByAgentState extends State<NearByAgent> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final _formKey = GlobalKey<FormState>();
+  Stream<LocalNotification> _notificationsStream;
   int _start;
   Timer _timer;
   String reason;
   bool autoval;
   bool expired;
+  bool clear;
 
   @override
   void initState() {
+    clear =false;
     expired = true;
-    _start = Utility.setStartCount(
-        Timestamp(widget.payload['time'][0], widget.payload['time'][1]), 60);
+    _start = Utility.setStartCount(Timestamp(widget.payload['time'][0], widget.payload['time'][1]), 58);
     startTimer();
     reason = 'Select';
     autoval = false;
+    _notificationsStream = NotificationsBloc.instance.notificationsStream;
+    _notificationsStream.listen((notification) {
+      if (notification != null) {
+        var payload = (jsonDecode(notification.data['data']['payload']) as Map<String, dynamic>);
+        if (payload['NotificationType'] == 'AgentClearRequest') {
+          print('old otp${widget.payload['otp']}') ;
+          print('new otp${payload['otp']}') ;
+          if (mounted)
+              setState(() {
+                if(payload['otp'] == widget.payload['otp'])
+                  {
+                    clear=true;
+                    _start = 5;
+                  }
+              });
+          }
+        NotificationsBloc.instance.clearNotification();
+      }
+    });
     super.initState();
   }
 
@@ -677,7 +698,7 @@ class _NearByAgentState extends State<NearByAgent> {
                   widget.monitor();
                   if (expired)
                     Respond(false, reason, widget.payload['fcmToken'],
-                            widget.payload['agentCount'])
+                            widget.payload['agentCount'],'')
                         .then((value) => null);
                   timer.cancel();
                 } else {
@@ -693,7 +714,7 @@ class _NearByAgentState extends State<NearByAgent> {
   Widget DeliveryConfirm(Map<String, dynamic> payload) {
     //print(payload['data']['payload']['deliveryFee']);
     return Padding(
-      child: Column(
+      child: !clear?Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
@@ -796,7 +817,7 @@ class _NearByAgentState extends State<NearByAgent> {
               onChanged: (value) async {
                 if (value != 'Select') {
                   await Respond(false, reason, payload['fcmToken'],
-                      payload['agentCount']);
+                      payload['agentCount'],'');
                   setState(() {
                     _start = 1;
                   });
@@ -821,7 +842,7 @@ class _NearByAgentState extends State<NearByAgent> {
               onPressed: () async {
                 if (_formKey.currentState.validate()) {
                   await Respond(false, reason, payload['fcmToken'],
-                      payload['agentCount']);
+                      payload['agentCount'],'');
                   setState(() {
                     _start = 1;
                     expired = false;
@@ -845,25 +866,28 @@ class _NearByAgentState extends State<NearByAgent> {
                 ),
               ),
               onPressed: () async {
-                await Respond(
-                    true, '', payload['fcmToken'], payload['agentCount']);
                 setState(() {
                   _start = 1;
                   expired = false;
                 });
+                String token = await _fcm.getToken();
+                List<String> data = List.castFrom(payload['agents']);
+                data.remove(token);
+                await Respond(true, '', payload['fcmToken'], payload['agentCount'],payload['otp']);
+                await FastestFinger(data,payload['otp']);
                 //NotificationsBloc.instance.clearNotification();
                 //Get.back();
               },
             ),
           ])
         ],
-      ),
+      ):Center(child: Text('Request has been accepted by other agent. Please stay put for new request'),),
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
     );
   }
 
   Future<void> Respond(
-      bool yesNo, String response, String fcm, int agentCount) async {
+      bool yesNo, String response, String fcm, int agentCount,String otp) async {
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
         sound: true,
@@ -878,6 +902,12 @@ class _NearByAgentState extends State<NearByAgent> {
           'Authorization': 'key=$serverToken'
         },
         body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': yesNo
+                ? 'Your order has been confirmed proceed with payment'
+                : 'Your order has been decline. ($response)',
+            'title': 'Order Confirmed'
+          },
           'priority': 'high',
           'data': <String, dynamic>{
             'click_action': 'FLUTTER_NOTIFICATION_CLICK',
@@ -889,9 +919,45 @@ class _NearByAgentState extends State<NearByAgent> {
               'Reason': response,
               'acceptedBy': widget.uid,
               'agentCount': agentCount,
+              'otp':yesNo?otp:randomAlphaNumeric(10),
+
             }
           },
           'to': fcm,
+        }));
+  }
+
+  Future<void> FastestFinger(List<String> others,String otp) async {
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+        sound: true,
+        badge: true,
+        alert: true,
+        provisional: false,
+      ),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Sorry someone else has claimed this delivery request. Stay put for another request',
+            'title': 'Request Lost'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'AgentClearRequest',
+              'clear': true,
+              'otp':otp,
+            }
+          },
+          'registration_ids': others,
         }));
   }
 }

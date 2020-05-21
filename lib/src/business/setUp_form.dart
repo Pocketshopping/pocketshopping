@@ -512,7 +512,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         )
                                       ],
                                     )),
-                                if (state.category != 'Logistic')
+                                if (state.category != 'Logistic' && false)
                                   Container(
                                     decoration: BoxDecoration(
                                       border: Border(

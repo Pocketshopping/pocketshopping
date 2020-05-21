@@ -13,13 +13,16 @@ class TimerWidget extends StatefulWidget {
       this.message = '',
       this.onFinish,
       this.onAgent,
-      this.onMerchant});
+      this.onMerchant,
+      this.mode
+      });
 
   final int seconds;
   final Function onFinish;
   final Function onAgent;
   final Function onMerchant;
   final String message;
+  final String mode;
 
   @override
   State<StatefulWidget> createState() => _TimerState();
@@ -212,34 +215,41 @@ class _TimerState extends State<TimerWidget> {
                         }
 
                         if (aResponded != null) {
-                          if (aResponded) {
-                            widget.onMerchant();
-                            aResponded = null;
-                          } else {
+                          if (aResponded)
+                            {
+                              _start = 1;
+                              widget.onFinish(acceptedBy);
+                            }
+                          else {
                             querying = false;
                             _start = 1;
                           }
                         }
                       } else {
-                        if (_start == 119) {
-                          if (widget.onAgent != null)
+                        if (_start == 58) {
+                          if (widget.mode == 'Delivery')
                             widget.onAgent();
-                          else
+                          else if(widget.mode == 'Pickup')
                             widget.onMerchant();
                         }
                         if (mResponded != null) {
                           if (mResponded)
-                            widget.onFinish(acceptedBy);
+                            {
+                              _start = 1;
+                              widget.onFinish(acceptedBy);
+                            }
                           else {
                             querying = false;
                             _start = 1;
                           }
                         }
                         if (aResponded != null) {
-                          if (aResponded) {
-                            widget.onMerchant();
-                            aResponded = null;
-                          } else {
+                          if (aResponded)
+                            {
+                              _start = 1;
+                              widget.onFinish(acceptedBy);
+                            }
+                          else {
                             querying = false;
                             _start = 1;
                           }

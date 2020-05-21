@@ -33,11 +33,14 @@ import 'package:pocketshopping/src/order/tracker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:random_string/random_string.dart';
+import 'package:pocketshopping/src/payment/atmCard.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
 
 class OrderUI extends StatefulWidget {
   final Merchant merchant;
@@ -60,8 +63,11 @@ class OrderUI extends StatefulWidget {
 }
 
 class _OrderUIState extends State<OrderUI> {
+  //methodchannel
   static const platform = const MethodChannel('fleepage.pocketshopping');
+  //firebase messaging instance
   final FirebaseMessaging _fcm = FirebaseMessaging();
+
   int OrderCount;
   String stage;
   bool homeDelivery;
@@ -82,11 +88,6 @@ class _OrderUIState extends State<OrderUI> {
   bool table;
   bool paydone;
   double screenHeight;
-  String cardNumber;
-  String expiryDate;
-  String cardHolderName;
-  String cvvCode;
-  bool isCvvFocused;
   bool scrollable;
   double formHeight;
   int _start = 5;
@@ -95,28 +96,27 @@ class _OrderUIState extends State<OrderUI> {
   Stream<LocalNotification> _notificationsStream;
   double dETA;
   int dCut;
-  String eta;
+  //String eta;
   OrderGlobalState odState;
   Channels channel;
   Stream<Wallet> _walletStream;
   Wallet _wallet;
   String type;
+  bool emptyAgent;
+  String payerror;
 
   @override
   void initState() {
+    payerror = "";
+    emptyAgent  = false;
     type = 'MotorBike';
     odState = Get.put(OrderGlobalState());
-    eta = '';
+    //eta = '';
     dCut = 0;
     dETA = 0.0;
     order = Order(orderMerchant: widget.merchant.mID);
     formHeight = 0.0;
     scrollable = true;
-    cardNumber = '';
-    expiryDate = '';
-    cardHolderName = '';
-    cvvCode = '';
-    isCvvFocused = false;
     contact = false;
     mobile = false;
     deliveryAddress = '';
@@ -208,57 +208,15 @@ class _OrderUIState extends State<OrderUI> {
       scrollable = false;
       screenHeight = 1;
     });
-    return Container(
-        height: MediaQuery.of(context).size.height,
-        child: Column(children: <Widget>[
-          //
-          Container(
-              height: MediaQuery.of(context).size.height * 0.3,
-              child: Column(
-                children: <Widget>[
-                  //SizedBox(height: MediaQuery.of(context).size.height*0.1,),
-                  CreditCardWidget(
-                    cardBgColor: PRIMARYCOLOR,
-                    cardNumber: cardNumber,
-                    expiryDate: expiryDate,
-                    cardHolderName: cardHolderName,
-                    cvvCode: cvvCode,
-                    showBackView: isCvvFocused,
-                  )
-                ],
-              )),
-          Container(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: ListView(
-              children: <Widget>[
-                CreditCardForm(
-                  themeColor: PRIMARYCOLOR,
-                  onCreditCardModelChange: onCreditCardModelChange,
-                  formAction: () {
-                    setState(() {
-                      stage = "PAY";
-                    });
-                    ProcessPay('CARD');
-                  },
-                  fieldListner: () {
-                    setState(() {
-                      formHeight = 0.5;
-                    });
-                  },
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Image.asset('assets/images/paystack.png',
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    height: MediaQuery.of(context).size.height * 0.1),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * formHeight,
-                ),
-              ],
-            ),
-          ),
-        ]));
+    return ATMCard(
+      onPressed:(Map<String,dynamic> details) {
+        //print(details[0]);
+        setState(() {
+          stage = "PAY";
+        });
+        ProcessPay('CARD',details);
+      }
+    );
   }
 
   int deliveryCut(double distance) {
@@ -285,13 +243,8 @@ class _OrderUIState extends State<OrderUI> {
       return (((distance/1000) - 3)*y2+c).round();*/
   }
 
-  double deliveryETA(
-      double distance, String type, double ttc, int server, double top) {
-    //print('${distance}');
-    /*double eta=0.0;
-    eta = (distance/8.33333)+960;
-
-    return eta;*/
+  double deliveryETA(double distance, String type, double ttc, int server, double top) {
+    //print('${distance}');/*double eta=0.0;eta = (distance/8.33333)+960;return eta;*/
     CloudFunctions.instance
         .getHttpsCallable(
       functionName: "ETA",
@@ -309,9 +262,8 @@ class _OrderUIState extends State<OrderUI> {
                 {
                   if (mounted)
                     setState(() {
-                      dETA = 12.12; //(value.data as double).toDouble();
-                      eta =
-                          '0'; //etaDisplay((value.data as double)).toString();
+                      dETA = value.data * 1.0; //(value.data as double).toDouble();
+                      //eta = '0'; //etaDisplay((value.data as double)).toString();
                     })
                 }
             // value.data
@@ -442,7 +394,7 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('~$eta minute'),
+                      child: Text('~ ${((dETA/60).round())+1} minute'),
                     ),
                   )
                 ],
@@ -618,21 +570,7 @@ class _OrderUIState extends State<OrderUI> {
     return minute + 1;
   }
 
-  Future<http.Response> fetchPaymentDetail(String ref) async {
-    final response = await http.get(
-      'https://api.paystack.co/transaction/verify/$ref',
-      headers: {
-        "Accept": "application/json",
-        "Authorization":
-            "Bearer sk_test_8c0cf47e2e690e41c984c7caca0966e763121968"
-      },
-    );
-    if (response.statusCode == 200) {
-      return response;
-    } else {
-      return null;
-    }
-  }
+
 
   inHouseETA(double distance) {}
 
@@ -697,23 +635,13 @@ class _OrderUIState extends State<OrderUI> {
     }
   }
 
-  void onCreditCardModelChange(CreditCardModel creditCardModel) {
-    setState(() {
-      cardNumber = creditCardModel.cardNumber;
-      expiryDate = creditCardModel.expiryDate;
-      cardHolderName = creditCardModel.cardHolderName;
-      cvvCode = creditCardModel.cvvCode;
-      isCvvFocused = creditCardModel.isCvvFocused;
-    });
-  }
-
   Widget orderRequest() {
     return Container(
       child: Column(
         children: <Widget>[
           Center(
             child: TimerWidget(
-              seconds: 120,
+              seconds: (mode == 'Delivery')||(mode == 'Pickup')?60:15,
               onFinish: (String accepted) {
                 if (mode == 'Delivery')
                   order = order.update(
@@ -725,21 +653,17 @@ class _OrderUIState extends State<OrderUI> {
                         acceptedBy: accepted,
                         fee: dCut,
                       ),
-                      orderETA: dETA.round());
-                order = order.update(
-                  orderConfirmation: Confirmation(
-                    isConfirmed: false,
-                    confirmOTP: randomAlphaNumeric(6),
-                  ),
-                );
+                      orderETA: dETA.round(),
+                    orderConfirmation: Confirmation(
+                      isConfirmed: false,
+                      confirmOTP: randomAlphaNumeric(6),
+                    ),);
                 stage = 'CHECKOUT';
                 setState(() {});
               },
-              onAgent: mode == 'Delivery' &&
-                      widget.merchant.bDelivery == 'Yes, Use pocketLogistics'
-                  ? nearByAgent
-                  : null,
-              onMerchant: queryMerchant,
+              onAgent: mode == 'Delivery'? nearByAgent : null,
+              onMerchant: mode == 'Pickup'?queryMerchant:null,
+              mode: mode,
             ),
           )
         ],
@@ -818,12 +742,16 @@ class _OrderUIState extends State<OrderUI> {
             Center(
               child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    'Error processing payment. ensure you are entering the correct details',
-                    style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.025),
-                    textAlign: TextAlign.center,
-                  )),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                    child: Text(
+                      '$payerror',
+                      style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.height * 0.025),
+                      textAlign: TextAlign.center,
+                    )
+                  )
+              ),
             ),
             Center(
               child: FlatButton(
@@ -853,14 +781,29 @@ class _OrderUIState extends State<OrderUI> {
     return eta;
   }
 
-  ProcessPay(dynamic method) async {
+  ProcessPay(String method,Map<String,dynamic> details ) async {
     setState(() {
       screenHeight = 1;
     });
-    String reference = '';
-    reference = await platform.invokeMethod('CardPay');
+    Map<String,String> reference;
+    details['email']=widget.user.email;
+    var temp = details['expiry'].toString().split('/');
+    switch(method){
+      case 'CARD':
+        reference =Map.from(
+        await platform.invokeMethod('CardPay',
+            Map.from({
+              "card":(details['card'] as String),
+              "cvv":(details['cvv'] as String),
+              "month":int.parse(temp[0]),
+              "year":int.parse(temp[1]),
+              "amount":mode == 'Delivery'?((dCut + order.orderAmount).round()):order.orderAmount,
+              "email":(details['email'] as String),
+
+            }))
+    );
     if (reference.isNotEmpty) {
-      var details = await fetchPaymentDetail(reference);
+      var details = await Utility.fetchPaymentDetail(reference['reference']);
       //print(json.decode(details.body));
       //await Future.delayed(Duration(seconds: 5),(){
       if (details != null) {
@@ -869,13 +812,14 @@ class _OrderUIState extends State<OrderUI> {
           stage = 'UPLOADING';
           paydone = false;
           order = order.update(
-            receipt: Receipt(reference: reference, PsStatus: 'PENDING'),
+            receipt: Receipt(reference: reference['reference'], PsStatus: 'SUCCESS',type: method),
             orderCreatedAt: Timestamp.now(),
             status: 'PROCESSING',
             orderID: '',
             docID: '',
           );
         });
+        
         OrderRepo.save(order).then((value) => setState(() {
               startTimer();
               order = order.update(docID: value);
@@ -883,10 +827,11 @@ class _OrderUIState extends State<OrderUI> {
             }));
       } else {
         print('Important!!! $reference');
-        if (reference == 'ERROR') {
+        if (reference['error'].toString().isNotEmpty) {
           setState(() {
             screenHeight = 0.8;
             stage = 'ERROR';
+            payerror = reference['error'].toString();
           });
         } else {
           setState(() {
@@ -905,6 +850,48 @@ class _OrderUIState extends State<OrderUI> {
         //startTimer();
       });
     }
+        break;
+      case 'CASH':
+        setState(() {
+          screenHeight = 0.8;
+          stage = 'UPLOADING';
+          paydone = false;
+          order = order.update(
+            receipt: Receipt(reference: '', PsStatus: 'PENDING',type: method),
+            orderCreatedAt: Timestamp.now(),
+            status: 'PROCESSING',
+            orderID: '',
+            docID: '',
+          );
+        });
+        OrderRepo.save(order).then((value) => setState(() {
+          startTimer();
+          order = order.update(docID: value);
+          paydone = true;
+        }));
+        break;
+      case 'POCKET':
+        setState(() {
+          screenHeight = 0.8;
+          stage = 'UPLOADING';
+          paydone = false;
+          order = order.update(
+            receipt: Receipt(reference: '', PsStatus: 'PENDING',type: method),
+            orderCreatedAt: Timestamp.now(),
+            status: 'PROCESSING',
+            orderID: '',
+            docID: '',
+          );
+        });
+        OrderRepo.save(order).then((value) => setState(() {
+          startTimer();
+          order = order.update(docID: value);
+          paydone = true;
+        }));
+        break;
+
+    }
+
 
     //});
   }
@@ -914,9 +901,9 @@ class _OrderUIState extends State<OrderUI> {
             Position(
                 latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
                 longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
-            'MotorBike')
+            type)
         .then((value) {
-      print('agent around: $value');
+      //print('agent around: $value');
       queryAgent(value);
     });
   }
@@ -966,6 +953,8 @@ class _OrderUIState extends State<OrderUI> {
               'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
               'fcmToken': widget.user.notificationID,
               'agentCount': nAgent.length,
+              'otp':randomAlphaNumeric(10),
+              'agents':nAgent
             }
           },
           'registration_ids': nAgent,
@@ -1055,7 +1044,7 @@ class _OrderUIState extends State<OrderUI> {
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 margin: EdgeInsets.only(bottom: 20),
                 child: Text(
-                  'Your order has been confirmed by ${widget.merchant.bName} proceed with payment to complete order',
+                  'Your order has been confirmed. Proceed with payment to complete order',
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.height * 0.025,
                   ),
@@ -1066,35 +1055,57 @@ class _OrderUIState extends State<OrderUI> {
                 margin: EdgeInsets.only(bottom: 20),
                 child: Text(
                   'Pay With',
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.03),
-                ),
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),),
               ),
               ListTile(
                 onTap: () async {
                   if (_wallet.pocketBalance > order.orderAmount) {
-                    setState(() {
-                      stage = 'PAY';
-                    });
+                    Get.defaultDialog(
+                        title: 'Confirmation',
+                        content: Text(
+                            'The agent account will be credited the moment you confirm the order'),
+                        cancel: FlatButton(
+                          onPressed: () {
+
+                            Get.back();
+
+
+                          },
+                          child: Text('Cancel'),
+                        ),
+                        confirm: FlatButton(
+                          onPressed: ()async {
+                            Get.back();
+                            setState(() {
+                              stage = 'PAY';
+                            });
+                            await ProcessPay('POCKET',{});
+                          },
+                          child: Text('Ok'),
+                        )
+                    );
                   }
-                  Get.defaultDialog(
-                      title: 'Confirmation',
-                      content: Text('Do you want to TopUp your Pocket'),
-                      cancel: FlatButton(
-                        onPressed: () {
-                          Get.back();
-                        },
-                        child: Text('No'),
-                      ),
-                      confirm: FlatButton(
-                        onPressed: () {
-                          Get.back();
-                          setState(() {
-                            stage = 'PAY';
-                          });
-                        },
-                        child: Text('Yes'),
-                      ));
+                  else{
+                    Get.defaultDialog(
+                        title: 'TopUp',
+                        content: Text('Do you want to TopUp your Pocket'),
+                        cancel: FlatButton(
+                          onPressed: () {
+                            Get.back();
+                          },
+                          child: Text('No'),
+                        ),
+                        confirm: FlatButton(
+                          onPressed: () {
+                            Get.back();
+                            Get.dialog(TopUp(user: widget.user,));
+                            //setState(() {
+                            // stage = 'PAY';
+                            // });
+                          },
+                          child: Text('Yes'),
+                        ));
+                  }
                 },
                 leading: CircleAvatar(
                   child: Image.asset('assets/images/blogo.png'),
@@ -1104,13 +1115,13 @@ class _OrderUIState extends State<OrderUI> {
                 title: Text(
                   'Pocketshopping',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.03),
+                      fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
                 subtitle: Column(
                   children: <Widget>[
                     _wallet.pocketBalance > order.orderAmount
                         ? Text(
-                            'Choose this if you want your order delivered to you.')
+                            'Choose this if you want to pay with pocket.')
                         : Text('Insufficient Fund. Tap to Topup'),
                   ],
                 ),
@@ -1158,7 +1169,7 @@ class _OrderUIState extends State<OrderUI> {
                 title: Text(
                   'ATM Card',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.03),
+                      fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
                 subtitle: Text('Choose this if you want to pay with ATM Card.'),
                 trailing: IconButton(
@@ -1178,22 +1189,27 @@ class _OrderUIState extends State<OrderUI> {
                   Get.defaultDialog(
                       title: 'Confirmation',
                       content: Text(
-                          'Do not hand cash over, without getting your order/purchase delivered pocketshopping will not be held responsible in situation like this, this method of payment is not recommended'),
+                          'Do not hand cash over, without getting your order/purchase delivered pocketshopping will not be held responsible in situation like that.'),
                       cancel: FlatButton(
                         onPressed: () {
+
                           Get.back();
+
+
                         },
-                        child: Text('No'),
+                        child: Text('Cancel'),
                       ),
                       confirm: FlatButton(
-                        onPressed: () {
+                        onPressed: ()async {
                           Get.back();
                           setState(() {
                             stage = 'PAY';
                           });
+                          await ProcessPay('CASH',{});
                         },
-                        child: Text('Yes Pay'),
-                      ));
+                        child: Text('Ok'),
+                      )
+                  );
                 },
                 leading: CircleAvatar(
                   child: Image.asset('assets/images/cash.png'),
@@ -1202,8 +1218,7 @@ class _OrderUIState extends State<OrderUI> {
                 ),
                 title: Text(
                   mode == 'Delivery' ? 'pay on Delivery (Cash only)' : 'Cash',
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.03),
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
                 subtitle: Text(mode == 'Delivery'
                     ? 'Choose this if you want to pay on delivery. (Cash only)'
@@ -1703,7 +1718,7 @@ class _OrderUIState extends State<OrderUI> {
                       setState(() {});
                     },
                     child: Text(
-                      'Checkout ( ${order.orderAmount} )',
+                      'Checkout ( \u20A6 ${order.orderAmount} )',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -1715,13 +1730,9 @@ class _OrderUIState extends State<OrderUI> {
   }
 
   Widget stageTwo() {
-    //print(order.orderItem.first.totalAmount);
-
-    setState(() {
-      screenHeight = 0.8;
-    });
-    //
-
+    //setState(() {
+      //screenHeight = 0.8;
+    //});
     return Container(
       child: Column(
         children: <Widget>[
@@ -1743,7 +1754,7 @@ class _OrderUIState extends State<OrderUI> {
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: IconButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                   Get.back();
                   },
                   icon: Icon(Icons.close),
                 ),
@@ -1768,38 +1779,33 @@ class _OrderUIState extends State<OrderUI> {
                       height: 2,
                       color: Colors.grey,
                     ),
-                    widget.merchant.bDelivery != 'No'
-                        ? ListTile(
+                    ListTile(
                             onTap: () {
                               _address.text = deliveryAddress;
                               _contact.text = widget.user.telephone;
-                              homeDelivery = homeDelivery ? false : true;
+
+                              if (homeDelivery){
+                                  screenHeight = 0.8;
+                                  homeDelivery = false;
+                              }else{
+                                screenHeight = 1;
+                                homeDelivery = true;
+                              }
+
                               if (mounted) setState(() {});
-                              deliveryETA(
-                                  dist != null ? dist : widget.distance * 1000,
-                                  'Delivery',
-                                  0.0,
-                                  0,
-                                  0.0);
-                              deliveryCut(
-                                  dist != null ? dist : widget.distance * 1000);
+                              deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
+                              deliveryCut(dist != null ? dist : widget.distance * 1000);
                             },
                             leading: CircleAvatar(
-                              child:
-                                  Image.asset('assets/images/delivery-man.jpg'),
+                              child: Image.asset('assets/images/delivery-man.jpg'),
                               radius: 30,
                               backgroundColor: Colors.white,
                             ),
-                            title: Text(
-                              'Delivery',
-                              style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height *
-                                      0.03),
+                            title: Text('Delivery', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),
                             ),
                             subtitle: Column(
                               children: <Widget>[
-                                Text(
-                                    'Choose this if you want your order delivered to you.'),
+                                Text('Choose this if you want your order delivered to you.'),
                                 homeDelivery
                                     ? true
                                         ? Form(
@@ -1823,8 +1829,7 @@ class _OrderUIState extends State<OrderUI> {
                                                   decoration: InputDecoration(
                                                     prefixIcon:
                                                         Icon(Icons.call),
-                                                    labelText:
-                                                        'Contact Telephone',
+                                                    labelText: 'Contact Telephone',
                                                     filled: true,
                                                     fillColor: Colors.grey
                                                         .withOpacity(0.2),
@@ -1835,8 +1840,7 @@ class _OrderUIState extends State<OrderUI> {
                                                               .withOpacity(
                                                                   0.3)),
                                                     ),
-                                                    enabledBorder:
-                                                        UnderlineInputBorder(
+                                                    enabledBorder: UnderlineInputBorder(
                                                       borderSide: BorderSide(
                                                           color: Colors.white
                                                               .withOpacity(
@@ -1864,11 +1868,9 @@ class _OrderUIState extends State<OrderUI> {
                                                   decoration: InputDecoration(
                                                     prefixIcon:
                                                         Icon(Icons.place),
-                                                    labelText:
-                                                        'Delivery Address',
+                                                    labelText: 'Delivery Address',
                                                     filled: true,
-                                                    fillColor: Colors.grey
-                                                        .withOpacity(0.2),
+                                                    fillColor: Colors.grey.withOpacity(0.2),
                                                     focusedBorder:
                                                         OutlineInputBorder(
                                                       borderSide: BorderSide(
@@ -1876,8 +1878,7 @@ class _OrderUIState extends State<OrderUI> {
                                                               .withOpacity(
                                                                   0.3)),
                                                     ),
-                                                    enabledBorder:
-                                                        UnderlineInputBorder(
+                                                    enabledBorder: UnderlineInputBorder(
                                                       borderSide: BorderSide(
                                                           color: Colors.white
                                                               .withOpacity(
@@ -1898,12 +1899,7 @@ class _OrderUIState extends State<OrderUI> {
                                                 SizedBox(
                                                   height: 10,
                                                 ),
-                                                if ((widget.merchant
-                                                            .bCategory !=
-                                                        'Restuarant') &&
-                                                    (widget.merchant
-                                                            .bDelivery ==
-                                                        'Yes, Use pocketLogistics'))
+                                                if (widget.merchant.bCategory != 'Restuarant')
                                                   Container(
                                                     color: Colors.grey
                                                         .withOpacity(0.2),
@@ -1925,11 +1921,7 @@ class _OrderUIState extends State<OrderUI> {
                                                         DropdownButtonFormField<
                                                             String>(
                                                           value: type,
-                                                          items: [
-                                                            'MotorBike',
-                                                            'Car',
-                                                            'Van'
-                                                          ]
+                                                          items: ['MotorBike', 'Car', 'Van']
                                                               .map((label) =>
                                                                   DropdownMenuItem(
                                                                     child: Text(
@@ -1951,55 +1943,85 @@ class _OrderUIState extends State<OrderUI> {
                                                                           .none),
                                                           onChanged: (value) {
                                                             type = value;
+                                                            emptyAgent = false;
+                                                            setState(() {});
                                                           },
                                                         )
                                                       ],
                                                     ),
                                                   ),
+                                                SizedBox(height: 10,),
+                                                emptyAgent != null?
+                                                emptyAgent?
+                                                Center(
+                                                  child: Text('Logistic agent is currently unavailable... try again later',textAlign: TextAlign.center,style: TextStyle(color: Colors.red),),
+                                                ):Container():Container(),
+                                                SizedBox(height: 10,),
                                                 FlatButton(
-                                                    onPressed: () {
+                                                    onPressed: ()  {
                                                       if (_formKey.currentState
                                                           .validate()) {
-                                                        stage = 'OVERVIEW';
-                                                        mode = 'Delivery';
-                                                        order = order.update(
-                                                          orderMode: OrderMode(
-                                                            mode: mode,
-                                                            coordinate: GeoPoint(
-                                                                position
-                                                                    .latitude,
-                                                                position
-                                                                    .longitude),
-                                                            address:
-                                                                _address.text,
-                                                          ),
-                                                          orderCustomer:
-                                                              Customer(
-                                                            customerName: widget
-                                                                .user.fname,
-                                                            customerReview: '',
-                                                            customerTelephone:
-                                                                _contact.text,
-                                                          ),
-                                                          customerID:
-                                                              widget.user.uid,
-                                                        );
-                                                        setState(() {});
+                                                        setState(() {emptyAgent=null;});
+                                                        LogisticRepo.getNearByAgent(
+                                                            Position(
+                                                                latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                                                                longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
+                                                            type).then((value) {
+                                                              if(value.isNotEmpty){
+                                                                stage = 'OVERVIEW';
+                                                                mode = 'Delivery';
+                                                                order = order.update(
+                                                                  orderMode: OrderMode(
+                                                                    mode: mode,
+                                                                    coordinate: GeoPoint(
+                                                                        position.latitude,
+                                                                        position.longitude),
+                                                                    address: _address.text,
+                                                                  ),
+                                                                  orderCustomer:
+                                                                  Customer(
+                                                                    customerName: widget
+                                                                        .user.fname,
+                                                                    customerReview: '',
+                                                                    customerTelephone:
+                                                                    _contact.text,
+                                                                  ),
+                                                                  customerID: widget.user.uid,
+                                                                );
+                                                                screenHeight = 0.8;
+                                                                homeDelivery =false;
+                                                                emptyAgent = false;
+                                                              }
+                                                              else{
+                                                                emptyAgent = true;
+                                                              }
+                                                              //print(value);
+                                                              setState(() {});
+                                                        });
+
                                                       }
                                                     },
                                                     child: Container(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
+                                                      padding: EdgeInsets.symmetric(
                                                               vertical: 10,
                                                               horizontal: 15),
+                                                      //width: MediaQuery.of(context).size.width,
                                                       color: PRIMARYCOLOR,
-                                                      child: Text(
-                                                        'Submit',
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
-                                                      ),
-                                                    ))
+                                                      child: Center(
+                                                        child: emptyAgent != null?
+                                                        Text('Submit', style: TextStyle(color: Colors.white),)
+                                                            :
+                                                        JumpingDotsProgressIndicator(
+                                                          fontSize: MediaQuery.of(context)
+                                                              .size
+                                                              .height *
+                                                              0.04,
+                                                          color: Colors.white,
+                                                        ),
+
+                                                      )
+                                                    )
+                                                )
                                               ],
                                             ),
                                           )
@@ -2024,27 +2046,6 @@ class _OrderUIState extends State<OrderUI> {
                                   ? Icon(Icons.arrow_forward_ios)
                                   : Icon(Icons.close),
                             ),
-                          )
-                        : ListTile(
-                            leading: CircleAvatar(
-                              child: Icon(
-                                Icons.close,
-                                color: Colors.red,
-                              ),
-                              radius: 30,
-                              backgroundColor: Colors.white,
-                            ),
-                            title: Text(
-                              'Home delivery',
-                              style: TextStyle(
-                                  fontSize:
-                                      MediaQuery.of(context).size.height * 0.03,
-                                  color: Colors.grey),
-                            ),
-                            subtitle: Text(
-                              'Sorry! we do not offer home delivery service',
-                              style: TextStyle(color: Colors.grey),
-                            ),
                           ),
                     Divider(
                       height: 2,
@@ -2066,7 +2067,7 @@ class _OrderUIState extends State<OrderUI> {
                           customerID: widget.user.uid,
                           orderETA: PickupETA(),
                         );
-                        deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
+                        deliveryETA(0, 'Pickup', 0.0, 0, 120.0);
                         setState(() {});
                       },
                       leading: CircleAvatar(
@@ -2080,11 +2081,13 @@ class _OrderUIState extends State<OrderUI> {
                             fontSize:
                                 MediaQuery.of(context).size.height * 0.03),
                       ),
-                      subtitle:
-                          Text('Choose this if you want to pickup your order.'),
+                      subtitle: !widget.merchant.adminUploaded?Text('Choose this if you want to pickup your order.')
+                          :
+                      Text('service unavailable',style: TextStyle(color: Colors.red),),
                       trailing: IconButton(
                         icon: Icon(Icons.arrow_forward_ios),
                       ),
+                      enabled:!widget.merchant.adminUploaded ,
                     ),
                     Divider(
                       height: 2,
@@ -2092,8 +2095,7 @@ class _OrderUIState extends State<OrderUI> {
                     ),
                   ],
                 )
-              : ['Restuarant', 'Eatry', 'Bar']
-                      .contains(widget.merchant.bCategory)
+              : 'Restuarant' == widget.merchant.bCategory
                   ? Column(
                       children: <Widget>[
                         Container(
@@ -2126,7 +2128,7 @@ class _OrderUIState extends State<OrderUI> {
                               ),
                               customerID: widget.user.uid,
                             );
-                            deliveryETA(0, 'TakeAway', 120.0, 5, 180.0);
+                            deliveryETA(0, 'TakeAway', 120.0, 5, 60.0);
                             setState(() {});
                           },
                           leading: CircleAvatar(
@@ -2140,11 +2142,14 @@ class _OrderUIState extends State<OrderUI> {
                                 fontSize:
                                     MediaQuery.of(context).size.height * 0.03),
                           ),
-                          subtitle: Text(
-                              'Choose this if you do not want to take your order away.'),
+                          subtitle: !widget.merchant.adminUploaded?
+                          Text('Choose this if you do not want to take your order away.')
+                          :
+                          Text('service unavailable',style: TextStyle(color: Colors.red),),
                           trailing: IconButton(
                             icon: Icon(Icons.arrow_forward_ios),
                           ),
+                          enabled: !widget.merchant.adminUploaded,
                         ),
                         Divider(
                           height: 2,
@@ -2165,7 +2170,7 @@ class _OrderUIState extends State<OrderUI> {
                                 ),
                                 customerID: widget.user.uid,
                               );
-                              deliveryETA(0, 'TakeAway', 120.0, 5, 180.0);
+                              deliveryETA(0, 'ServeMe', 120.0, 5, 60.0);
                               setState(() {});
                             }
                           },
@@ -2182,8 +2187,11 @@ class _OrderUIState extends State<OrderUI> {
                           ),
                           subtitle: Column(
                             children: <Widget>[
-                              Text(
-                                  'Choose this if you want to have you order here.'),
+                              !widget.merchant.adminUploaded?
+                              Align(alignment: Alignment.centerLeft,child: Text('Choose this if you want to have you order here.'),)
+                              :
+                              Align(alignment: Alignment.centerLeft,child:Text('service unavailable',style: TextStyle(color: Colors.red),))
+                              ,
                               Form(
                                 key: _tableformKey,
                                 child: TextFormField(
@@ -2223,6 +2231,7 @@ class _OrderUIState extends State<OrderUI> {
                           trailing: IconButton(
                             icon: Icon(Icons.arrow_forward_ios),
                           ),
+                          enabled: !widget.merchant.adminUploaded,
                         ),
                         Divider(
                           height: 2,
@@ -2260,11 +2269,13 @@ class _OrderUIState extends State<OrderUI> {
                             fontSize:
                                 MediaQuery.of(context).size.height * 0.03),
                       ),
-                      subtitle:
-                          Text('Choose this if you want to buy this item.'),
+                      subtitle: !widget.merchant.adminUploaded?Text('Choose this if you want to buy this item.')
+                          :
+                      Text('service unavailable',style: TextStyle(color: Colors.red),),
                       trailing: IconButton(
                         icon: Icon(Icons.arrow_forward_ios),
                       ),
+                    enabled: !widget.merchant.adminUploaded,
                     ),
         ],
       ),

@@ -80,7 +80,10 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'availability': true,
           'agentTelephone': CurrentUser.user.telephone,
           'agentName': CurrentUser.user.fname,
-        });
+        },
+
+
+    );
 
     Utility.locationAccess();
     super.initState();

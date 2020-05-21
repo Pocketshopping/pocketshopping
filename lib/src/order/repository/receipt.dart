@@ -5,24 +5,32 @@ import 'package:meta/meta.dart';
 class Receipt {
   final String PsStatus;
   final String reference;
+  final String type;
+  final String pRef;
 
   Receipt({
     this.PsStatus,
     this.reference,
+    this.type,
+    this.pRef
   });
 
   Receipt copyWith({
     String PsStatus,
     String reference,
+    String type,
+    String pRef
   }) {
     return Receipt(
       PsStatus: PsStatus ?? this.PsStatus,
       reference: reference ?? this.reference,
+      type: type??this.type,
+      pRef: pRef??this.pRef,
     );
   }
 
   @override
-  int get hashCode => PsStatus.hashCode ^ PsStatus.hashCode;
+  int get hashCode => PsStatus.hashCode ^ PsStatus.hashCode ^ type.hashCode ^ pRef.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -30,11 +38,13 @@ class Receipt {
       other is Receipt &&
           runtimeType == other.runtimeType &&
           PsStatus == other.PsStatus &&
-          reference == other.reference;
+          reference == other.reference &&
+          type == other.type &&
+          pRef == other.pRef;
 
   @override
   String toString() {
-    return '''Receipt {reference: $reference,}''';
+    return '''Instance of Receipt''';
   }
 
   Future<http.Response> receiptDetail() async {
@@ -57,6 +67,8 @@ class Receipt {
     return {
       'PsStatus': PsStatus,
       'reference': reference,
+      'type':type,
+      'pRef':pRef
     };
   }
 
@@ -64,6 +76,8 @@ class Receipt {
     return Receipt(
       PsStatus: receipt['PsStatus'],
       reference: receipt['reference'],
+      type: receipt['type']??'',
+      pRef: receipt['pRef']??""
     );
   }
 }

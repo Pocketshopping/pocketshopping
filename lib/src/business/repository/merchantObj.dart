@@ -26,6 +26,7 @@ class Merchant {
   final String bStatus;
   final Timestamp bCreatedAt;
   final String bCountry;
+  final bool adminUploaded;
 
   Merchant(
       {this.bName = "",
@@ -49,7 +50,9 @@ class Merchant {
       this.bGeoPoint,
       this.bIsBranch,
       this.bOpen,
-      this.bUnique});
+      this.bUnique,
+      this.adminUploaded
+      });
 
   Merchant copyWith({
     String bName,
@@ -74,6 +77,7 @@ class Merchant {
     String bStatus,
     Timestamp bCreatedAt,
     String bCountry,
+    bool adminUploaded,
   }) {
     return Merchant(
       bName: bName ?? this.bName,
@@ -98,6 +102,7 @@ class Merchant {
       bStatus: bStatus ?? this.bStatus,
       bCreatedAt: bCreatedAt ?? this.bCreatedAt,
       bCountry: bCountry ?? this.bCountry,
+      adminUploaded: adminUploaded??this.adminUploaded
     );
   }
 
@@ -124,7 +129,8 @@ class Merchant {
       bOpen.hashCode ^
       mID.hashCode ^
       bCategory.hashCode ^
-      bPhoto.hashCode;
+      bPhoto.hashCode ^
+      adminUploaded.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -152,33 +158,12 @@ class Merchant {
           bPhoto == other.bPhoto &&
           bStatus == other.bStatus &&
           bCreatedAt == other.bCreatedAt &&
-          bCountry == other.bCountry;
+          bCountry == other.bCountry &&
+          adminUploaded == other.adminUploaded;
 
   @override
   String toString() {
-    return '''Merchnant   {
-    bName:$bName ,
-  bEmail:$bEmail ,
-  bTelephone:$bTelephone ,
-  bTelephone2:$bTelephone2 ,
-  bUnique:$bUnique ,
-  bAddress:$bAddress ,
-  bSocial:$bSocial ,
-  bDelivery:$bDelivery ,
-  bCategory:$bCategory ,
-  bDescription:$bDescription ,
-  bGeoPoint:$bGeoPoint ,
-  bID:$bID ,
-  mID:$mID ,
-  bClose:$bClose ,
-  bOpen:$bOpen ,
-  bCreator:$bCreator ,
-  bParent:$bParent ,
-  bIsBranch:$bIsBranch ,
-  bPhoto:$bPhoto ,
-  bStatus:$bStatus ,
-  bCreatedAt:$bCreatedAt ,
-  bCountry:$bCountry} ''';
+    return '''Instance of Merchnant''';
   }
 
   MerchantEntity toEntity() {
@@ -204,7 +189,8 @@ class Merchant {
         bGeoPoint,
         bIsBranch,
         bOpen,
-        bUnique);
+        bUnique,
+    adminUploaded);
   }
 
   static Merchant fromEntity(MerchantEntity merchant) {
@@ -231,6 +217,7 @@ class Merchant {
       bStatus: merchant.bStatus ?? '',
       bCreatedAt: merchant.bCreatedAt,
       bCountry: merchant.bCountry ?? '',
+      adminUploaded: merchant.adminUploaded ?? false
     );
   }
 }
