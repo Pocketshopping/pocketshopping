@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:date_format/date_format.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -423,7 +422,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                         ),
                                         Expanded(
                                           child: Text(
-                                              '${_order.orderConfirmation.confirmedAt == null ? '-' : presentDate(DateTime.parse((_order.orderConfirmation.confirmedAt as Timestamp).toDate().toString()))}'),
+                                              '${_order.orderConfirmation.confirmedAt == null ? '-' :Utility.presentDate(DateTime.parse((_order.orderConfirmation.confirmedAt as Timestamp).toDate().toString()))}'),
                                         )
                                       ],
                                     )),
@@ -568,7 +567,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                       ),
                                       Expanded(
                                         child: Text(
-                                            '${presentDate(DateTime.parse((_order.orderCreatedAt as Timestamp).toDate().toString()))}'),
+                                            '${Utility.presentDate(DateTime.parse((_order.orderCreatedAt as Timestamp).toDate().toString()))}'),
                                       )
                                     ],
                                   )),
@@ -828,31 +827,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
       });
   }
 
-  dynamic presentDate(dynamic datetime) {
-    var result;
-    bool yesterday = false;
-    bool today = false;
-    var date;
-    var time;
-    //if(DateTime.now().difference(datetime))
-    result = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day - 1);
-    yesterday = formatDate(
-            DateTime(DateTime.now().year, DateTime.now().month,
-                DateTime.now().day - 1),
-            [dd, '/', mm, '/', yyyy]) ==
-        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
-    today = formatDate(DateTime.now(), [dd, '/', mm, '/', yyyy]) ==
-        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
-    date = formatDate(datetime, [d, ' ', M, ', ', yyyy]);
-    time = formatDate(datetime, [HH, ':', nn, ' ', am]);
-    if (today)
-      return 'Today at $time';
-    else if (yesterday)
-      return 'Yesterday at $time';
-    else
-      return '$date at $time';
-  }
+
 
   Widget Resolution() {
     switch (resolution) {
@@ -1063,7 +1038,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                           padding: EdgeInsets.symmetric(
                               vertical: 10, horizontal: 10),
                           child: Text(
-                              '${presentDate(DateTime.parse((review.reviewedAt).toDate().toString()))}'),
+                              '${Utility.presentDate(DateTime.parse((review.reviewedAt).toDate().toString()))}'),
                         ),
                       ),
                     ],

@@ -80,6 +80,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'availability': true,
           'agentTelephone': CurrentUser.user.telephone,
           'agentName': CurrentUser.user.fname,
+          'wallet':CurrentUser.user.walletId,
+          'agentParent':CurrentUser.agent.agentWorkPlace
         },
 
 
@@ -121,18 +123,6 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                 Scaffold.of(context).openDrawer();
               },
             ),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(
-                  Icons.notification_important,
-                  color: PRIMARYCOLOR,
-                  size: marginLR * 0.08,
-                ),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
-            ],
             centerTitle: true,
             elevation: 0.0,
             backgroundColor: Colors.white,

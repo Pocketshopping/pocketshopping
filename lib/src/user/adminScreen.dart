@@ -8,7 +8,7 @@ import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/page/drawer/aboutus.dart';
-import 'package:pocketshopping/page/user/favourite.dart';
+import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/page/user/order.dart';
 import 'package:flutter/services.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
@@ -53,19 +53,19 @@ class _AdminScreenState extends State<AdminScreen> {
       textSize: 8);
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
-      icon: Icon(Icons.dashboard),
+      icon: Icon(Icons.check_box_outline_blank),
       title: Text('DashBoard'),
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.place),
+      icon: Icon(Icons.search),
       title: Text('Places'),
     ),
     BottomNavigationBarItem(
       title: Text('Favourite'),
-      icon: Icon(Icons.favorite),
+      icon: Icon(Icons.favorite_border),
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.folder),
+      icon: Icon(Icons.folder_open),
       title: Text('My Order(s)'),
     ),
   ];

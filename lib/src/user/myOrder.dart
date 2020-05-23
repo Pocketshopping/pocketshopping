@@ -6,8 +6,6 @@ import 'package:pocketshopping/src/user/MyOrder/open.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
 class MyOrders extends StatefulWidget {
-  MyOrders();
-
   @override
   _OrdersState createState() => new _OrdersState();
 }
@@ -30,6 +28,16 @@ class _OrdersState extends State<MyOrders> {
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
               0.15), // here the desired height
           child: AppBar(
+            leading: IconButton(
+              icon: Icon(
+                Icons.menu,
+                color: PRIMARYCOLOR,
+              ),
+              onPressed: () {
+                //print("your menu action here");
+                Scaffold.of(context).openDrawer();
+              },
+            ),
             backgroundColor: Colors.white,
             elevation: 0,
             title: Text(

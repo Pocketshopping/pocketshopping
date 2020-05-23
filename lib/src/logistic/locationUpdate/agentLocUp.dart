@@ -114,8 +114,7 @@ class AgentLocUp {
     return AgentLocUp(
       agentAutomobile: snap.data['agentAutomobile'],
       agentUpdateAt: snap.data['agentUpdateAt'],
-      agentLocation:
-          (snap.data['agentLocation'] as Map<String, dynamic>)['geopoint'],
+      agentLocation: (snap.data['agentLocation'] as Map<String, dynamic>)['geopoint'],
       agent: snap.documentID,
       agentName: snap.data['agentName'],
       agentTelephone: snap.data['agentTelephone'],

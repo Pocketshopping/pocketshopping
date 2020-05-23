@@ -8,9 +8,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:pocketshopping/page/user/favourite.dart';
+import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/src/admin/ping.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
@@ -51,19 +52,19 @@ class _StaffScreenState extends State<StaffScreen> {
       textSize: 8);
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
-      icon: Icon(Icons.dashboard),
+      icon: Icon(Icons.check_box_outline_blank),
       title: Text('Workplace'),
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.place),
+      icon: Icon(Icons.search),
       title: Text('Places'),
     ),
     BottomNavigationBarItem(
       title: Text('Favourite'),
-      icon: Icon(Icons.favorite),
+      icon: Icon(Icons.favorite_border),
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.folder),
+      icon: Icon(Icons.folder_open),
       title: Text('My Order(s)'),
     ),
   ];
@@ -148,7 +149,7 @@ class _StaffScreenState extends State<StaffScreen> {
       Map<String, dynamic> message) {
     if (message.containsKey('data')) {
       final dynamic data = message['data'];
-      print(message);
+     // print(message);
     }
     if (message.containsKey('notification')) {
       final dynamic data = message['notification'];

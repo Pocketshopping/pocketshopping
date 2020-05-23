@@ -32,8 +32,7 @@ class LogisticRepo {
   }
 
   static Future<Agent> getOneAgent(String agentID) async {
-    var doc =
-        await databaseReference.collection("agent").document(agentID).get();
+    var doc = await databaseReference.collection("agent").document(agentID).get();
     return Agent.fromSnap(doc);
   }
 

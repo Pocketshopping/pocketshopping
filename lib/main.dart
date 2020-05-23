@@ -89,18 +89,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 //import 'package:workmanager/workmanager.dart';
 
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 // Streams are created so that app can respond to notification-related events since the plugin is initialised in the `main` function
-final BehaviorSubject<ReceivedNotification> didReceiveLocalNotificationSubject =
-BehaviorSubject<ReceivedNotification>();
+final BehaviorSubject<ReceivedNotification> didReceiveLocalNotificationSubject = BehaviorSubject<ReceivedNotification>();
 
-final BehaviorSubject<String> selectNotificationSubject =
-BehaviorSubject<String>();
+final BehaviorSubject<String> selectNotificationSubject = BehaviorSubject<String>();
 
 NotificationAppLaunchDetails notificationAppLaunchDetails;
 
@@ -172,7 +170,7 @@ void callbackDispatcher() {
           String fcmToken = await _fcm.getToken();
           Geoflutterfire geo = Geoflutterfire();
           GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
-          await databaseReference.collection("agentLocationUpdate")
+          /*await databaseReference.collection("agentLocationUpdate")
               .document(inputData['agentID'])
               .setData({
             'agentLocation':agentLocation.data,
@@ -180,6 +178,22 @@ void callbackDispatcher() {
             'agentName':inputData['agentName'],
             'agentTelephone':inputData['agentTelephone'],
             'availability':inputData['availability'],
+            //'pocket':true,
+            //'parent':true,
+            'device':fcmToken,
+            'UpdatedAt':Timestamp.now(),
+          },merge: false);*/
+          await LocRepo.update({
+            'agentParent':inputData['agentParent'],
+            'wallet':inputData['wallet'],
+            'agentID':inputData['agentID'],
+            'agentLocation':agentLocation.data,
+            'agentAutomobile':inputData['agentAutomobile'],
+            'agentName':inputData['agentName'],
+            'agentTelephone':inputData['agentTelephone'],
+            'availability':inputData['availability'],
+            'pocket':true,
+            'parent':true,
             'device':fcmToken,
             'UpdatedAt':Timestamp.now(),
           });
@@ -210,7 +224,6 @@ void callbackDispatcher() {
 
 
         );
-        print('Permission not granted');
       }
     }
     else{

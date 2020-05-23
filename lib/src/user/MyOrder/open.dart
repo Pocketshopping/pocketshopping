@@ -26,26 +26,12 @@ class _OpenOrderState extends State<OpenOrder> {
 
   @override
   void initState() {
-    //print(odState);
     odState = Get.put(OrderGlobalState());
-    //odState.adder('uyrturuy', {'jhjh':'yiugi'});
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    //print("callbackVal $callbackVal");
-    void detail(String name) {
-      showModalBottomSheet(
-        context: context,
-        builder: (context) => BottomSheetTemplate(
-            height: MediaQuery.of(context).size.height * 0.6,
-            opacity: 0.2,
-            child: Container()),
-        isScrollControlled: true,
-      );
-    }
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: ChangeNotifierProvider<MyOrderModel>(

@@ -32,6 +32,7 @@ import 'package:pocketshopping/src/order/timer.dart';
 import 'package:pocketshopping/src/order/tracker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
+import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
@@ -892,7 +893,7 @@ class _OrderUIState extends State<OrderUI> {
 
     }
 
-
+    FavRepo.save(widget.user.uid, widget.merchant.mID);
     //});
   }
 

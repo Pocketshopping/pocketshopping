@@ -159,28 +159,13 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                   ],
                 ),
               ),
+              SizedBox(height: 15,),
               Column(
                 children: <Widget>[
                   Text(
                     widget.merchant.bName,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  RatingBar(
-                    //onRatingUpdate: (rate){},
-                    initialRating: 3.5,
-                    minRating: 1,
-                    maxRating: 5,
-                    itemSize: MediaQuery.of(context).size.width * 0.04,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    ignoreGestures: true,
-                    itemCount: 5,
-                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
+                        color: Colors.white,fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     '${AwayFrom(dist)}',

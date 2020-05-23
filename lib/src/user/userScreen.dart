@@ -10,7 +10,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:pocketshopping/page/user/favourite.dart';
+import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
@@ -51,15 +51,15 @@ class _UserScreenState extends State<UserScreen> {
       textSize: 8);
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
-      icon: Icon(Icons.place),
+      icon: Icon(Icons.search),
       title: Text('Places'),
     ),
     BottomNavigationBarItem(
       title: Text('Favourite'),
-      icon: Icon(Icons.favorite),
+      icon:Icon(Icons.favorite_border),
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.folder),
+      icon: Icon(Icons.folder_open),
       title: Text('Order'),
     ),
   ];

@@ -1,12 +1,14 @@
 import 'dart:convert';
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:date_format/date_format.dart';
 
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
   static var location = Location();
 
@@ -135,5 +137,57 @@ class Utility {
     } else {
       return null;
     }
+  }
+
+  static dynamic presentDate(dynamic datetime) {
+    var result;
+    bool yesterday = false;
+    bool today = false;
+    var date;
+    var time;
+    //if(DateTime.now().difference(datetime))
+    result = DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day - 1);
+    yesterday = formatDate(
+        DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day - 1),
+        [dd, '/', mm, '/', yyyy]) ==
+        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
+    today = formatDate(DateTime.now(), [dd, '/', mm, '/', yyyy]) ==
+        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
+    date = formatDate(datetime, [d, ' ', M, ', ', yyyy]);
+    time = formatDate(datetime, [HH, ':', nn, ' ', am]);
+    if (today)
+      return 'Today at $time';
+    else if (yesterday)
+      return 'Yesterday at $time';
+    else
+      return '$date at $time';
+  }
+
+  static localNotifier()async{
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      '1', 'LocationUpdate', 'LocationUpdate',
+      importance: Importance.Max,
+      priority: Priority.High,
+      ticker: 'ticker',
+      icon: 'app_icon',
+      ongoing: true,
+      enableVibration: true,
+      enableLights: true,
+      playSound: true,
+    );
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Permission',
+      'Grant Location Access to PocketShopping',
+      platformChannelSpecifics,
+      payload: 'LocationUpdate',
+
+
+    );
   }
 }
