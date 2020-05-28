@@ -29,7 +29,8 @@ class LocRepo {
       }
       else {
         data['pocket'] = false;
-        Utility.localNotifier();
+        Utility.localNotifier('channel1','PocketUnit','PocketUnit','Your PocketUnit is below the expected'
+            ' quota, this means you will be unavaliable for delivery until you topup');
       }
 
       data.remove('availability');
@@ -45,11 +46,13 @@ class LocRepo {
 
       if(wallet.pocketUnitBalance > 100)
         data['pocket']=true;
-      else
-        data['pocket']=false;
-      await databaseReference.collection("agentLocationUpdate")
-          .document(data['agentID'])
-          .setData(data);
+      else{
+        data['pocket'] = false;
+        Utility.localNotifier('channel1','PocketUnit','PocketUnit','Your PocketUnit is below the expected'
+            ' quota, this means you will be unavaliable for delivery until you topup');
+      }
+
+      await databaseReference.collection("agentLocationUpdate").document(data['agentID']).setData(data);
     }
   }
 
@@ -57,6 +60,15 @@ class LocRepo {
     var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get();
     if(doc.exists) return true;
     else return false;
+  }
+
+  static Future<bool> updateAvailability(String agentID, bool change) async {
+    try {
+      await databaseReference.collection("agentLocationUpdate").document(agentID).updateData({'availability': change});
+      return change;
+    }
+    catch(_){return !change;}
+
   }
 
 }

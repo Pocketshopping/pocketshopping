@@ -182,8 +182,7 @@ class _OrderUIState extends State<OrderUI> {
       setState(() {
         List<String> temp = address.first.addressLine.split(',');
         temp.removeLast();
-        deliveryAddress =
-            temp.reduce((value, element) => value + ',' + element);
+        deliveryAddress = temp.reduce((value, element) => value + ',' + element);
         //print(_contact.text);
         if (deliveryAddress != _address.text && !userChange)
           homeDelivery = false;

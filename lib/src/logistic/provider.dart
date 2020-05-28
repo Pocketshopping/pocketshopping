@@ -36,6 +36,11 @@ class LogisticRepo {
     return Agent.fromSnap(doc);
   }
 
+  static Future<AgentLocUp> getOneAgentLocation(String agentID) async {
+    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get();
+    return AgentLocUp.fromSnap(doc);
+  }
+
   static Future<bool> accept(
       String agentID, String requestID, String uid) async {
     await databaseReference
@@ -58,6 +63,10 @@ class LogisticRepo {
     var collectionReference = Firestore.instance
         .collection('agentLocationUpdate')
         .where('availability', isEqualTo: true)
+        .where('pocket', isEqualTo: true)
+        .where('parent', isEqualTo: true)
+        .where('remitted', isEqualTo: true)
+        .where('busy', isEqualTo: false)
         .where('agentAutomobile', isEqualTo: autoType)
         .limit(5);
     Stream<List<DocumentSnapshot>> alu = geo
@@ -69,9 +78,6 @@ class LogisticRepo {
             strictMode: true);
     var doc = await alu.first;
     return AgentLocUp.getDeviceToken(AgentLocUp.fromListSnap(doc));
-
-    //print(alu.toString());
-    //var doc = await alu.toList();
   }
 
   static Future<bool> decline(String agentID, String requestID) async {

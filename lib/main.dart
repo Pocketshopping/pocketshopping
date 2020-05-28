@@ -91,6 +91,7 @@ import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 //import 'package:workmanager/workmanager.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -194,11 +195,13 @@ void callbackDispatcher() {
             'availability':inputData['availability'],
             'pocket':true,
             'parent':true,
+            'remitted':true,
+            'busy':false,
             'device':fcmToken,
             'UpdatedAt':Timestamp.now(),
           });
         }
-        print(position.toString());
+        //print(position.toString());
       }
       else{
         var androidPlatformChannelSpecifics = AndroidNotificationDetails(
@@ -250,7 +253,7 @@ void callbackDispatcher() {
 
 
       );
-      print('No location enabled');
+      //print('No location enabled');
     }
 
 
@@ -373,6 +376,27 @@ class AppState extends State<App> {
   }
 
 
+  void imagecropper(File file)async{
+    File croppedFile = await ImageCropper.cropImage(
+        sourcePath: file.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.ratio3x2,
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio4x3,
+          CropAspectRatioPreset.ratio16x9
+        ],
+        androidUiSettings: AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.deepOrange,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false),
+        iosUiSettings: IOSUiSettings(
+          minimumAspectRatio: 1.0,
+        )
+    );
+  }
 
 
 

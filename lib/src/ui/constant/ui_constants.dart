@@ -38,3 +38,4 @@ const String PocketShoppingDefaultAvatar = 'https://firebasestorage.googleapis.c
 const String serverToken = 'AAAAqX0WEGw:APA91bGWMn9QDp_xiH3fgsy8-4V348-0ltS2Pfjybk_lSafjSS8etIAry6jBzsc2n9eHj0SDr2TzYwVVBVmz2uhjftxPrhGLfWj9PgFRqAzOtck1_JjOsjMXyMYtGiqFoauMt5Z-LNLl';
 const String WALLETAPI = 'http://wallet.homlyng.com/api/v1/';
 const String PAYSTACK = "Bearer sk_test_8c0cf47e2e690e41c984c7caca0966e763121968";
+const String PRODUCTDEFAULT="https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2FproductDefault.png?alt=media&token=d9eda0f7-4bc8-4e2f-95a1-ed9654422691";

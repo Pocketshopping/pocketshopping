@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,9 @@ import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:date_format/date_format.dart';
+import 'dart:io';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
@@ -165,9 +170,9 @@ class Utility {
       return '$date at $time';
   }
 
-  static localNotifier()async{
+  static localNotifier(String channelID,String channel,String title, String body)async{
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      '1', 'LocationUpdate', 'LocationUpdate',
+      '$channelID', '$channel', '$channel',
       importance: Importance.Max,
       priority: Priority.High,
       ticker: 'ticker',
@@ -182,12 +187,61 @@ class Utility {
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
       0,
-      'Permission',
-      'Grant Location Access to PocketShopping',
+      '$title',
+      '$body',
       platformChannelSpecifics,
-      payload: 'LocationUpdate',
+      payload: '$channel',
 
 
     );
+  }
+
+  static Future<File> cropImage(File image) async {
+    File temp;
+    temp = await ImageCropper.cropImage(
+        sourcePath: image.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.ratio3x2,
+        ],
+        androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Editor',
+          toolbarColor: PRIMARYCOLOR,
+          toolbarWidgetColor: WHITECOLOR,
+          initAspectRatio: CropAspectRatioPreset.original,
+        ),
+        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0));
+    return temp;
+  }
+
+
+  static Future<List<String>> uploadMultipleImages(List<File> _imageList) async {
+    List<String> _imageUrls = List();
+
+    try {
+      for (int i = 0; i < _imageList.length; i++) {
+        final StorageReference storageReference =
+        FirebaseStorage().ref().child("ProductPhoto/${DateTime.now()}.png");
+
+        final StorageUploadTask uploadTask =
+        storageReference.putFile(_imageList[i]);
+
+        final StreamSubscription<StorageTaskEvent> streamSubscription =
+        uploadTask.events.listen((event) {
+          print(event.toString());
+        });
+
+        // Cancel your subscription when done.
+        await uploadTask.onComplete;
+        streamSubscription.cancel();
+
+        String imageUrl = await storageReference.getDownloadURL();
+        _imageUrls.add(imageUrl); //all all the urls to the list
+      }
+      //upload the list of imageUrls to firebase as an array
+      return _imageUrls;
+    } catch (e) {
+      print(e);
+      return [];
+    }
   }
 }

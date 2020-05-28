@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/validators.dart';
 
 class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
@@ -41,10 +42,11 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     } else if (event is Submitted) {
       yield* _mapFormSubmittedToState(
           event.address,
-          //event.category,
           event.name,
           event.telephone,
-          event.user);
+          event.user,
+          event.isAgent,
+      );
     }
   }
 
@@ -118,10 +120,10 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
 
   Stream<BusinessState> _mapFormSubmittedToState(
     String address,
-    //String category,
     String name,
     String telephone,
     FirebaseUser user,
+    bool isAgent
   ) async* {
     yield BusinessState.loading(
         isUploading: false,
@@ -144,7 +146,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         bName: name,
         bTelephone2: "",
         bID: "",
-        bPhoto: "",
+        bPhoto: PocketShoppingDefaultCover,
         bStatus: "PENDING",
         bSocial: {},
         bCountry: await Devicelocale.currentLocale,
@@ -152,9 +154,11 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         isBranch: false,
         uid: user.uid,
         bGeopint: GeoPoint(state.position.latitude, state.position.longitude),
-        adminUploaded: false,
+        adminUploaded: isAgent,
       );
+      if(!isAgent)
       await UserRepository().upDateUserRole('admin', user);
+
       yield BusinessState.success();
     } catch (_) {
       yield state.update(isCapturing: _.toString());

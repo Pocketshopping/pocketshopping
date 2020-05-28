@@ -18,7 +18,7 @@ class Authenticated extends AuthenticationState {
   List<Object> get props => [user];
 
   @override
-  String toString() => 'Authenticated { email: ${user.email} }';
+  String toString() => 'Instance of AuthenticationState<Authenticated>';
 }
 
 class Unauthenticated extends AuthenticationState {
@@ -30,7 +30,7 @@ class Unauthenticated extends AuthenticationState {
   List<Object> get props => [link];
 
   @override
-  String toString() => 'DLink { link: $link }';
+  String toString() => 'Instance of AuthenticationState<Unauthenticated>';
 }
 
 class SetupBusiness extends AuthenticationState {
@@ -42,7 +42,7 @@ class SetupBusiness extends AuthenticationState {
   List<Object> get props => [user];
 
   @override
-  String toString() => 'SetupBusiness { email: ${user.email} }';
+  String toString() => 'Instance of AuthenticationState<SetupBusiness>';
 }
 
 class DLink extends AuthenticationState {
@@ -55,5 +55,5 @@ class DLink extends AuthenticationState {
   List<Object> get props => [user, link];
 
   @override
-  String toString() => 'DLink { link: $link }';
+  String toString() => 'Instance of AuthenticationState<DLink>';
 }

@@ -17,7 +17,7 @@ class EmailChanged extends RegisterEvent {
   List<Object> get props => [email];
 
   @override
-  String toString() => 'EmailChanged { email :$email }';
+  String toString() => 'Instance of RegisterEvent<EmailChanged>';
 }
 
 class TelephoneChanged extends RegisterEvent {
@@ -29,7 +29,7 @@ class TelephoneChanged extends RegisterEvent {
   List<Object> get props => [telephone];
 
   @override
-  String toString() => 'TelephoneChanged { email :$telephone }';
+  String toString() => 'Instance of RegisterEvent<TelephoneChanged>';
 }
 
 class NameChanged extends RegisterEvent {
@@ -41,7 +41,7 @@ class NameChanged extends RegisterEvent {
   List<Object> get props => [name];
 
   @override
-  String toString() => 'NameChanged { name :$name }';
+  String toString() => 'Instance of RegisterEvent<NameChanged>';
 }
 
 class CountryCodeChanged extends RegisterEvent {
@@ -53,7 +53,7 @@ class CountryCodeChanged extends RegisterEvent {
   List<Object> get props => [country];
 
   @override
-  String toString() => 'CountryCodeChanged { CountryCode :$country }';
+  String toString() => 'Instance of RegisterEvent<CountryCodeChanged>';
 }
 
 class PasswordChanged extends RegisterEvent {
@@ -65,7 +65,7 @@ class PasswordChanged extends RegisterEvent {
   List<Object> get props => [password];
 
   @override
-  String toString() => 'PasswordChanged { password: $password }';
+  String toString() => 'Instance of RegisterEvent<PasswordChanged>';
 }
 
 class ConfirmPasswordChanged extends RegisterEvent {
@@ -77,7 +77,7 @@ class ConfirmPasswordChanged extends RegisterEvent {
   List<Object> get props => [confirmpassword];
 
   @override
-  String toString() => 'ConfirmPasswordChanged { password: $confirmpassword }';
+  String toString() => 'Instance of RegisterEvent<ConfirmPasswordChanged>';
 }
 
 class AgreedChanged extends RegisterEvent {
@@ -89,7 +89,7 @@ class AgreedChanged extends RegisterEvent {
   List<Object> get props => [agreed];
 
   @override
-  String toString() => 'Agreed { agreed: $agreed }';
+  String toString() => 'Instance of RegisterEvent<AgreedChanged>';
 }
 
 class Submitted extends RegisterEvent {
@@ -112,6 +112,6 @@ class Submitted extends RegisterEvent {
 
   @override
   String toString() {
-    return 'Submitted { email: $email }';
+    return 'Instance of RegisterEvent<Submitted>';
   }
 }

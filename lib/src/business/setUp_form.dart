@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'package:geolocator/geolocator.dart';
+import 'package:recase/recase.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,10 @@ import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 class BusinessSetupForm extends StatefulWidget {
-  BusinessSetupForm({this.data});
+  BusinessSetupForm({this.data,this.isAgent});
 
   final Map<String, dynamic> data;
+  final bool isAgent;
 
   @override
   State<StatefulWidget> createState() => _BusinessSetupFormState();
@@ -134,7 +136,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                           fit: BoxFit.cover,
                         ),
                         Text(
-                          "Settingup business please wait",
+                          "SettingUp business please wait",
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ],
@@ -202,6 +204,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                 ),
                                 FlatButton(
                                   onPressed: () {
+                                    if(!widget.isAgent)
                                     BlocProvider.of<AuthenticationBloc>(context)
                                         .add(
                                       AppStarted(),
@@ -313,8 +316,8 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                           'Before SettingUp Business, Because Business Location Will Be Captured '
                                           'And The Availability Of Your Business Depends On It. Be Informed You Can Not Change The '
                                           ' Coordinate In Later Times Except In The Case Of Relocation Which Will Require '
-                                          ' Serious Verification. Note. It Vital You Are Directly '
-                                          'Outside Your Business Premises In Other To Get An Accuracy Coordinate'),
+                                          ' Verification. Note. It Vital You are '
+                                          'in the front of Your Business Premises In Other To Get An Accuracy Coordinate'),
                                     )),
                                 Container(
                                   decoration: BoxDecoration(
@@ -885,15 +888,145 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
   }
 
   void _onFormSubmitted() {
-    _businessBloc.add(
-      Submitted(
-        address: _addressController.text,
-        //category: _categoryController.text,
-        name: _nameController.text,
-        telephone: _telephoneController.text,
-        user: CurrentUser,
-      ),
-    );
+      //print(_nameController.text.trim().headerCase);
+    GetBar(
+      messageText: Text('Verifying..please wait',style: TextStyle(color: Colors.white),),
+    showProgressIndicator: true,
+    backgroundColor: PRIMARYCOLOR,
+    progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+    snackPosition: SnackPosition.BOTTOM,
+    ).show();
+      MerchantRepo.getNearByMerchant(_businessBloc.state.position, _nameController.text.trim().headerCase).then((value){
+       Get.back();
+        if(value != null){
+
+
+          Scaffold.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.white,
+                content: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onVerticalDragStart: (_) => debugPrint("no can do!"),
+                  child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      child: Container(
+                        color: Colors.white,
+                        child: Column(
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: MediaQuery.of(context).size.height * 0.1),
+                              padding: EdgeInsets.only(
+                                left: MediaQuery.of(context).size.height * 0.05,
+                                right: MediaQuery.of(context).size.height * 0.05,
+                              ),
+                              child: Center(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Image.asset(
+                                        'assets/images/404.png',
+                                        width: MediaQuery.of(context).size.width,
+                                        height:
+                                        MediaQuery.of(context).size.height * 0.4,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      Text("Business can not be created!",
+                                        style: TextStyle(
+                                            fontSize: 16, color: Colors.black54),
+                                      ),
+                                      Container(
+                                        height: 10,
+                                      ),
+                                      Center(
+                                          child: value.adminUploaded?
+                                          widget.isAgent?Text("Business has already been captured.", style: TextStyle(fontSize: 14, color: Colors.black54),)
+                                              :
+                                          Text("There is a business with exact name in this region. If you are the owner of this business you can log a request to reclaim ownership",
+                                            style: TextStyle(fontSize: 14, color: Colors.black54),)
+                                              :
+                                          widget.isAgent?
+                                          Text("Business has already been captured.", style: TextStyle(fontSize: 14, color: Colors.black54),)
+                                              :
+                                          Text("There is a business with exact name in this region.", style: TextStyle(fontSize: 14, color: Colors.black54),)
+                                      ),
+                                      Container(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          if(value.adminUploaded && !widget.isAgent)
+                                          FlatButton(
+                                            onPressed: () {
+                                              GetBar(
+                                                messageText: Text('logging claim..please wait',style: TextStyle(color: Colors.white),),
+                                                showProgressIndicator: true,
+                                                backgroundColor: PRIMARYCOLOR,
+                                                progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                snackPosition: SnackPosition.BOTTOM,
+                                              ).show();
+                                              reclaim(_businessBloc.state.position, CurrentUser.uid, value.mID);
+                                            },
+                                            color: PRIMARYCOLOR,
+                                            child: Padding(
+                                              padding: EdgeInsets.all(
+                                                  MediaQuery.of(context).size.height *
+                                                      0.02),
+                                              child: Text(
+                                                "Claim",
+                                                style: TextStyle(color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                          FlatButton(
+                                            onPressed: () {
+                                              Get.back();
+                                            },
+                                            color: Colors.grey,
+                                            child: Padding(
+                                              padding: EdgeInsets.all(
+                                                  MediaQuery.of(context).size.height *
+                                                      0.02),
+                                              child: Text(
+                                                "Close",
+                                                style: TextStyle(color: Colors.black),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  )),
+                            ),
+
+                            // Progress bar
+                          ],
+                        ),
+                      )),
+                ),
+                duration: Duration(days: 365),
+              ),
+            );
+
+       }
+       else{
+         _businessBloc.add(
+           Submitted(
+             address: _addressController.text,
+             isAgent: widget.isAgent,
+             name: _nameController.text,
+             telephone: _telephoneController.text,
+             user: CurrentUser,
+           ),
+         );
+       }
+      });
+
   }
 
   void startTimer() {
@@ -920,4 +1053,19 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     _telephoneController.dispose();
     super.dispose();
   }
+
+  void reclaim(Position pos, String user,String merchant){
+    //Get.back();
+    MerchantRepo.claim(pos, user, merchant).then((value) {
+      Get.back();
+      GetBar(
+        messageText: Text('Claim logged successfully you will be notified in due time',style: TextStyle(color: Colors.white),),
+        backgroundColor: PRIMARYCOLOR,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 5),
+      ).show();
+    });
+    Get.back();
+  }
+
 }

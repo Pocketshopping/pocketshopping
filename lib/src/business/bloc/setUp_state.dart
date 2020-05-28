@@ -216,22 +216,7 @@ class BusinessState {
 
   @override
   String toString() {
-    return '''BusinessState {
-    isTelephoneValid:$isTelephoneValid,
-    isNameValid:$isNameValid
-      isAddressValid: $isAddressValid,
-      isCaptureValid,$isCaptureValid,
-      isDeliveryValid: $isDeliveryValid,
-      code: $code,
-      delivery:$delivery,
-      position:$position,
-      isUploading: $isUploading,
-      isCapturing:$isCapturing,
-      isCategoryValid: $isCategoryValid,      
-      isSubmitting: $isSubmitting,
-      isSuccess: $isSuccess,
-      isFailure: $isFailure,
-    }''';
+    return '''Instance of BusinessState''';
   }
 }
 
@@ -243,5 +228,5 @@ class CCode extends BusinessState {
   List<Object> get props => [code];
 
   @override
-  String toString() => 'CountryCode { code: $code }';
+  String toString() => 'Instance of BusinessState<CCode>';
 }

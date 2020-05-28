@@ -152,16 +152,6 @@ class ProductState {
 
   @override
   String toString() {
-    return '''RegisterState {
-    isNameValid:$isNameValid
-      isPriceValid: $isPriceValid,
-      barCode: $barCode,
-      count:$count,
-      isUploading: $isUploading,
-      isCategoryValid: $isCategoryValid,      
-      isSubmitting: $isSubmitting,
-      isSuccess: $isSuccess,
-      isFailure: $isFailure,
-    }''';
+    return ''' Instance of <ProductState>''';
   }
 }

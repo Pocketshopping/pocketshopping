@@ -40,15 +40,14 @@ class _TakePicturePageState extends State<TakePicturePage> {
 
   @override
   void initState() {
-    super.initState();
-
     _cameraController = CameraController(
       widget.camera,
       ResolutionPreset.high,
-      enableAudio: true,
+      enableAudio: false,
     );
 
     _initializeCameraControllerFuture = _cameraController.initialize();
+    super.initState();
   }
 
   @override

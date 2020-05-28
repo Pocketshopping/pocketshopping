@@ -140,7 +140,6 @@ class _UserScreenState extends State<UserScreen> {
     if (message.containsKey('notification')) {
       final dynamic data = message['notification'];
     }
-    print(message);
   }
 
   void _onItemTapped(int index) {
@@ -152,7 +151,6 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     setState(() {});
-    print(CurrentUser.uid);
     return WillPopScope(
       onWillPop: _onWillPop,
       child: BlocProvider(
@@ -161,7 +159,6 @@ class _UserScreenState extends State<UserScreen> {
         )..add(LoadUser(CurrentUser.uid)),
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
-            print(state.user.user.uid);
             return Scaffold(
               drawer: DrawerScreen(
                 userRepository: widget._userRepository,

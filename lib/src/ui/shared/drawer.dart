@@ -132,11 +132,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
               leading: Icon(Icons.business),
               title: Text("Business"),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => FirstBusinessPage()));
+                Get.back();
+                Get.to(FirstBusinessPage());
               },
             ),
           ListTile(

@@ -179,11 +179,6 @@ class _LoginFormState extends State<LoginForm> {
                                 obscureText: true,
                                 autovalidate: true,
                                 autocorrect: false,
-                                validator: (_) {
-                                  return !state.isPasswordValid
-                                      ? 'Invalid Password'
-                                      : null;
-                                },
                               ),
                             ),
                             Container(

@@ -130,7 +130,6 @@ class UserRepo {
         .document(mid.documentID)
         .snapshots()
         .map((merchantSnap) {
-      //print('Roooooole: ${merchantSnap.documentID}');
       return Merchant.fromEntity(MerchantEntity.fromSnapshot(merchantSnap));
     });
   }

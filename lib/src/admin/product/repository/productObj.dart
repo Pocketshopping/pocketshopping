@@ -17,6 +17,8 @@ class Product {
   final String pUploader;
   final String pUnit;
   final Timestamp pCreatedAt;
+  final int status;
+  final int availability;
 
   Product(
       {this.pID,
@@ -31,7 +33,10 @@ class Product {
       this.pQRCode,
       this.pUploader,
       this.pUnit,
-      this.pCreatedAt});
+      this.pCreatedAt,
+      this.status,
+      this.availability
+      });
 
   Product copyWith(
       {String pID,
@@ -46,7 +51,10 @@ class Product {
       String pQRCode,
       String pUploader,
       String pUnit,
-      Timestamp pCreatedAt}) {
+      Timestamp pCreatedAt,
+      int status,
+      int availability,
+      }) {
     return Product(
         pID: pID ?? this.pID,
         mID: mID ?? this.mID,
@@ -60,7 +68,10 @@ class Product {
         pUploader: pUploader ?? this.pUploader,
         pUnit: pUnit ?? this.pUnit,
         pCreatedAt: pCreatedAt ?? this.pCreatedAt,
-        pName: pName ?? this.pName);
+        pName: pName ?? this.pName,
+        status: status??this.status,
+        availability: availability??this.availability
+    );
   }
 
   @override
@@ -77,7 +88,7 @@ class Product {
       pQRCode.hashCode ^
       pUploader.hashCode ^
       pUnit.hashCode ^
-      pCreatedAt.hashCode;
+      pCreatedAt.hashCode ^ status.hashCode ^ availability.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -96,18 +107,18 @@ class Product {
           pQRCode == other.pQRCode &&
           pUploader == other.pUploader &&
           pUnit == other.pUnit &&
-          pCreatedAt == other.pCreatedAt;
+          pCreatedAt == other.pCreatedAt &&
+          status == other.status &&
+          availability == other.availability;
 
   @override
   String toString() {
-    return '''Product   {
-    bName:$pName ,
-  } ''';
+    return '''Instance of <Product> ''';
   }
 
   ProductEntity toEntity() {
     return ProductEntity(pID, mID, pName, pPrice, pCategory, pDesc, pPhoto,
-        pGroup, pStockCount, pQRCode, pUploader, pUnit, pCreatedAt);
+        pGroup, pStockCount, pQRCode, pUploader, pUnit, pCreatedAt,status,availability);
   }
 
   static Product fromEntity(ProductEntity product) {
@@ -125,6 +136,8 @@ class Product {
       pUploader: product.pUploader ?? '',
       pUnit: product.pUnit ?? '',
       pCreatedAt: product.pCreatedAt,
+      status: product.status,
+      availability: product.availability
     );
   }
 
@@ -142,6 +155,8 @@ class Product {
     snap.add(product.pUploader.toString());
     snap.add(product.pUnit);
     snap.add(product.pCreatedAt);
+    snap.add(product.status);
+    snap.add(product.availability);
     return snap;
   }
 }

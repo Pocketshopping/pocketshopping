@@ -18,9 +18,14 @@ import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
 import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/widget/account.dart';
 import 'package:pocketshopping/widget/branch.dart';
@@ -51,9 +56,10 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   StreamSubscription iosSubscription;
   Stream<Wallet> _walletStream;
   Wallet _wallet;
-
+  bool available;
   @override
   void initState() {
+
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
@@ -88,6 +94,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     );
 
     Utility.locationAccess();
+    LogisticRepo.getOneAgentLocation(CurrentUser.agent.agentID).then((value){if(value != null) setState(() {available =value.availability;});});
     super.initState();
   }
 
@@ -154,26 +161,198 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     ),
                   ],
                 )),
+                SliverList(
+                    delegate: SliverChildListDelegate(
+                      [
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.02,
+                        ),
+                        Container(
+                          color: Colors.white,
+                          //margin:  MediaQuery.of(context).size.height*0.05,
+                          margin: EdgeInsets.only(
+                              left: marginLR * 0.01, right: marginLR * 0.01),
+                          child: Column(
+                            children: <Widget>[
+                              if (_wallet != null)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: <Widget>[
+                                    Expanded(
+                                      flex: 0,
+                                      child: SizedBox(
+                                        width: 10,
+                                      ),
+                                    ),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Column(
+                                          children: [
+                                            Center(
+                                                child: Text(
+                                                  "PocketUnit",
+                                                  style: TextStyle(
+                                                      fontWeight: FontWeight.bold),
+                                                )),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Center(
+                                                child: Text(
+                                                  "${_wallet.pocketUnitBalance}",
+                                                  style: TextStyle(
+                                                      fontWeight: FontWeight.bold),
+                                                )),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: PRIMARYCOLOR
+                                                        .withOpacity(0.5)),
+                                                color:
+                                                PRIMARYCOLOR.withOpacity(0.5),
+                                              ),
+                                              child: FlatButton(
+                                                onPressed: ()  {
+                                                  //sendAndRetrieveMessage()
+                                                  //  .then((value) => null)
+                                                  //DynamicLinks
+                                                  //  .createLinkWithParams({
+                                                  //'merchant': 'rerereg',
+                                                  //'OTP':
+                                                  //  'randomNumber.toString()',
+                                                  //'route': 'branch'
+                                                  //}).then((value) => print(value))
+                                                  Get.dialog(TopUp(user: CurrentUser.user,payType: "TOPUPUNIT",));
+
+                                                },
+                                                child: Center(
+                                                    child: Text(
+                                                      "TopUp",
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    )),
+                                              ),
+                                            )
+                                          ],
+                                        )),
+                                  ],
+                                ),
+                              if(_wallet != null)
+                               if (_wallet.pocketUnitBalance < 100)
+                              Padding(
+                                padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                child: Text('${'Your PocketUnit is below the expected quota, this means you will be unavaliable for delivery until you topup'}'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.02,
+                        ),
+                      ],
+                    )),
                 SliverGrid.count(crossAxisCount: 3, children: [
-                  ViewItem(
-                    gridHeight,
-                    Header: '0',
-                    actionText: 'Deliveries today',
-                    subHeader: '',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: ScanScreen(PRIMARYCOLOR.withOpacity(0.8)),
+                  GestureDetector(
+                    onTap: (){},
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey,
+                            //offset: Offset(1.0, 0), //(x,y)
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('O',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                          Text('Deliveries Today',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),),
+                        ],
+                      ),
+                    ),
                   ),
-                  ViewItem(
-                    gridHeight,
-                    Header: '0',
-                    subHeader: '',
-                    actionText: 'Km Covered Today',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: StatusBottomPage(
-                        themeColor: PRIMARYCOLOR.withOpacity(0.8)),
+                  GestureDetector(
+                    onTap: (){},
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey,
+                            //offset: Offset(1.0, 0), //(x,y)
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('O',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                          Text('Km Covered',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),),
+                        ],
+                      ),
+                    ),
                   ),
+                  if(available != null)
+                  GestureDetector(
+                    onTap: (){},
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                        decoration: BoxDecoration(
+                          color: PRIMARYCOLOR.withOpacity(0.8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey,
+                              //offset: Offset(1.0, 0), //(x,y)
+                              blurRadius: 6.0,
+                            ),
+                          ],
+                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('I am currently '
+                              '${available?'Available':'Unavailable'}',
+                          textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),),
+                          FlatButton(
+                            onPressed: ()async{
+                              bool change =!available;
+                              bool result = await LocRepo.updateAvailability(CurrentUser.agent.agentID, change);
+                              if(!(change == result))
+                                GetBar(title: 'Error changing your status please try again');
+                              else
+                                setState(() {available = result; });
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                              child: Text('Change'),
+                            ),
+                            color: Colors.white.withOpacity(0.5),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
                 ]),
                 SliverList(
                     delegate: SliverChildListDelegate([
@@ -181,6 +360,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     height: MediaQuery.of(context).size.height * 0.02,
                   ),
                 ])),
+
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
@@ -227,6 +407,42 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       content: VehicleBottomPage(
                         session: CurrentUser,
                       ),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.business_center,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'New Business',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: SetupBusiness(isAgent: true,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.business,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'My Business(es)',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: AgentBusiness(user: CurrentUser,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.pie_chart,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Stat',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: Reviews(themeColor: PRIMARYCOLOR),
                     ),
                     MenuItem(
                       gridHeight,

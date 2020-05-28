@@ -4,6 +4,8 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 class SetupBusiness extends StatelessWidget {
+  final bool isAgent;
+  SetupBusiness({this.isAgent=false});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +23,7 @@ class SetupBusiness extends StatelessWidget {
       body: Center(
         child: BlocProvider<BusinessBloc>(
           create: (context) => BusinessBloc(),
-          child: BusinessSetupForm(),
+          child: BusinessSetupForm(isAgent: isAgent,),
         ),
       ),
     );

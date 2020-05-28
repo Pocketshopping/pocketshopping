@@ -22,5 +22,5 @@ class DeepLink extends AuthenticationEvent {
   List<Object> get props => [link];
 
   @override
-  String toString() => 'DLink { link: $link }';
+  String toString() => 'Instance of AuthenticationEvent<DeepLink>';
 }

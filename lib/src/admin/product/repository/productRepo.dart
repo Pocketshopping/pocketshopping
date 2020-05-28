@@ -1,5 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/admin/product/repository/pCate.dart';
 import 'package:recase/recase.dart';
 
 class ProductRepo {
@@ -17,8 +21,12 @@ class ProductRepo {
     String pQRCode,
     String pUploader,
     String pUnit,
+    int status=1,
+    int availability=1
   }) async {
-    var bid = await databaseReference.collection("products").add({
+    var bid;
+    try{
+      bid = await databaseReference.collection("products").add({
       'productMerchant': databaseReference.document('merchants/$mID'),
       'productName': pName.sentenceCase,
       'productPrice': pPrice,
@@ -31,20 +39,19 @@ class ProductRepo {
       'productUploader': pUploader,
       'productUnit': pUnit.toUpperCase(),
       'productCreatedAt': DateTime.now(),
+      'productStatus':  status,
+      'productAvailability':availability,
       'index': makeIndexList(pName),
     });
-
-    await saveCategory(pCategory, mID);
-    await saveProductStock(bid.documentID, pUploader, pStockCount);
+      await saveCategory(pCategory, mID);
+      await saveProductStock(bid.documentID, pUploader, pStockCount);
+    }catch(_){}
 
     return bid.documentID;
   }
 
   Future<String> saveCategory(String pCategory, String mid) async {
     String bid = "";
-    //var cat= await databaseReference.collection("productsCategory").document(pCategory).get(source: Source.server);
-
-    //if(cat.data.length>0){
     await databaseReference
         .collection("productsCategory")
         .document(pCategory)
@@ -53,19 +60,22 @@ class ProductRepo {
       'updatedAt': DateTime.now(),
       'productMerchant': [mid],
     }, merge: true);
-    /*}
-    else{
-      await databaseReference.collection("productsCategory").document(pCategory)
-          .setData({
-        'productCategory':pCategory,
-        'updatedAt':DateTime.now(),
-        'productMerchant':[mid],
-
-      });
-    }*/
-
     return bid;
   }
+
+/*  Future<void> saveCategory(String pCategory, String mid) async {
+    var cat= await databaseReference.collection("productsCategory")
+     .document(mid).get(source: Source.server);
+    if(cat.exists){
+      var proCate = ProductCategory.fromSnap(cat);
+      await databaseReference.collection("productsCategory").document(mid).updateData(proCate.toMap(pCategory));
+    }
+    else{
+      var proCate = ProductCategory(mid: mid,productCategory: []);
+      await databaseReference.collection("productsCategory").document(mid).setData(proCate.toMap(pCategory));
+    }
+    return pCategory;
+  }*/
 
   Future<String> saveProductStock(
     String pid,
@@ -85,7 +95,7 @@ class ProductRepo {
     return bid;
   }
 
-  List<String> makeIndexList(String pName) {
+  static List<String> makeIndexList(String pName) {
     List<String> indexList = [];
     var temp = pName.split(' ');
     for (int i = 0; i < temp.length; i++) {
@@ -95,6 +105,25 @@ class ProductRepo {
     }
     return indexList;
   }
+
+  static Future<void> updateProduct(String pID, Map<String, dynamic> data) async {
+    try {
+      await Firestore.instance.collection('products').document(pID).updateData(data);
+      Get.snackbar('Update',
+          'Product updated',duration: Duration(seconds: 3),
+          backgroundColor: PRIMARYCOLOR,
+        colorText: Colors.white,
+        snackStyle: SnackStyle.GROUNDED
+      );
+    }catch(_){}
+  }
+
+  static Future<void> deleteProduct(String pID) async {
+    try {
+      await Firestore.instance.collection('products').document(pID).delete();
+    }catch(_){}
+  }
+
 
   Future<Map<String, dynamic>> getOne(String pID) async {
     var document =
@@ -125,6 +154,35 @@ class ProductRepo {
     });
     // print(suggestion);
     return suggestion;
+  }
+
+  static Future<List<Product>> fetchAllProduct(String mID, dynamic lastDoc) async {
+    var mRef = Firestore.instance.document('merchants/$mID');
+    List<Product> tmp = List();
+    var document;
+
+    if (lastDoc == null) {
+      document = await Firestore.instance
+          .collection('products')
+          .orderBy('productCreatedAt', descending: true)
+          .where('productMerchant', isEqualTo: mRef)
+          .limit(10)
+          .getDocuments();
+    } else {
+      document = await Firestore.instance
+          .collection('products')
+          .orderBy('productCreatedAt', descending: true)
+          .where('productMerchant', isEqualTo: mRef)
+          .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments();
+    }
+
+    document.documents.forEach((element) {
+      tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
+    });
+    print(tmp.length);
+    return tmp;
   }
 
   Future<List<Product>> fetchProduct(
@@ -161,7 +219,7 @@ class ProductRepo {
     return tmp;
   }
 
-  Future<List<Product>> SearchProduct(
+ static Future<List<Product>> SearchProduct(
       String mID, dynamic lastDoc, String search) async {
     var mRef = Firestore.instance.document('merchants/$mID');
     List<Product> tmp = List();
@@ -195,4 +253,9 @@ class ProductRepo {
 
     return tmp;
   }
+
+
+
+
 }
+

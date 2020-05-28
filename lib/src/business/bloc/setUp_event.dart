@@ -19,7 +19,7 @@ class AddressChanged extends BusinessEvent {
   List<Object> get props => [address];
 
   @override
-  String toString() => 'AddressChanged { address :$address }';
+  String toString() => 'Instance of BusinessEvent<AddressChanged>';
 }
 
 class TelephoneChanged extends BusinessEvent {
@@ -31,7 +31,7 @@ class TelephoneChanged extends BusinessEvent {
   List<Object> get props => [telephone];
 
   @override
-  String toString() => 'TelephoneChanged { email :$telephone }';
+  String toString() => 'Instance of BusinessEvent<TelephoneChanged>';
 }
 
 class NameChanged extends BusinessEvent {
@@ -43,7 +43,7 @@ class NameChanged extends BusinessEvent {
   List<Object> get props => [name];
 
   @override
-  String toString() => 'NameChanged { name :$name }';
+  String toString() => 'Instance of BusinessEvent<NameChanged>';
 }
 
 class CountryCodeChanged extends BusinessEvent {
@@ -55,7 +55,7 @@ class CountryCodeChanged extends BusinessEvent {
   List<Object> get props => [country];
 
   @override
-  String toString() => 'CountryCodeChanged { CountryCode :$country }';
+  String toString() => 'Instance of BusinessEvent<CountryCodeChanged>';
 }
 
 class CategoryChanged extends BusinessEvent {
@@ -67,12 +67,12 @@ class CategoryChanged extends BusinessEvent {
   List<Object> get props => [category];
 
   @override
-  String toString() => 'CategoryChanged { category: $category }';
+  String toString() => 'Instance of BusinessEvent<CategoryChanged>';
 }
 
 class CaptureCordinate extends BusinessEvent {
   @override
-  String toString() => 'CaptureCordinate';
+  String toString() => 'Instance of BusinessEvent<CaptureCordinate>';
 }
 
 class CaptureUpdated extends BusinessEvent {
@@ -93,7 +93,7 @@ class DeliveryChanged extends BusinessEvent {
   List<Object> get props => [delivery];
 
   @override
-  String toString() => 'DeliveryChanged { delivery: $delivery }';
+  String toString() => 'Instance of BusinessEvent<DeliveryChanged>';
 }
 
 class categoryChanged extends BusinessEvent {}
@@ -104,6 +104,7 @@ class Submitted extends BusinessEvent {
   final String name;
   final String telephone;
   final FirebaseUser user;
+  final bool isAgent;
 
   const Submitted({
     @required this.address,
@@ -111,14 +112,15 @@ class Submitted extends BusinessEvent {
     @required this.name,
     @required this.telephone,
     @required this.user,
+    @required this.isAgent
   });
 
   @override
-  List<Object> get props => [address, category, name, telephone, user];
+  List<Object> get props => [address, category, name, telephone, user,isAgent];
 
   @override
   String toString() {
-    return 'Submitted { address: $address, category: $category, name: $name, telephone: $telephone, uid:$user }';
+    return 'Instance of BusinessEvent<Submitted>';
   }
 }
 
@@ -131,5 +133,5 @@ class AgreedChanged extends BusinessEvent {
   List<Object> get props => [agreed];
 
   @override
-  String toString() => 'Agreed { agreed: $agreed }';
+  String toString() => 'Instance of BusinessEvent<AgreedChanged>';
 }

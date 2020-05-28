@@ -15,7 +15,7 @@ class AddProduct extends StatelessWidget {
       appBar: AppBar(
         title: Center(
             child: Text(
-          'PocketShopping',
+          '${session.merchant.bName}',
           style: TextStyle(color: PRIMARYCOLOR),
         )),
         elevation: 0,

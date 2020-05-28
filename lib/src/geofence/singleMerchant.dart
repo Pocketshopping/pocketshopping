@@ -94,9 +94,6 @@ class _MerchantUIState extends State<MerchantUI> {
     });
 
     //});
-
-    print('distance ${widget.distance}');
-
     super.initState();
   }
 

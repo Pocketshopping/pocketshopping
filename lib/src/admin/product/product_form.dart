@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:get/get.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +10,7 @@ import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:recase/recase.dart';
+import 'package:pocketshopping/src/ui/shared/imageEditor.dart';
 
 class ProductForm extends StatefulWidget {
   ProductForm({this.session});
@@ -218,9 +219,13 @@ class _ProductFormState extends State<ProductForm> {
               content: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                      'Error Encountered adding product. Check your network connection and try again'),
-                  Icon(Icons.error),
+                  Expanded(
+                    child: Text('Error Encountered adding product. Check your network connection and try again'),
+                  ),
+                  Expanded(
+                    flex:0,
+                    child: Icon(Icons.error),
+                  )
                 ],
               ),
               backgroundColor: Colors.red,
@@ -233,6 +238,7 @@ class _ProductFormState extends State<ProductForm> {
             if (state.isSubmitting)
               return false;
             else {
+              Get.back(result:'Refresh');
               return true;
             }
           },
@@ -247,30 +253,6 @@ class _ProductFormState extends State<ProductForm> {
                         '${state.count} Product(s)',
                         style: TextStyle(color: PRIMARYCOLOR, fontSize: 18),
                       ),
-                    ),
-                  ),
-                  psCard(
-                      color: PRIMARYCOLOR,
-                      title: 'Product Search',
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey,
-                          //offset: Offset(1.0, 0), //(x,y)
-                          blurRadius: 6.0,
-                        ),
-                      ],
-                      child: FlatButton(
-                        onPressed: () {},
-                        color: PRIMARYCOLOR,
-                        child: Text(
-                          "Search For New Product",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      )),
-                  Center(
-                    child: Text(
-                      "Or",
-                      style: TextStyle(fontSize: 18),
                     ),
                   ),
                   Container(
@@ -768,6 +750,7 @@ class _ProductFormState extends State<ProductForm> {
   }
 
   void _onPriceChanged() {
+    if(_priceController.text.isNotEmpty)
     _productBloc.add(
       PriceChanged(price: double.parse(_priceController.text) ?? 0),
     );
@@ -806,7 +789,7 @@ class _ProductFormState extends State<ProductForm> {
                   fabColor: PRIMARYCOLOR,
                 )));
     File pImage = File(camresult);
-    _productBloc.add(ImageFromCamera(image: pImage));
+    Get.dialog(Editor(imageFile: pImage,callbvck: (image){_productBloc.add(ImageFromCamera(image: image));},));
   }
 
   @override

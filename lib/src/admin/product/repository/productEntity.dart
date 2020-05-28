@@ -19,6 +19,8 @@ class ProductEntity extends Equatable {
   final String pUploader;
   final String pUnit;
   final Timestamp pCreatedAt;
+  final int status;
+  final int availability;
 
   const ProductEntity(
       this.pID,
@@ -33,7 +35,10 @@ class ProductEntity extends Equatable {
       this.pQRCode,
       this.pUploader,
       this.pUnit,
-      this.pCreatedAt);
+      this.pCreatedAt,
+      this.status,
+      this.availability
+      );
 
   Map<String, Object> toJson() {
     return {
@@ -49,7 +54,9 @@ class ProductEntity extends Equatable {
       'pQRCode': pQRCode,
       'pUploader': pUploader,
       'pUnit': pUnit,
-      'pCreatedAt': pCreatedAt
+      'pCreatedAt': pCreatedAt,
+      'status':status,
+      'availability':availability
     };
   }
 
@@ -67,13 +74,14 @@ class ProductEntity extends Equatable {
         pQRCode,
         pUploader,
         pUnit,
-        pCreatedAt
+        pCreatedAt,
+        status,
+        availability
       ];
 
   @override
   String toString() {
-    return '''ProductEntity {
-        bName:$pName ,}''';
+    return ''' Instance of <ProductEntity> ''';
   }
 
   static ProductEntity fromJson(Map<String, Object> json) {
@@ -91,6 +99,8 @@ class ProductEntity extends Equatable {
       json['pUploader'] as String,
       json['pUnit'] as String,
       json['pCreatedAt'] as Timestamp,
+      json['status'] as int,
+      json['availability'] as int
     );
   }
 
@@ -110,6 +120,8 @@ class ProductEntity extends Equatable {
       snap.data['productUploader'].toString(),
       snap.data['productUnit'],
       snap.data['productCreatedAt'],
+      snap.data['productStatus'],
+      snap.data['productAvailability']
     );
   }
 

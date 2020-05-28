@@ -157,6 +157,6 @@ class GeoFenceState {
 
   @override
   String toString() {
-    return '''GeoFenceState {nearByMerchants:${nearByMerchants.length}}''';
+    return '''Instance of GeoFenceState''';
   }
 }

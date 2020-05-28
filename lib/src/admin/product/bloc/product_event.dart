@@ -20,7 +20,7 @@ class PriceChanged extends ProductEvent {
   List<Object> get props => [price];
 
   @override
-  String toString() => 'PriceChanged { price :$price }';
+  String toString() => 'Instance of ProductEvent<PriceChanged>';
 }
 
 class CategoryChanged extends ProductEvent {
@@ -32,7 +32,7 @@ class CategoryChanged extends ProductEvent {
   List<Object> get props => [category];
 
   @override
-  String toString() => 'CategoryChanged { email :$category }';
+  String toString() => 'Instance of ProductEvent<CategoryChanged>';
 }
 
 class NameChanged extends ProductEvent {
@@ -44,7 +44,7 @@ class NameChanged extends ProductEvent {
   List<Object> get props => [name];
 
   @override
-  String toString() => 'NameChanged { name :$name }';
+  String toString() => 'Instance of ProductEvent<NameChanged>';
 }
 
 class CaptureBarCode extends ProductEvent {}
@@ -60,7 +60,7 @@ class ProductCount extends ProductEvent {
   List<Object> get props => [mID];
 
   @override
-  String toString() => 'ProductCount { merchants :$mID }';
+  String toString() => 'Instance of ProductEvent<ProductCount>';
 }
 
 class ProductCountUpdate extends ProductEvent {
@@ -72,7 +72,7 @@ class ProductCountUpdate extends ProductEvent {
   List<Object> get props => [count];
 
   @override
-  String toString() => 'ProductCountUpdate { ProductCountUpdate :$count }';
+  String toString() => 'Instance of ProductEvent<ProductCountUpdate>';
 }
 
 class ImageFromCamera extends ProductEvent {
@@ -84,7 +84,7 @@ class ImageFromCamera extends ProductEvent {
   List<Object> get props => [image];
 
   @override
-  String toString() => 'ImageFromCamera { image :$image }';
+  String toString() => 'Instance of ProductEvent<ImageFromCamera>';
 }
 
 class Submitted extends ProductEvent {
@@ -112,13 +112,6 @@ class Submitted extends ProductEvent {
 
   @override
   String toString() {
-    return 'Submitted { '
-        'price: $price, '
-        'category: $category, '
-        'name: $name, '
-        'unit: $unit,'
-        'description:$description,'
-        'stock:$stock, '
-        'user:$user }';
+    return 'Instance of ProductEvent<Submitted>';
   }
 }

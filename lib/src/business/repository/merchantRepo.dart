@@ -8,11 +8,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:pocketshopping/component/dynamicLinks.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:recase/recase.dart';
 
 class MerchantRepo {
-  final databaseReference = Firestore.instance;
+  static final databaseReference = Firestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
-  Geoflutterfire geo = Geoflutterfire();
+  static final Geoflutterfire geo = Geoflutterfire();
+  //Geoflutterfire geo = Geoflutterfire();
 
   Future<String> save({
     String bID,
@@ -38,11 +40,10 @@ class MerchantRepo {
     bool adminUploaded
   }) async {
     DocumentReference bid;
-    GeoFirePoint merchantLocation =
-        geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
+    GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
     bid = await databaseReference.collection("merchants").add({
       'businessCreator': databaseReference.document('users/' + uid),
-      'businessName': bName,
+      'businessName': bName.headerCase,
       'businessAdress': bAddress,
       'businessCategory': bCategory,
       'businessOpenTime': bOpenTime,
@@ -65,8 +66,10 @@ class MerchantRepo {
       'adminUploaded':adminUploaded,
       'index': makeIndexList(bName)
     });
-    await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
-    await ChannelMaker(bid.documentID, uid);
+    if(!adminUploaded) {
+      await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
+      await ChannelMaker(bid.documentID, uid);
+    }
 
     return bid.documentID;
   }
@@ -192,6 +195,35 @@ class MerchantRepo {
     //
   }
 
+  static Future<List<Merchant>> getMyBusiness(String uid, Merchant lastDoc,) async {
+    var uRef = Firestore.instance.document('users/$uid');
+    List<Merchant> tmp = List();
+    var document;
+
+    if (lastDoc == null) {
+      document = await Firestore.instance
+          .collection('merchants')
+          .orderBy('businessCreatedAt', descending: true)
+          .where('businessCreator', isEqualTo: uRef)
+          .limit(10)
+          .getDocuments();
+    } else {
+      document = await Firestore.instance
+          .collection('merchants')
+          .orderBy('businessCreatedAt', descending: true)
+          .where('businessCreator', isEqualTo: uRef)
+          .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments();
+    }
+    document.documents.forEach((element) {
+      tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+    });
+
+    return tmp;
+
+  }
+
   static String getMerchantName(String mid) {
     String merchant = "";
     getMerchant(mid).then((value) => merchant = value.bName);
@@ -257,4 +289,42 @@ class MerchantRepo {
     //print(address.);
     return [];
   }
+
+
+  static Future<bool> claim(Position position,String uid,String mid) async {
+    GeoFirePoint claimLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
+    var bid = await databaseReference.collection("claims").add({
+      'location': claimLocation.data,
+      'user':uid,
+      'merchant':mid,
+      'loggedAt':Timestamp.now(),
+    });
+    if(bid.documentID.isNotEmpty)
+      return true;
+    else
+      return false;
+  }
+
+
+  static Future<Merchant> getNearByMerchant(Position mpos, String name) async {
+    GeoFirePoint center = geo.point(latitude: mpos.latitude, longitude: mpos.longitude);
+    var collectionReference = Firestore.instance
+        .collection('merchants')
+        .where('businessName', isEqualTo: name)
+        .limit(5);
+    Stream<List<DocumentSnapshot>> alu = geo
+        .collection(collectionRef: collectionReference)
+        .within(
+        center: center,
+        radius: 0.3,
+        field: 'businessGeopint',
+        strictMode: true);
+    var doc = await alu.first;
+    if(doc.length>0)
+    return Merchant.fromEntity(MerchantEntity.fromSnapshot(doc.first));
+    else return null;
+  }
+
+
+
 }

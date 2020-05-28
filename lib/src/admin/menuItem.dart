@@ -1,5 +1,6 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 
 class MenuItem extends StatelessWidget {
@@ -36,14 +37,14 @@ class MenuItem extends StatelessWidget {
       child: FlatButton(
         onPressed: () => {
           isMultiMenu
-              ? showModalBottomSheet(
-                  context: context,
+              ? Get.bottomSheet(
                   builder: (context) => BottomSheetTemplate(
                         height: MediaQuery.of(context).size.height * 0.4,
                         child: Container(
                           child: content != null ? content : Container(),
                         ),
-                      ))
+                      )
+                )
               : content != null
                   ? Navigator.push(
                       context,

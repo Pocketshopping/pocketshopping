@@ -8,7 +8,7 @@ class LoginState {
   final bool isSuccess;
   final bool isFailure;
 
-  bool get isFormValid => isEmailValid && isPasswordValid;
+  bool get isFormValid => isEmailValid;
 
   LoginState({
     @required this.isEmailValid,
@@ -90,12 +90,6 @@ class LoginState {
 
   @override
   String toString() {
-    return '''LoginState {
-      isEmailValid: $isEmailValid,
-      isPasswordValid: $isPasswordValid,      
-      isSubmitting: $isSubmitting,
-      isSuccess: $isSuccess,
-      isFailure: $isFailure,
-    }''';
+    return '''Instance of LoginState''';
   }
 }

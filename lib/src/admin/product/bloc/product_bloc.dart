@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'package:image_cropper/image_cropper.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/validators.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   StreamSubscription _countSubscription;
@@ -55,11 +55,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }
 
   Stream<ProductState> _mapImageFromCameraToState(File image) async* {
-    File temp = await cropImage(image);
+    //File temp = await Utility.cropImage(image);
     List<File> CroppedImage = List();
     CroppedImage.addAll(state.croppedImage);
-    CroppedImage.add(temp);
-
+    CroppedImage.add(image);
     yield state.update(croppedImage: CroppedImage);
   }
 
@@ -74,7 +73,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   Stream<ProductState> _mapImageFromGalleryToState() async* {
     File pImage = await ImagePicker.pickImage(source: ImageSource.gallery);
-    File temp = await cropImage(pImage);
+    File temp = await Utility.cropImage(pImage);
     List<File> CroppedImage = List();
     CroppedImage.addAll(state.croppedImage);
     CroppedImage.add(temp);
@@ -117,7 +116,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             isUploading: true,
             croppedImage: state.croppedImage,
             barCode: state.barCode);
-        images = await uploadMultipleImages(state.croppedImage);
+        images = await Utility.uploadMultipleImages(state.croppedImage);
       }
       yield ProductState.loading(
           isUploading: false,
@@ -131,13 +130,14 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         pName: name,
         pDesc: desc,
         pGroup: user.merchant.bCategory,
-        pPhoto: images,
+        pPhoto: images.isNotEmpty?images:(<String>['$PRODUCTDEFAULT']),
         pQRCode: state.barCode,
         pStockCount: int.tryParse(stock),
         pUnit: unit,
       );
       yield ProductState.success();
     } catch (_) {
+      print('error $_');
       yield ProductState.failure(
           isUploading: false,
           croppedImage: state.croppedImage,
@@ -145,53 +145,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
-  Future<File> cropImage(File image) async {
-    File temp;
-    temp = await ImageCropper.cropImage(
-        sourcePath: image.path,
-        aspectRatioPresets: [
-          CropAspectRatioPreset.ratio3x2,
-        ],
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Editor',
-          toolbarColor: PRIMARYCOLOR,
-          toolbarWidgetColor: WHITECOLOR,
-          initAspectRatio: CropAspectRatioPreset.original,
-        ),
-        iosUiSettings: IOSUiSettings(minimumAspectRatio: 1.0));
-    return temp;
-  }
 
-  Future<List<String>> uploadMultipleImages(List<File> _imageList) async {
-    List<String> _imageUrls = List();
 
-    try {
-      for (int i = 0; i < _imageList.length; i++) {
-        final StorageReference storageReference =
-            FirebaseStorage().ref().child("ProductPhoto/${DateTime.now()}.png");
 
-        final StorageUploadTask uploadTask =
-            storageReference.putFile(_imageList[i]);
-
-        final StreamSubscription<StorageTaskEvent> streamSubscription =
-            uploadTask.events.listen((event) {
-          print(event.toString());
-        });
-
-        // Cancel your subscription when done.
-        await uploadTask.onComplete;
-        streamSubscription.cancel();
-
-        String imageUrl = await storageReference.getDownloadURL();
-        _imageUrls.add(imageUrl); //all all the urls to the list
-      }
-      //upload the list of imageUrls to firebase as an array
-      return _imageUrls;
-    } catch (e) {
-      print(e);
-      return [];
-    }
-  }
 
   @override
   Future<void> close() {

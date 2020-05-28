@@ -168,9 +168,7 @@ class RegisterState {
 
   @override
   String toString() {
-    return '''RegisterState {
-    Form:${isTelephoneValid && isNameValid && isEmailValid && isAgreedValid && isConfirmPasswordValid && isNewUser && isPasswordValid},
-    }''';
+    return '''Instance of RegisterState''';
   }
 }
 
@@ -182,5 +180,5 @@ class CCode extends RegisterState {
   List<Object> get props => [code];
 
   @override
-  String toString() => 'CountryCode { code: $code }';
+  String toString() => 'Instance of RegisterState<CCode>';
 }

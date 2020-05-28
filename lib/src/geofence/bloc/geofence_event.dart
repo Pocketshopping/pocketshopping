@@ -19,7 +19,7 @@ class NearByMerchant extends GeoFenceEvent {
   List<Object> get props => [category];
 
   @override
-  String toString() => 'NearByMerchant { category :$category }';
+  String toString() => 'Instance of GeoFenceEvent<NearByMerchant>';
 }
 
 class FetchNearByMerchant extends GeoFenceEvent {
@@ -32,8 +32,7 @@ class FetchNearByMerchant extends GeoFenceEvent {
   List<Object> get props => [category];
 
   @override
-  String toString() =>
-      'FetchNearByMerchant { category :$category, position:$position }';
+  String toString() => 'Instance of GeoFenceEvent<FetchNearByMerchant>';
 }
 
 class UpdateMerchant extends GeoFenceEvent {
@@ -45,7 +44,7 @@ class UpdateMerchant extends GeoFenceEvent {
   List<Object> get props => [merchant];
 
   @override
-  String toString() => 'UpdateMerchant { merchant :${merchant.length} }';
+  String toString() => 'Instance of GeoFenceEvent<UpdateMerchant>';
 }
 
 class CategorySelected extends GeoFenceEvent {
@@ -57,7 +56,7 @@ class CategorySelected extends GeoFenceEvent {
   List<Object> get props => [selected];
 
   @override
-  String toString() => 'CategorySelected { selected :$selected }';
+  String toString() => 'Instance of GeoFenceEvent<CategorySelected>';
 }
 
 class Categories extends GeoFenceEvent {}
