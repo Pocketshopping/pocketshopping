@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/widget/bSheetTemplate.dart';
-import 'package:pocketshopping/component/merchantMap.dart';
 
 class BottomSheetOrderWidget extends StatelessWidget {
   @override

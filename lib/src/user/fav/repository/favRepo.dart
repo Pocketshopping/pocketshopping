@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pocketshopping/src/review/repository/ReviewEntity.dart';
-import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/user/fav/repository/favItem.dart';
 import 'package:pocketshopping/src/user/fav/repository/favObj.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:pocketshopping/constants/ui_constants.dart';
 import 'package:pocketshopping/model/ViewModel/ViewModel.dart';
-import 'package:pocketshopping/widget/ListItem.dart';
 import 'package:pocketshopping/widget/AwareListItem.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:pocketshopping/widget/ListItem.dart';
 import 'package:pocketshopping/widget/bSheetTemplate.dart';
 import 'package:provider/provider.dart';
 

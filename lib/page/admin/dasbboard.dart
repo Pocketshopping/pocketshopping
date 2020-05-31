@@ -1,6 +1,8 @@
-import 'package:badges/badges.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pocketshopping/component/psProvider.dart';
+import 'package:pocketshopping/component/scanScreen.dart';
+import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/model/DataModel/userData.dart';
 import 'package:pocketshopping/page/admin/TopUp.dart';
 import 'package:pocketshopping/page/admin/menuItem.dart';
@@ -9,19 +11,16 @@ import 'package:pocketshopping/page/admin/openOrder.dart';
 import 'package:pocketshopping/page/admin/settings.dart';
 import 'package:pocketshopping/page/admin/viewItem.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
-import 'package:pocketshopping/component/psProvider.dart';
-import 'package:pocketshopping/widget/product.dart';
-import 'package:pocketshopping/widget/staffs.dart';
-import 'package:pocketshopping/widget/unit.dart';
-import 'package:pocketshopping/widget/customers.dart';
-import 'package:pocketshopping/widget/branch.dart';
-import 'package:pocketshopping/widget/manageOrder.dart';
 import 'package:pocketshopping/widget/account.dart';
-import 'package:pocketshopping/widget/statistic.dart';
+import 'package:pocketshopping/widget/branch.dart';
+import 'package:pocketshopping/widget/customers.dart';
+import 'package:pocketshopping/widget/manageOrder.dart';
+import 'package:pocketshopping/widget/product.dart';
 import 'package:pocketshopping/widget/reviews.dart';
+import 'package:pocketshopping/widget/staffs.dart';
+import 'package:pocketshopping/widget/statistic.dart';
 import 'package:pocketshopping/widget/status.dart';
-import 'package:pocketshopping/component/scanScreen.dart';
-import 'package:pocketshopping/constants/appColor.dart';
+import 'package:pocketshopping/widget/unit.dart';
 
 class DashBoardPage extends StatefulWidget {
   static String tag = 'DashBoard-page';

@@ -1,47 +1,32 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:location/location.dart';
-import 'package:pocketshopping/component/scanScreen.dart';
-import 'package:pocketshopping/page/admin/message.dart';
-import 'package:pocketshopping/page/admin/openOrder.dart';
-import 'package:pocketshopping/page/admin/settings.dart';
-import 'package:pocketshopping/page/admin/viewItem.dart';
-import 'package:pocketshopping/page/user/merchant.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
-import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/repository/order.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agent/myAuto.dart';
+import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/widget/account.dart';
-import 'package:pocketshopping/widget/branch.dart';
-import 'package:pocketshopping/widget/customers.dart';
-import 'package:pocketshopping/widget/manageOrder.dart';
-import 'package:pocketshopping/widget/reviews.dart';
-import 'package:pocketshopping/widget/staffs.dart';
-import 'package:pocketshopping/widget/statistic.dart';
-import 'package:pocketshopping/widget/status.dart';
-import 'package:pocketshopping/widget/unit.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
+import 'package:pocketshopping/widget/reviews.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 
 class AgentDashBoardScreen extends StatefulWidget {
   @override
@@ -54,20 +39,22 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
+  StreamSubscription orders;
   Stream<Wallet> _walletStream;
+  Stream<List<Order>> _orderStream;
   Wallet _wallet;
+  List<Order> newOrders;
   bool available;
   @override
   void initState() {
-
+    newOrders = [];
     CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       showBottom();
     });
 
-    WalletRepo.getWallet(CurrentUser.user.walletId)
-        .then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(CurrentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
@@ -75,7 +62,27 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
         setState(() {});
       }
     });
+
+    orders = OrderRepo.agentOrder(CurrentUser.agent.agent).listen((event) {
+      if(mounted)
+        setState(() {
+          if(!newOrders.contains(orders))
+            newOrders.addAll(event);
+        });
+      OrderBloc.instance.newOrder(event);
+    });
+/*    _orderStream = OrderBloc.instance.orderStream;
+    _orderStream.listen((orders) {
+      if(mounted)
+        setState(() {
+          if(!newOrders.contains(orders))
+          newOrders.addAll(orders);
+        });
+    });*/
+
+    if(CurrentUser.agent == null)
     ChannelRepo.update(CurrentUser.merchant.mID, CurrentUser.user.uid);
+
     Workmanager.cancelAll();
     Workmanager.registerPeriodicTask(
         "AGENTLOCATIONUPDATE", "LocationUpdateTask",
@@ -106,6 +113,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   void dispose() {
     _notificationsStream = null;
     _walletStream = null;
+    orders.cancel();
+    _orderStream = null;
     iosSubscription?.cancel();
     super.dispose();
   }
@@ -392,10 +401,10 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Deliveries',
                       border: PRIMARYCOLOR,
-                      isBadged: false,
+                      isBadged: true,
                       isMultiMenu: false,
-                      openCount: 3,
-                      content: Reviews(themeColor: PRIMARYCOLOR),
+                      openCount: newOrders.length,
+                      content: MyDelivery(orders: newOrders,user: CurrentUser,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -403,10 +412,10 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile',
+                      isBadged: false,
+                      isMultiMenu: false,
                       border: PRIMARYCOLOR,
-                      content: VehicleBottomPage(
-                        session: CurrentUser,
-                      ),
+                      content: MyAuto(agent: CurrentUser,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -422,7 +431,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.business,
+                      Icon(MaterialIcons.home,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Business(es)',
@@ -437,22 +446,12 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       Icon(MaterialIcons.pie_chart,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Stat',
+                      'Statistic',
                       border: PRIMARYCOLOR,
                       isBadged: false,
                       isMultiMenu: false,
                       openCount: 3,
                       content: Reviews(themeColor: PRIMARYCOLOR),
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(Icons.settings,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'My Account',
-                      border: PRIMARYCOLOR,
-                      isMultiMenu: false,
-                      content: Settings(),
                     ),
                   ],
                 ),

@@ -41,6 +41,11 @@ class LogisticRepo {
     return AgentLocUp.fromSnap(doc);
   }
 
+  static Future<AutoMobile> getAutomobile(String autoID) async {
+    var doc = await databaseReference.collection("automobile").document(autoID).get();
+    return AutoMobile.fromSnap(doc);
+  }
+
   static Future<bool> accept(
       String agentID, String requestID, String uid) async {
     await databaseReference

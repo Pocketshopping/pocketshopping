@@ -1,15 +1,16 @@
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
-import 'package:recase/recase.dart';
+
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:recase/recase.dart';
 
 class BusinessSetupForm extends StatefulWidget {
   BusinessSetupForm({this.data,this.isAgent});

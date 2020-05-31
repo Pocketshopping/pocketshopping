@@ -14,8 +14,8 @@ class OrderRepo {
     return bid.documentID;
   }
 
-  static Future<dynamic> get(
-      dynamic lastDoc, String OpenOrClose, String uid) async {
+  static Future<List<Order>> get(
+      dynamic lastDoc, int OpenOrClose, String uid) async {
     var snap;
     if (lastDoc == null) {
       snap = await databaseReference
@@ -44,12 +44,45 @@ class OrderRepo {
     if (orders.length > 0)
       return orders;
     else
-      return [SearchEmptyOrderIndicatorTitle];
+      return [];
+  }
+
+  static Future<List<Order>> getCompleted(
+      dynamic lastDoc, String uid) async {
+    var snap;
+    if (lastDoc == null) {
+      snap = await databaseReference
+          .collection('orders')
+          .orderBy('orderCreatedAt', descending: true)
+          .where("customerID", isEqualTo: uid)
+          .where("status", isEqualTo: 1)
+          .limit(10)
+          .getDocuments();
+    } else {
+      snap = await databaseReference
+          .collection('orders')
+          .orderBy('orderCreatedAt', descending: true)
+          .where("customerID", isEqualTo: uid)
+          .where("status", isEqualTo: 1)
+          .startAfter(
+          [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments();
+    }
+
+    List<Order> orders = [];
+    snap.documents.forEach((doc) {
+      orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
+    });
+    if (orders.length > 0)
+      return orders;
+    else
+      return [];
   }
 
   static Future<void> confirm(String oid, Confirmation confirmation) async {
     await databaseReference.collection("orders").document(oid).updateData(
-        {'orderConfirmation': confirmation.toMap(), 'status': 'COMPLETED'});
+        {'orderConfirmation': confirmation.toMap(), 'status': 1});
   }
 
   static Future<Order> getOne(String oid) async {
@@ -67,6 +100,54 @@ class OrderRepo {
     await databaseReference
         .collection("orders")
         .document(oid)
-        .updateData({'status': 'COMPLETED'});
+        .updateData({'status': 1});
   }
+
+  static Stream<List<Order>> agentOrder(String agentID, {int type=0}) async* {
+     yield* databaseReference
+        .collection("orders")
+        .where('agent',isEqualTo: agentID)
+        .where('status',isEqualTo: type)
+        .orderBy('orderCreatedAt',descending: true)
+         .snapshots().map((event) {
+            return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+
+    });
+  }
+
+  static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc) async {
+    List<Order> tmp = List();
+    print(lastDoc);
+    var document;
+
+    if (lastDoc == null) {
+      document = await Firestore.instance
+          .collection('orders')
+          //.orderBy('status',descending: true)
+          .orderBy('orderCreatedAt',descending: true)
+          .where('agent',isEqualTo: agentID)
+          .where('status',isEqualTo: 1)
+          .limit(10)
+          .getDocuments();
+    } else {
+      document = await Firestore.instance
+          .collection('orders')
+          //.orderBy('status',descending: true)
+          .orderBy('orderCreatedAt',descending: true)
+          .where('agent',isEqualTo: agentID)
+          .where('status',isEqualTo: 1)
+          .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments();
+    }
+    //tmp.clear();
+    document.documents.forEach((element) {
+      tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
+    });
+    print('dgdg: ${tmp.length}');
+    return tmp;
+  }
+
+
+
 }

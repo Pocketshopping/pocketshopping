@@ -11,11 +11,11 @@ class MyOrders extends StatefulWidget {
 }
 
 class _OrdersState extends State<MyOrders> {
-  Session CurrentUser;
+  Session currentUser;
 
   @override
   void initState() {
-    CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
+    currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     super.initState();
   }
 
@@ -60,8 +60,8 @@ class _OrdersState extends State<MyOrders> {
         ),
         body: TabBarView(
           children: [
-            OpenOrder(user: CurrentUser),
-            CloseOrder(user: CurrentUser),
+            OpenOrder(user: currentUser),
+            CloseOrder(user: currentUser),
           ],
         ),
       ),

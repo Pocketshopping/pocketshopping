@@ -39,7 +39,7 @@ class Confirmation {
 
   @override
   String toString() {
-    return '''Confirmation {confirmedAt: $confirmedAt,}''';
+    return '''Instance of Confirmation''';
   }
 
   Map<String, dynamic> toMap() {

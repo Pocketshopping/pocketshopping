@@ -52,7 +52,7 @@ class OrderItem {
 
   @override
   String toString() {
-    return '''OrderItem {ProductId: $ProductId,}''';
+    return '''Instance of OrderItem''';
   }
 
   static OrderItem fromCart(CartItem cartItem) {

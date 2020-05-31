@@ -19,11 +19,12 @@ class OrderEntity extends Equatable {
   final OrderMode orderMode;
   final int orderETA;
   final Receipt receipt;
-  final String status;
+  final int status;
   final String orderID;
   final String docID;
   final Confirmation orderConfirmation;
   final String customerID;
+  final String agent;
 
   const OrderEntity(
       this.orderItem,
@@ -38,7 +39,9 @@ class OrderEntity extends Equatable {
       this.orderID,
       this.docID,
       this.orderConfirmation,
-      this.customerID);
+      this.customerID,
+      this.agent
+      );
 
   Map<String, Object> toJson() {
     return {
@@ -54,7 +57,8 @@ class OrderEntity extends Equatable {
       'orderID': orderID,
       'docID': docID,
       'orderConfirmation': orderConfirmation,
-      'customerID': customerID
+      'customerID': customerID,
+      'agent':agent
     };
   }
 
@@ -72,12 +76,13 @@ class OrderEntity extends Equatable {
         orderID,
         docID,
         orderConfirmation,
-        customerID
+        customerID,
+        agent,
       ];
 
   @override
   String toString() {
-    return '''OrderEntity {bName:$orderID ,}''';
+    return '''Instance of OrderEntity''';
   }
 
   static OrderEntity fromJson(Map<String, Object> json) {
@@ -90,11 +95,13 @@ class OrderEntity extends Equatable {
         json['orderMode'] as OrderMode,
         json['orderETA'] as int,
         json['receipt'] as Receipt,
-        json['status'] as String,
+        json['status'] as int,
         json['orderID'] as String,
         json['docID'] as String,
         json['orderConfirmation'] as Confirmation,
-        json['customerID'] as String);
+        json['customerID'] as String,
+        json['agent'] as String
+    );
   }
 
   static OrderEntity fromSnapshot(DocumentSnapshot snap) {
@@ -112,7 +119,15 @@ class OrderEntity extends Equatable {
         snap.data['orderID'],
         snap.documentID,
         Confirmation.fromMap(snap.data['orderConfirmation']),
-        snap.data['customerID']);
+        snap.data['customerID'],
+        snap.data['agent'],
+    );
+  }
+
+  static List<OrderEntity> fromListSnapshot(List<DocumentSnapshot> snap) {
+    List<OrderEntity> collection =[];
+    snap.forEach((element) { collection.add(OrderEntity.fromSnapshot(element));});
+    return collection;
   }
 
   Map<String, Object> toDocument() {
@@ -129,7 +144,8 @@ class OrderEntity extends Equatable {
       'orderID': orderID,
       'docID': docID,
       'orderConfirmation': orderConfirmation,
-      'customerID': customerID
+      'customerID': customerID,
+      'agent':agent,
     };
   }
 }

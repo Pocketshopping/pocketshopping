@@ -2,12 +2,16 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:geocoder/geocoder.dart' as geocode;
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/component/dynamicLinks.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:recase/recase.dart';
 
 class MerchantRepo {
@@ -64,7 +68,8 @@ class MerchantRepo {
       'branchUnique': bBranchUnique,
       'businessCreatedAt': DateTime.now(),
       'adminUploaded':adminUploaded,
-      'index': makeIndexList(bName)
+      'businessActive':true,
+      'index': Utility.makeIndexList(bName)
     });
     if(!adminUploaded) {
       await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
@@ -74,16 +79,6 @@ class MerchantRepo {
     return bid.documentID;
   }
 
-  List<String> makeIndexList(String bName) {
-    List<String> indexList = [];
-    var temp = bName.split(' ');
-    for (int i = 0; i < temp.length; i++) {
-      for (int y = 1; y < temp[i].length + 1; y++) {
-        indexList.add(temp[i].substring(0, y).toLowerCase());
-      }
-    }
-    return indexList;
-  }
 
   Future<void> ChannelMaker(String mid, String uid) async {
     String fcm = await _fcm.getToken();
@@ -326,5 +321,24 @@ class MerchantRepo {
   }
 
 
+  static Future<void> update(String mid, Map<String,dynamic> data)async{
+    try {
+      Get.snackbar('Updating',
+          'Business updating',duration: Duration(days: 365),
+          backgroundColor: Colors.grey,
+          colorText: Colors.black,
+          snackStyle: SnackStyle.GROUNDED
+      );
+      await Firestore.instance.collection('merchants').document(mid).updateData(data);
+      Get.back();
+      Get.snackbar('Updated',
+          'Business updated',duration: Duration(seconds: 3),
+          backgroundColor: PRIMARYCOLOR,
+          colorText: Colors.white,
+          snackStyle: SnackStyle.GROUNDED
+      );
+    }
+    catch(_){}
+  }
 
 }

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:pocketshopping/model/DataModel/categoryData.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
+import 'package:pocketshopping/src/geofence/reviewPlace.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -12,7 +13,6 @@ import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:pocketshopping/src/geofence/reviewPlace.dart';
 
 class GeoFence extends StatefulWidget {
   @override

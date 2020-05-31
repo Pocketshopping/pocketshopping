@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/admin/product/repository/pCate.dart';
 import 'package:recase/recase.dart';
 
 class ProductRepo {

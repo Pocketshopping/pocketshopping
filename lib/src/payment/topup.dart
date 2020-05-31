@@ -1,45 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:carousel_pro/carousel_pro.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_credit_card/credit_card_form.dart';
-import 'package:flutter_credit_card/credit_card_model.dart';
-import 'package:flutter_credit_card/flutter_credit_card.dart';
-import 'package:geocoder/geocoder.dart' as geocode;
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:location/location.dart' as loc;
-import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/channels/repository/channelObj.dart';
-import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
-import 'package:pocketshopping/src/logistic/provider.dart';
-import 'package:pocketshopping/src/notification/notification.dart';
-import 'package:pocketshopping/src/order/repository/cartObj.dart';
-import 'package:pocketshopping/src/order/repository/confirmation.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
-import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/order/repository/orderItem.dart';
-import 'package:pocketshopping/src/order/repository/orderMode.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
-import 'package:pocketshopping/src/order/repository/receipt.dart';
-import 'package:pocketshopping/src/order/timer.dart';
-import 'package:pocketshopping/src/order/tracker.dart';
 import 'package:pocketshopping/src/payment/atmCard.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:random_string/random_string.dart';
 
 class TopUp extends StatefulWidget {
   final String payType;

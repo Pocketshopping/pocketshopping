@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:random_string/random_string.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,7 +9,9 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:random_string/random_string.dart';
 
 class PingWidget extends StatefulWidget {
   PingWidget({this.ndata, this.uid});
@@ -136,8 +138,7 @@ class _CardWidgetState extends State<CardWidget> {
   @override
   void initState() {
     expired = true;
-    _start = Utility.setStartCount(
-        Timestamp(widget.ndata['time'][0], widget.ndata['time'][1]), 60);
+    _start = Utility.setStartCount(Timestamp(widget.ndata['time'][0], widget.ndata['time'][1]), 60);
     startTimer();
     super.initState();
   }
@@ -364,16 +365,30 @@ class _ResolutionState extends State<Resolution> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final _formKey = GlobalKey<FormState>();
   var _delay = TextEditingController();
-  var _telephone = TextEditingController();
   int delay;
+  int _start;
+  Timer _timer;
+  bool expired;
+  OrderGlobalState odState;
 
   @override
   void initState() {
+    odState = Get.find();
     delay = 5;
     payload = widget.payload as Map<String, dynamic>;
+    expired = true;
+    _start = Utility.setStartCount(Timestamp.now(), 60);
+    startTimer();
     super.initState();
   }
-
+  void globalStateUpdate(String oid,int moreSec ) {
+    odState.adder(oid, {
+      'eResolution': 'WAIT',
+      'eMoreSec': moreSec,
+      'eDelayTime': Timestamp.now(),
+    });
+    Get.put(odState);
+  }
   @override
   Widget build(BuildContext context) {
     return psHeadlessCard(
@@ -396,7 +411,14 @@ class _ResolutionState extends State<Resolution> {
                     child: Text('Resolution',
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
+
+
                   ),
+                  Text('$_start s',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: PRIMARYCOLOR)),
                 ],
               ),
               SizedBox(
@@ -497,35 +519,9 @@ class _ResolutionState extends State<Resolution> {
                           ),
                           keyboardType: TextInputType.text,
                           autofocus: false,
-                          maxLines: 5,
+                          maxLines: 3,
                           maxLength: 120,
                           maxLengthEnforced: true,
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        TextFormField(
-                          controller: _telephone,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return 'Delivery Man Telephone';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Delivery Man Telephone',
-                            filled: true,
-                            fillColor: Colors.grey.withOpacity(0.2),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.white.withOpacity(0.3)),
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.white.withOpacity(0.3)),
-                            ),
-                          ),
-                          keyboardType: TextInputType.number,
                         ),
                         SizedBox(
                           height: 10,
@@ -535,7 +531,7 @@ class _ResolutionState extends State<Resolution> {
                             child: Text('Extend duration by:(min)')),
                         DropdownButtonFormField<int>(
                           value: delay,
-                          items: [5, 10, 15]
+                          items: [1,2,3,5, 10, 15]
                               .map((label) => DropdownMenuItem(
                                     child: Text(
                                       '$label',
@@ -545,13 +541,18 @@ class _ResolutionState extends State<Resolution> {
                                   ))
                               .toList(),
                           hint: Text('How many minute delay'),
-                          decoration: InputDecoration(border: InputBorder.none),
+                          decoration: InputDecoration(
+                              border: InputBorder.none,
+                              filled: true,
+                            fillColor: Colors.grey.withOpacity(0.2)
+                          ),
                           onChanged: (value) {
                             setState(() {
                               delay = value;
                             });
                           },
                         ),
+                        SizedBox(height: 10,),
                       ],
                     ),
                   )
@@ -564,10 +565,10 @@ class _ResolutionState extends State<Resolution> {
                   color: PRIMARYCOLOR,
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      Respond(delay, _delay.text, payload['fcmToken'],
-                              _telephone.text, payload['oID'])
+                      Respond(delay, _delay.text, payload['fcmToken'],'')
                           .then((value) => null);
                       widget.monitor();
+                      globalStateUpdate(payload['orderID'], delay);
                     }
                   },
                   child: Text(
@@ -581,8 +582,32 @@ class _ResolutionState extends State<Resolution> {
         ));
   }
 
-  Future<void> Respond(int delay, String comment, String fcm, String telephone,
-      String oID) async {
+  void startTimer() {
+    const oneSec = const Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+          (Timer timer) => {
+        if (mounted)
+          {
+            setState(
+                  () {
+                if (_start < 1) {
+                  widget.monitor();
+                  if (expired)
+                    Respond(1, 'Failed. Reping', widget.payload['fcmToken'],'')
+                        .then((value) => null);
+                  timer.cancel();
+                } else {
+                  _start = _start - 1;
+                }
+              },
+            )
+          }
+      },
+    );
+  }
+
+  Future<void> Respond(int delay, String comment, String fcm, String oID) async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
@@ -608,7 +633,6 @@ class _ResolutionState extends State<Resolution> {
               'orderID': oID,
               'delay': delay,
               'comment': comment,
-              'deliveryman': telephone,
               'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
             }
           },

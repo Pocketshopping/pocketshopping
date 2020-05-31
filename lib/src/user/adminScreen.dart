@@ -1,28 +1,28 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:pocketshopping/page/drawer/aboutus.dart';
-import 'package:pocketshopping/src/user/favourite.dart';
-import 'package:pocketshopping/page/user/order.dart';
-import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:pocketshopping/src/admin/ping.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/src/user/logistic.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:pocketshopping/src/admin/ping.dart';
+
 import 'bloc/user.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -292,8 +292,8 @@ class _ResolutionState extends State<Resolution> {
   Map<String, dynamic> payload;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final _formKey = GlobalKey<FormState>();
-  var _delay = TextEditingController();
   var _telephone = TextEditingController();
+  var _delay = TextEditingController();
   int delay;
 
   @override

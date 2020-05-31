@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:palette_generator/palette_generator.dart';
-import 'package:pocketshopping/page/user/place.dart';
-import 'package:pocketshopping/src/ui/constant/constants.dart';
-import 'package:pocketshopping/widget/bSheetSearchWidget.dart';
-import 'package:pocketshopping/src/user/fav/fav.dart';
-import 'package:pocketshopping/src/user/fav/repository/favObj.dart' as favObj;
-import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
+import 'package:pocketshopping/src/user/fav/fav.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 
 class Favourite extends StatefulWidget {
   @override

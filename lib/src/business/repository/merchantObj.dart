@@ -23,10 +23,11 @@ class Merchant {
   final DocumentReference bParent;
   final bool bIsBranch;
   final String bPhoto;
-  final String bStatus;
+  final int bStatus;
   final Timestamp bCreatedAt;
   final String bCountry;
   final bool adminUploaded;
+  final bool bActive;
 
   Merchant(
       {this.bName = "",
@@ -51,7 +52,8 @@ class Merchant {
       this.bIsBranch,
       this.bOpen,
       this.bUnique,
-      this.adminUploaded
+      this.adminUploaded,
+      this.bActive
       });
 
   Merchant copyWith({
@@ -74,10 +76,11 @@ class Merchant {
     DocumentReference bParent,
     bool bIsBranch,
     String bPhoto,
-    String bStatus,
+    int bStatus,
     Timestamp bCreatedAt,
     String bCountry,
     bool adminUploaded,
+    bool bActive,
   }) {
     return Merchant(
       bName: bName ?? this.bName,
@@ -102,7 +105,8 @@ class Merchant {
       bStatus: bStatus ?? this.bStatus,
       bCreatedAt: bCreatedAt ?? this.bCreatedAt,
       bCountry: bCountry ?? this.bCountry,
-      adminUploaded: adminUploaded??this.adminUploaded
+      adminUploaded: adminUploaded??this.adminUploaded,
+      bActive: bActive??this.bActive
     );
   }
 
@@ -130,7 +134,8 @@ class Merchant {
       mID.hashCode ^
       bCategory.hashCode ^
       bPhoto.hashCode ^
-      adminUploaded.hashCode;
+      adminUploaded.hashCode ^
+      bActive.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -159,7 +164,8 @@ class Merchant {
           bStatus == other.bStatus &&
           bCreatedAt == other.bCreatedAt &&
           bCountry == other.bCountry &&
-          adminUploaded == other.adminUploaded;
+          adminUploaded == other.adminUploaded &&
+          bActive == other.bActive;
 
   @override
   String toString() {
@@ -190,7 +196,8 @@ class Merchant {
         bIsBranch,
         bOpen,
         bUnique,
-    adminUploaded);
+        adminUploaded,
+        bActive);
   }
 
   static Merchant fromEntity(MerchantEntity merchant) {
@@ -217,7 +224,9 @@ class Merchant {
       bStatus: merchant.bStatus ?? '',
       bCreatedAt: merchant.bCreatedAt,
       bCountry: merchant.bCountry ?? '',
-      adminUploaded: merchant.adminUploaded ?? false
+      adminUploaded: merchant.adminUploaded ?? false,
+      bActive: merchant.bActive ?? true
+
     );
   }
 }

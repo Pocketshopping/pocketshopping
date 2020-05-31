@@ -1,20 +1,19 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_crop/image_crop.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
+
 import 'package:camera/camera.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:recase/recase.dart';
 import 'package:pocketshopping/src/ui/shared/imageEditor.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:recase/recase.dart';
 
 class EditProductForm extends StatefulWidget {
   EditProductForm({this.session,this.product});

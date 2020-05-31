@@ -34,11 +34,7 @@ class CartItem {
 
   @override
   String toString() {
-    return '''CartItem {
-        item: $item,
-    count: $count,
-    total: $total,
-    }''';
+    return ''' Instance of CartItem''';
   }
 
   static Map<String, dynamic> toMap(CartItem cartItem) {

@@ -39,8 +39,9 @@ class OrderTrackerWidget extends StatefulWidget {
 }
 
 class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
-  int _start;
+
   String counter;
+  int _start;
   Timer _timer;
   Merchant merchant;
   String resolution;
@@ -63,7 +64,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   Order _order;
   bool loading;
   Review review;
-  Channels channel;
+  String channel;
 
   @override
   void initState() {
@@ -145,7 +146,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
         }
       }
     });
-    ChannelRepo.get(_order.orderMerchant).then((value) => channel = value);
+    ChannelRepo.getAgentChannel(_order.agent).then((value) => channel = value);
     setRate();
     super.initState();
   }
@@ -207,7 +208,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
               color: Colors.grey,
             ),
             onPressed: () {
-              Get.back();
+              Get.back(result: 'Refresh');
             },
           ),
           title: Text(
@@ -229,7 +230,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                             padding: EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 10),
                             child: Text(
-                              'Status: ${_order.orderConfirmation.isConfirmed ? 'Completed' : 'Processing'}',
+                              'Status: ${_order.orderConfirmation.isConfirmed ? 1 : 0}',
                               style: TextStyle(fontSize: 20),
                             ),
                           ),
@@ -763,6 +764,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   }
 
   Future<bool> _willPopScope() async {
+    Get.back(result: 'Refresh');
     return true;
   }
 
@@ -1157,8 +1159,8 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
 
   Widget Loader(int current, int total, String message) {
     return Container(
-        width: MediaQuery.of(context).size.width * 0.3,
-        height: MediaQuery.of(context).size.height * 0.18,
+        //width: MediaQuery.of(context).size.width * 0.3,
+        //height: MediaQuery.of(context).size.height * 0.18,
         color: Colors.white,
         child: CircularStepProgressIndicator(
           totalSteps: total,
@@ -1214,7 +1216,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
               'fcmToken': widget.user.notificationID,
             }
           },
-          'registration_ids': channel.dChannels,
+          'registration_ids': [channel],
         }));
   }
 

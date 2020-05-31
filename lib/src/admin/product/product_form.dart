@@ -1,16 +1,17 @@
 import 'dart:io';
-import 'package:get/get.dart';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/ui/shared/imageEditor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:recase/recase.dart';
-import 'package:pocketshopping/src/ui/shared/imageEditor.dart';
 
 class ProductForm extends StatefulWidget {
   ProductForm({this.session});
@@ -26,8 +27,7 @@ class _ProductFormState extends State<ProductForm> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _unitController = TextEditingController();
-  final TextEditingController _stockController =
-      TextEditingController(text: '1');
+  final TextEditingController _stockController = TextEditingController(text: '1');
   final TextEditingController _categoryController = TextEditingController();
   Session CurrentUser;
   ProductBloc _productBloc;

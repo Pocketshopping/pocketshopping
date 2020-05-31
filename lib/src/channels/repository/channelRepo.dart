@@ -7,11 +7,15 @@ class ChannelRepo {
   static final FirebaseMessaging _fcm = FirebaseMessaging();
 
   static Future<Channels> get(String mid) async {
-    var docs =
-        await databaseReference.collection("channels").document(mid).get();
+    var docs = await databaseReference.collection("channels").document(mid).get();
     print(
         'channels ${((docs.data['Delivery&Pickup'] as Map<String, dynamic>).values.toList())}');
     return Channels.fromSnap(docs);
+  }
+
+  static Future<String> getAgentChannel(String agent)async{
+    var docs = await databaseReference.collection("users").document(agent).get();
+    return docs.data['notificationID'];
   }
 
   static Future<void> update(String mid, String uid) async {

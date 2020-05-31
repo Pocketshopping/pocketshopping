@@ -7,9 +7,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_credit_card/credit_card_form.dart';
-import 'package:flutter_credit_card/credit_card_model.dart';
-import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:geocoder/geocoder.dart' as geocode;
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -30,6 +27,8 @@ import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/order/timer.dart';
 import 'package:pocketshopping/src/order/tracker.dart';
+import 'package:pocketshopping/src/payment/atmCard.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
@@ -40,8 +39,6 @@ import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:random_string/random_string.dart';
-import 'package:pocketshopping/src/payment/atmCard.dart';
-import 'package:pocketshopping/src/payment/topup.dart';
 
 class OrderUI extends StatefulWidget {
   final Merchant merchant;
@@ -654,10 +651,12 @@ class _OrderUIState extends State<OrderUI> {
                         fee: dCut,
                       ),
                       orderETA: dETA.round(),
-                    orderConfirmation: Confirmation(
+                      orderConfirmation: Confirmation(
                       isConfirmed: false,
                       confirmOTP: randomAlphaNumeric(6),
-                    ),);
+                    ),
+                    agent:accepted,
+                  );
                 stage = 'CHECKOUT';
                 setState(() {});
               },
@@ -814,7 +813,7 @@ class _OrderUIState extends State<OrderUI> {
           order = order.update(
             receipt: Receipt(reference: reference['reference'], PsStatus: 'SUCCESS',type: method),
             orderCreatedAt: Timestamp.now(),
-            status: 'PROCESSING',
+            status: 0,
             orderID: '',
             docID: '',
           );
@@ -859,7 +858,7 @@ class _OrderUIState extends State<OrderUI> {
           order = order.update(
             receipt: Receipt(reference: '', PsStatus: 'PENDING',type: method),
             orderCreatedAt: Timestamp.now(),
-            status: 'PROCESSING',
+            status: 0,
             orderID: '',
             docID: '',
           );
@@ -878,7 +877,7 @@ class _OrderUIState extends State<OrderUI> {
           order = order.update(
             receipt: Receipt(reference: '', PsStatus: 'PENDING',type: method),
             orderCreatedAt: Timestamp.now(),
-            status: 'PROCESSING',
+            status: 0,
             orderID: '',
             docID: '',
           );

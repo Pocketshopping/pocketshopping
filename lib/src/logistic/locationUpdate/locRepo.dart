@@ -1,13 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pocketshopping/src/review/repository/ReviewEntity.dart';
-import 'package:pocketshopping/src/review/repository/reviewObj.dart';
-import 'package:pocketshopping/src/user/fav/repository/favItem.dart';
-import 'package:pocketshopping/src/user/fav/repository/favObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 
 class LocRepo {
   static final databaseReference = Firestore.instance;

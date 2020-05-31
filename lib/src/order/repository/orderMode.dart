@@ -65,7 +65,7 @@ class OrderMode {
 
   @override
   String toString() {
-    return '''OrderMode {mode: $mode,}''';
+    return '''Instance of OrderMode''';
   }
 
   Map<String, dynamic> toMap() {

@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pocketshopping/component/psCard.dart';
+import 'package:pocketshopping/component/psProvider.dart';
 import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/constants/ui_constants.dart';
+import 'package:pocketshopping/model/DataModel/merchantData.dart';
 import 'package:pocketshopping/page/admin.dart';
 import 'package:pocketshopping/page/businessSecondForm.dart';
-import 'package:pocketshopping/component/psCard.dart';
-import 'package:pocketshopping/model/DataModel/merchantData.dart';
-import 'package:pocketshopping/component/psProvider.dart';
 import 'package:pocketshopping/page/user.dart';
 import 'package:transparent_image/transparent_image.dart';
 

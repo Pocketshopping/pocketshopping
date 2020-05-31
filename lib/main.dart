@@ -65,33 +65,31 @@ var appState = new AppState({'instanceID':'34','cart':0});
 
 import 'dart:async';
 import 'dart:io';
+
+import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' as _get;
-import 'package:pocketshopping/src/ui/shared/introduction.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
-import 'package:pocketshopping/src/repository/user_repository.dart';
-import 'package:pocketshopping/src/home_screen.dart';
 import 'package:pocketshopping/src/login/login.dart';
-import 'package:pocketshopping/src/splash_screen.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/simple_bloc_delegate.dart';
+import 'package:pocketshopping/src/splash_screen.dart';
+import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
+import 'package:pocketshopping/src/ui/shared/introduction.dart';
+import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
-import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
-//import 'package:workmanager/workmanager.dart';
-import 'package:image_cropper/image_cropper.dart';
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -374,30 +372,5 @@ class AppState extends State<App> {
     if (deepLink != null) {BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(deepLink));}
 
   }
-
-
-  void imagecropper(File file)async{
-    File croppedFile = await ImageCropper.cropImage(
-        sourcePath: file.path,
-        aspectRatioPresets: [
-          CropAspectRatioPreset.square,
-          CropAspectRatioPreset.ratio3x2,
-          CropAspectRatioPreset.original,
-          CropAspectRatioPreset.ratio4x3,
-          CropAspectRatioPreset.ratio16x9
-        ],
-        androidUiSettings: AndroidUiSettings(
-            toolbarTitle: 'Cropper',
-            toolbarColor: Colors.deepOrange,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false),
-        iosUiSettings: IOSUiSettings(
-          minimumAspectRatio: 1.0,
-        )
-    );
-  }
-
-
 
 }

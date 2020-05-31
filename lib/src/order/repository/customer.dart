@@ -41,7 +41,7 @@ class Customer {
 
   @override
   String toString() {
-    return '''Customer {customerName: $customerName,}''';
+    return '''Instance of Customer''';
   }
 
   Map<String, dynamic> toMap() {

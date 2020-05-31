@@ -25,10 +25,11 @@ class MerchantEntity extends Equatable {
   final DocumentReference bParent;
   final bool bIsBranch;
   final String bPhoto;
-  final String bStatus;
+  final int bStatus;
   final Timestamp bCreatedAt;
   final String bCountry;
   final bool adminUploaded;
+  final bool bActive;
 
   const MerchantEntity(
       this.bName,
@@ -53,7 +54,8 @@ class MerchantEntity extends Equatable {
       this.bIsBranch,
       this.bOpen,
       this.bUnique,
-      this.adminUploaded);
+      this.adminUploaded,
+      this.bActive);
 
   Map<String, Object> toJson() {
     return {
@@ -79,7 +81,8 @@ class MerchantEntity extends Equatable {
       'bStatus': bStatus,
       'bCreatedAt': bCreatedAt,
       'bCountry': bCountry,
-      'adminUploaded':adminUploaded
+      'adminUploaded':adminUploaded,
+      'bActive':bActive
     };
   }
 
@@ -107,7 +110,8 @@ class MerchantEntity extends Equatable {
         bIsBranch,
         bOpen,
         bUnique,
-        adminUploaded
+        adminUploaded,
+        bActive
       ];
 
   @override
@@ -128,7 +132,7 @@ class MerchantEntity extends Equatable {
       json['bParent'] as DocumentReference,
       json['bCountry'] as String,
       json['bID'] as String,
-      json['bStatus'] as String,
+      json['bStatus'] as int,
       json['bSocial'] as Map<String, dynamic>,
       json['bDescription'] as String,
       json['bDelivery'] as String,
@@ -139,7 +143,8 @@ class MerchantEntity extends Equatable {
       json['bIsBranch'] as bool,
       json['bOpen'] as String,
       json['bUnique'] as String,
-      json['adminUploaded'] as bool
+      json['adminUploaded'] as bool,
+      json['bActive'] as bool
     );
   }
 
@@ -157,7 +162,7 @@ class MerchantEntity extends Equatable {
       snap.data['businessParent'],
       snap.data['businessCountry'],
       snap.data['businessID'],
-      snap.data['businessStatus'],
+      snap.data['businessStatus'].runtimeType == int?snap.data['businessStatus']:1,
       snap.data['businessSocial'],
       snap.data['businessDescription'],
       snap.data['businessDelivery'],
@@ -169,6 +174,7 @@ class MerchantEntity extends Equatable {
       snap.data['businessOpenTime'],
       snap.data['branchUnique'],
       snap.data['adminUploaded']??false,
+      snap.data['businessActive']??true,
     );
   }
 
@@ -196,7 +202,8 @@ class MerchantEntity extends Equatable {
       'bStatus': bStatus,
       'bCreatedAt': bCreatedAt,
       'bCountry': bCountry,
-      'adminUploaded':adminUploaded
+      'adminUploaded':adminUploaded,
+      'bActive':bActive
     };
   }
 }

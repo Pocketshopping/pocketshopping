@@ -1,22 +1,15 @@
-import 'package:barcode_scan/barcode_scan.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:pocketshopping/model/DataModel/categoryData.dart';
-import 'package:pocketshopping/src/geofence/package_geofence.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:progress_indicators/progress_indicators.dart';
-import 'package:pocketshopping/src/user/fav/repository/favItem.dart';
-import 'package:pocketshopping/src/business/business.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/geofence/package_geofence.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/fav/repository/favItem.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 
 class SingleFavoriteWidget extends StatefulWidget {
   final FavItem item;

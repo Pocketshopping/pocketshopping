@@ -16,14 +16,15 @@ class Order {
   final OrderMode orderMode;
   final int orderETA;
   final Receipt receipt;
-  final String status;
+  final int status;
   final String orderID;
   final String docID;
   final Confirmation orderConfirmation;
   final String customerID;
+  final String agent;
 
-  Order(
-      {this.orderItem,
+  Order({
+      this.orderItem,
       this.orderAmount = 0.0,
       this.orderCustomer,
       this.orderMerchant,
@@ -35,10 +36,13 @@ class Order {
       this.orderID,
       this.docID,
       this.orderConfirmation,
-      this.customerID});
+      this.customerID,
+      this.agent,
+      });
 
-  Order copyWith(
-      {List<OrderItem> orderItem,
+  Order copyWith({
+
+      List<OrderItem> orderItem,
       double orderAmount,
       Customer orderCustomer,
       String orderMerchant,
@@ -46,11 +50,14 @@ class Order {
       OrderMode orderMode,
       int orderETA,
       Receipt receipt,
-      String status,
+      int status,
       String orderID,
       String docID,
       Confirmation orderConfirmation,
-      String customerID}) {
+      String customerID,
+      String agent
+
+      }) {
     return Order(
         orderItem: orderItem ?? this.orderItem,
         orderAmount: orderAmount ?? this.orderAmount,
@@ -64,7 +71,9 @@ class Order {
         orderID: orderID ?? this.orderID,
         docID: docID ?? this.docID,
         orderConfirmation: orderConfirmation ?? this.orderConfirmation,
-        customerID: customerID ?? this.customerID);
+        customerID: customerID ?? this.customerID,
+        agent: agent ?? this.agent
+    );
   }
 
   @override
@@ -81,7 +90,8 @@ class Order {
       orderID.hashCode ^
       docID.hashCode ^
       orderConfirmation.hashCode ^
-      customerID.hashCode;
+      customerID.hashCode ^
+      agent.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -100,7 +110,8 @@ class Order {
           orderID == other.orderID &&
           docID == other.docID &&
           orderConfirmation == other.orderConfirmation &&
-          customerID == other.customerID;
+          customerID == other.customerID &&
+          agent == other.agent;
 
   Order update(
       {List<OrderItem> orderItem,
@@ -111,11 +122,12 @@ class Order {
       OrderMode orderMode,
       int orderETA,
       Receipt receipt,
-      String status,
+      int status,
       String orderID,
       String docID,
       Confirmation orderConfirmation,
-      String customerID}) {
+      String customerID,
+      String agent}) {
     return copyWith(
       orderItem: orderItem,
       orderAmount: orderAmount,
@@ -130,12 +142,13 @@ class Order {
       docID: docID,
       orderConfirmation: orderConfirmation,
       customerID: customerID,
+      agent: agent
     );
   }
 
   @override
   String toString() {
-    return '''Order {orderID: $docID,}''';
+    return '''Instance of Order''';
   }
 
   Map<String, dynamic> toMap() {
@@ -152,7 +165,8 @@ class Order {
       'orderID': orderID,
       'docID': docID,
       'orderConfirmation': orderConfirmation.toMap(),
-      'customerID': customerID
+      'customerID': customerID,
+      'agent':agent
     };
   }
 
@@ -170,6 +184,14 @@ class Order {
         orderID: orderEntity.orderID,
         docID: orderEntity.docID,
         orderConfirmation: orderEntity.orderConfirmation,
-        customerID: orderEntity.customerID);
+        customerID: orderEntity.customerID,
+        agent: orderEntity.agent,
+        );
+  }
+
+  static List<Order> fromListEntity(List<OrderEntity> orderEntity) {
+    List<Order> orders=[];
+    orderEntity.forEach((element) { orders.add(Order.fromEntity(element));});
+    return orders;
   }
 }

@@ -11,7 +11,6 @@ class OrderGlobalState extends GetController {
       (existingValue) => other,
       ifAbsent: () => other,
     );
-    print(order);
     update(this);
   }
 

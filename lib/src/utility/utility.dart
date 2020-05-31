@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_format/date_format.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_cropper/image_cropper.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
-import 'package:http/http.dart' as http;
-import 'package:date_format/date_format.dart';
-import 'dart:io';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -214,13 +215,13 @@ class Utility {
   }
 
 
-  static Future<List<String>> uploadMultipleImages(List<File> _imageList) async {
+  static Future<List<String>> uploadMultipleImages(List<File> _imageList,{String bucket='ProductPhoto'}) async {
     List<String> _imageUrls = List();
 
     try {
       for (int i = 0; i < _imageList.length; i++) {
         final StorageReference storageReference =
-        FirebaseStorage().ref().child("ProductPhoto/${DateTime.now()}.png");
+        FirebaseStorage().ref().child("$bucket/${DateTime.now().millisecondsSinceEpoch}.png");
 
         final StorageUploadTask uploadTask =
         storageReference.putFile(_imageList[i]);
@@ -243,5 +244,16 @@ class Utility {
       print(e);
       return [];
     }
+  }
+
+  static List<String> makeIndexList(String bName) {
+    List<String> indexList = [];
+    var temp = bName.split(' ');
+    for (int i = 0; i < temp.length; i++) {
+      for (int y = 1; y < temp[i].length + 1; y++) {
+        indexList.add(temp[i].substring(0, y).toLowerCase());
+      }
+    }
+    return indexList;
   }
 }

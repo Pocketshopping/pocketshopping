@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:pocketshopping/component/psProvider.dart';
+import 'package:pocketshopping/constants/appColor.dart';
 import 'package:pocketshopping/model/DataModel/notificationDataModel.dart';
+import 'package:pocketshopping/page/admin/dasbboard.dart';
+import 'package:pocketshopping/page/user/drawer.dart';
 import 'package:pocketshopping/page/user/favourite.dart';
 import 'package:pocketshopping/page/user/locations.dart';
 import 'package:pocketshopping/page/user/order.dart';
-import 'package:pocketshopping/page/user/drawer.dart';
-import 'package:pocketshopping/page/admin/dasbboard.dart';
-import 'package:pocketshopping/constants/appColor.dart';
-import 'package:flutter/services.dart';
-import 'package:pocketshopping/component/psProvider.dart';
 
 class AdminPage extends StatefulWidget {
   static String tag = 'Admin-page';

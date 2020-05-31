@@ -1,49 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:loadmore/loadmore.dart';
-import 'package:location/location.dart';
-import 'package:pocketshopping/component/scanScreen.dart';
-import 'package:pocketshopping/page/admin/message.dart';
-import 'package:pocketshopping/page/admin/openOrder.dart';
-import 'package:pocketshopping/page/admin/settings.dart';
-import 'package:pocketshopping/page/admin/viewItem.dart';
-import 'package:pocketshopping/page/user/merchant.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
-import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/product/manage.dart';
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
-import 'package:pocketshopping/src/logistic/provider.dart';
-import 'package:pocketshopping/src/notification/notification.dart';
-import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/widget/account.dart';
-import 'package:pocketshopping/widget/branch.dart';
-import 'package:pocketshopping/widget/customers.dart';
-import 'package:pocketshopping/widget/manageOrder.dart';
-import 'package:pocketshopping/widget/reviews.dart';
-import 'package:pocketshopping/widget/staffs.dart';
-import 'package:pocketshopping/widget/statistic.dart';
-import 'package:pocketshopping/widget/status.dart';
-import 'package:pocketshopping/widget/unit.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 
 class AgentBusiness extends StatefulWidget {
   final Session user;
@@ -120,7 +87,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
               color: Colors.grey,
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Get.back();
             },
           ),
           elevation: 0.0,
@@ -160,12 +127,23 @@ class _AgentBusinessState extends State<AgentBusiness> {
                                       onTap: (){
                                         Session sess= widget.user;
                                         sess = sess.copyWith(merchant:list[index] );
-                                        Get.off(ManageProduct(user: sess,));
+                                        Get.off(ManageProduct(user: sess,)).then((value){
+                                          if(value == 'Refresh')
+                                            _refresh();
+                                        });
                                       },
                                     )
                                   ),
                                   Expanded(
                                     child: GestureDetector(
+                                      onTap: (){
+                                        Session sess= widget.user;
+                                        sess = sess.copyWith(merchant:list[index] );
+                                        Get.off(ManageBusiness(session: sess,)).then((value){
+                                          if(value == 'Refresh')
+                                            _refresh();
+                                        });
+                                      },
                                       child: Column(
                                         children: [
                                           Icon(

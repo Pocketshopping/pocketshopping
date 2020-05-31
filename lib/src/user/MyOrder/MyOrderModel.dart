@@ -16,7 +16,7 @@ class MyOrderModel extends ChangeNotifier {
     delayer(null, query['category'], query['uid']).then((value) => null);
   }
 
-  Future<void> delayer(dynamic lastItem, String category, String uid) async {
+  Future<void> delayer(dynamic lastItem, int category, String uid) async {
     _showLoadingIndicator();
     switch (query['category']) {
       case 'PROCESSING':
@@ -56,8 +56,8 @@ class MyOrderModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future handleChangeCategory({String category}) async {
-    if (category.isNotEmpty) {
+  Future handleChangeCategory({int category}) async {
+    if (category != null) {
       _items.clear();
       query['category'] = category;
       await delayer(null, category, query['uid']);
