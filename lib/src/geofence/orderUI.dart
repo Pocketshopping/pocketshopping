@@ -159,7 +159,6 @@ class _OrderUIState extends State<OrderUI> {
         setState(() {});
       }
     });
-    //print(_wallet.pocketBalance.toString());
     //_notificationsStream = NotificationsBloc.instance.notificationsStream;
     // _notificationsStream.listen((notification) {});
     //deliveryETA(widget.distance * 1000);
@@ -1171,9 +1170,7 @@ class _OrderUIState extends State<OrderUI> {
                       fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
                 subtitle: Text('Choose this if you want to pay with ATM Card.'),
-                trailing: IconButton(
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
+                trailing: Icon(Icons.arrow_forward_ios),
               ),
               Divider(
                 height: 2,
