@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelObj.dart';
@@ -39,6 +40,16 @@ class DeliveryTrackerWidget extends StatefulWidget {
 
 class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
 
+
+  final _review = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _formKey2 = GlobalKey<FormState>();
+  final _formKey3 = GlobalKey<FormState>();
+  final _delay = TextEditingController();
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+
+
+  //Session CurrentUser;
   String counter;
   int _start;
   Timer _timer;
@@ -46,26 +57,24 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
   String resolution;
   Stream<LocalNotification> _notificationsStream;
   int moreSec;
-  int reply;
+  //int reply;
   dynamic delayTime;
   bool rating;
-  final _review = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  final _formKey2 = GlobalKey<FormState>();
-  double _rating;
-  var _delay = TextEditingController();
-  int delay;
-
-  //Session CurrentUser;
-  final FirebaseMessaging _fcm = FirebaseMessaging();
   OrderGlobalState odState;
   Order _order;
   bool loading;
   Review review;
   bool _validate;
+  double _rating;
+  int delay;
+  User customer;
+  String reason;
+  bool autoval;
 
   @override
   void initState() {
+    autoval =false;
+    reason = 'Select';
     delay=5;
     _validate = false;
     loading = false;
@@ -73,14 +82,16 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     odState = Get.find();
     rating = false;
     _rating = 1.0;
-    resolution = isNotEmpty() ? getItem('eResolution') : 'START';
-    reply = isNotEmpty() ? getItem('eMoreSec') : 0;
-    moreSec = isNotEmpty() ? getItem('eMoreSec') : _order.orderETA;
+    //print(_order.docID);
+    resolution =  'START';
+    //reply = isNotEmpty() ? (getItem('eMoreSec')*60) : 0;
+    moreSec = isNotEmpty() ? (getItem('eMoreSec')*60) : _order.orderETA;
     delayTime = isNotEmpty() ? getItem('eDelayTime') : null;
-    _start = isNotEmpty() ? Utility.setStartCount(getItem('delayTime'), getItem('moreSec')) : Utility.setStartCount(_order.orderCreatedAt, _order.orderETA);
-    counter = '${isNotEmpty() ? (Utility.setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (Utility.setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
+    _start = isNotEmpty() ? Utility.setStartCount(getItem('eDelayTime'), (getItem('eMoreSec')*60)) : Utility.setStartCount(_order.orderCreatedAt, _order.orderETA);
+    counter = '${isNotEmpty() ? (Utility.setStartCount(getItem('eDelayTime'), (getItem('eMoreSec')*60)) / 60).round() : (Utility.setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
     startTimer();
-    MerchantRepo.getMerchant(_order.orderMerchant).then((value) => setState(() {merchant = value;}));
+    MerchantRepo.getMerchant(_order.orderMerchant).then((value) { if(mounted)setState(() {merchant = value;});});
+    UserRepo.getOneUsingUID(widget.order.customerID).then((value) { if(mounted)setState(() {customer = value;});});
 
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
@@ -88,10 +99,32 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
         if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
           var payload = jsonDecode(notification.data['data']['payload']);
           switch (payload['NotificationType']) {
-            case 'OrderResolutionResponse':
-              print('seen');
-              //globalStateUpdate();
-              NotificationsBloc.instance.clearNotification();
+            case 'OrderConfirmationResponse':
+              if(payload['orderID'] == _order.docID){
+                Get.defaultDialog(title:
+                "Confirmation",
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: Icon(Icons.check,color: Colors.green,size: 100,),
+                      ),
+                      Center(
+                        child: Text('This Order(${payload['orderID']}) has been confirmed by the customer(${customer.fname}). Your cut has been transferred to the neccessary channel. Thanks'),
+                      )
+                    ],
+                  ),
+                  confirm: FlatButton(
+                    onPressed: () {
+                      Get.back();
+                      refreshOrder();
+                    },
+                    child: Text('OK'),
+                  ),
+                );
+                NotificationsBloc.instance.clearNotification();
+              }
+
               break;
           }
         }
@@ -101,9 +134,11 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     super.initState();
   }
 
-  dynamic getItem(String key) {
-    return odState.order[_order.docID][key];
-  }
+
+
+  dynamic getItem(String key) => odState.order['e_'+_order.docID][key];
+  bool isNotEmpty() => odState.order.containsKey('e_'+_order.docID);
+
 
   setRate() {
     if (_order.orderCustomer.customerReview.isNotEmpty)
@@ -122,19 +157,17 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     setRate();
   }
 
-  void globalStateUpdate() {
-    odState.adder(_order.docID, {
-      'resolution': resolution,
-      'reply': reply,
-      'moreSec': moreSec,
-      'delayTime': delayTime,
+  void globalStateUpdate(String oid,int moreSec ) {
+    odState.adder('e_'+oid, {
+      'eResolution': 'WAIT',
+      'eMoreSec': moreSec,
+      'eDelayTime': Timestamp.now(),
     });
     Get.put(odState);
   }
 
-  bool isNotEmpty() {
-    return odState.order.containsKey(_order.docID);
-  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -174,20 +207,22 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                       padding: EdgeInsets.symmetric(
                           vertical: 10, horizontal: 10),
                       child: Text(
-                        'Status: ${_order.orderConfirmation.isConfirmed ? 'Completed' : 'PROCESSING'}',
+                        'Status: ${_order.status != 0 ? 'Completed' : 'PROCESSING'}',
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
                   ),
 
                   //timer/resolution phase
-                  _start > 0
-                      ? !_order.orderConfirmation.isConfirmed
-                        ? Loader(_start, moreSec, counter) : Rating()
-                      : _order.orderConfirmation.isConfirmed
-                        ? Rating() : Resolution() ,
+                      _start > 0
+                      ? (!_order.orderConfirmation.isConfirmed && _order.status == 0)
+                        ? loader(_start, moreSec, counter) : Rating()
+                      :_order.orderConfirmation.isConfirmed ? Rating() :
+                       _order.status == 0?
+                      Resolution() : Rating(),
                   //end of phase
 
+                  !_order.orderConfirmation.isConfirmed && _order.status == 0?
                    psHeadlessCard(
                       boxShadow: [
                         BoxShadow(
@@ -272,7 +307,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                             ),
                           ),
                         ),
-                      )),
+                      )
+                   ):Container(),
                   psHeadlessCard(
                     boxShadow: [
                       BoxShadow(
@@ -371,6 +407,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 )
                               ],
                             )),
+                        if(_order.status == 0 && _order.orderMode.mode=='Delivery')
                         Container(
                             decoration: BoxDecoration(
                               border: Border(
@@ -387,10 +424,31 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                               children: <Widget>[
                                 Expanded(
                                   child: FlatButton.icon(
-                                      onPressed: (){},
+                                      onPressed: (){
+                                        print(_order.orderMode.coordinate.latitude);
+                                        Get.to(
+                                            Direction(
+                                              source: LatLng(merchant.bGeoPoint['geopoint']
+                                                  .latitude,
+                                                  merchant.bGeoPoint['geopoint']
+                                                      .longitude
+                                              ),
+                                              destination: LatLng(
+                                                _order.orderMode.coordinate.latitude,
+                                                _order.orderMode.coordinate.longitude,
+                                              ),
+                                              destAddress: _order.orderMode.address,
+                                              destName: _order.orderCustomer.customerName,
+                                              destPhoto: customer.profile,
+                                              sourceName: merchant.bName,
+                                              sourceAddress: merchant.bAddress,
+                                              sourcePhoto: merchant.bPhoto,
+                                            )
+                                        );
+                                      },
                                       color: Colors.green,
                                       icon: Icon(Icons.place,color: Colors.white,),
-                                      label: Text('Map',style: TextStyle(color: Colors.white),)),
+                                      label: Text('Customer Map',style: TextStyle(color: Colors.white),)),
                                 )
                               ],
                             )
@@ -565,7 +623,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 )
                               ],
                             )),
-                        if(widget.order.orderMode.mode == 'Delivery')
+                        if(_order.status == 0 && _order.orderMode.mode=='Delivery')
                         Container(
                             decoration: BoxDecoration(
                               border: Border(
@@ -582,10 +640,32 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                               children: <Widget>[
                                 Expanded(
                                   child: FlatButton.icon(
-                                      onPressed: (){},
+                                      onPressed: (){
+                                        Get.to(
+                                            Direction(
+                                              source: LatLng(merchant.bGeoPoint['geopoint']
+                                                  .latitude,
+                                                  merchant.bGeoPoint['geopoint']
+                                                      .longitude
+                                              ),
+                                              destination: LatLng(
+                                                merchant.bGeoPoint['geopoint']
+                                                    .latitude,
+                                                merchant.bGeoPoint['geopoint']
+                                                    .longitude,
+                                              ),
+                                              destAddress: merchant.bAddress,
+                                              destName: merchant.bName,
+                                              destPhoto:  merchant.bPhoto,
+                                              sourceName: widget.user.fname,
+                                              sourceAddress: widget.user.defaultAddress,
+                                              sourcePhoto: widget.user.profile,
+                                            )
+                                        );
+                                      },
                                       color: Colors.green,
                                       icon: Icon(Icons.place,color: Colors.white,),
-                                      label: Text('Map',style: TextStyle(color: Colors.white),)),
+                                      label: Text('Merchant Map',style: TextStyle(color: Colors.white),)),
                                 )
                               ],
                             )
@@ -734,6 +814,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                               ],
                             )),
                       ])),
+                    if(_order.status == 0   && _order.orderMode.mode=='Delivery')
                     psHeadlessCard(
                       boxShadow: [
                         BoxShadow(
@@ -742,12 +823,86 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                           blurRadius: 6.0,
                         ),
                       ],
-                      child:FlatButton.icon(
+                      child:Container(
+                          color: Colors.red,
+                          child:
+                      FlatButton.icon(
                         color: Colors.red,
-                        onPressed: (){},
+                        onPressed: (){
+                          Get.defaultDialog(
+                            title: 'Confirmation',
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('Enter Reason:'),
+                                Form(
+                                  key: _formKey3,
+                                  child:
+                                  DropdownButtonFormField<String>(
+                                    value: reason,
+                                    isExpanded: true,
+                                    items: [
+                                      'Select',
+                                      'Logistic Problem(broken automobile)',
+                                      'Item(s) are unavailable',
+                                      'Merchant is unavailale'
+                                    ]
+                                        .map((label) => DropdownMenuItem(
+                                      child: Text(
+                                        '$label',
+                                        style: TextStyle(color: Colors.black54),
+                                      ),
+                                      value: label,
+                                    ))
+                                        .toList(),
+                                    hint: Text('select reason'),
+                                    decoration: InputDecoration(border: InputBorder.none),
+                                    onChanged: (value) async {
+                                      if (value != 'Select')
+                                        reason =value;
+                                      else autoval = true;
+
+                                      setState(() {});
+                                    },
+                                    autovalidate: autoval,
+                                    validator: (value) {
+                                      if (value == 'Select') {
+                                        return 'Select reason';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  )
+                              ],
+                            ),
+                            cancel: FlatButton(
+                              onPressed: () {
+                                Get.back();
+                              },
+                              child: Text('No'),
+                            ),
+                            confirm: FlatButton(
+                              onPressed: ()async {
+
+                                if(_formKey3.currentState.validate())
+                                {
+                                  Get.back();
+                                  var result = cancel(_order.docID,);
+                                  if(result)
+                                    await cancelOrder(customer.notificationID, _order.docID, reason);
+
+                                }
+                                //refreshOrder();
+                              },
+                              child: Text('Yes Cancel'),
+                            ),
+                          );
+                        },
                         icon: Icon(Icons.close,color: Colors.white,),
                         label:  Text('Cancel Order',style: TextStyle(color: Colors.white),),
-                      )),
+                      )
+                        )
+                    ),
                   psHeadlessCard(
                       boxShadow: [
                         BoxShadow(
@@ -818,31 +973,6 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
       });
   }
 
-  void pingingTimer({Function action}) {
-    const oneSec = const Duration(seconds: 1);
-    _timer = new Timer.periodic(
-      oneSec,
-          (Timer timer) => {
-        if (mounted)
-          {
-            setState(
-                  () {
-                if (reply < 1) {
-                  timer.cancel();
-                  if (action != null) action();
-                } else {
-                  reply = reply - 1;
-                }
-              },
-            )
-          }
-      },
-    );
-  }
-
-
-
-
   Widget Resolution() {
     switch (resolution) {
       case 'START':
@@ -907,7 +1037,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                               child: Text('Extend duration by:(min)')),
                           DropdownButtonFormField<int>(
                             value: delay,
-                            items: [5, 10, 15]
+                            items: [1,2,3,5, 10, 15]
                                 .map((label) => DropdownMenuItem(
                               child: Text(
                                 '$label',
@@ -935,12 +1065,25 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                         ],
                       ),
                     ),
+                    customer != null?
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Expanded(
                           child: FlatButton(
-                            onPressed: () {setState(() {resolution="WAIT"; reply=120;});},
+                            onPressed: () {
+                              if(_formKey2.currentState.validate()) {
+                                respondResolve(
+                                    delay, _delay.text, customer.notificationID,
+                                    widget.order.docID).then((value) => null);
+                                globalStateUpdate(widget.order.docID, delay);
+                                _start = (delay * 60);
+                                moreSec = (delay * 60);
+                                setState(() {});
+                                startTimer();
+                              }
+                              },
+
                             child: Text(
                               'Submit',
                               style: TextStyle(color: Colors.white),
@@ -949,7 +1092,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                           ),
                         )
                       ],
-                    )
+                    ):Container()
                   ],
                 )
                 )
@@ -957,13 +1100,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
             );
         break;
         case "WAIT":
-          pingingTimer(action: () {
-            //if (moreSec == 0)
-              setState(() {
-                resolution = 'START';
-              });
-          });
-          return Loader(reply, 120, 'Waiting.');
+          startTimer();
         break;
     }
   }
@@ -1036,7 +1173,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                 children: [
                   Center(
                     child: Text(
-                      'Rate ${merchant != null ? merchant.bName : ''}',
+                      'Rate ${_order.orderCustomer.customerName}',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -1132,10 +1269,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     }
   }
 
-  Widget Loader(int current, int total, String message) {
+  Widget loader(int current, int total, String message) {
     return Container(
-        //width: MediaQuery.of(context).size.width * 0.3,
-        //height: MediaQuery.of(context).size.height * 0.18,
         color: Colors.white,
         child: CircularStepProgressIndicator(
           totalSteps: total,
@@ -1156,13 +1291,97 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
         ));
   }
 
-  Future<void> Respond(int delay, String comment, String fcm, String telephone,
-      String oID) async {
-    //print('team meeting');
+
+
+  bool cancel(String oid) {
+    bool isDone = true;
+    OrderRepo.cancel(oid).catchError((onError) {
+      isDone = false;
+    });
+
+    if (isDone) {
+      refreshOrder();
+      GetBar(
+        title: 'Order Cancelled',
+        messageText: Text(
+          'Take your time to rate this user your rating will help us '
+              ' improve our service',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+    }
+
+    return isDone;
+  }
+
+
+  bool confirm(String oid, Confirmation confirmation) {
+    bool isDone = true;
+    OrderRepo.confirm(oid, confirmation).catchError((onError) {
+      isDone = false;
+    });
+
+    if (isDone) {
+      refreshOrder();
+      confirmNotifier().then((value) => null);
+      GetBar(
+        title: 'Order Confirmed',
+        messageText: Text(
+          'Take your time to rate this user your rating will help us '
+              ' improve our service',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+    }
+
+    return isDone;
+  }
+
+
+  Future<void> cancelOrder(String fcm, String oID,String reason) async {
     await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
+      const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),
+
     );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Your order has been cancelled '
+                'by the agent (reason: $reason}). ${_order.receipt.type != 'CASH'?'Please Note. your money has been refunded to your wallet':''}',
+            'title': 'Order Canelled'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'OrderCancelledResponse',
+              'orderID': oID,
+              'reason': reason,
+              'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
+            }
+          },
+          'to': fcm,
+        }));
+  }
+
+
+
+  Future<void> respondResolve(int delay, String comment, String fcm, String oID) async {
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),
+
+    );
+
     await http.post('https://fcm.googleapis.com/fcm/send',
         headers: <String, String>{
           'Content-Type': 'application/json',
@@ -1183,7 +1402,6 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
               'orderID': oID,
               'delay': delay,
               'comment': comment,
-              'deliveryman': telephone,
               'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
             }
           },
@@ -1191,26 +1409,35 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
         }));
   }
 
-  bool confirm(String oid, Confirmation confirmation) {
-    bool isDone = true;
-    OrderRepo.confirm(oid, confirmation).catchError((onError) {
-      isDone = false;
-    });
 
-    if (isDone) {
-      refreshOrder();
-      GetBar(
-        title: 'Order Confirmed',
-        messageText: Text(
-          'Take your time to rate this merchant your rating will help us '
-              ' improve our service',
-          style: TextStyle(color: Colors.white),
-        ),
-        duration: Duration(seconds: 10),
-        backgroundColor: PRIMARYCOLOR,
-      ).show();
-    }
-
-    return isDone;
+  Future<void> confirmNotifier() async {
+    //print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Hello. ${merchant.bName} Order(${_order.docID}) has been confirmed by the agent. This is possible because you gave him/her your confirmation code. Thanks',
+            'title': 'Order Confirmation'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'OrderConfirmationAgentResponse',
+              'orderID': _order.docID,
+              'merchant': merchant.bName,
+            }
+          },
+          'to': customer.notificationID,
+        }));
   }
 }

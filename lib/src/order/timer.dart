@@ -38,9 +38,13 @@ class _TimerState extends State<TimerWidget> {
   bool querying;
   String acceptedBy;
   int responseCount;
+  String device;
 
   @override
   void initState() {
+    //clear notification stream
+    NotificationsBloc.instance.clearNotification();
+
     responseCount = 0;
     _start = widget.seconds;
     counter = '${(widget.seconds / 60)}';
@@ -48,14 +52,14 @@ class _TimerState extends State<TimerWidget> {
     aResponded = null;
     querying = true;
     acceptedBy = '';
+    device='';
     startTimer();
     //NotificationsBloc.instance.clearNotification();
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       if (notification != null) {
         //print('Notifications: ${notification.data['data']}');
-        if (mounted &&
-            notification.data['data']['payload'].toString().isNotEmpty) {
+        if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
           var payload = jsonDecode(notification.data['data']['payload']);
           switch (payload['NotificationType']) {
             case 'OrderRequestResponse':
@@ -70,6 +74,7 @@ class _TimerState extends State<TimerWidget> {
                 if (payload['Response']) {
                   aResponded = payload['Response'] as bool;
                   acceptedBy = payload['acceptedBy'] as String;
+                  device = payload['device'] as String;
                 } else {
                   responseCount += 1;
                   if (responseCount == (payload['agentCount'] as int)) {
@@ -108,8 +113,6 @@ class _TimerState extends State<TimerWidget> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    height: MediaQuery.of(context).size.height * 0.18,
                     child: CircularStepProgressIndicator(
                       totalSteps: widget.seconds,
                       currentStep: _start,
@@ -205,7 +208,7 @@ class _TimerState extends State<TimerWidget> {
                         if (mResponded != null) {
                           if (mResponded) {
                             _start = 1;
-                            widget.onFinish(acceptedBy);
+                            widget.onFinish(acceptedBy,device);
                           } else {
                             querying = false;
                             _start = 1;
@@ -218,7 +221,7 @@ class _TimerState extends State<TimerWidget> {
                           if (aResponded)
                             {
                               _start = 1;
-                              widget.onFinish(acceptedBy);
+                              widget.onFinish(acceptedBy,device);
                             }
                           else {
                             querying = false;
@@ -236,7 +239,7 @@ class _TimerState extends State<TimerWidget> {
                           if (mResponded)
                             {
                               _start = 1;
-                              widget.onFinish(acceptedBy);
+                              widget.onFinish(acceptedBy,device);
                             }
                           else {
                             querying = false;
@@ -247,7 +250,7 @@ class _TimerState extends State<TimerWidget> {
                           if (aResponded)
                             {
                               _start = 1;
-                              widget.onFinish(acceptedBy);
+                              widget.onFinish(acceptedBy,device);
                             }
                           else {
                             querying = false;

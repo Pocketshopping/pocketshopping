@@ -144,7 +144,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
     Orientation orientation,
   ) {
     final TextStyle defaultTextStyle = Theme.of(context).textTheme.title.merge(
-          TextStyle(
+          const TextStyle(
             color: Colors.black,
             fontFamily: 'halter',
             fontSize: 16,
@@ -486,9 +486,9 @@ class MaskedTextController extends TextEditingController {
 
     addListener(() {
       final String previous = _lastUpdatedText;
-      if (this.beforeChange(previous, this.text)) {
+      if (beforeChange(previous, this.text)) {
         updateText(this.text);
-        this.afterChange(previous, this.text);
+        afterChange(previous, this.text);
       } else {
         updateText(_lastUpdatedText);
       }

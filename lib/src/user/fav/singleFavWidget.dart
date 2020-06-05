@@ -27,7 +27,7 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
   @override
   void initState() {
     loading= false;
-    MerchantRepo.getMerchant(widget.item.merchant).then((value) => setState((){merchant = value;}));
+    MerchantRepo.getMerchant(widget.item.merchant).then((value){if(mounted) setState((){merchant = value;});});
     super.initState();
   }
 

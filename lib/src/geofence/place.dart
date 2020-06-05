@@ -132,7 +132,7 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                                       sourcePhoto: widget.user.profile,
                                     );
                                   },
-                                  enableDrag: false,
+                                  //enableDrag: false,
                                   isDismissible: false,
                                   isScrollControlled: true,
                                 );
