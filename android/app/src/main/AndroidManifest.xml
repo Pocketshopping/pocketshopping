@@ -20,9 +20,6 @@
         <meta-data
             android:name="co.paystack.android.PublicKey"
             android:value="pk_test_75aba332cc72ea999034955083704a16da6f8c1c"/>
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="@string/default_notification_channel_id"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

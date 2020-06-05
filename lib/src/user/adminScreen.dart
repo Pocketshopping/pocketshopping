@@ -45,21 +45,26 @@ class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController _comment = TextEditingController();
   String userName;
 
-
+  BottomNavigationBadge badger = new BottomNavigationBadge(
+      backgroundColor: Colors.red,
+      badgeShape: BottomNavigationBadgeShape.circle,
+      textColor: Colors.white,
+      position: BottomNavigationBadgePosition.topRight,
+      textSize: 8);
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
-    const BottomNavigationBarItem(
+    BottomNavigationBarItem(
       icon: Icon(Icons.check_box_outline_blank),
       title: Text('DashBoard'),
     ),
-    const BottomNavigationBarItem(
+    BottomNavigationBarItem(
       icon: Icon(Icons.search),
       title: Text('Places'),
     ),
-    const BottomNavigationBarItem(
+    BottomNavigationBarItem(
       title: Text('Favourite'),
       icon: Icon(Icons.favorite_border),
     ),
-    const BottomNavigationBarItem(
+    BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
       title: Text('My Order(s)'),
     ),
@@ -135,17 +140,6 @@ class _AdminScreenState extends State<AdminScreen> {
           ));
         //Get.dialog(Resolution(payload: payload,));
         break;
-      case 'NewDeliveryOrderRequest':
-        print('NewDeliveryOrderRequest');
-        GetBar(titleText: Text('New Delivery',style: TextStyle(color: Colors.white),),
-          messageText:Text('You have new Delivery. Check you dashboard for details',style: TextStyle(color: Colors.white),),
-            snackPosition: SnackPosition.BOTTOM,
-            snackStyle: SnackStyle.GROUNDED,
-            backgroundColor: PRIMARYCOLOR,
-            duration: Duration(seconds: 3)
-        ).show();
-
-      break;
     }
   }
 
@@ -202,7 +196,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       MyOrders(),
                     ].elementAt(_selectedIndex),
                   ),
-                  decoration:  BoxDecoration(
+                  decoration: BoxDecoration(
                       border: Border(
                           bottom: BorderSide(
                               color: Colors.black54.withOpacity(0.2))))),
@@ -217,7 +211,7 @@ class _AdminScreenState extends State<AdminScreen> {
             );
           } else {
             return Scaffold(
-              body:  Center(
+              body: Center(
                   child: JumpingDotsProgressIndicator(
                 fontSize: MediaQuery.of(context).size.height * 0.12,
                 color: PRIMARYCOLOR,
@@ -233,17 +227,17 @@ class _AdminScreenState extends State<AdminScreen> {
     return (await showDialog(
       context: context,
       builder: (context) => new AlertDialog(
-        title: const Text('Warning'),
-        content: const Text('Do you want to exit the App'),
+        title: new Text('Warning'),
+        content: new Text('Do you want to exit the App'),
         actions: <Widget>[
-           FlatButton(
+          new FlatButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
+            child: new Text('No'),
           ),
           new FlatButton(
             onPressed: () =>
                 SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
-            child: const Text('Yes'),
+            child: new Text('Yes'),
           ),
         ],
       ),
@@ -329,7 +323,7 @@ class _ResolutionState extends State<Resolution> {
                   Expanded(
                     flex: 0,
                     child: Center(
-                      child: const Text(
+                      child: Text(
                           'Hello. I have not recieved my package and its already time',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
@@ -339,7 +333,7 @@ class _ResolutionState extends State<Resolution> {
                     flex: 3,
                     child: ListView(
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           height: 10,
                         ),
                         Column(
@@ -373,7 +367,7 @@ class _ResolutionState extends State<Resolution> {
                                         ],
                                       )).toList(),
                             ),
-                            const SizedBox(
+                            SizedBox(
                               height: 5,
                             ),
                             Align(
@@ -381,14 +375,14 @@ class _ResolutionState extends State<Resolution> {
                               child:
                                   Text('Amount: \u20A6 ${payload['Amount']}'),
                             ),
-                            const SizedBox(
+                            SizedBox(
                               height: 10,
                             ),
                             Align(
                                 alignment: Alignment.centerLeft,
                                 child:
                                     Text('Telephone: ${payload['telephone']}')),
-                            const SizedBox(
+                            SizedBox(
                               height: 5,
                             ),
                             payload['type'] == 'Delivery'
@@ -397,7 +391,7 @@ class _ResolutionState extends State<Resolution> {
                                     child:
                                         Text('Address: ${payload['Address']}'))
                                 : Container(),
-                            const SizedBox(
+                            SizedBox(
                               height: 10,
                             ),
                           ],
@@ -433,7 +427,7 @@ class _ResolutionState extends State<Resolution> {
                                 maxLength: 120,
                                 maxLengthEnforced: true,
                               ),
-                              const SizedBox(
+                              SizedBox(
                                 height: 10,
                               ),
                               TextFormField(
@@ -459,12 +453,12 @@ class _ResolutionState extends State<Resolution> {
                                 ),
                                 keyboardType: TextInputType.number,
                               ),
-                              const SizedBox(
+                              SizedBox(
                                 height: 10,
                               ),
                               Align(
                                   alignment: Alignment.centerLeft,
-                                  child: const Text('Extend duration by:(min)')),
+                                  child: Text('Extend duration by:(min)')),
                               DropdownButtonFormField<int>(
                                 value: delay,
                                 items: [5, 10, 15]
@@ -477,7 +471,7 @@ class _ResolutionState extends State<Resolution> {
                                           value: label,
                                         ))
                                     .toList(),
-                                hint: const Text('How many minute delay'),
+                                hint: Text('How many minute delay'),
                                 decoration:
                                     InputDecoration(border: InputBorder.none),
                                 onChanged: (value) {
@@ -507,7 +501,7 @@ class _ResolutionState extends State<Resolution> {
                             Get.back();
                           }
                         },
-                        child: const Text(
+                        child: Text(
                           'Reply',
                           style: TextStyle(color: Colors.white),
                         ),

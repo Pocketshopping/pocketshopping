@@ -37,17 +37,14 @@ class _ActiveOrderState extends State<ActiveOrder> {
     empty = list.isEmpty;
     _orderStream = OrderBloc.instance.orderStream;
     _orderStream.listen((orders) {
-
-      if(mounted) {
-        list.clear();
+      if(mounted)
         setState(() {
-          if (!list.contains(orders))
+          if(!list.contains(orders))
             list.addAll(orders);
           empty = list.isEmpty;
         });
-      }
     });
-    try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
+    odState = Get.put(OrderGlobalState());
     super.initState();
   }
 
@@ -158,8 +155,10 @@ class _ActiveOrderState extends State<ActiveOrder> {
   }
 
   Future<void> _refresh() async {
-    empty = list.isEmpty;
-    setState(() {});
+    setState(() {
+      //list.clear();
+    });
+    load();
   }
 }
 
@@ -180,15 +179,12 @@ class _SingleOrderState extends State<SingleOrder> {
 
   @override
   void initState() {
-    try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
-    _start =isNotEmpty(widget.order.docID)?Utility.setStartCount(getItem("eDelayTime",widget.order.docID), (getItem("eMoreSec",widget.order.docID)*60)) : Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
+    odState = Get.find();
+    _start = Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
     MerchantRepo.getMerchant(widget.order.orderMerchant).then((value) => setState((){merchant=value;}));
     startTimer();
     super.initState();
   }
-
-  dynamic getItem(String key,String oid) => odState.order['e_'+oid][key];
-  bool isNotEmpty(String oid) => odState.order.containsKey('e_'+oid);
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +202,6 @@ class _SingleOrderState extends State<SingleOrder> {
           if(value == 'Refresh')
           {
             widget.refresh();
-
           }
 
         });
@@ -214,7 +209,7 @@ class _SingleOrderState extends State<SingleOrder> {
       leading: CircleAvatar(
           radius: 25.0,
           backgroundColor: (_start/60).round()>0?Colors.green:Colors.red,
-          child: Text('${(_start/60).round()}min',style: TextStyle(color: Colors.white,fontSize: 14),)),
+          child: Text('${(_start/60).round()}m',style: TextStyle(color: Colors.white),)),
       title:Text('${merchant != null ? merchant.bName:''}',style: TextStyle(fontSize: 18),),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

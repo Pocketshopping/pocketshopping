@@ -5,10 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
@@ -116,14 +114,7 @@ class _PingWidgetState extends State<PingWidget> {
   monitor() {
     counter -= 1;
     setState(() {});
-    if (counter == 0)
-      {
-        //BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
-        Get.back();
-
-
-        //Get.back();
-      }
+    if (counter == 0) Get.back();
   }
 }
 
@@ -380,37 +371,24 @@ class _ResolutionState extends State<Resolution> {
   bool expired;
   OrderGlobalState odState;
 
-
   @override
   void initState() {
-    //odState = Get.find();
-    //if(odState == null)
-    try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
+    odState = Get.find();
     delay = 5;
     payload = widget.payload as Map<String, dynamic>;
     expired = true;
     _start = Utility.setStartCount(Timestamp.now(), 60);
-    //_requestCaterStream = RequestCasterBloc.instance.requestCasterStream;
-
     startTimer();
     super.initState();
   }
-
-  @override
-  void dispose() {
-    //_requestCaterStream=null;
-    super.dispose();
-  }
-
   void globalStateUpdate(String oid,int moreSec ) {
-    odState.adder('e_'+oid, {
-      //'eResolution': 'WAIT',
+    odState.adder(oid, {
+      'eResolution': 'WAIT',
       'eMoreSec': moreSec,
       'eDelayTime': Timestamp.now(),
     });
     Get.put(odState);
   }
-
   @override
   Widget build(BuildContext context) {
     return psHeadlessCard(
@@ -587,12 +565,11 @@ class _ResolutionState extends State<Resolution> {
                   color: PRIMARYCOLOR,
                   onPressed: () {
                     if (_formKey.currentState.validate()) {
-                      Respond(delay, _delay.text, payload['fcmToken'],
-                          widget.payload['orderID'])
+                      Respond(delay, _delay.text, payload['fcmToken'],'')
                           .then((value) => null);
                       widget.monitor();
                       globalStateUpdate(payload['orderID'], delay);
-                      }
+                    }
                   },
                   child: Text(
                     'Reply',
@@ -617,7 +594,7 @@ class _ResolutionState extends State<Resolution> {
                 if (_start < 1) {
                   widget.monitor();
                   if (expired)
-                    Respond(1, 'Failed. Reping', widget.payload['fcmToken'],widget.payload['orderID'])
+                    Respond(1, 'Failed. Reping', widget.payload['fcmToken'],'')
                         .then((value) => null);
                   timer.cancel();
                 } else {
@@ -744,7 +721,9 @@ class _NearByAgentState extends State<NearByAgent> {
                 if (_start < 1) {
                   widget.monitor();
                   if (expired)
-                    //Respond(false, reason, widget.payload['fcmToken'], widget.payload['agentCount'],'').then((value) => null);
+                    Respond(false, reason, widget.payload['fcmToken'],
+                            widget.payload['agentCount'],'')
+                        .then((value) => null);
                   timer.cancel();
                 } else {
                   _start = _start - 1;
@@ -845,11 +824,9 @@ class _NearByAgentState extends State<NearByAgent> {
               value: reason,
               items: [
                 'Select',
-                'Logistic Problem(Broken Automobile)',
-                'Merchant Unavailable',
-                'No Clear Route',
-                'Package is Heavy',
-                'Security Concern'
+                'Logistic Problem',
+                'Customer Is Too Far',
+                'Package Is Too Heavy}'
               ]
                   .map((label) => DropdownMenuItem(
                         child: Text(
@@ -966,7 +943,6 @@ class _NearByAgentState extends State<NearByAgent> {
               'Reason': response,
               'acceptedBy': widget.uid,
               'agentCount': agentCount,
-              'device':await _fcm.getToken(),
               'otp':yesNo?otp:randomAlphaNumeric(10),
 
             }

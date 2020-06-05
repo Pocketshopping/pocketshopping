@@ -66,7 +66,6 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     orders = OrderRepo.agentOrder(CurrentUser.agent.agent).listen((event) {
       if(mounted)
         setState(() {
-          newOrders.clear();
           if(!newOrders.contains(orders))
             newOrders.addAll(event);
         });

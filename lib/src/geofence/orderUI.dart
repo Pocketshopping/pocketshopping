@@ -102,12 +102,9 @@ class _OrderUIState extends State<OrderUI> {
   String type;
   bool emptyAgent;
   String payerror;
-  String agentDevice;
 
   @override
   void initState() {
-
-    agentDevice = "";
     payerror = "";
     emptyAgent  = false;
     type = 'MotorBike';
@@ -133,7 +130,8 @@ class _OrderUIState extends State<OrderUI> {
     location = new loc.Location();
     location.changeSettings(
         accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
-    geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
+    geoStream =
+        location.onLocationChanged.listen((loc.LocationData cLoc) async {
       position = Position(
           latitude: cLoc.latitude,
           longitude: cLoc.longitude,
@@ -166,7 +164,6 @@ class _OrderUIState extends State<OrderUI> {
     //deliveryETA(widget.distance * 1000);
     //deliveryCut(widget.distance * 1000);
     address(widget.initPosition).then((value) => null);
-    if(!widget.merchant.adminUploaded)
     ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
     //print('${widget.merchant.bGeoPoint['geopoint']}');
     super.initState();
@@ -175,7 +172,8 @@ class _OrderUIState extends State<OrderUI> {
   Future<void> address(Position position) async {
     final coordinates =
         geocode.Coordinates(position.latitude, position.longitude);
-    var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var address =
+        await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
     if (mounted)
       setState(() {
         List<String> temp = address.first.addressLine.split(',');
@@ -640,7 +638,7 @@ class _OrderUIState extends State<OrderUI> {
           Center(
             child: TimerWidget(
               seconds: (mode == 'Delivery')||(mode == 'Pickup')?60:15,
-              onFinish: (String accepted,String device) {
+              onFinish: (String accepted) {
                 if (mode == 'Delivery')
                   order = order.update(
                       orderMode: OrderMode(
@@ -659,7 +657,6 @@ class _OrderUIState extends State<OrderUI> {
                     agent:accepted,
                   );
                 stage = 'CHECKOUT';
-                agentDevice = device;
                 setState(() {});
               },
               onAgent: mode == 'Delivery'? nearByAgent : null,
@@ -2296,7 +2293,6 @@ class _OrderUIState extends State<OrderUI> {
               order: order,
               user: widget.user,
             ));
-            newOrderNotifier();
           } else {
             _start = _start - 1;
           }
@@ -2437,35 +2433,5 @@ class _OrderUIState extends State<OrderUI> {
         return false;
         break;
     }
-  }
-
-
-  Future<void> newOrderNotifier() async {
-    //print('team meeting');
-    await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
-    );
-    await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'notification': <String, dynamic>{
-            'body': 'Hello. You have a new Delivery(${widget.merchant.bName}). Advance to your dashboard for details',
-            'title': 'New Delivery'
-          },
-          'priority': 'high',
-          'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done',
-            'payload': {
-              'NotificationType': 'NewDeliveryOrderRequest',
-            }
-          },
-          'to': agentDevice,
-        }));
   }
 }

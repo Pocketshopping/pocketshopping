@@ -63,7 +63,7 @@ class Utility {
   }
 
   static int setStartCount(dynamic dtime, int second) {
-    //print(dtime);
+    print(dtime);
     var otime = DateTime.parse((dtime as Timestamp).toDate().toString())
         .add(Duration(seconds: second));
     int diff = otime.difference(DateTime.now()).inSeconds;
@@ -228,7 +228,7 @@ class Utility {
 
         final StreamSubscription<StorageTaskEvent> streamSubscription =
         uploadTask.events.listen((event) {
-          //print(event.toString());
+          print(event.toString());
         });
 
         // Cancel your subscription when done.
@@ -241,7 +241,7 @@ class Utility {
       //upload the list of imageUrls to firebase as an array
       return _imageUrls;
     } catch (e) {
-      //print(e);
+      print(e);
       return [];
     }
   }

@@ -11,6 +11,34 @@ class UnitBottomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget PurchaseHistory({int index}) {
+      return Container(
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    "DateOfPurchase",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text("123456 PocketUnit"),
+                      ),
+                      Expanded(
+                        child: Text("123456 PocketUnit"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    }
 
     double marginLR = MediaQuery.of(context).size.width;
     double gridHeight = MediaQuery.of(context).size.height * 0.1;

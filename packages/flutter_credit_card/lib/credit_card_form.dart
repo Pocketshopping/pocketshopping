@@ -44,7 +44,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
   bool expiryDateAutoValidate=false;
   bool cvvAutoValidate=false;
   Color themeColor;
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   void Function(CreditCardModel) onCreditCardModelChange;
   CreditCardModel creditCardModel;
@@ -146,7 +146,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
               margin: const EdgeInsets.only(left: 16, top: 16, right: 16),
               child: TextFormField(
                 controller: _cardNumberController,
-                validator: (String value) {
+                validator: (value) {
                                 if (value.isEmpty) {
                                   return 'Card Number can not be empty';
                                 }
@@ -156,7 +156,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 style: TextStyle(
                   color: widget.textColor,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Card number',
                   hintText: 'xxxx xxxx xxxx xxxx',
@@ -171,7 +171,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
               margin: const EdgeInsets.only(left: 16, top: 8, right: 16),
               child: TextFormField(
                 controller: _expiryDateController,
-                validator: (String value) {
+                validator: (value) {
                                 if (value.isEmpty) {
                                   return 'Expiry date can not be empty';
                                 }
@@ -184,7 +184,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 style: TextStyle(
                   color: widget.textColor,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Expired Date',
                     hintText: 'MM/YY'),
@@ -197,7 +197,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               margin: const EdgeInsets.only(left: 16, top: 8, right: 16),
               child: TextFormField(
-                validator: (String value) {
+                validator: (value) {
                                 if (value.isEmpty) {
                                   return 'CVV can not be empty';
                                 }
@@ -209,7 +209,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 style: TextStyle(
                   color: widget.textColor,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'CVV',
                   hintText: 'XXX',
@@ -234,7 +234,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 style: TextStyle(
                   color: widget.textColor,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Card Holder',
                 ),
@@ -245,7 +245,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               margin: const EdgeInsets.only(left: 16, top: 8, right: 16),
-              color: const Color.fromRGBO(0, 21, 64, 1),
+              color: Color.fromRGBO(0, 21, 64, 1),
               child: FlatButton(
                     onPressed: (){
                       if(_formKey.currentState.validate())

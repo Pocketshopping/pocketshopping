@@ -6,6 +6,8 @@ version: 1.0.0+1
 dependencies:
   flutter:
     sdk: flutter
+
+
   cupertino_icons: ^0.1.2
   provider:
   bottom_navigation_badge: ^1.0.3

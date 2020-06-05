@@ -85,11 +85,6 @@ class OrderRepo {
         {'orderConfirmation': confirmation.toMap(), 'status': 1});
   }
 
-  static Future<void> cancel(String oid) async {
-    await databaseReference.collection("orders").document(oid).updateData(
-        { 'status': 1});
-  }
-
   static Future<Order> getOne(String oid) async {
     var doc = await databaseReference.collection("orders").document(oid).get();
     return Order.fromEntity(OrderEntity.fromSnapshot(doc));

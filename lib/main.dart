@@ -142,7 +142,6 @@ void main()async{
         }
         selectNotificationSubject.add(payload);
       });
-  await _createNotificationChannel('PocketShopping','PocketShopping','default notification channel for pocketshopping');
   BlocSupervisor.delegate = SimpleBlocDelegate();
   final UserRepository userRepository = UserRepository();
   runApp(
@@ -155,26 +154,6 @@ void main()async{
   );
 
 
-}
-
-Future<void> _createNotificationChannel(String id, String name,
-    String description) async {
-  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  var androidNotificationChannel = AndroidNotificationChannel(
-    id,
-    name,
-    description,
-    enableLights: true,
-    playSound: true,
-    importance: Importance.Max,
-    enableVibration: true,
-    showBadge: true,
-
-  );
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(androidNotificationChannel);
 }
 
 void callbackDispatcher() {
@@ -224,7 +203,7 @@ void callbackDispatcher() {
       }
       else{
         var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-            'PocketShopping', 'PocketShopping', 'LocationUpdate',
+            '1', 'LocationUpdate', 'LocationUpdate',
           importance: Importance.Max,
           priority: Priority.High,
           ticker: 'ticker',
@@ -250,7 +229,7 @@ void callbackDispatcher() {
     }
     else{
       var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'PocketShopping', 'PocketShopping', 'LocationUpdate',
+        '1', 'LocationUpdate', 'LocationUpdate',
         importance: Importance.Max,
         priority: Priority.High,
         ticker: 'ticker',

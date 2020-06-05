@@ -23,8 +23,8 @@ import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/widget/account.dart';
 import 'package:pocketshopping/widget/reviews.dart';
 import 'package:pocketshopping/widget/status.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 
+import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 
 class LogisticDashBoardScreen extends StatefulWidget {
   LogisticDashBoardScreen();

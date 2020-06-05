@@ -8,7 +8,6 @@ import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/editProduct.dart';
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/order/deliveryTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -84,7 +83,7 @@ class _CompletedOrderState extends State<CompletedOrder> {
                       onLoadMore: _loadMore,
                       child: ListView.builder(
                         itemBuilder: (BuildContext context, int index) {
-                          return SingleOrder(order: list[index],user: widget.user,refresh: _refresh,);
+                          return SingleOrder(order: list[index],);
                         },
                         itemCount: count,
                       ),
@@ -171,9 +170,7 @@ class _CompletedOrderState extends State<CompletedOrder> {
 
 class SingleOrder extends StatefulWidget {
   final Order order;
-  final Session user;
-  final Function refresh;
-  SingleOrder({this.order,this.user,this.refresh});
+  SingleOrder({this.order});
   @override
   _SingleOrderState createState() => new _SingleOrderState();
 }
@@ -198,18 +195,6 @@ class _SingleOrderState extends State<SingleOrder> {
           SizedBox(height: 10,),
           merchant != null?ListTile(
             onTap: () {
-              Get.to(DeliveryTrackerWidget(
-                order: widget.order,
-                user: widget.user.user,
-              )
-              ).then((value) {
-                if(value == 'Refresh')
-                {
-                  widget.refresh();
-
-                }
-
-              });
             },
             leading: CircleAvatar(
                 radius: 25.0,
