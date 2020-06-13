@@ -29,9 +29,9 @@ class _CustomerChatState extends State<CustomerChat> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
     items = [1, 2, 3, 4, 5, 6];
+    super.initState();
+    
   }
 
   @override

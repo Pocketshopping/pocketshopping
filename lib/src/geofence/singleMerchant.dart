@@ -402,12 +402,14 @@ class _MerchantUIState extends State<MerchantUI> {
                                                         Duration(seconds: 5),
                                                   ),
                                             IconButton(
+                                              onPressed: (){},
                                               icon: Icon(
                                                 Icons.call,
                                                 color: PRIMARYCOLOR,
                                               ),
                                             ),
                                             IconButton(
+                                              onPressed: (){},
                                               icon: Icon(
                                                 Icons.place,
                                                 color: PRIMARYCOLOR,

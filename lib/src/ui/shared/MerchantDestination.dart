@@ -17,7 +17,6 @@ class MerchantDestination extends StatefulWidget {
 class _MerchantDestinationState extends State<MerchantDestination> {
   int _polylineCount = 1;
   Map<PolylineId, Polyline> _polylines = <PolylineId, Polyline>{};
-  GoogleMapController _controller;
   Set<Marker> _markers = {};
   BitmapDescriptor pinLocationIcon;
 
@@ -49,11 +48,9 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   LatLng _originLocation = LatLng(9.0866644, 7.4592741);
   LatLng _destinationLocation = LatLng(9.0866644, 7.4472742);
 
-  bool _loading = false;
 
   _onMapCreated(GoogleMapController controller) {
     setState(() {
-      _controller = controller;
       _markers.add(Marker(
           markerId: MarkerId('<MARKER_ID>'),
           position: _mapInitLocation,
@@ -78,20 +75,6 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   }
 
   //Get polyline with Address
-  _getPolylinesWithAddress() async {
-    _setLoadingMenu(true);
-    List<LatLng> _coordinates =
-        await _googleMapPolyline.getPolylineCoordinatesWithAddress(
-            origin: '55 Kingston Ave, Brooklyn, NY 11213, USA',
-            destination: '8007 Cypress Ave, Glendale, NY 11385, USA',
-            mode: RouteMode.driving);
-
-    setState(() {
-      _polylines.clear();
-    });
-    _addPolyline(_coordinates);
-    _setLoadingMenu(false);
-  }
 
   _addPolyline(List<LatLng> _coordinates) {
     PolylineId id = PolylineId("poly$_polylineCount");
@@ -111,7 +94,6 @@ class _MerchantDestinationState extends State<MerchantDestination> {
 
   _setLoadingMenu(bool _status) {
     setState(() {
-      _loading = _status;
     });
   }
 

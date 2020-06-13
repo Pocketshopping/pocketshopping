@@ -7,10 +7,7 @@ class DeactivateBusiness extends StatefulWidget {
 
 class _DeactivateBusinessState extends State<DeactivateBusiness> {
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return Container(
+  Widget build(BuildContext context) => Container(
       child: Text('hello'),
     );
-  }
 }

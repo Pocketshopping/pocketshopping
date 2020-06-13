@@ -1,11 +1,6 @@
-import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/constants/appColor.dart';
-import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
-import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/user/agent/delivery/active.dart';
-import 'package:pocketshopping/src/user/agent/delivery/completed.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense/today.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense/yesterday.dart';
 import 'package:pocketshopping/src/user/package_user.dart';

@@ -200,13 +200,13 @@ class DirectionState extends State<Direction> {
                               icon: Icon(
                                 Icons.drive_eta,
                                 color: Colors.black54,
-                              ),
+                              ), onPressed: () {  },
                             )
                           : IconButton(
                               icon: Icon(
                                 Icons.directions_walk,
                                 color: Colors.black54,
-                              ),
+                              ), onPressed: () {  },
                             ),
                       backgroundColor: Colors.grey,
                     ),
@@ -225,13 +225,13 @@ class DirectionState extends State<Direction> {
                               icon: Icon(
                                 Icons.directions_walk,
                                 color: Colors.black54,
-                              ),
+                              ), onPressed: () {  },
                             )
                           : IconButton(
                               icon: Icon(
                                 Icons.drive_eta,
                                 color: Colors.black54,
-                              ),
+                              ), onPressed: () {  },
                             ),
                       backgroundColor: Colors.grey,
                     )

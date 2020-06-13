@@ -147,11 +147,9 @@ class _StaffScreenState extends State<StaffScreen> {
   static Future<dynamic> BackgroundMessageHandler(
       Map<String, dynamic> message) {
     if (message.containsKey('data')) {
-      final dynamic data = message['data'];
      // print(message);
     }
     if (message.containsKey('notification')) {
-      final dynamic data = message['notification'];
     }
   }
 

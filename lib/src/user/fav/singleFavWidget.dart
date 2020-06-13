@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
@@ -32,9 +31,7 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return Container(
+  Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
           color: Colors.black,
           boxShadow: [
@@ -71,7 +68,7 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('${merchant.bName}',style: TextStyle(color: Colors.white,fontSize: 18),),
-                    Text('${Utility.presentDate(DateTime.parse((widget.item.visitedAt as Timestamp).toDate().toString()))}',style: TextStyle(color: Colors.white),)
+                    Text('${Utility.presentDate(DateTime.parse(widget.item.visitedAt.toDate().toString()))}',style: TextStyle(color: Colors.white),)
                   ],
                 )
                 )
@@ -83,7 +80,6 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
                   ),
                 )
     );
-  }
 
   double getDistance(){
     var current = GeoFirePoint(widget.position.latitude,widget.position.longitude);

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/channels/repository/channelObj.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
@@ -1151,7 +1149,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                         child: const Text('Your Review'),
                       ),
                       RatingBar(
-                        //onRatingUpdate: (rate){},
+                        onRatingUpdate: (rate){},
                         initialRating: review.reviewRating,
                         minRating: 1,
                         maxRating: 5,

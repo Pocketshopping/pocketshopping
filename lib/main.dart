@@ -64,7 +64,6 @@ var appState = new AppState({'instanceID':'34','cart':0});
 */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -76,7 +75,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' as _get;
-import 'package:image_cropper/image_cropper.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
@@ -373,6 +371,8 @@ class AppState extends State<App> {
       isNew =  false;
     }
     setState(() {});
+
+    return isNew;
   }
 
   Future handleDynamicLinks() async {

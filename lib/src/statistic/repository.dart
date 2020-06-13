@@ -2,14 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:pocketshopping/src/order/repository/confirmation.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
-import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/order/repository/orderEntity.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/deliveryRequest.dart';
-import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 
 class StatisticRepo {
   static final databaseReference = Firestore.instance;

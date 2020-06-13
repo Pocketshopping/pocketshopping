@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,12 +10,9 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/channels/repository/channelObj.dart';
-import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
-import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
@@ -1123,7 +1121,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                     child: Text('Your Review'),
                   ),
                   RatingBar(
-                    //onRatingUpdate: (rate){},
+                    onRatingUpdate: null,
                     initialRating: review.reviewRating,
                     minRating: 1,
                     maxRating: 5,

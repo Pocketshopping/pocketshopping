@@ -135,11 +135,10 @@ class _UserScreenState extends State<UserScreen> {
 
   static Future<dynamic> BackgroundMessageHandler(Map<String, dynamic> message) {
     if (message.containsKey('data')) {
-      final dynamic data = message['data'];
     }
     if (message.containsKey('notification')) {
-      final dynamic data = message['notification'];
     }
+    
   }
 
   void _onItemTapped(int index) {

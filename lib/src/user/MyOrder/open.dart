@@ -3,13 +3,8 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
-import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
-import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/admin/product/editProduct.dart';
-import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/tracker.dart';

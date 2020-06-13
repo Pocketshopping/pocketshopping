@@ -81,9 +81,9 @@ class _ItemListerState extends State<ItemLister> {
     });
   }
 
-  void SendBroadcastMessage() {}
+  Future<void> SendBroadcastMessage() async {}
 
-  void CustomerChat() {}
+  Future<void> CustomerChat() async {}
 
   void ColorReset() {
     itemColor = List<Color>.generate(items.length, (int index) {

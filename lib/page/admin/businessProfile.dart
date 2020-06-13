@@ -7,10 +7,7 @@ class BusinessProfile extends StatefulWidget {
 
 class _BusinessProfileState extends State<BusinessProfile> {
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return Container(
+  Widget build(BuildContext context) => Container(
       child: Text('hello'),
     );
-  }
 }

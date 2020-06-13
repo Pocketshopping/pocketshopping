@@ -3,7 +3,6 @@ import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
-import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 
 class OrderRepo {
   static final databaseReference = Firestore.instance;

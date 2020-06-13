@@ -1023,6 +1023,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
              name: _nameController.text,
              telephone: _telephoneController.text,
              user: CurrentUser,
+             category: ""
            ),
          );
        }

@@ -164,7 +164,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                         color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   RatingBar(
-                    //onRatingUpdate: (rate){},
+                    onRatingUpdate: null,
                     initialRating: 3.5,
                     minRating: 1,
                     maxRating: 5,

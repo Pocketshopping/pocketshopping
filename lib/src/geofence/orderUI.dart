@@ -1217,7 +1217,8 @@ class _OrderUIState extends State<OrderUI> {
                     ? 'Choose this if you want to pay on delivery. (Cash only)'
                     : 'Choose this if you want to pay with cash.'),
                 trailing: IconButton(
-                  icon: Icon(Icons.arrow_forward_ios),
+                  
+                  icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                 ),
               ),
               SizedBox(
@@ -2096,7 +2097,7 @@ class _OrderUIState extends State<OrderUI> {
                           :
                       Text('service unavailable',style: TextStyle(color: Colors.red),),
                       trailing: IconButton(
-                        icon: Icon(Icons.arrow_forward_ios),
+                        icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                       enabled:!widget.merchant.adminUploaded ,
                     ),
@@ -2158,7 +2159,7 @@ class _OrderUIState extends State<OrderUI> {
                           :
                           Text('service unavailable',style: TextStyle(color: Colors.red),),
                           trailing: IconButton(
-                            icon: Icon(Icons.arrow_forward_ios),
+                            icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                           ),
                           enabled: !widget.merchant.adminUploaded,
                         ),
@@ -2240,7 +2241,7 @@ class _OrderUIState extends State<OrderUI> {
                             ],
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.arrow_forward_ios),
+                            icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                           ),
                           enabled: !widget.merchant.adminUploaded,
                         ),
@@ -2284,7 +2285,7 @@ class _OrderUIState extends State<OrderUI> {
                           :
                       Text('service unavailable',style: TextStyle(color: Colors.red),),
                       trailing: IconButton(
-                        icon: Icon(Icons.arrow_forward_ios),
+                        icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                     enabled: !widget.merchant.adminUploaded,
                     ),

@@ -26,7 +26,6 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/widget/reviews.dart';
 import 'package:workmanager/workmanager.dart';
 
 class AgentDashBoardScreen extends StatefulWidget {

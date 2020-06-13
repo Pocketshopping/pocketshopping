@@ -278,6 +278,7 @@ class Utility {
 
   static Future<dynamic> topUpUnit(
       String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
+    assert(ReferenceID != null);
     final response = await http.post("${WALLETAPI}wallets/fund/",
         headers: {
           'Content-Type': 'application/json',

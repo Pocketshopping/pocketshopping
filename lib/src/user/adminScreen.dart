@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -42,7 +41,6 @@ class _AdminScreenState extends State<AdminScreen> {
   FirebaseUser CurrentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
-  final TextEditingController _comment = TextEditingController();
   String userName;
 
 
@@ -153,10 +151,8 @@ class _AdminScreenState extends State<AdminScreen> {
   static Future<dynamic> BackgroundMessageHandler(
       Map<String, dynamic> message) {
     if (message.containsKey('data')) {
-      final dynamic data = message['data'];
     }
     if (message.containsKey('notification')) {
-      final dynamic data = message['notification'];
     }
   }
 

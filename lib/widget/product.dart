@@ -16,7 +16,6 @@ class ProductBottomPage extends StatelessWidget {
     double marginLR = MediaQuery.of(context).size.width;
     double gridHeight = MediaQuery.of(context).size.height * 0.1;
 
-    Widget ProductManegaMenu({String text, Color color}) {}
 
     Widget ProductManageListTemplate({int index}) {
       return GestureDetector(
@@ -137,7 +136,6 @@ class ProductBottomPage extends StatelessWidget {
       );
     }
 
-    Widget ProductDetail({int index}) {}
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.4,
