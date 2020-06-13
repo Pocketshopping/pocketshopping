@@ -29,6 +29,8 @@ import 'package:pocketshopping/src/order/timer.dart';
 import 'package:pocketshopping/src/order/tracker.dart';
 import 'package:pocketshopping/src/payment/atmCard.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/statistic/agentStatistic/deliveryRequest.dart';
+import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
@@ -102,9 +104,12 @@ class _OrderUIState extends State<OrderUI> {
   String type;
   bool emptyAgent;
   String payerror;
+  String agentDevice;
+  final isLogged = ValueNotifier<bool>(false);
 
   @override
   void initState() {
+    agentDevice = "";
     payerror = "";
     emptyAgent  = false;
     type = 'MotorBike';
@@ -130,8 +135,7 @@ class _OrderUIState extends State<OrderUI> {
     location = new loc.Location();
     location.changeSettings(
         accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
-    geoStream =
-        location.onLocationChanged.listen((loc.LocationData cLoc) async {
+    geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
       position = Position(
           latitude: cLoc.latitude,
           longitude: cLoc.longitude,
@@ -164,16 +168,15 @@ class _OrderUIState extends State<OrderUI> {
     //deliveryETA(widget.distance * 1000);
     //deliveryCut(widget.distance * 1000);
     address(widget.initPosition).then((value) => null);
+    if(!widget.merchant.adminUploaded)
     ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
     //print('${widget.merchant.bGeoPoint['geopoint']}');
     super.initState();
   }
 
   Future<void> address(Position position) async {
-    final coordinates =
-        geocode.Coordinates(position.latitude, position.longitude);
-    var address =
-        await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
+    final coordinates = geocode.Coordinates(position.latitude, position.longitude);
+    var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
     if (mounted)
       setState(() {
         List<String> temp = address.first.addressLine.split(',');
@@ -228,15 +231,6 @@ class _OrderUIState extends State<OrderUI> {
                     dCut = value.data;
                   })
                 : null);
-    /*int y1 = 50;
-    int y2 = 100;
-    int c = 300;
-    if(distance < 3000)
-      return 300;
-    else if(distance<500)
-      return (((distance/1000) - 3)*y1+c).round();
-    else
-      return (((distance/1000) - 3)*y2+c).round();*/
   }
 
   double deliveryETA(double distance, String type, double ttc, int server, double top) {
@@ -265,6 +259,8 @@ class _OrderUIState extends State<OrderUI> {
             // value.data
 
             );
+
+            return 0.0;
   }
 
   Widget DetailMaker() {
@@ -277,10 +273,10 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
-                    child: Text('Item Total'),
+                  const Expanded(
+                    child: const Text('Item Total'),
                   ),
-                  Expanded(
+                   Expanded(
                     child: Center(
                       child: Text('\u20A6${order.orderAmount}'),
                     ),
@@ -294,8 +290,8 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
-                    child: Text('Delivery Fee'),
+                  const Expanded(
+                    child: const Text('Delivery Fee'),
                   ),
                   Expanded(
                     child: Center(
@@ -311,7 +307,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Total',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -335,7 +331,7 @@ class _OrderUIState extends State<OrderUI> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   Expanded(
-                    child: Text('Mode'),
+                    child: const Text('Mode'),
                   ),
                   Expanded(
                     child: Center(
@@ -351,8 +347,8 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
-                    child: Text('Mobile Telephone'),
+                  const Expanded(
+                    child: const Text('Mobile Telephone'),
                   ),
                   Expanded(
                     child: Center(
@@ -368,8 +364,8 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
-                    child: Text('Delivery Address'),
+                  const Expanded(
+                    child: const Text('Delivery Address'),
                   ),
                   Expanded(
                     child: Center(
@@ -385,7 +381,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text('Delivery Time'),
                   ),
                   Expanded(
@@ -407,7 +403,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Total',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -430,7 +426,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text('Mode'),
                   ),
                   Expanded(
@@ -452,7 +448,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Total',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -475,7 +471,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text('Mode'),
                   ),
                   Expanded(
@@ -497,7 +493,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Total',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -520,7 +516,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text('Mode'),
                   ),
                   Expanded(
@@ -537,7 +533,7 @@ class _OrderUIState extends State<OrderUI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  Expanded(
+                  const Expanded(
                     child: Text('Table number'),
                   ),
                   Expanded(
@@ -638,7 +634,7 @@ class _OrderUIState extends State<OrderUI> {
           Center(
             child: TimerWidget(
               seconds: (mode == 'Delivery')||(mode == 'Pickup')?60:15,
-              onFinish: (String accepted) {
+              onFinish: (String accepted,String device) {
                 if (mode == 'Delivery')
                   order = order.update(
                       orderMode: OrderMode(
@@ -657,6 +653,7 @@ class _OrderUIState extends State<OrderUI> {
                     agent:accepted,
                   );
                 stage = 'CHECKOUT';
+                agentDevice = device;
                 setState(() {});
               },
               onAgent: mode == 'Delivery'? nearByAgent : null,
@@ -759,7 +756,7 @@ class _OrderUIState extends State<OrderUI> {
                     stage = 'CHECKOUT';
                   });
                 },
-                child: Text('Try Again'),
+                child: const Text('Try Again'),
               ),
             )
           ],
@@ -1057,7 +1054,7 @@ class _OrderUIState extends State<OrderUI> {
               ),
               ListTile(
                 onTap: () async {
-                  if (_wallet.pocketBalance > order.orderAmount) {
+                  if (_wallet.walletBalance > order.orderAmount) {
                     Get.defaultDialog(
                         title: 'Confirmation',
                         content: Text(
@@ -1086,12 +1083,12 @@ class _OrderUIState extends State<OrderUI> {
                   else{
                     Get.defaultDialog(
                         title: 'TopUp',
-                        content: Text('Do you want to TopUp your Pocket'),
+                        content: const Text('Do you want to TopUp your Pocket'),
                         cancel: FlatButton(
                           onPressed: () {
                             Get.back();
                           },
-                          child: Text('No'),
+                          child: const Text('No'),
                         ),
                         confirm: FlatButton(
                           onPressed: () {
@@ -1106,18 +1103,18 @@ class _OrderUIState extends State<OrderUI> {
                   }
                 },
                 leading: CircleAvatar(
-                  child: Image.asset('assets/images/blogo.png'),
+                  child:  Image.asset('assets/images/blogo.png'),
                   radius: 30,
                   backgroundColor: Colors.white,
                 ),
-                title: Text(
+                title:  Text(
                   'Pocketshopping',
                   style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
                 subtitle: Column(
                   children: <Widget>[
-                    _wallet.pocketBalance > order.orderAmount
+                    _wallet.walletBalance > order.orderAmount
                         ? Text(
                             'Choose this if you want to pay with pocket.')
                         : Text('Insufficient Fund. Tap to Topup'),
@@ -1947,11 +1944,11 @@ class _OrderUIState extends State<OrderUI> {
                                                     ),
                                                   ),
                                                 SizedBox(height: 10,),
-                                                emptyAgent != null?
-                                                emptyAgent?
-                                                Center(
+                                                if(emptyAgent != null)
+                                                if(emptyAgent)
+                                                const Center(
                                                   child: Text('Logistic agent is currently unavailable... try again later',textAlign: TextAlign.center,style: TextStyle(color: Colors.red),),
-                                                ):Container():Container(),
+                                                ),
                                                 SizedBox(height: 10,),
                                                 FlatButton(
                                                     onPressed: ()  {
@@ -1988,8 +1985,26 @@ class _OrderUIState extends State<OrderUI> {
                                                                 homeDelivery =false;
                                                                 emptyAgent = false;
                                                               }
-                                                              else{
-                                                                emptyAgent = true;
+                                                              else {
+                                                                emptyAgent =
+                                                                true;
+
+                                                                if (!isLogged.value) {
+                                                                  StatisticRepo
+                                                                      .saveDeliveryRequest(
+                                                                      DeliveryRequest(
+                                                                          isMiss: true,
+                                                                          agent: '',
+                                                                          distance: 0,
+                                                                          orderId: '',
+                                                                          cordinate: GeoPoint(
+                                                                              (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint']
+                                                                                  .latitude,
+                                                                              (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint']
+                                                                                  .longitude)
+                                                                      ));
+                                                                  isLogged.value = true;
+                                                                }
                                                               }
                                                               //print(value);
                                                               setState(() {});
@@ -2293,6 +2308,7 @@ class _OrderUIState extends State<OrderUI> {
               order: order,
               user: widget.user,
             ));
+            newOrderNotifier();
           } else {
             _start = _start - 1;
           }
@@ -2433,5 +2449,35 @@ class _OrderUIState extends State<OrderUI> {
         return false;
         break;
     }
+  }
+
+
+  Future<void> newOrderNotifier() async {
+    //print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Hello. You have a new Delivery(${widget.merchant.bName}). Advance to your dashboard for details',
+            'title': 'New Delivery'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'NewDeliveryOrderRequest',
+            }
+          },
+          'to': agentDevice,
+        }));
   }
 }

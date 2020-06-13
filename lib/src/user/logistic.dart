@@ -155,7 +155,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                         ),
                                         Center(
                                             child: Text(
-                                          "\u20A6 ${_wallet.businessMoney}",
+                                          "\u20A6 ${_wallet.merchantBalance}",
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
                                         )),

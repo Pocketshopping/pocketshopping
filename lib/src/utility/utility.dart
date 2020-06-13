@@ -17,6 +17,167 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
   static var location = Location();
+  static String mapStyles = '''[
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "color": "#C3C3C3"
+        
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#bdbdbd"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#eeeeee"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e5e5e5"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#ffffff"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dadada"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e5e5e5"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#eeeeee"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#c9c9c9"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  }
+]''';
 
   static locationAccess() {
     location.hasPermission().then((value) {
@@ -63,7 +224,7 @@ class Utility {
   }
 
   static int setStartCount(dynamic dtime, int second) {
-    print(dtime);
+    //print(dtime);
     var otime = DateTime.parse((dtime as Timestamp).toDate().toString())
         .add(Duration(seconds: second));
     int diff = otime.difference(DateTime.now()).inSeconds;
@@ -89,22 +250,20 @@ class Utility {
   }
 
   static Future<dynamic> topUpWallet(
-      String ReferenceID, String To, String Description, String Status,int Amount,String PaymentMethod) async {
-    final response = await http.post("${WALLETAPI}fund/wallet/online",
+      String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
+    final response = await http.post("${WALLETAPI}wallets/fund/",
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(
           <String, dynamic>{
-            "To": "$To",
-            "ReferenceID": "$ReferenceID",
-            "Description": "$Description",
-            "Status": "$Status",
-            "Amount":Amount,
-            "PkCharge": 0.0,
-            "Servicecharge": 0.0,
-            "Comfirmedby": "",
-            "PaymentMethod": "$PaymentMethod",
+            "refID": "$ReferenceID",
+            "statusId": "$Status",
+            "amount":Amount,
+            "paymentId": 1,
+            "channelId": PaymentMethod,
+            "from": "$From",
+            "to": "304244166277",
           },
         ));
     //print(response.body);
@@ -118,22 +277,20 @@ class Utility {
 
 
   static Future<dynamic> topUpUnit(
-      String ReferenceID, String To, String Description, String Status,int Amount,String PaymentMethod) async {
-    final response = await http.post("${WALLETAPI}fund/pocket/online",
+      String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
+    final response = await http.post("${WALLETAPI}wallets/fund/",
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(
           <String, dynamic>{
-            "To": "$To",
-            "ReferenceID": "$ReferenceID",
-            "Description": "$Description",
-            "Status": "$Status",
-            "Amount":Amount,
-            "PkCharge": 0.0,
-            "Servicecharge": 0.0,
-            "Comfirmedby": "",
-            "PaymentMethod": "$PaymentMethod",
+            "refID": "$ReferenceID",
+            "statusId": "$Status",
+            "amount":Amount,
+            "paymentId": 5,
+            "channelId": PaymentMethod,
+            "from": "$From",
+            "to": "304244166277",
           },
         ));
     //print(response.body);
@@ -228,7 +385,7 @@ class Utility {
 
         final StreamSubscription<StorageTaskEvent> streamSubscription =
         uploadTask.events.listen((event) {
-          print(event.toString());
+          //print(event.toString());
         });
 
         // Cancel your subscription when done.
@@ -241,7 +398,7 @@ class Utility {
       //upload the list of imageUrls to firebase as an array
       return _imageUrls;
     } catch (e) {
-      print(e);
+      //print(e);
       return [];
     }
   }
@@ -256,4 +413,32 @@ class Utility {
     }
     return indexList;
   }
+
+
+  static bool dayMaker(dynamic datetime,String whichDay){
+    bool yesterday = false;
+    bool today = false;
+    //if(DateTime.now().difference(datetime))
+    yesterday = formatDate(
+        DateTime(DateTime.now().year, DateTime.now().month,
+            DateTime.now().day - 1),
+        [dd, '/', mm, '/', yyyy]) ==
+        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
+    today = formatDate(DateTime.now(), [dd, '/', mm, '/', yyyy]) ==
+        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
+
+   switch(whichDay){
+     case 'T':
+       return today;
+       break;
+     case 'Y':
+       return yesterday;
+       break;
+     default:
+       return false;
+     break;
+   }
+  }
+
+
 }

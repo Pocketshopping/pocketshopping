@@ -23,9 +23,12 @@ class SinglePlaceWidget extends StatefulWidget {
 
 class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
   //Position cPosition;
-
+  double dist;
   @override
   void initState() {
+    dist = widget.cPosition.distance(
+        lat: widget.merchant.bGeoPoint['geopoint'].latitude,
+        lng: widget.merchant.bGeoPoint['geopoint'].longitude);
     super.initState();
   }
 
@@ -40,18 +43,16 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
     final coordinates = new geocode.Coordinates(
         widget.cPosition.geoPoint.latitude,
         widget.cPosition.geoPoint.longitude);
-    var address =
-        await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
     print(address.first.addressLine);
   }
 
   @override
   Widget build(BuildContext context) {
-    double dist = widget.cPosition.distance(
-        lat: widget.merchant.bGeoPoint['geopoint'].latitude,
-        lng: widget.merchant.bGeoPoint['geopoint'].longitude);
-    //address();
-    return Builder(builder: (context) {
+
+
+
+
       return GestureDetector(
         onTap: () {
           final page = MerchantUI(
@@ -97,7 +98,7 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                       child: Center(
                           child: Text(
                         widget.merchant.bCategory,
-                        style: TextStyle(fontSize: 12, color: Colors.white),
+                        style: const TextStyle(fontSize: 12, color: Colors.white),
                         textAlign: TextAlign.left,
                       )),
                     ),
@@ -138,11 +139,11 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                                 );
                               },
                             )
-                          : Container(),
+                          : const SizedBox.shrink(),
                     ),
                     Expanded(
                       child: IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.info,
                           size: 20,
                           color: Colors.white,
@@ -158,7 +159,7 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                   ],
                 ),
               ),
-              SizedBox(height: 15,),
+              const SizedBox(height: 15,),
               Column(
                 children: <Widget>[
                   Text(
@@ -170,7 +171,7 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                     '${AwayFrom(dist)}',
                     style: TextStyle(fontSize: 12, color: Colors.white),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 5,
                   ),
                   if (dist > 0.1)
@@ -189,7 +190,7 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
           ),
         ),
       );
-    });
+
   }
 
   String AwayFrom(double dist) {

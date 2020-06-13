@@ -214,11 +214,20 @@ class _TopUpState extends State<TopUp> {
           if (details != null) {
             var result;
             if(widget.payType == "TOPUP")
-            result = await Utility.topUpWallet(reference['reference'],
-                widget.user.walletId, "", "success", jsonDecode(details.body)['data']['amount'], "card");
+              {
+                var status = jsonDecode(details.body)['data']['status'];
+                if(status != "abandoned")
+                result = await Utility.topUpWallet(reference['reference'],
+                    widget.user.walletId, status, status == 'success'?1:2, jsonDecode(details.body)['data']['amount'], 1);
+              }
+
             else if(widget.payType == "TOPUPUNIT")
-              result = await Utility.topUpUnit(reference['reference'],
-                  widget.user.walletId, "", "success", jsonDecode(details.body)['data']['amount'], "card");
+              {var status = jsonDecode(details.body)['data']['status'];
+              if(status != "abandoned")
+                result = await Utility.topUpUnit(reference['reference'],
+                    widget.user.walletId, status, status == 'success'?1:2, jsonDecode(details.body)['data']['amount'], 1);
+              }
+
 
 
             if(result != null){
@@ -229,6 +238,13 @@ class _TopUpState extends State<TopUp> {
               startTimer();
               WalletRepo.getWallet(widget.user.walletId)
                   .then((value) => WalletBloc.instance.newWallet(value));
+            }
+            else{
+              setState(() {
+                paying = false;
+                status = 'ERROR';
+                payerror = "Error connecting to server. check your connection and try again";
+              });
             }
 
           } else {

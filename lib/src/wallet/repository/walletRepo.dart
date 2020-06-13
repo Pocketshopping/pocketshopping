@@ -10,13 +10,14 @@ class WalletRepo {
 
   static Future<Wallet> getWallet(String wid) async {
     //print(pid);
-    final response = await http.get("${WALLETAPI}pocket/detail/$wid", headers: {
+    final response = await http.get("${WALLETAPI}wallets/$wid", headers: {
       'Content-Type': 'application/json',
     });
 
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
-      return Wallet.fromMap(result['pocketdetail']);
+      print(result);
+      return Wallet.fromMap(result);
     } else {
       return null;
     }

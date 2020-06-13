@@ -2,47 +2,47 @@ import 'package:meta/meta.dart';
 
 @immutable
 class Wallet {
-  final double pocketBalance;
+  final double walletBalance;
   final String accountNumber;
   final double deliveryBalance;
   final double refferalBonus;
   final String bankCode;
   final String bankName;
-  final double businessMoney;
+  final double merchantBalance;
   final double pocketUnitBalance;
   final dynamic createdAt;
 
   Wallet({
-    this.pocketBalance,
+    this.walletBalance,
     this.accountNumber,
     this.deliveryBalance,
     this.refferalBonus,
     this.bankCode,
     this.bankName,
-    this.businessMoney,
+    this.merchantBalance,
     this.pocketUnitBalance,
     this.createdAt,
   });
 
   Wallet copyWith({
-    double pocketBalance,
+    double walletBalance,
     String accountNumber,
     double deliveryBalance,
     double refferalBonus,
     String bankCode,
     String bankName,
-    double businessMoney,
+    double merchantBalance,
     double pocketUnitBalance,
     dynamic createdAt,
   }) {
     return Wallet(
-      pocketBalance: pocketBalance ?? this.pocketBalance,
+      walletBalance: walletBalance ?? this.walletBalance,
       accountNumber: accountNumber ?? this.accountNumber,
       deliveryBalance: deliveryBalance ?? this.deliveryBalance,
       refferalBonus: refferalBonus ?? this.refferalBonus,
       bankCode: bankCode ?? this.bankCode,
       bankName: bankName ?? this.bankName,
-      businessMoney: businessMoney ?? this.businessMoney,
+      merchantBalance: merchantBalance ?? this.merchantBalance,
       pocketUnitBalance: pocketUnitBalance ?? this.pocketUnitBalance,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -50,13 +50,13 @@ class Wallet {
 
   @override
   int get hashCode =>
-      pocketBalance.hashCode ^
+      walletBalance.hashCode ^
       accountNumber.hashCode ^
       deliveryBalance.hashCode ^
       refferalBonus.hashCode ^
       bankCode.hashCode ^
       bankName.hashCode ^
-      businessMoney.hashCode ^
+      merchantBalance.hashCode ^
       pocketUnitBalance.hashCode ^
       createdAt.hashCode;
 
@@ -65,10 +65,10 @@ class Wallet {
       identical(this, other) ||
       other is Wallet &&
           runtimeType == other.runtimeType &&
-          pocketBalance == other.pocketBalance &&
+          walletBalance == other.walletBalance &&
           accountNumber == other.accountNumber &&
           bankCode == other.bankCode &&
-          businessMoney == other.businessMoney &&
+          merchantBalance == other.merchantBalance &&
           bankName == other.bankName &&
           createdAt == other.createdAt &&
           deliveryBalance == other.deliveryBalance &&
@@ -76,19 +76,19 @@ class Wallet {
 
   @override
   String toString() {
-    return '''Wallet {pocketBalance: $pocketBalance,}''';
+    return '''Wallet {walletBalance: $walletBalance,}''';
   }
 
   static Wallet fromMap(Map<String, dynamic> data) {
     return Wallet(
-      pocketBalance: data['PocketBalance'],
-      accountNumber: data['AccountNumber'],
-      deliveryBalance: data['DeliveryBalance'],
-      refferalBonus: data['RefferalBonus'],
-      bankCode: data['BankCode'],
-      bankName: data['FirstBank'],
-      businessMoney: data['BusinessMoney'],
-      pocketUnitBalance: data['PocketUnitBalance'],
+      walletBalance: data['walletBalance']??0,
+      accountNumber: data['accountNumber']??"",
+      deliveryBalance: data['DeliveryBalance']??0,
+      refferalBonus: data['RefferalBonus']??0,
+      bankCode: data['sortCode']??"",
+      bankName: data['bankName']??"",
+      merchantBalance: data['merchantBalance']??0,
+      pocketUnitBalance: data['pocketBalance']??0,
       createdAt: data['CreatedAt'],
     );
   }

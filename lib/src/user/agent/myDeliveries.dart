@@ -27,6 +27,7 @@ class _MyDeliveryState extends State<MyDelivery>{
     _orderStream.listen((orders) {
       if(mounted)
         setState(() {
+          newOrders.clear();
           if(!newOrders.contains(orders))
           newOrders.addAll(orders);
         });

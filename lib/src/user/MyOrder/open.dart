@@ -119,28 +119,28 @@ class _OpenOrderState extends State<OpenOrder> {
                   ),
                 ):
                 ListTile(
-                  title: Image.asset('assets/images/empty.gif'),
+                  title:  Image.asset('assets/images/empty.gif'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       Center(
-                        child: Text(
+                        child: const Text(
                           'Empty',
-                          style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                          style: const TextStyle(
+                              fontSize: 20),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
-                      Row(
+                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              child: Text(
+                            child: const Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: const Text(
                                 "No Completed Order",
                                 textAlign: TextAlign.center,
                               ),
@@ -152,7 +152,7 @@ class _OpenOrderState extends State<OpenOrder> {
                   ),
                 )
                     :
-                Center(
+                 Center(
                   child: JumpingDotsProgressIndicator(
                     fontSize: MediaQuery.of(context).size.height * 0.12,
                     color: PRIMARYCOLOR,
@@ -208,7 +208,7 @@ class _SingleOrderState extends State<SingleOrder> {
     //return Text('${(_start/60).round()}');
     return Column(
         children:[
-          SizedBox(height: 10,),
+          const SizedBox(height: 10,),
           ListTile(
             onTap: () {
               Get.to(OrderTrackerWidget(
@@ -226,9 +226,9 @@ class _SingleOrderState extends State<SingleOrder> {
             leading: CircleAvatar(
                 radius: 25.0,
                 backgroundColor: (_start/60).round()>0?Colors.green:Colors.red,
-                child: Text('${(_start/60).round()}m',style: TextStyle(color: Colors.white),)),
+                child: Text('${(_start/60).round()}min',style: const TextStyle(color: Colors.white,fontSize: 14),)),
              title: Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,16 +245,16 @@ class _SingleOrderState extends State<SingleOrder> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     (_start/60).round() == 0?
-                    Expanded(
-                      child: Text("${'Have you collected your package. click here to take further action'}"),
-                    ):Container()
+                    const Expanded(
+                      child: const Text("${'Have you collected your package. click here to take further action'}"),
+                    ):const SizedBox.shrink()
                   ],
                 ),
               ],
             ),
-            trailing: Icon(Icons.keyboard_arrow_right),
+            trailing: const Icon(Icons.keyboard_arrow_right),
           ),
-          Divider(),
+          const Divider(),
         ]
     );
   }

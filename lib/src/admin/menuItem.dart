@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 
 class MenuItem extends StatelessWidget {
-  MenuItem(this.gHeight, this.icon, this.title,
+
+  const MenuItem(this.gHeight, this.icon, this.title,
       {this.isBadged = false,
       this.border: Colors.black,
       this.badgeType = 'text',
@@ -82,7 +83,7 @@ class MenuItem extends StatelessWidget {
                     child: FittedBox(fit: BoxFit.contain, child: icon))
                 : FittedBox(fit: BoxFit.contain, child: icon),
             Center(
-                child: Text(
+                child:  Text(
               title,
               style: TextStyle(color: Colors.black),
               textAlign: TextAlign.center,

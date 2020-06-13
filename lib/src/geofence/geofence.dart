@@ -22,72 +22,46 @@ class GeoFence extends StatefulWidget {
 class _GeoFenceState extends State<GeoFence> {
   final TextEditingController _filter = new TextEditingController();
   String _searchText = "";
-  Icon _searchIcon = new Icon(
+  Icon _searchIcon = const Icon(
     Icons.search,
     color: PRIMARYCOLOR,
   );
-  Widget _appBarTitle = new Text(
+  Widget _appBarTitle = const Text(
     "PocketShopping",
     style: TextStyle(color: PRIMARYCOLOR, fontSize: 20),
   );
-  ViewModel vmodel;
+
   String barcode = "";
   int _value = 0;
   int loader = 0;
-  List<String> categories = [];
+
   ScrollController _scrollController = new ScrollController();
-  Session CurrentUser;
+  Session currentUser;
   GeoFenceBloc gBloc;
-  Stream<Wallet> _walletStream;
-  Wallet _wallet;
+  //Stream<Wallet> _walletStream;
+  //Wallet _wallet;
   List<bool> isSelected;
 
   @override
   void initState() {
     isSelected = [true, false];
     loader = 6;
-    categories = ['Restuarant', 'Bar'];
-    CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
+
+    currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     gBloc = GeoFenceBloc();
-    WalletRepo.getWallet(CurrentUser.user.walletId)
+    WalletRepo.getWallet(currentUser.user.walletId)
         .then((value) => WalletBloc.instance.newWallet(value));
-    _walletStream = WalletBloc.instance.walletStream;
+    /*_walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
         _wallet = wallet;
         setState(() {});
       }
-    });
+    });*/
     Utility.locationAccess();
     super.initState();
   }
 
-  setCategory() async {
-    await CategoryData()
-        .getAll()
-        .then((value) => {categories.addAll(value), setState(() {})});
-    //print(categories.length);
-  }
-
-  Future scan() async {
-    try {
-      String barcode = await BarcodeScanner.scan();
-      Navigator.pop(context);
-      setState(() => vmodel.handleQRcodeSearch(search: barcode));
-    } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
-        setState(() {
-          this.barcode = 'The user did not grant the camera permission!';
-        });
-      } else {
-        setState(() => this.barcode = 'Unknown error: $e');
-      }
-    } on FormatException {
-      setState(() => this.barcode = 'you cancelled the QRcode search');
-    } catch (e) {
-      setState(() => this.barcode = 'Unknown error: $e');
-    }
-  }
 
   void _searchPressed() {
     setState(() {
@@ -99,7 +73,7 @@ class _GeoFenceState extends State<GeoFence> {
         this._appBarTitle = TextFormField(
           controller: _filter,
           decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
               hintText: 'Search by Name...',
               filled: true,
               fillColor: Colors.white.withOpacity(0.3),
@@ -111,11 +85,11 @@ class _GeoFenceState extends State<GeoFence> {
               )),
         );
       } else {
-        this._searchIcon = Icon(
+        this._searchIcon = const Icon(
           Icons.search,
           color: PRIMARYCOLOR,
         );
-        this._appBarTitle = Text(
+        this._appBarTitle = const Text(
           "PocketShopping",
           style: TextStyle(color: PRIMARYCOLOR),
         );
@@ -123,67 +97,7 @@ class _GeoFenceState extends State<GeoFence> {
     });
   }
 
-  _SeacrhUsingQRCode() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => BottomSheetTemplate(
-        height: MediaQuery.of(context).size.height * 0.6,
-        opacity: 0.2,
-        child: Center(
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Container(
-                  child: FlatButton(
-                    onPressed: () => {this.scan()},
-                    padding: EdgeInsets.all(10.0),
-                    child: Column(
-                      // Replace with a Row for horizontal icon + text
-                      children: <Widget>[
-                        Center(
-                            child: Text(
-                          "Search Using QRcode/Barcode",
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
-                          textAlign: TextAlign.center,
-                        )),
-                        Container(
-                          height: 10,
-                        ),
-                        FittedBox(
-                            fit: BoxFit.contain,
-                            child: Icon(
-                              Icons.camera,
-                              color: Colors.green,
-                              size: MediaQuery.of(context).size.height * 0.1,
-                            )),
-                        Center(
-                            child: Text(
-                          "Scan QRCode to search for product",
-                          style: TextStyle(color: Colors.black54),
-                          textAlign: TextAlign.center,
-                        )),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text(
-                  barcode,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      isScrollControlled: true,
-    );
-  }
+
 
   _GeoFenceState() {
     _filter.addListener(() {
@@ -224,7 +138,7 @@ class _GeoFenceState extends State<GeoFence> {
                 centerTitle: true,
                 backgroundColor: Colors.white,
                 leading: IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.menu,
                     color: PRIMARYCOLOR,
                   ),
@@ -311,10 +225,10 @@ class _GeoFenceState extends State<GeoFence> {
                             TabBar(
                               labelColor: PRIMARYCOLOR,
                               tabs: [
-                                Tab(
+                                const Tab(
                                   text: "Proximity",
                                 ),
-                                Tab(
+                                const Tab(
                                   text: "Reviews",
                                 ),
                               ],
@@ -337,7 +251,7 @@ class _GeoFenceState extends State<GeoFence> {
                   if (state.isLoading)
                     SliverList(
                         delegate: SliverChildListDelegate([
-                      SizedBox(
+                          const  SizedBox(
                         height: 10,
                       ),
                       Center(
@@ -385,7 +299,7 @@ class _GeoFenceState extends State<GeoFence> {
                                   cPosition: GeoFirePoint(
                                       state.currentPosition.latitude,
                                       state.currentPosition.longitude),
-                                  user: CurrentUser.user,
+                                  user: currentUser.user,
                                 );
                                 return page;
                               },
@@ -433,7 +347,7 @@ class _GeoFenceState extends State<GeoFence> {
                             child: Column(
                               // Replace with a Row for horizontal icon + text
                               children: <Widget>[
-                                Text(
+                                const Text(
                                   "Load More",
                                   style: TextStyle(color: Colors.black54),
                                 )
@@ -485,13 +399,13 @@ Widget Review(dynamic state){
                     children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.all(4.0),
-                        child: Text(
+                        child: const Text(
                           'Rating',
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(4.0),
-                        child: Text(
+                        child:const Text(
                           'Reviews',
                         ),
                       ),
@@ -515,7 +429,7 @@ Widget Review(dynamic state){
               if (state.isLoading)
                 SliverList(
                     delegate: SliverChildListDelegate([
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       Center(
@@ -564,7 +478,7 @@ Widget Review(dynamic state){
                         cPosition: GeoFirePoint(
                             state.currentPosition.latitude,
                             state.currentPosition.longitude),
-                        user: CurrentUser.user,
+                        user: currentUser.user,
                       );
                       return page;
                     },
@@ -612,7 +526,7 @@ Widget Review(dynamic state){
                               child: Column(
                                 // Replace with a Row for horizontal icon + text
                                 children: <Widget>[
-                                  Text(
+                                  const Text(
                                     "Load More",
                                     style: TextStyle(color: Colors.black54),
                                   )
@@ -628,87 +542,3 @@ Widget Review(dynamic state){
     );
 }
 }
-
-class ChatBubbleTriangle extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint()..color = Color(0xFF486993);
-
-    var path = Path();
-    path.lineTo(-15, 0);
-    path.lineTo(0, -15);
-    path.lineTo(0, 0);
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
-/*
-
-
-SliverList(
-delegate: SliverChildListDelegate(
-[
-
-
-Padding(
-padding: EdgeInsets.all(7),
-child: Align(
-alignment: Alignment.centerRight,
-child: Stack(
-children: [
-Container(
-padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-decoration: BoxDecoration(
-color: Color(0xFF486993),
-borderRadius: BorderRadius.all(Radius.circular(20)),
-),
-child: Row(
-mainAxisSize: MainAxisSize.min,
-children: <Widget>[
-RichText(
-text: TextSpan(
-children: <TextSpan>[
-TextSpan(
-text:state.isSuccess? state.nearByMerchants.isNotEmpty?'${state.category} near you  ':'ouch no ${state.category} near you  ':'Fetching nearby merchants.. please wait',
-style: TextStyle(
-color: Colors.white,
-fontSize: 14.0
-),
-),
-TextSpan(
-text: '3:16 PM',
-style: TextStyle(
-color: Colors.grey,
-fontSize: 12.0,
-fontStyle: FontStyle.italic
-),
-),
-],
-),
-),
-Icon(Icons.check, color: Color(0xFF7ABAF4), size: 16,)
-]
-),
-),
-Positioned(
-bottom: 0,
-right: 0,
-child: CustomPaint(
-painter: ChatBubbleTriangle(),
-)
-)
-]
-)
-),
-),
-
-
-
-]
-)
-),*/

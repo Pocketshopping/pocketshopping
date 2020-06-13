@@ -10,6 +10,7 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/ui/shared/drawer/referral.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -30,15 +31,14 @@ class DrawerScreen extends StatefulWidget {
 
 class _DrawerScreenState extends State<DrawerScreen> {
   Stream<Wallet> _walletStream;
-  Wallet _wallet;
-
+  final _walletNotifier = ValueNotifier<Wallet>(null);
   @override
   void initState() {
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
-        _wallet = wallet;
-        if (mounted) setState(() {});
+        _walletNotifier.value = wallet;
+
       }
     });
     super.initState();
@@ -59,30 +59,43 @@ class _DrawerScreenState extends State<DrawerScreen> {
                 //crossAxisAlignment: CrossAxisAlignment.center,
                 //mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      height: MediaQuery.of(context).size.height * 0.15,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                              fit: BoxFit.fill,
-                              image: new NetworkImage(
-                                  "https://i.imgur.com/BoN9kdC.png")))),
-                  Text(widget.user.fname, textScaleFactor: 1),
-                  if (_wallet != null)
-                    Text("PocketBalance: \u20A6 ${_wallet.pocketBalance}",
-                        textScaleFactor: 1.3),
-                  if (_wallet != null)
-                    Expanded(
-                      child: FlatButton(
-                        onPressed: () {Get.dialog(TopUp(user: widget.user,));},
-                        color: PRIMARYCOLOR,
-                        child: Text(
-                          "TopUp",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
+                 Expanded(
+                   child:  CircleAvatar(
+                     radius:MediaQuery.of(context).size.width * 0.1 ,
+                     backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
+                     backgroundImage: NetworkImage(widget.user.profile.isNotEmpty?widget.user.profile:PocketShoppingDefaultAvatar),
+                   ),
+                 ),
+                  Expanded(
+                    flex:0,
+                    child: Text(widget.user.fname, textScaleFactor: 1),
+                  ),
+                  Expanded(
+                    flex:0,
+                    child: ValueListenableBuilder(
+                      valueListenable: _walletNotifier,
+                      builder: (_,Wallet wallet,__){
+                        if(wallet != null){
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("PocketBalance: \u20A6 ${wallet.walletBalance}",
+                                  textScaleFactor: 1.3),
+                              FlatButton(
+                                onPressed: () {Get.dialog(TopUp(user: widget.user,));},
+                                color: PRIMARYCOLOR,
+                                child: const Text(
+                                  "TopUp",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        else{return const SizedBox.shrink();}
+                      },
                     ),
+                  ),
                 ],
               )),
               decoration: BoxDecoration(
@@ -92,8 +105,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text("Profile"),
+            leading: const Icon(Icons.person),
+            title: const Text("Profile"),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
@@ -101,8 +114,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.attach_money),
-            title: Text("Manage Fund"),
+            leading: const Icon(Icons.attach_money),
+            title: const Text("Manage Fund"),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
@@ -111,16 +124,16 @@ class _DrawerScreenState extends State<DrawerScreen> {
           ),
           //if(_wallet != null)
           ListTile(
-            leading: Icon(Icons.people),
-            title: Text("referral"),
+            leading: const Icon(Icons.people),
+            title: const Text("referral"),
             onTap: () {
               Get.back();
               Get.to(Referral(walletId: widget.user.walletId));
             },
           ),
           ListTile(
-            leading: Icon(Icons.notifications_active),
-            title: Text("Request"),
+            leading: const Icon(Icons.notifications_active),
+            title: const Text("Request"),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
@@ -129,16 +142,16 @@ class _DrawerScreenState extends State<DrawerScreen> {
           ),
           if (widget.user.role == 'user')
             ListTile(
-              leading: Icon(Icons.business),
-              title: Text("Business"),
+              leading: const Icon(Icons.business),
+              title: const Text("Business"),
               onTap: () {
                 Get.back();
                 Get.to(FirstBusinessPage());
               },
             ),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text("Settings"),
+            leading: const Icon(Icons.settings),
+            title: const Text("Settings"),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
@@ -146,8 +159,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.info),
-            title: Text("AboutUs"),
+            leading: const Icon(Icons.info),
+            title: const Text("AboutUs"),
             onTap: () {
               Get.back();
               Get.to(BSetup(
@@ -156,8 +169,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.close),
-            title: Text("SignOut"),
+            leading: const Icon(Icons.close),
+            title: const Text("SignOut"),
             onTap: () {
               BlocProvider.of<AuthenticationBloc>(context).add(
                 LoggedOut(),
