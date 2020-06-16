@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'dart:convert';
+import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -41,11 +42,14 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
   StreamSubscription orders;
+  StreamSubscription todayOrderCount;
   Stream<Wallet> _walletStream;
 
   final _isAvailableNotifier = ValueNotifier<bool>(true);
   final _walletNotifier = ValueNotifier<Wallet>(null);
-  final _OrderNotifier = ValueNotifier<List<Order>>([]);
+  final _orderNotifier = ValueNotifier<List<Order>>([]);
+  final _orderCountNotifier = ValueNotifier<int>(0);
+  final _remittanceNotifier = ValueNotifier<Map<String,dynamic>>(null);
 
 
   @override
@@ -53,29 +57,54 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
-      showBottom();
+      if (notification != null) {
+        //print('Notifications: ${notification.data['data']}');
+        if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
+          Map<String,dynamic> payload = jsonDecode(notification.data['data']['payload']);
+          switch (payload['NotificationType']) {
+            case 'NewDeliveryOrderRequest':
+              showBar('New Delivery','Hello. You have a new Delivery. Advance to your dashboard for details');
+              NotificationsBloc.instance.clearNotification();
+              break;
+            case 'OrderConfirmationResponse':
+              showBar('Delivery Confirmation','Hello. You have a Delivery has been confirmed by the customer');
+              break;
+
+            default:
+              WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+              break;
+          }
+          WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+        }
+      }
+
     });
 
-    WalletRepo.getWallet(currentUser.user.walletId).
-    then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
-
-        _walletNotifier.value = wallet;
-
+      if(mounted) {
+        updateWallet(wallet);
+        LogisticRepo.getRemittance(currentUser.user.walletId).then((value) => _remittanceNotifier.value=value);
+      }
     });
 
     orders = OrderRepo.agentOrder(currentUser.agent.agent).listen((event) {
       if(mounted)
         {
-          _OrderNotifier.value=[];
-          _OrderNotifier.value=event;
+          _orderNotifier.value=[];
+          _orderNotifier.value=event;
         }
       OrderBloc.instance.newOrder(event);
     });
+
+    LogisticRepo.getRemittance(currentUser.user.walletId).then((value) => _remittanceNotifier.value=value);
+
+    todayOrderCount = OrderRepo.agentTodayOrder(currentUser.agent.agent).listen((event) {if(mounted) _orderCountNotifier.value=event;});
     backgroundWorker();
-    if(currentUser.agent == null)
-    ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
+    if(currentUser.agent == null) ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
+
+
     Utility.locationAccess();
     LogisticRepo.getOneAgentLocation(currentUser.agent.agentID).then((value){if(value != null) _isAvailableNotifier.value =value.availability;});
     super.initState();
@@ -93,23 +122,52 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'agentTelephone': currentUser.user.telephone,
           'agentName': currentUser.user.fname,
           'wallet':currentUser.user.walletId,
-          'agentParent':currentUser.agent.agentWorkPlace
+          'agentParent':currentUser.agent.agentWorkPlace,
+          'workPlaceWallet':currentUser.agent.workPlaceWallet??'',
         });
 
-
+    return Future.value();
   }
 
-  showBottom() {
-   // GetBar(title: 'tdsd',messageText: Text('sdsd'),duration: Duration(seconds: 2),).show();
+  Future<bool> updateWallet(Wallet wallet){
+    _walletNotifier.value=null;
+    _walletNotifier.value = wallet;
+    return Future.value(true);
+  }
+
+  showBar(String title,String body){
+    GetBar(title: '$title',
+      messageText: Text( '$body ',style: TextStyle(color: Colors.white),),
+      backgroundColor: PRIMARYCOLOR,
+      snackStyle: SnackStyle.GROUNDED,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 5),
+    ).show();
+  }
+
+ void showBottom(Map<String,dynamic>  payload) {
+    switch (payload['NotificationType']) {
+      case 'NewDeliveryOrderRequest':
+        showBar('New Delivery','Hello. You have a new Delivery. Advance to your dashboard for details');
+        NotificationsBloc.instance.clearNotification();
+        break;
+      case 'OrderConfirmationResponse':
+        showBar('Delivery Confirmation','Hello. A Delivery has been confirmed by the customer');
+        break;
+
+      default:
+        WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+        break;
+    }
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
   }
 
   @override
   void dispose() {
-    _OrderNotifier.dispose();
-    _walletNotifier.dispose();
-    _notificationsStream = null;
-    _walletStream = null;
-    orders.cancel();
+    _orderNotifier?.dispose();
+   _walletNotifier?.dispose();
+    orders?.cancel();
+    todayOrderCount?.cancel();
     iosSubscription?.cancel();
     super.dispose();
   }
@@ -120,6 +178,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     double gridHeight = MediaQuery.of(context).size.height * 0.1;
 
     return Scaffold(
+        backgroundColor: Colors.white,
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.1), // here the desired height
           child: AppBar(
@@ -142,6 +201,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
             ),
             automaticallyImplyLeading: false,
           ),
+
         ),
         body: Container(
             color: Colors.white,
@@ -195,6 +255,12 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                                             fontWeight: FontWeight.bold),
                                                       )
                                                   ),
+                                                  Center(
+                                                    child: Text(
+                                                      "1.00 unit = ${CURRENCY}1.00",
+                                                      style: TextStyle(
+                                                          fontSize: 11),
+                                                    )),
                                                   const SizedBox(
                                                     height: 10,
                                                   ),
@@ -213,7 +279,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                                           color: PRIMARYCOLOR
                                                               .withOpacity(0.5)),
                                                       color:
-                                                      PRIMARYCOLOR.withOpacity(0.5),
+                                                      PRIMARYCOLOR.withOpacity(0.8),
                                                     ),
                                                     child: FlatButton(
                                                       onPressed: ()  {
@@ -240,16 +306,128 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                                 ],
                                               )
                                           ),
-                                          if (wallet.pocketUnitBalance<100)
+                                          const Expanded(
+                                            flex: 0,
+                                            child: SizedBox(
+                                              width: 10,
+                                            ),
+                                          ),
+                                          ValueListenableBuilder(
+                                            valueListenable: _remittanceNotifier,
+                                            builder: (_,remittance,__){
+                                              return remittance != null?
                                               Expanded(
-                                                child: Padding(
-                                                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                                  child: Text('${'Your PocketUnit is below the expected quota, this means you will be unavaliable for delivery until you Topup'}'),
-                                                ),
-                                              )
-
-                                        ],
+                                                  flex: 1,
+                                                  child: Column(
+                                                    children: [
+                                                      Center(
+                                                          child: Text(
+                                                            "Cash Collected",
+                                                            style: TextStyle(
+                                                                fontWeight: FontWeight.bold),
+                                                          )),
+                                                      Center(
+                                                          child: Text(
+                                                            remittance['remittance']?"Below is your clearance code":"Current cash in your disposal",
+                                                            style: TextStyle(
+                                                                fontSize: 11),
+                                                          )),
+                                                      const SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Center(
+                                                          child: Text(
+                                                            "$CURRENCY ${remittance['total']}",
+                                                            style: TextStyle(
+                                                                fontWeight: FontWeight.bold),
+                                                          )),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Container(
+                                                        decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                              color: PRIMARYCOLOR
+                                                                  .withOpacity(0.5)),
+                                                          color:
+                                                          PRIMARYCOLOR.withOpacity(0.8),
+                                                        ),
+                                                        child: FlatButton(
+                                                          onPressed: () => {
+                                                            if(!remittance['remittance']){
+                                                              if(remittance['total']>0.0){
+                                                                 LogisticRepo.getRemittance(currentUser.user.walletId,limit: remittance['total'].round()).then((value)
+                                                                 { _remittanceNotifier.value=value;
+                                                                 GetBar(title: 'Clearance Code Generated',
+                                                                   messageText: Text( 'Head to the office for clearance ',style: TextStyle(color: Colors.white),),
+                                                                   backgroundColor: PRIMARYCOLOR,
+                                                                   snackStyle: SnackStyle.GROUNDED,
+                                                                   snackPosition: SnackPosition.BOTTOM,
+                                                                   duration: const Duration(seconds: 5),
+                                                                 ).show();
+                                                                 }),
+                                                                backgroundWorker()
+                                                              }
+                                                              else{
+                                                                GetBar(title: 'Error Generating Clearance',
+                                                                messageText: Text( 'Your Cash total is ${CURRENCY}0.0 ',style: TextStyle(color: Colors.white),),
+                                                                backgroundColor: PRIMARYCOLOR,
+                                                                snackStyle: SnackStyle.GROUNDED,
+                                                                snackPosition: SnackPosition.BOTTOM,
+                                                                duration: const Duration(seconds: 3),
+                                                                ).show()
+                                                              }
+                                                            }
+                                                            else{
+                                                              GetBar(title: 'Clearance Code ${remittance['remittanceID']}',
+                                                                messageText: Text( 'You have a pending clearance ',style: TextStyle(color: Colors.white),),
+                                                                backgroundColor: PRIMARYCOLOR,
+                                                                snackStyle: SnackStyle.GROUNDED,
+                                                                snackPosition: SnackPosition.BOTTOM,
+                                                                duration: const Duration(seconds: 5),
+                                                              ).show()
+                                                            }
+                                                          },
+                                                          child: Center(
+                                                              child: Text(
+                                                                remittance['remittance']?remittance['remittanceID']:"Generate Clearance",
+                                                                style: TextStyle(
+                                                                    color: Colors.white),
+                                                              )),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  )
+                                              ):const SizedBox.shrink();
+                                            },
+                                          ),
+                                          ],
                                       ),
+                                      if (wallet.pocketUnitBalance<100)
+                                        Column(
+                                          children: [
+                                            const Divider(),
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                              child: Text('${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}'),
+                                            )
+                                          ],
+                                        ),
+                                      ValueListenableBuilder(
+                                          valueListenable: _remittanceNotifier,
+                                          builder: (_,remittance,__){
+                                            return remittance != null ?
+                                            remittance['remittance']?Column(
+                                              children: [
+                                                const Divider(),
+                                                Padding(
+                                                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                                  child: Text('${'You are currently on hold because you have a pending clearance with the following clearance code ${remittance['remittanceID']}'} head to the office for clearance'),
+                                                )
+                                              ],
+                                            ):const SizedBox.shrink()
+                                                :const SizedBox.shrink();
+                                          })
 
                                     ],
                                   );
@@ -281,17 +459,29 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('O',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white,fontSize: 18),),
-                          const Text('Deliveries Today',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white),),
-                        ],
+                      child: ValueListenableBuilder(
+                        valueListenable: _orderCountNotifier,
+                        builder: (_,count,__){
+                          return GestureDetector(
+                              onTap: (){},
+                            child:
+                            Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('$count',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white,fontSize: 18),),
+                              const Text('Deliveries Today',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white),),
+                             const Text('click for more',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white,fontSize: 11),),
+                            ],
+                          )
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -313,12 +503,15 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('O',
+                          Text('$CURRENCY O',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.white,fontSize: 18),),
-                         const Text('Km Covered Today',
+                         const Text('Amount Made Today',
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: Colors.white),),
+                         const Text('click for more',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white,fontSize: 11),),
                         ],
                       ),
                     ),
@@ -402,7 +595,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                   crossAxisCount: 3,
                   children: [
                     ValueListenableBuilder(
-                      valueListenable: _OrderNotifier,
+                      valueListenable: _orderNotifier,
                       builder: (_, orders,__){
                         return
                         MenuItem(
@@ -418,17 +611,6 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           content: MyDelivery(orders: orders,user: currentUser,),
                         );
                       }),
-                    MenuItem(
-                      gridHeight,
-                      Icon(MaterialIcons.local_taxi,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'My AutoMobile',
-                      isBadged: false,
-                      isMultiMenu: false,
-                      border: PRIMARYCOLOR,
-                      content: MyAuto(agent: currentUser,),
-                    ),
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.business_center,
@@ -465,6 +647,28 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       openCount: 3,
                       content: RequestPocketSense(user: currentUser,),
                     ),
+
+                    MenuItem(
+                      gridHeight,
+                      Icon(Icons.credit_card,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'PocketUnit',
+                      border: PRIMARYCOLOR,
+                      content: UnitBottomPage(),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(currentUser.agent.autoType=='MotorBike'?Icons.motorcycle:MaterialIcons.local_taxi,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'My Account',
+                      isBadged: false,
+                      isMultiMenu: false,
+                      border: PRIMARYCOLOR,
+                      content: MyAuto(agent: currentUser.agent,isAdmin: false,),
+                    ),
+
                   ],
                 ),
                 SliverList(

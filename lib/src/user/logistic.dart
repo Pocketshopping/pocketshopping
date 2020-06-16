@@ -14,9 +14,12 @@ import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
@@ -36,22 +39,24 @@ class LogisticDashBoardScreen extends StatefulWidget {
 
 class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  Session CurrentUser;
+  Session currentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
   Stream<Wallet> _walletStream;
   Wallet _wallet;
+  final _agentNotifier = ValueNotifier<int>(0);
+  final _isOperationalNotifier = ValueNotifier<bool>(true);
 
   @override
   void initState() {
-    CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
+    currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       showBottom();
     });
 
-    WalletRepo.getWallet(CurrentUser.user.walletId)
+    WalletRepo.getWallet(currentUser.user.walletId)
         .then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
@@ -61,7 +66,14 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
       }
     });
 
-    ChannelRepo.update(CurrentUser.merchant.mID, CurrentUser.user.uid);
+    LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {
+
+      _agentNotifier.value = event;
+    });
+
+    ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
+
+    Utility.noWorker().then((value) => null);
     super.initState();
   }
 
@@ -113,7 +125,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
             elevation: 0.0,
             backgroundColor: Colors.white,
             title: Text(
-              CurrentUser.merchant.bName ?? "Pocketshopping",
+              currentUser.merchant.bName ?? "Pocketshopping",
               style: TextStyle(color: PRIMARYCOLOR),
             ),
             automaticallyImplyLeading: false,
@@ -150,7 +162,13 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
                                         )),
-                                        SizedBox(
+                                        Center(
+                                            child: Text(
+                                              "collected by pocketshopping",
+                                              style: TextStyle(
+                                                  fontSize: 11),
+                                            )),
+                                        const SizedBox(
                                           height: 10,
                                         ),
                                         Center(
@@ -162,7 +180,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                         SizedBox(
                                           height: 10,
                                         ),
-                                        Container(
+                                        if(_wallet.deliveryBalance>100) Container(
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 color: PRIMARYCOLOR
@@ -184,12 +202,65 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                           ),
                                         )
                                       ],
-                                    )),
-                                Expanded(
+                                    )
+                                ),
+                               const Expanded(
                                   flex: 0,
                                   child: SizedBox(
                                     width: 10,
                                   ),
+                                ),
+                                Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      children: [
+                                        Center(
+                                            child: Text(
+                                              "Delivery Revenue",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            )),
+                                        const Center(
+                                            child: Text(
+                                              "collected by pocketshopping",
+                                              style: TextStyle(
+                                                  fontSize: 11),
+                                            )),
+                                       const  SizedBox(
+                                          height: 10,
+                                        ),
+                                        Center(
+                                            child: Text(
+                                              "\u20A6 ${_wallet.deliveryBalance}",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            )),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        if(_wallet.deliveryBalance>100)Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: PRIMARYCOLOR
+                                                    .withOpacity(0.5)),
+                                            color:
+                                            PRIMARYCOLOR.withOpacity(0.5),
+                                          ),
+                                          child: FlatButton(
+                                            onPressed: () => {
+                                              sendAndRetrieveMessage()
+                                                  .then((value) => null)
+                                            },
+                                            child: Center(
+                                                child: Text(
+                                                  "Withdraw",
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                )),
+                                          ),
+                                        )
+                                      ],
+                                    )
                                 ),
                               ],
                             ),
@@ -202,34 +273,122 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                   ],
                 )),
                 SliverGrid.count(crossAxisCount: 3, children: [
-                  ViewItem(
-                    gridHeight,
-                    Header: '0',
-                    actionText: 'Agent Currently Running',
-                    subHeader: '',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: ScanScreen(PRIMARYCOLOR.withOpacity(0.8)),
+                  GestureDetector(
+                    onTap: (){},
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey,
+                            //offset: Offset(1.0, 0), //(x,y)
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      child: ValueListenableBuilder(
+                        valueListenable: _agentNotifier,
+                        builder: (_,agent,__){
+                          return GestureDetector(
+                              onTap: (){},
+                              child:
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text('${agent}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.white,fontSize: 18),),
+                                  const Text('Available Agent',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.white),),
+                                  const Text('click for details',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.white,fontSize: 11),),
+                                ],
+                              )
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                  ViewItem(
-                    gridHeight,
-                    Header: '0',
-                    subHeader: '',
-                    actionText: 'Km Covered Today',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: StatusBottomPage(
-                        themeColor: PRIMARYCOLOR.withOpacity(0.8)),
+                  GestureDetector(
+                    onTap: (){},
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey,
+                            //offset: Offset(1.0, 0), //(x,y)
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('$CURRENCY O',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                          const Text('Amount Made Today',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white),),
+                          const Text('click for more',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white,fontSize: 11),),
+                        ],
+                      ),
+                    ),
                   ),
-                  ViewItem(
-                    gridHeight,
-                    Header: '0',
-                    actionText: 'Amount Generated Today',
-                    subHeader: '',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: ScanScreen(PRIMARYCOLOR.withOpacity(0.8)),
-                  ),
+                  ValueListenableBuilder(
+                      valueListenable: _isOperationalNotifier,
+                      builder: (_,available,__){
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: PRIMARYCOLOR.withOpacity(0.8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey,
+                                  //offset: Offset(1.0, 0), //(x,y)
+                                  blurRadius: 6.0,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('We are currently '
+                                    '${available?'Operational':'Unoperational'}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white),),
+                                FlatButton(
+                                  onPressed: ()async{
+                                    /*bool change =!available;
+                                    bool result = await LocRepo.updateAvailability(currentUser.agent.agentID, change);
+                                    if(!(change == result))
+                                      GetBar(title: 'Error changing your status please try again');
+                                    else
+                                      _isAvailableNotifier.value = result;*/
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                                    child: const Text('Change'),
+                                  ),
+                                  color: Colors.white.withOpacity(0.5),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      })
                 ]),
                 SliverList(
                     delegate: SliverChildListDelegate([
@@ -266,7 +425,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       Icon(MaterialIcons.pie_chart,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Statistic and Analysis',
+                      'Report',
                       border: PRIMARYCOLOR,
                       content: LogisticStatBottomPage(),
                     ),
@@ -275,10 +434,10 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       Icon(MaterialIcons.local_taxi,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'AutoMobile(s)',
+                      'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
                       content: VehicleBottomPage(
-                        session: CurrentUser,
+                        session: currentUser,
                       ),
                     ),
                     MenuItem(
@@ -286,10 +445,10 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       Icon(MaterialIcons.motorcycle,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Agent',
+                      'My Agent(s)',
                       border: PRIMARYCOLOR,
                       content: AgentBottomPage(
-                        session: CurrentUser,
+                        session: currentUser,
                       ),
                     ),
                     MenuItem(

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pocketshopping/constants/appColor.dart';
+import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/logistic/vehicle/repository/vehicleObj.dart';
+import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
+import 'package:pocketshopping/src/statistic/repository.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
 class MyAuto extends StatefulWidget{
 
-  MyAuto({this.agent});
-  final Session agent;
+  MyAuto({this.agent,this.isAdmin=false});
+  final Agent agent;
+  final bool isAdmin;
   @override
   _MyAutoState createState() => new _MyAutoState();
 }
@@ -17,9 +22,15 @@ class MyAuto extends StatefulWidget{
 class _MyAutoState extends State<MyAuto>{
 
   AutoMobile auto;
+  AgentStatistic agentStatistic;
+  Agent agent;
+  User agentAcct;
   @override
   void initState() {
-    LogisticRepo.getAutomobile(widget.agent.agent.autoAssigned).then((value) => setState((){auto=value;}));
+    agent = widget.agent;
+    LogisticRepo.getAutomobile(agent.autoAssigned).then((value) => setState((){auto=value;}));
+    StatisticRepo.getAgentStatistic(agent.agent).then((value) => setState((){agentStatistic=value;}));
+    UserRepo.getOneUsingUID(agent.agent).then((value) => setState((){agentAcct=value;}));
     super.initState();
   }
 
@@ -29,7 +40,7 @@ class _MyAutoState extends State<MyAuto>{
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text('My Automobile',style: TextStyle(color: PRIMARYCOLOR),),
+        title: const Text('My Automobile',style: TextStyle(color: PRIMARYCOLOR),),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios,
@@ -42,7 +53,7 @@ class _MyAutoState extends State<MyAuto>{
         centerTitle: false,
         elevation: 0.0,
       ),
-      body: auto != null ?
+      body: auto != null && agentStatistic != null?
       Container(
         child: Column(
           children: [
@@ -58,6 +69,7 @@ class _MyAutoState extends State<MyAuto>{
                 child: Text('${auto.autoType}'),
               ),
             ),
+            Expanded(flex: 0,child:Center(child: Text('${agentAcct!=null?agentAcct.fname:''}'),)),
             Expanded(
                 flex: 2,
                 child: Padding(
@@ -67,53 +79,174 @@ class _MyAutoState extends State<MyAuto>{
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Auto:"),
+                          const Text("Auto:"),
                           Text("${auto.autoName}")
                         ],
                       ),
-                      SizedBox(height: 10,),
+                      const SizedBox(height: 10,),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Model Number:"),
+                          const Text("Model Number:"),
                           Text("${auto.autoModelNumber}")
                         ],
                       ),
-                      SizedBox(height: 10,),
+                      const SizedBox(height: 10,),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Plate Number:"),
+                          const Text("Plate Number:"),
                           Text("${auto.autoPlateNumber}")
                         ],
                       ),
-                      SizedBox(height: 10,),
+                      const SizedBox(height: 10,),
+                      const Divider(thickness: 1,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Column(
+                                children: [
+                                  Center(
+                                    child: Text('$CURRENCY ${Utility.numberFormatter(agentStatistic.totalAmount)}',style: TextStyle(fontSize: 20),),
+                                  ),
+                                  Center(
+                                    child: Text('Total Money Generated',textAlign: TextAlign.center,),
+                                  )
+                                ],
+                              ),
+                            )
+                          ),
+                          Expanded(flex:0,child: Container(color: Colors.grey[400], height: 50, width: 1,),),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Column(
+                                children: [
+                                  Center(
+                                    child: Text(' ${Utility.numberFormatter((agentStatistic.totalDistance/1609).round())} Mile(s)',style: TextStyle(fontSize: 20),),
+                                  ),
+                                  Center(
+                                    child: Text('Total Milage',textAlign: TextAlign.center,),
+                                  )
+                                ],
+                              ),
+                            )
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 20,),
+                      const Divider(thickness: 1,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Column(
+                                  children: [
+                                    Center(
+                                      child: Text(' ${Utility.numberFormatter(agentStatistic.totalOrderCount)}',style: TextStyle(fontSize: 20),),
+                                    ),
+                                    Center(
+                                      child: Text('Total Delivery',textAlign: TextAlign.center,),
+                                    )
+                                  ],
+                                ),
+                              )
+                          ),
+                          Expanded(flex:0,child: Container(color: Colors.grey[400], height: 50, width: 1,),),
+                          Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Column(
+                                  children: [
+                                    Center(
+                                      child: Text(' ${Utility.numberFormatter((agentStatistic.totalOrderCount-agentStatistic.totalCancelled))}',style: TextStyle(fontSize: 20),),
+                                    ),
+                                    Center(
+                                      child: Text('Total Completed Delivery',textAlign: TextAlign.center,),
+                                    )
+                                  ],
+                                ),
+                              )
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 20,),
+                      const Divider(thickness: 1,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Column(
+                                  children: [
+                                    Center(
+                                      child: Text(' ${Utility.numberFormatter(agentStatistic.totalCancelled)}',style: TextStyle(fontSize: 20),),
+                                    ),
+                                    Center(
+                                      child: Text('Total Cancelled Delivery',textAlign: TextAlign.center,),
+                                    )
+                                  ],
+                                ),
+                              )
+                          ),
+                          Expanded(flex:0,child: Container(color: Colors.grey[400], height: 50, width: 1,),),
+                          Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.all(10),
+                                child: Column(
+                                  children: [
+                                    Center(
+                                      child: Text(' ${Utility.numberFormatter(agentStatistic.totalUnitUsed)}',style: TextStyle(fontSize: 20),),
+                                    ),
+                                    Center(
+                                      child: Text('Total Unit Used',textAlign: TextAlign.center,),
+                                    )
+                                  ],
+                                ),
+                              )
+                          ),
+                        ],
+                      ),
+                      const Divider(thickness: 1,),
                     ],
                   ),
                 )
             ),
-        if(widget.agent.user.role == 'Admin')
+        if(widget.isAdmin)
         Expanded(
           flex: 0,
           child: Row(
             children: [
+
               Expanded(
-                child: FlatButton(
-                  onPressed: (){},
+                child: Container(
                   color: Colors.redAccent,
-                  child: Text('Delete'),
+                  child: FlatButton(
+                    onPressed: (){},
+                    color: Colors.redAccent,
+                    child: const Text('Delete'),
+                  ),
                 ),
               ),
               Expanded(
-                child: FlatButton(
-                  onPressed: (){},
+                child: Container(
                   color: Colors.greenAccent,
-                  child: Text('Edit'),
-                ),
+                  child: FlatButton(
+                    onPressed: (){},
+                    color: Colors.greenAccent,
+                    child: const Text('Edit'),
+                  ),
+                )
               )
             ],
           ) ,
-        )
+        ),
           ],
         ),
       ):

@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -14,6 +15,7 @@ import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -204,12 +206,37 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                     child: Padding(
                       padding: EdgeInsets.symmetric(
                           vertical: 10, horizontal: 10),
-                      child: Text(
-                        'Status: ${_order.status != 0 ? 'Completed' : 'PROCESSING'}',
+                      child: Text('Status: ${_order.status != 0 ? _order.receipt.psStatus=='success'?'Completed':'Cancelled' : 'PROCESSING'}',
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
                   ),
+
+                  if(_order.status != 0 && _order.receipt.psStatus=='fail')
+                    psCard(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey,
+                            //offset: Offset(1.0, 0), //(x,y)
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                        color: PRIMARYCOLOR,
+                        title: "Reason for concellation.",
+                        child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: Column(
+                              children: [
+                                Text(_order.receipt.pRef,style: TextStyle(fontSize: 16),
+                                  textAlign: TextAlign.start,),
+                                  const SizedBox(height: 10,),
+                                  const Text('Please note. All account has been refunded appropriately.',
+                                    textAlign: TextAlign.start,style: TextStyle(fontSize: 14),),
+                              ],
+                            )
+                        )
+                    ),
 
                   //timer/resolution phase
                       _start > 0
@@ -290,7 +317,9 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                               .confirmOTP,
                                           confirmedAt: DateTime.now(),
                                           isConfirmed: true,
-                                        ));
+                                        ),
+                                      Receipt.fromMap(_order.receipt.copyWith(psStatus: "success").toMap())
+                                    );
                                   }
                                   //refreshOrder();
                                 },
@@ -729,7 +758,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                         ),
                                         Expanded(
                                           child: Text(
-                                              '\u20A6${_order.orderItem[index].totalAmount}'),
+                                              '$CURRENCY${_order.orderItem[index].totalAmount}'),
                                         )
                                       ],
                                     ))).toList()),
@@ -751,7 +780,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                   child: Text('Item Total:'),
                                 ),
                                 Expanded(
-                                  child: Text('\u20A6${_order.orderAmount}'),
+                                  child: Text('$CURRENCY${_order.orderAmount}'),
                                 )
                               ],
                             )),
@@ -776,7 +805,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 ),
                                 Expanded(
                                   child:
-                                  Text('\u20A6${_order.orderMode.fee}'),
+                                  Text('$CURRENCY${_order.orderMode.fee}'),
                                 ),
                               ],
                             ))
@@ -804,7 +833,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    '\u20A6${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
+                                    '$CURRENCY${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -832,7 +861,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('Enter Reason:'),
+                                Text('Select Reason for cancelling this order:'),
                                 Form(
                                   key: _formKey3,
                                   child:
@@ -885,7 +914,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 if(_formKey3.currentState.validate())
                                 {
                                   Get.back();
-                                  var result = cancel(_order.docID,);
+                                  var result = cancel(_order.docID,
+                                      Receipt.fromMap(_order.receipt.copyWith(psStatus: "fail",pRef: reason).toMap()));
                                   if(result)
                                     await cancelOrder(customer.notificationID, _order.docID, reason);
 
@@ -1291,9 +1321,9 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
 
 
 
-  bool cancel(String oid) {
+  bool cancel(String oid,Receipt receipt) {
     bool isDone = true;
-    OrderRepo.cancel(oid).catchError((onError) {
+    OrderRepo.cancel(oid,receipt,widget.user.uid).catchError((onError) {
       isDone = false;
     });
 
@@ -1315,11 +1345,17 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
   }
 
 
-  bool confirm(String oid, Confirmation confirmation) {
+  bool confirm(String oid, Confirmation confirmation,Receipt receipt){
     bool isDone = true;
-    OrderRepo.confirm(oid, confirmation).catchError((onError) {
-      isDone = false;
+    int unit = (_order.orderMode.fee * 0.1).round();
+    Geolocator().distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
+        _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude).then((value) {
+      OrderRepo.confirm(oid, confirmation,receipt,widget.user.uid,
+        _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
+        isDone = false;
+      });
     });
+
 
     if (isDone) {
       refreshOrder();

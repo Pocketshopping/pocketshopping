@@ -15,6 +15,7 @@ import 'package:location/location.dart' as loc;
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelObj.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
@@ -68,7 +69,7 @@ class _OrderUIState extends State<OrderUI> {
   //firebase messaging instance
   final FirebaseMessaging _fcm = FirebaseMessaging();
 
-  int OrderCount;
+  int orderCount;
   String stage;
   bool homeDelivery;
   Position position;
@@ -123,7 +124,7 @@ class _OrderUIState extends State<OrderUI> {
     contact = false;
     mobile = false;
     deliveryAddress = '';
-    OrderCount = 1;
+    orderCount = 1;
     screenHeight = 0.8;
     dist = widget.distance * 1000;
     table = false;
@@ -213,7 +214,7 @@ class _OrderUIState extends State<OrderUI> {
         setState(() {
           stage = "PAY";
         });
-        ProcessPay('CARD',details);
+        processPay('CARD',details);
       }
     );
   }
@@ -225,10 +226,11 @@ class _OrderUIState extends State<OrderUI> {
     )
         .call({'distance': distance}).then((value) =>
 
-            //print('DeliveryCut ${value.data}')
+
             mounted
                 ? setState(() {
                     dCut = value.data;
+                    //print('$distance');
                   })
                 : null);
   }
@@ -278,7 +280,7 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                    Expanded(
                     child: Center(
-                      child: Text('\u20A6${order.orderAmount}'),
+                      child: Text('$CURRENCY${order.orderAmount}'),
                     ),
                   )
                 ],
@@ -295,7 +297,7 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('\u20A6${dCut}'),
+                      child: Text('$CURRENCY${dCut}'),
                     ),
                   )
                 ],
@@ -316,7 +318,7 @@ class _OrderUIState extends State<OrderUI> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        '\u20A6${dCut + order.orderAmount}',
+                        '$CURRENCY${dCut + order.orderAmount}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -412,7 +414,7 @@ class _OrderUIState extends State<OrderUI> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        '\u20A6${order.orderAmount}',
+                        '$CURRENCY${order.orderAmount}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -457,7 +459,7 @@ class _OrderUIState extends State<OrderUI> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        '\u20A6${order.orderAmount}',
+                        '$CURRENCY${order.orderAmount}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -502,7 +504,7 @@ class _OrderUIState extends State<OrderUI> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        '\u20A6${order.orderAmount}',
+                        '$CURRENCY${order.orderAmount}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -610,12 +612,12 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('$OrderCount'),
+                      child: Text('$orderCount'),
                     ),
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('${payload.pPrice * OrderCount}'),
+                      child: Text('${payload.pPrice * orderCount}'),
                     ),
                   )
                 ],
@@ -776,12 +778,15 @@ class _OrderUIState extends State<OrderUI> {
     return eta;
   }
 
-  ProcessPay(String method,Map<String,dynamic> details ) async {
+  processPay(String method,Map<String,dynamic> details ) async {
     setState(() {
       screenHeight = 1;
     });
     Map<String,String> reference;
     details['email']=widget.user.email;
+    Agent agent = await LogisticRepo.getOneAgentByUid(order.agent);
+    User agentAccount = await UserRepo.getOneUsingUID(agent.agent);
+
     var temp = details['expiry'].toString().split('/');
     switch(method){
       case 'CARD':
@@ -799,27 +804,43 @@ class _OrderUIState extends State<OrderUI> {
     );
     if (reference.isNotEmpty) {
       var details = await Utility.fetchPaymentDetail(reference['reference']);
-      //print(json.decode(details.body));
-      //await Future.delayed(Duration(seconds: 5),(){
-      if (details != null) {
-        setState(() {
+      var status = jsonDecode(details.body)['data']['status'];
+
+      if (status == 'success') {
+        setState(() {  screenHeight = 0.8; stage = 'UPLOADING'; paydone = false;  });
+        var collectId = await Utility.initializePay(
+            deliveryFee: order.orderMode.fee.round(),
+            channelId: 1,
+            referenceID: reference['reference'],
+            amount: order.orderAmount.round(),
+            agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
+        //print(collectId);
+        if(collectId != null)
+          setState(() {
+            order = order.update(
+              receipt: Receipt(reference: reference['reference'], psStatus: 'PENDING',type: method,collectionID: collectId,),
+              orderCreatedAt: Timestamp.now(),
+              status: 0,
+              orderID: '',
+              docID: '',
+            );
+          });
+        else setState(() {
           screenHeight = 0.8;
-          stage = 'UPLOADING';
-          paydone = false;
-          order = order.update(
-            receipt: Receipt(reference: reference['reference'], PsStatus: 'SUCCESS',type: method),
-            orderCreatedAt: Timestamp.now(),
-            status: 0,
-            orderID: '',
-            docID: '',
-          );
+          stage = 'ERROR';
+          payerror = "Error encountered while placing Order.";
         });
-        
-        OrderRepo.save(order).then((value) => setState(() {
-              startTimer();
-              order = order.update(docID: value);
-              paydone = true;
-            }));
+        if(collectId != null) {
+          OrderRepo.save(order).then((value) =>
+              setState(() {
+                startTimer();
+                order = order.update(docID: value);
+                paydone = true;
+              }));
+          WalletRepo.getWallet(widget.user.walletId).
+          then((value) => WalletBloc.instance.newWallet(value));
+          newOrderNotifier();
+        }
       } else {
         print('Important!!! $reference');
         if (reference['error'].toString().isNotEmpty) {
@@ -847,42 +868,81 @@ class _OrderUIState extends State<OrderUI> {
     }
         break;
       case 'CASH':
+        setState(() {  screenHeight = 0.8; stage = 'UPLOADING'; paydone = false;  });
+        var collectId = await Utility.initializePay(
+            deliveryFee: order.orderMode.fee.round(),
+            channelId: 2,
+            referenceID: "",
+            amount: order.orderAmount.round(),
+            agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
+        //print(collectId);
+        if(collectId != null)
         setState(() {
-          screenHeight = 0.8;
-          stage = 'UPLOADING';
-          paydone = false;
-          order = order.update(
-            receipt: Receipt(reference: '', PsStatus: 'PENDING',type: method),
-            orderCreatedAt: Timestamp.now(),
-            status: 0,
-            orderID: '',
-            docID: '',
-          );
+            order = order.update(
+              receipt: Receipt(reference: '', psStatus: 'PENDING',type: method,collectionID: collectId,),
+              orderCreatedAt: Timestamp.now(),
+              status: 0,
+              orderID: '',
+              docID: '',
+            );
         });
-        OrderRepo.save(order).then((value) => setState(() {
-          startTimer();
-          order = order.update(docID: value);
-          paydone = true;
-        }));
+        else setState(() {
+          screenHeight = 0.8;
+          stage = 'ERROR';
+          payerror = "Error encountered while placing Order.";
+        });
+        if(collectId != null) {
+          OrderRepo.save(order).then((value) =>
+              setState(() {
+                startTimer();
+                order = order.update(docID: value);
+                paydone = true;
+              }));
+          WalletRepo.getWallet(widget.user.walletId).
+          then((value) => WalletBloc.instance.newWallet(value));
+          newOrderNotifier();
+        }
         break;
       case 'POCKET':
-        setState(() {
+        setState(() {  screenHeight = 0.8; stage = 'UPLOADING'; paydone = false;  });
+        var collectId = await Utility.initializePay(
+            deliveryFee: order.orderMode.fee.round(),
+            channelId: 3,
+            referenceID: "",
+            amount: order.orderAmount.round(),
+            agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
+        //print(collectId);
+        if(collectId != null) {
+          setState(() {
+            order = order.update(
+              receipt: Receipt(reference: '',
+                psStatus: 'PENDING',
+                type: method,
+                collectionID: collectId,),
+              orderCreatedAt: Timestamp.now(),
+              status: 0,
+              orderID: '',
+              docID: '',
+            );
+          });
+
+        }
+        else setState(() {
           screenHeight = 0.8;
-          stage = 'UPLOADING';
-          paydone = false;
-          order = order.update(
-            receipt: Receipt(reference: '', PsStatus: 'PENDING',type: method),
-            orderCreatedAt: Timestamp.now(),
-            status: 0,
-            orderID: '',
-            docID: '',
-          );
+          stage = 'ERROR';
+          payerror = "Error encountered while placing Order.";
         });
-        OrderRepo.save(order).then((value) => setState(() {
-          startTimer();
-          order = order.update(docID: value);
-          paydone = true;
-        }));
+        if(collectId != null) {
+          OrderRepo.save(order).then((value) =>
+              setState(() {
+                startTimer();
+                order = order.update(docID: value);
+                paydone = true;
+              }));
+          WalletRepo.getWallet(widget.user.walletId).
+          then((value) => WalletBloc.instance.newWallet(value));
+          newOrderNotifier();
+        }
         break;
 
     }
@@ -932,7 +992,7 @@ class _OrderUIState extends State<OrderUI> {
                       : [
                           {
                             'productName': widget.payload.pName,
-                            'productCount': OrderCount
+                            'productCount': orderCount
                           }
                         ],
               'merchant': widget.merchant.bName,
@@ -986,7 +1046,7 @@ class _OrderUIState extends State<OrderUI> {
                       : [
                           {
                             'productName': widget.payload.pName,
-                            'productCount': OrderCount
+                            'productCount': orderCount
                           }
                         ],
               'Amount': order.orderAmount,
@@ -1052,9 +1112,10 @@ class _OrderUIState extends State<OrderUI> {
                   'Pay With',
                   style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),),
               ),
+              _wallet != null?
               ListTile(
                 onTap: () async {
-                  if (_wallet.walletBalance > order.orderAmount) {
+                  if (_wallet.walletBalance > (order.orderAmount+order.orderMode.fee)) {
                     Get.defaultDialog(
                         title: 'Confirmation',
                         content: Text(
@@ -1074,7 +1135,7 @@ class _OrderUIState extends State<OrderUI> {
                             setState(() {
                               stage = 'PAY';
                             });
-                            await ProcessPay('POCKET',{});
+                            await processPay('POCKET',{});
                           },
                           child: Text('Ok'),
                         )
@@ -1114,7 +1175,7 @@ class _OrderUIState extends State<OrderUI> {
                 ),
                 subtitle: Column(
                   children: <Widget>[
-                    _wallet.walletBalance > order.orderAmount
+                    _wallet.walletBalance > (order.orderAmount+order.orderMode.fee)
                         ? Text(
                             'Choose this if you want to pay with pocket.')
                         : Text('Insufficient Fund. Tap to Topup'),
@@ -1124,21 +1185,23 @@ class _OrderUIState extends State<OrderUI> {
                   onPressed: () {},
                   icon: Icon(Icons.arrow_forward_ios),
                 ),
-              ),
-              Divider(
+              ):const SizedBox.shrink(),
+
+              const Divider(
                 height: 2,
                 color: Colors.grey,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 5,
               ),
+              _wallet != null?
               ListTile(
                 onTap: () async {
-                  //await ProcessPay('CARD');
+                  //await processPay('CARD');
                   Get.defaultDialog(
                       title: 'Confirmation',
                       content: Text(
-                          'Please Note that ${widget.merchant.bName} will not be credited until you confirm the order. In a case where ${widget.merchant.bName} fails to deliver your pocketshopping account will be credited with the money. This method of payment is recommended'),
+                          'Please Note that the agent will not be credited until you confirm the order. In a case where agent fails to deliver your pocketshopping account will be credited with the money.'),
                       cancel: FlatButton(
                         onPressed: () {
                           Get.back();
@@ -1161,28 +1224,28 @@ class _OrderUIState extends State<OrderUI> {
                   radius: 30,
                   backgroundColor: Colors.white,
                 ),
-                title: Text(
+                title:  Text(
                   'ATM Card',
                   style: TextStyle(
                       fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
-                subtitle: Text('Choose this if you want to pay with ATM Card.'),
-                trailing: Icon(Icons.arrow_forward_ios),
-              ),
-              Divider(
+                subtitle: const Text('Choose this if you want to pay with ATM Card(instant payment).'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+              ):const SizedBox.shrink(),
+              const Divider(
                 height: 2,
                 color: Colors.grey,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 5,
               ),
               ListTile(
                 onTap: () async {
-                  //await ProcessPay('CASH');
+                  //await processPay('CASH');
                   Get.defaultDialog(
                       title: 'Confirmation',
-                      content: Text(
-                          'Do not hand cash over, without getting your order/purchase delivered pocketshopping will not be held responsible in situation like that.'),
+                      content: const Text(
+                          'Do not hand cash over, without getting your order/purchase delivered pocketshopping will not be held responsible in such situation.'),
                       cancel: FlatButton(
                         onPressed: () {
 
@@ -1190,7 +1253,7 @@ class _OrderUIState extends State<OrderUI> {
 
 
                         },
-                        child: Text('Cancel'),
+                        child:const Text('Cancel'),
                       ),
                       confirm: FlatButton(
                         onPressed: ()async {
@@ -1198,26 +1261,26 @@ class _OrderUIState extends State<OrderUI> {
                           setState(() {
                             stage = 'PAY';
                           });
-                          await ProcessPay('CASH',{});
+                          await processPay('CASH',{});
                         },
                         child: Text('Ok'),
                       )
                   );
                 },
                 leading: CircleAvatar(
-                  child: Image.asset('assets/images/cash.png'),
+                  child:  Image.asset('assets/images/cash.png'),
                   radius: 30,
                   backgroundColor: Colors.white,
                 ),
                 title: Text(
-                  mode == 'Delivery' ? 'pay on Delivery (Cash only)' : 'Cash',
+                  mode == 'Delivery' ? 'pay on Delivery' : 'Cash',
                   style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
                 ),
                 subtitle: Text(mode == 'Delivery'
-                    ? 'Choose this if you want to pay on delivery. (Cash only)'
+                    ? 'Choose this if you want to pay on delivery.'
                     : 'Choose this if you want to pay with cash.'),
                 trailing: IconButton(
-                  
+
                   icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                 ),
               ),
@@ -1262,7 +1325,7 @@ class _OrderUIState extends State<OrderUI> {
             height: 5,
           ),
           Text(
-            '@ \u20A6 ${widget.payload.pPrice.toString()}',
+            '@ $CURRENCY ${widget.payload.pPrice.toString()}',
             style:
                 TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
           ),
@@ -1278,7 +1341,7 @@ class _OrderUIState extends State<OrderUI> {
                       onTap: () {
                         if (mounted)
                           setState(() {
-                            if (OrderCount > 1) OrderCount -= 1;
+                            if (orderCount > 1) orderCount -= 1;
                           });
                       },
                       child: Container(
@@ -1300,11 +1363,11 @@ class _OrderUIState extends State<OrderUI> {
                       padding:
                           EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                       child: Text(
-                          '$OrderCount ${widget.payload.pUnit.toString()}'),
+                          '$orderCount ${widget.payload.pUnit.toString()}'),
                     ),
                     GestureDetector(
                       onTap: () {
-                        OrderCount += 1;
+                        orderCount += 1;
                         setState(() {});
                       },
                       child: Container(
@@ -1334,17 +1397,17 @@ class _OrderUIState extends State<OrderUI> {
                       order = order.update(
                           orderItem: OrderItem.fromCartList([
                             CartItem(
-                                count: OrderCount,
+                                count: orderCount,
                                 item: widget.payload,
-                                total: widget.payload.pPrice * OrderCount)
+                                total: widget.payload.pPrice * orderCount)
                           ]),
-                          orderAmount: widget.payload.pPrice * OrderCount);
+                          orderAmount: widget.payload.pPrice * orderCount);
                       stage = 'FAROPTION';
                       screenHeight = 0.8;
                     });
                   },
                   child: Text(
-                    'Next (\u20A6 ${widget.payload.pPrice * OrderCount})',
+                    'Next ($CURRENCY ${widget.payload.pPrice * orderCount})',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -1443,7 +1506,7 @@ class _OrderUIState extends State<OrderUI> {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  '${widget.payload[index].item.pName} @ \u20A6'
+                                  '${widget.payload[index].item.pName} @ $CURRENCY'
                                   '${widget.payload[index].item.pPrice}',
                                   style: TextStyle(
                                       fontSize:
@@ -1527,7 +1590,7 @@ class _OrderUIState extends State<OrderUI> {
                                   Expanded(
                                     flex: 0,
                                     child: Text(
-                                        '\u20A6 ${widget.payload[index].total}'),
+                                        '$CURRENCY ${widget.payload[index].total}'),
                                   )
                                 ],
                               )
@@ -1562,7 +1625,7 @@ class _OrderUIState extends State<OrderUI> {
                     });
                   },
                   child: Text(
-                    'Next (\u20A6 ${sum(widget.payload)})',
+                    'Next ($CURRENCY ${sum(widget.payload)})',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -1603,7 +1666,7 @@ class _OrderUIState extends State<OrderUI> {
         return payError();
         break;
       case 'UPLOADING':
-        return UploadingOrder();
+        return uploadingOrder();
         break;
 
       default:
@@ -1712,7 +1775,7 @@ class _OrderUIState extends State<OrderUI> {
                       setState(() {});
                     },
                     child: Text(
-                      'Checkout ( \u20A6 ${order.orderAmount} )',
+                      'Checkout ( $CURRENCY ${order.orderAmount + dCut} )',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -2309,7 +2372,7 @@ class _OrderUIState extends State<OrderUI> {
               order: order,
               user: widget.user,
             ));
-            newOrderNotifier();
+
           } else {
             _start = _start - 1;
           }
@@ -2326,7 +2389,7 @@ class _OrderUIState extends State<OrderUI> {
     return sum;
   }
 
-  Widget UploadingOrder() {
+  Widget uploadingOrder() {
     return !paydone
         ? Center(
             child: Container(
@@ -2354,6 +2417,29 @@ class _OrderUIState extends State<OrderUI> {
                                   MediaQuery.of(context).size.height * 0.025),
                           textAlign: TextAlign.center,
                         )),
+                  ),
+                  if(false)
+                  Center(
+                    child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: FlatButton(
+                          onPressed: (){
+                            setState(() {
+                              screenHeight = 0.8;
+                              stage = 'ERROR';
+                              payerror = "You cancelled the process.";
+                            });
+                          },
+                          child:
+                          Text(
+                            'Cancel.',
+                            style: TextStyle(
+                                fontSize:
+                                MediaQuery.of(context).size.height * 0.025),
+                            textAlign: TextAlign.center,
+                          )
+                        )
+                    ),
                   ),
                 ],
               ),

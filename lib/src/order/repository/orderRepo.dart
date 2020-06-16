@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
+import 'package:pocketshopping/src/order/repository/receipt.dart';
+import 'package:pocketshopping/src/statistic/repository.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class OrderRepo {
   static final databaseReference = Firestore.instance;
@@ -10,6 +14,7 @@ class OrderRepo {
   static Future<String> save(Order order) async {
     DocumentReference bid;
     bid = await databaseReference.collection("orders").add(order.toMap());
+    await LogisticRepo.makeAgentBusy(order.agent);
     return bid.documentID;
   }
 
@@ -79,14 +84,20 @@ class OrderRepo {
       return [];
   }
 
-  static Future<void> confirm(String oid, Confirmation confirmation) async {
-    await databaseReference.collection("orders").document(oid).updateData(
-        {'orderConfirmation': confirmation.toMap(), 'status': 1});
+  static Future<void> confirm(String oid, Confirmation confirmation,Receipt receipt,String agent,int fee,int distance,int unit) async {
+    await databaseReference.collection("orders").document(oid).updateData({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()});
+    await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: true);
+    await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalAmount: fee,totalDistance: distance,totalUnitUsed: unit);
+    await LogisticRepo.makeAgentBusy(agent,isBusy: false);
+    //await LogisticRepo.checkRemittance(agent);
   }
 
-  static Future<void> cancel(String oid) async {
-    await databaseReference.collection("orders").document(oid).updateData(
-        { 'status': 1});
+  static Future<void> cancel(String oid,Receipt receipt,String agent) async {
+    await databaseReference.collection("orders").document(oid).updateData({ 'status': 1,'receipt':receipt.toMap()});
+    await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: false);
+    await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalCancelled: 1);
+    await LogisticRepo.makeAgentBusy(agent,isBusy: false);
+    //await LogisticRepo.checkRemittance(agent);
   }
 
   static Future<Order> getOne(String oid) async {
@@ -113,10 +124,18 @@ class OrderRepo {
         .where('agent',isEqualTo: agentID)
         .where('status',isEqualTo: type)
         .orderBy('orderCreatedAt',descending: true)
-         .snapshots().map((event) {
-            return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+         .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
 
     });
+  }
+
+  static Stream<int> agentTodayOrder(String agentID) async* {
+    yield* databaseReference
+        .collection("orders")
+        .where('agent',isEqualTo: agentID)
+        .where('orderCreatedAt',isGreaterThanOrEqualTo: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))
+        .orderBy('orderCreatedAt',descending: true)
+        .snapshots().map((event) => event.documents.length);
   }
 
   static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc) async {

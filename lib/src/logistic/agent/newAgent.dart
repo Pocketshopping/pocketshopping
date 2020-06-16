@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/logistic/vehicle/repository/vehicleObj.dart';
 import 'package:pocketshopping/src/request/repository/requestObject.dart';
+import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -424,8 +425,11 @@ class _AgentFormState extends State<AgentForm> {
                                                                       agent.uid,
                                                                   autoType:
                                                                       type,
-                                                                  agentStatus:
-                                                                      'PENDING'),
+                                                                  agentStatus:1,
+                                                              workPlaceWallet: widget.
+                                                                            session.
+                                                                            user.
+                                                                            walletId),
                                                               Request(
                                                                 requestTitle:
                                                                     'Work Request',
@@ -440,7 +444,16 @@ class _AgentFormState extends State<AgentForm> {
                                                                 requestCleared:
                                                                     false,
                                                                 requestID: '',
-                                                              ))
+                                                              ),
+                                                          AgentStatistic(
+                                                            agent: agent.uid,
+                                                            totalAmount: 0,
+                                                            totalCancelled: 0,
+                                                            totalDistance: 0,
+                                                            totalOrderCount: 0,
+                                                            totalUnitUsed: 0,
+                                                          ),
+                                                      )
                                                           .then((value) => {
                                                                 if (Get
                                                                     .isSnackbarOpen)

@@ -12,7 +12,9 @@ class Agent {
   final Timestamp startDate;
   final Timestamp endDate;
   final String agentBehaviour;
-  final String agentStatus;
+  final int agentStatus;
+  final String workPlaceWallet;
+  final String agentWallet;
 
   Agent(
       {this.agent,
@@ -24,7 +26,10 @@ class Agent {
       this.startDate,
       this.endDate,
       this.agentBehaviour,
-      this.agentStatus});
+      this.agentStatus,
+      this.workPlaceWallet,
+      this.agentWallet
+      });
 
   Agent copyWith(
       {String agent,
@@ -36,7 +41,10 @@ class Agent {
       Timestamp startDate,
       Timestamp endDate,
       String agentBehaviour,
-      String agentStatus}) {
+      int agentStatus,
+      String workPlaceWallet,
+      String agentWallet
+      }) {
     return Agent(
         agent: agent ?? this.agent,
         autoType: autoType ?? this.autoType,
@@ -47,7 +55,10 @@ class Agent {
         startDate: startDate ?? this.startDate,
         endDate: endDate ?? this.endDate,
         agentBehaviour: agentBehaviour ?? this.agentBehaviour,
-        agentStatus: agentStatus ?? this.agentStatus);
+        agentStatus: agentStatus ?? this.agentStatus,
+        workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
+        agentWallet: agentWallet??this.agentWallet
+    );
   }
 
   @override
@@ -61,7 +72,9 @@ class Agent {
       startDate.hashCode ^
       endDate.hashCode ^
       agentBehaviour.hashCode ^
-      agentStatus.hashCode;
+      agentStatus.hashCode ^
+      workPlaceWallet.hashCode ^
+      agentWallet.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -77,7 +90,9 @@ class Agent {
           startDate == other.startDate &&
           endDate == other.endDate &&
           agentBehaviour == other.agentBehaviour &&
-          agentStatus == other.agentStatus;
+          agentStatus == other.agentStatus &&
+          workPlaceWallet == other.workPlaceWallet &&
+          agentWallet == other.agentWallet;
 
   Agent update(
       {String agent,
@@ -89,7 +104,10 @@ class Agent {
       Timestamp startDate,
       Timestamp endDate,
       String agentBehaviour,
-      String agentStatus}) {
+      int agentStatus,
+      String workPlaceWallet,
+      String agentWallet
+      }) {
     return copyWith(
         agent: agent,
         autoType: autoType,
@@ -100,12 +118,15 @@ class Agent {
         startDate: startDate,
         endDate: endDate,
         agentBehaviour: agentBehaviour,
-        agentStatus: agentStatus);
+        agentStatus: agentStatus,
+        workPlaceWallet: workPlaceWallet,
+        agentWallet: agentWallet
+    );
   }
 
   @override
   String toString() {
-    return '''Agent {AgentID: $agentID,}''';
+    return '''Instance of Agent''';
   }
 
   Map<String, dynamic> toMap() {
@@ -119,7 +140,9 @@ class Agent {
       'startDate': startDate,
       'endDate': endDate,
       'agentBehaviour': agentBehaviour,
-      'agentStatus': agentStatus
+      'agentStatus': agentStatus,
+      'workPlaceWallet':workPlaceWallet,
+      'agentWallet':agentWallet
     };
   }
 
@@ -135,6 +158,8 @@ class Agent {
       endDate: snap.data['endDate'],
       agentBehaviour: snap.data['agentBehaviour'],
       agentStatus: snap.data['agentStatus'],
+      workPlaceWallet: snap.data['workPlaceWallet'],
+      agentWallet: snap.data['agentWallet'],
     );
   }
 }

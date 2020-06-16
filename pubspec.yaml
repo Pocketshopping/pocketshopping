@@ -70,6 +70,7 @@ dependencies:
   flutter_local_notifications: ^1.4.3
   loadmore: ^1.0.4
   image_crop: ^0.3.2
+  circular_profile_avatar: ^1.0.6
 
 dev_dependencies:
   flutter_test:

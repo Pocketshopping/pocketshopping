@@ -1,3 +1,4 @@
+import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -37,6 +38,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
+        _walletNotifier.value=null;
         _walletNotifier.value = wallet;
 
       }
@@ -52,20 +54,34 @@ class _DrawerScreenState extends State<DrawerScreen> {
         children: <Widget>[
           Container(
             color: Colors.white,
-            height: MediaQuery.of(context).size.height * 0.35,
+            height: MediaQuery.of(context).size.height * 0.42,
             child: DrawerHeader(
               child: Center(
                   child: Column(
                 //crossAxisAlignment: CrossAxisAlignment.center,
                 //mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                 Expanded(
-                   child:  CircleAvatar(
-                     radius:MediaQuery.of(context).size.width * 0.1 ,
-                     backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
-                     backgroundImage: NetworkImage(widget.user.profile.isNotEmpty?widget.user.profile:PocketShoppingDefaultAvatar),
-                   ),
-                 ),
+                 //Expanded(
+                  // child:
+                  CircularProfileAvatar(
+                    widget.user.profile.isNotEmpty?widget.user.profile:PocketShoppingDefaultAvatar,
+                    radius:  MediaQuery.of(context).size.height * 0.1,
+                    backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
+                    borderWidth: 5,  // sets border, default 0.0
+                    initialsText: Text(
+                      "${widget.user.fname[0].toUpperCase()}",
+                      style: TextStyle(fontSize: 40, color: Colors.white),
+                    ),
+                    borderColor: const Color.fromRGBO(245, 245, 245, 1), // sets border color, default Colors.white
+                    elevation: 5.0, // sets elevation (shadow of the profile picture), default value is 0.0
+                    foregroundColor: Colors.brown.withOpacity(0.5), //sets foreground colour, it works if showInitialTextAbovePicture = true , default Colors.transparent
+                    cacheImage: true,
+                    onTap: () {
+                      print('adil');
+                    }, // sets on tap
+                    showInitialTextAbovePicture: true,
+                  ),
+                // ),
                   Expanded(
                     flex:0,
                     child: Text(widget.user.fname, textScaleFactor: 1),
@@ -96,6 +112,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                       },
                     ),
                   ),
+
                 ],
               )),
               decoration: BoxDecoration(
@@ -122,7 +139,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                   MaterialPageRoute(builder: (context) => PocketPage()));
             },
           ),
-          //if(_wallet != null)
+          /*if(false)
           ListTile(
             leading: const Icon(Icons.people),
             title: const Text("referral"),
@@ -130,7 +147,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
               Get.back();
               Get.to(Referral(walletId: widget.user.walletId));
             },
-          ),
+          ),*/
           ListTile(
             leading: const Icon(Icons.notifications_active),
             title: const Text("Request"),

@@ -83,7 +83,7 @@ class Wallet {
     return Wallet(
       walletBalance: data['walletBalance']??0,
       accountNumber: data['accountNumber']??"",
-      deliveryBalance: data['DeliveryBalance']??0,
+      deliveryBalance: data['deliveryBalance']??0,
       refferalBonus: data['RefferalBonus']??0,
       bankCode: data['sortCode']??"",
       bankName: data['bankName']??"",

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 
 class WalletRepo {
@@ -12,14 +13,24 @@ class WalletRepo {
     //print(pid);
     final response = await http.get("${WALLETAPI}wallets/$wid", headers: {
       'Content-Type': 'application/json',
-    });
+    }).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
 
-    if (response.statusCode == 200) {
-      var result = jsonDecode(response.body);
-      print(result);
-      return Wallet.fromMap(result);
-    } else {
+    if(response != null) {
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        return Wallet.fromMap(result);
+      } else {
+        return null;
+      }
+    }
+    else{
       return null;
     }
   }
+
 }

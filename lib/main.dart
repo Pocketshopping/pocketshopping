@@ -78,6 +78,7 @@ import 'package:get/get.dart' as _get;
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/simple_bloc_delegate.dart';
 import 'package:pocketshopping/src/splash_screen.dart';
@@ -85,6 +86,8 @@ import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
@@ -180,27 +183,15 @@ void callbackDispatcher() {
     bool enable = await Geolocator().isLocationServiceEnabled();
     final FirebaseMessaging _fcm = FirebaseMessaging();
     GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
+   // Wallet wallet = await WalletRepo.getWallet(inputData['wallet']);
     if(enable){
       if(permit == GeolocationStatus.granted){
         Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,locationPermissionLevel: GeolocationPermission.locationAlways);
-        final databaseReference = Firestore.instance;
+       // final databaseReference = Firestore.instance;
         if(position != null){
           String fcmToken = await _fcm.getToken();
           Geoflutterfire geo = Geoflutterfire();
           GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
-          /*await databaseReference.collection("agentLocationUpdate")
-              .document(inputData['agentID'])
-              .setData({
-            'agentLocation':agentLocation.data,
-            'agentAutomobile':inputData['agentAutomobile'],
-            'agentName':inputData['agentName'],
-            'agentTelephone':inputData['agentTelephone'],
-            'availability':inputData['availability'],
-            //'pocket':true,
-            //'parent':true,
-            'device':fcmToken,
-            'UpdatedAt':Timestamp.now(),
-          },merge: false);*/
           await LocRepo.update({
             'agentParent':inputData['agentParent'],
             'wallet':inputData['wallet'],
@@ -216,6 +207,7 @@ void callbackDispatcher() {
             'busy':false,
             'device':fcmToken,
             'UpdatedAt':Timestamp.now(),
+            'workPlaceWallet':inputData['workPlaceWallet']
           });
         }
         //print(position.toString());
@@ -223,7 +215,7 @@ void callbackDispatcher() {
       else{
         var androidPlatformChannelSpecifics = AndroidNotificationDetails(
             'PocketShopping', 'PocketShopping', 'LocationUpdate',
-          importance: Importance.Max,
+          importance: Importance.Default,
           priority: Priority.High,
           ticker: 'ticker',
           icon: 'app_icon',
@@ -249,7 +241,7 @@ void callbackDispatcher() {
     else{
       var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'PocketShopping', 'PocketShopping', 'LocationUpdate',
-        importance: Importance.Max,
+        importance: Importance.Default,
         priority: Priority.High,
         ticker: 'ticker',
         icon: 'app_icon',

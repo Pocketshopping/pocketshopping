@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
@@ -12,40 +14,52 @@ class LocRepo {
     var fav = await getLocUpdate(data['agentID']);
     Wallet wallet = await WalletRepo.getWallet(data['wallet']);
     Agent agent = await LogisticRepo.getOneAgent(data['agentID']);
+    var remitted = await LogisticRepo.remittance(data['wallet']);
+    Merchant company = await MerchantRepo.getMerchant(data['agentParent']);
     if(fav)
     {
-      if(agent.agentStatus == 'ACTIVE')
-        data['parent']=true;
-      else
-        data['pocket']=false;
+      if(agent.agentStatus == 1 && company.bActive && company.bStatus == 1 && Utility.isOperational(company.bOpen, company.bClose)){
+        data['parent']=true;}
+      else{
+        data['pocket']=false;}
 
-      if(wallet.pocketUnitBalance > 100) {
+      if(wallet.pocketUnitBalance >= 100) {
         data['pocket'] = true;
-
       }
       else {
         data['pocket'] = false;
-        Utility.localNotifier('channel1','PocketUnit','PocketUnit','Your PocketUnit is below the expected'
-            ' quota, this means you will be unavaliable for delivery until you topup');
+        Utility.localNotifier('PocketShopping','PocketUnit','PocketUnit','${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}');
       }
 
+      if(!remitted){
+        data['remitted']=false;
+        Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
+      }
+
+
       data.remove('availability');
+      data.remove('busy');
       await databaseReference.collection("agentLocationUpdate")
           .document(data['agentID']).updateData(data);
     }
     else
     {
-      if(agent.agentStatus == 'ACTIVE')
-        data['parent']=true;
-      else
-        data['pocket']=false;
-
-      if(wallet.pocketUnitBalance > 100)
-        data['pocket']=true;
+      if(agent.agentStatus == 1 && company.bActive && company.bStatus == 1 && Utility.isOperational(company.bOpen, company.bClose)){
+        data['parent']=true;}
       else{
+        data['pocket']=false;}
+
+      if(wallet.pocketUnitBalance >= 100) {
+        data['pocket'] = true;
+      }
+      else {
         data['pocket'] = false;
-        Utility.localNotifier('channel1','PocketUnit','PocketUnit','Your PocketUnit is below the expected'
-            ' quota, this means you will be unavaliable for delivery until you topup');
+        Utility.localNotifier('PocketShopping','PocketUnit','PocketUnit','${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}');
+      }
+
+      if(!remitted){
+        data['remitted']=false;
+        Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
       }
 
       await databaseReference.collection("agentLocationUpdate").document(data['agentID']).setData(data);

@@ -75,6 +75,13 @@ class AgentStatistic {
     };
   }
 
+  static Map<String, dynamic> toUpdateMap(String key, int value) {
+    return {
+      'updatedAt': Timestamp.now(),
+      '$key': value,
+    };
+  }
+
   static AgentStatistic fromSnapshot(DocumentSnapshot request) {
     return AgentStatistic(
       updatedAt: request.data['updatedAt'],

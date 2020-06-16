@@ -27,10 +27,10 @@ class ProductRepo {
     try{
       bid = await databaseReference.collection("products").add({
       'productMerchant': databaseReference.document('merchants/$mID'),
-      'productName': pName.sentenceCase,
+      'productName': pName.isNotEmpty?pName.sentenceCase:"",
       'productPrice': pPrice,
-      'productCategory': pCategory.sentenceCase,
-      'productDesc': pDesc.sentenceCase,
+      'productCategory': pCategory.isNotEmpty?pCategory.sentenceCase:"",
+      'productDesc': pDesc.isNotEmpty?pDesc.sentenceCase:"",
       'productPhoto': pPhoto,
       'productGroup': pGroup,
       'productStockCount': pStockCount,
@@ -44,9 +44,11 @@ class ProductRepo {
     });
       await saveCategory(pCategory, mID);
       await saveProductStock(bid.documentID, pUploader, pStockCount);
-    }catch(_){}
+    }catch(_){
+      print(_);
+    }
 
-    return bid.documentID;
+    return bid != null ?bid.documentID:'';
   }
 
   Future<String> saveCategory(String pCategory, String mid) async {

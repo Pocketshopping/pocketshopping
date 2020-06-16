@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
@@ -14,6 +15,7 @@ import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -261,12 +263,37 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                           child: Padding(
                             padding: EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 10),
-                            child: Text(
-                              'Status: ${_order.orderConfirmation.isConfirmed ? 1 : 0}',
+                            child: Text('Status: ${_order.status != 0 ? _order.receipt.psStatus=='success'?'Completed':'Cancelled' : 'PROCESSING'}',
                               style: TextStyle(fontSize: 20),
                             ),
                           ),
                         ),
+                        if(_order.status != 0 && _order.receipt.psStatus=='fail')
+                          psCard(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey,
+                                  //offset: Offset(1.0, 0), //(x,y)
+                                  blurRadius: 6.0,
+                                ),
+                              ],
+                              color: PRIMARYCOLOR,
+                              title: "Reason for concellation.",
+                              child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 10),
+                                  child: Column(
+                                    children: [
+                                      Text(_order.receipt.pRef,style: TextStyle(fontSize: 16),
+                                        textAlign: TextAlign.start,),
+                                      if(_order.receipt.type == 'CARD' || _order.receipt.type == 'POCKET')
+                                      Text('Please note. Yor money has been refunded to your pocket',
+                                        textAlign: TextAlign.start,style: TextStyle(fontSize: 14),),
+                                    ],
+                                  )
+                              )
+                          ),
+
                         _start > 0
                             ? !_order.orderConfirmation.isConfirmed && _order.status == 0
                                 ? Loader(_start, moreSec, counter)
@@ -438,7 +465,9 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                                       .confirmOTP,
                                                   confirmedAt:  DateTime.now(),
                                                   isConfirmed: true,
-                                                ));
+                                                ),
+                                                Receipt.fromMap(_order.receipt.copyWith(psStatus: "success").toMap())
+                                            );
                                             //refreshOrder();
                                           },
                                           child: const Text('Yes Confirm'),
@@ -766,7 +795,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                     )),
                                 const Expanded(
                                     child: const Center(child:const Text(
-                                        'Item Price(\u20A6) '),
+                                        'Item Price($CURRENCY) '),
                                     ))
                               ],)),
                               Column(
@@ -800,7 +829,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                               )),
                                               Expanded(
                                                 child: Center(child:Text(
-                                                    '\u20A6${_order.orderItem[index].totalAmount}'),
+                                                    '$CURRENCY${_order.orderItem[index].totalAmount}'),
                                               ))
                                             ],
                                           ))).toList()),
@@ -822,7 +851,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                         child: const Text('Item Total:'),
                                       ),
                                        Expanded(
-                                        child: Text('\u20A6${_order.orderAmount}'),
+                                        child: Text('$CURRENCY${_order.orderAmount}'),
                                       )
                                     ],
                                   )),
@@ -847,7 +876,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                           ),
                                           Expanded(
                                             child:
-                                                Text('\u20A6${_order.orderMode.fee}'),
+                                                Text('$CURRENCY${_order.orderMode.fee}'),
                                           ),
                                         ],
                                       ))
@@ -875,7 +904,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                       ),
                                       Expanded(
                                         child: Text(
-                                          '\u20A6${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
+                                          '$CURRENCY${_order.orderMode.mode != 'Delivery' ? _order.orderAmount : (_order.orderAmount + _order.orderMode.fee)}',
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold),
                                         ),
@@ -1035,7 +1064,9 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                             _order.orderConfirmation.confirmOTP,
                                         confirmedAt: DateTime.now(),
                                         isConfirmed: true,
-                                      ));
+                                      ),
+                                      Receipt.fromMap(_order.receipt.copyWith(psStatus: "success").toMap())
+                                  );
                                   //refreshOrder();
                                 },
                                 child: const Text('Yes Confirm'),
@@ -1387,13 +1418,23 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
             }
           },
           'registration_ids': [channel],
-        }));
+        })).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
   }
 
-  bool confirm(String oid, Confirmation confirmation) {
+  bool confirm(String oid, Confirmation confirmation,Receipt receipt) {
     bool isDone = true;
-    OrderRepo.confirm(oid, confirmation).catchError((onError) {
-      isDone = false;
+    int unit = (_order.orderMode.fee * 0.1).round();
+    Geolocator().distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
+        _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude).then((value) {
+      OrderRepo.confirm(oid, confirmation,receipt,agent.uid,
+          _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
+        isDone = false;
+      });
     });
 
     if (isDone) {

@@ -13,6 +13,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:workmanager/workmanager.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
@@ -241,6 +242,11 @@ class Utility {
         "Accept": "application/json",
         "Authorization": PAYSTACK
       },
+    ).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
     );
     if (response.statusCode == 200) {
       return response;
@@ -248,6 +254,8 @@ class Utility {
       return null;
     }
   }
+
+
 
   static Future<dynamic> topUpWallet(
       String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
@@ -258,14 +266,19 @@ class Utility {
         body: jsonEncode(
           <String, dynamic>{
             "refID": "$ReferenceID",
-            "statusId": "$Status",
+            "statusId": Status,
             "amount":Amount,
             "paymentId": 1,
             "channelId": PaymentMethod,
             "from": "$From",
-            "to": "304244166277",
+            "to": "$PocketDefaultWallet",
           },
-        ));
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
     //print(response.body);
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
@@ -275,26 +288,128 @@ class Utility {
     }
   }
 
+  static Future<dynamic> initializePay({
+      String referenceID, String from, String to, int status=4,int amount,int paymentMethod=4,
+      int channelId,String agent,String logistic,int deliveryFee}) async {
+    Map<String, dynamic> data = {
+      "amount": amount,
+      "from": from,
+      "to": to,
+      "agentID": agent,
+      "channelId": channelId,
+      "paymentId": paymentMethod,
+      "statusId": status,
+      "refID": referenceID,
+      "deliveryfee": deliveryFee,
+      "logistics": logistic
+    };
+    print(data);
+    final response = await http.post("${WALLETAPI}wallets/pay/initiate/",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          data
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    
+    if (response.statusCode == 200) {
+      var result = jsonDecode(response.body);
+      return result['id'].toString();
+    } else {
+      return null;
+    }
+  }
+
+  static Future<dynamic> finalizePay({String collectionID, bool isSuccessful=true }) async {
+    final response = await http.post("${WALLETAPI}wallets/pay/finalize/",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "collectionID": collectionID,
+            "status": isSuccessful,
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return null;
+    }
+  }
+
+  static Future<dynamic> updateWallet({String uid, String cid,int type }) async {
+    final response = await http.post("${WALLETAPI}wallets/update",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "walletID": uid,
+            "companyID": cid,
+            "typeId":type
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return null;
+    }
+  }
+
+  static Future<dynamic> generateRemittance({String aid, int limit}) async {
+    final response = await http.get("${WALLETAPI}collection/cash/agent/remittance?id=$aid&limit=$limit").timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if (response.statusCode == 200) {
+      var result = jsonDecode(response.body);
+      return result;
+    } else {
+      return null;
+    }
+  }
 
   static Future<dynamic> topUpUnit(
-      String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
-    assert(ReferenceID != null);
+      String referenceID, String from, String description, int status,int amount,int paymentMethod) async {
+    assert(referenceID != null);
     final response = await http.post("${WALLETAPI}wallets/fund/",
         headers: {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(
           <String, dynamic>{
-            "refID": "$ReferenceID",
-            "statusId": "$Status",
-            "amount":Amount,
+            "refID": "$referenceID",
+            "statusId": status,
+            "amount":amount,
             "paymentId": 5,
-            "channelId": PaymentMethod,
-            "from": "$From",
-            "to": "304244166277",
+            "channelId": paymentMethod,
+            "from": "$from",
+            "to": "$PocketDefaultWallet",
           },
-        ));
-    //print(response.body);
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
       return result['Message'].toString();
@@ -332,7 +447,7 @@ class Utility {
   static localNotifier(String channelID,String channel,String title, String body)async{
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       '$channelID', '$channel', '$channel',
-      importance: Importance.Max,
+      importance: Importance.Default,
       priority: Priority.High,
       ticker: 'ticker',
       icon: 'app_icon',
@@ -441,5 +556,29 @@ class Utility {
    }
   }
 
+  static String numberFormatter(int number){
+    if(number > 1000)
+      return '${(number/1000)}K';
+    else if(number > 1000000)
+      return '${(number/1000000)}M';
+    else if(number > 1000000000)
+      return '${(number/1000000000)}B';
+    else
+      return '$number';
+  }
+
+  static Future<void> noWorker(){
+    Workmanager.cancelAll();
+    return Future.value();
+  }
+
+  static bool isOperational(String openTime,String closeTime){
+    var open = openTime.split(":");
+    var close = closeTime.split(":");
+    DateTime opened = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,int.tryParse(open[0])??0,int.tryParse(open[1])??0);
+    DateTime closed = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,int.tryParse(close[0])??0,int.tryParse(close[1])??0);
+    DateTime now = DateTime.now();
+    return now.isAfter(opened) && now.isBefore(closed);
+  }
 
 }

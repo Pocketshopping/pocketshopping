@@ -83,7 +83,7 @@ class ProductDataModel extends Data {
     return bid;
   }
 
-  @override
+  
   Future<String> saveProductStock(String pid) async {
     String bid = "";
     await databaseReference.collection("productStock").add({

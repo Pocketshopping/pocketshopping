@@ -26,6 +26,7 @@ class _MerchantDestinationState extends State<MerchantDestination> {
   void initState() {
     pinLocationIcon =
         BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+        
   }
 
   GoogleMapPolyline _googleMapPolyline =

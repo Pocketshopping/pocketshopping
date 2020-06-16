@@ -38,7 +38,7 @@ class MerchantRepo {
     GeoPoint bGeopint,
     bool isBranch,
     String bParent,
-    String bStatus,
+    int bStatus,
     String bCountry,
     String bBranchUnique,
     bool adminUploaded

@@ -212,7 +212,8 @@ class _SingleOrderState extends State<SingleOrder> {
             leading: CircleAvatar(
                 radius: 25.0,
                 backgroundColor:Colors.white,
-                child: Center(child: Icon(Icons.check,color: Colors.green,),),),
+                child: Center(child: widget.order.receipt.psStatus == 'success'?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),),
+            ),
             title:Text('${merchant != null ? merchant.bName:''}',style: TextStyle(fontSize: 18),),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,7 +228,7 @@ class _SingleOrderState extends State<SingleOrder> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    Text("N${
+                    Text("$CURRENCY${
                         widget.order.orderAmount
                     }")
                   ],

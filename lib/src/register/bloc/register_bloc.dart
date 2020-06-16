@@ -177,8 +177,8 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           <String, dynamic>{
             "email": "$email",
             "name": "$name",
-            "PhoneNumber": "$telephone",
-            "typeId": 1,
+            //"PhoneNumber": "$telephone",
+            "typeId": 2,
             "accountNumber": "",
             "sortCode": "",
             "bankName": ""
@@ -186,7 +186,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           },
         )).catchError((_){print(_);});
 
-    //print(response.body);
+    //print('Code: ${response.statusCode}');
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
       return result['walletID'].toString();

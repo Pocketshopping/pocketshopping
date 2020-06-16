@@ -105,9 +105,9 @@ exports.DeliveryCut = functions.https.onCall((data, context) => {
   if(distance < 2000)
     cut = 300;
   else if(distance<500)
-    cut = Math.round((((distance/1000) - 3)*y1+c));
+    cut = Math.round((Math.abs(Math.round(distance/1000) - 3)*y1+c));
   else
-    cut = Math.round((((distance/1000) - 3)*y2+c));
+    cut = Math.round((Math.abs(Math.round(distance/1000) - 3)*y2+c));
 
     return cut;
 });

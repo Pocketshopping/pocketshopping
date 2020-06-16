@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/payment/atmCard.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -226,18 +227,19 @@ class _TopUpState extends State<TopUp> {
               if(status != "abandoned")
                 result = await Utility.topUpUnit(reference['reference'],
                     widget.user.walletId, status, status == 'success'?1:2, jsonDecode(details.body)['data']['amount'], 1);
+              LogisticRepo.revalidateAgentAllowance(widget.user.uid);
               }
 
 
 
             if(result != null){
+              WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
               setState(() {
                 paying = false;
                 status = 'SUCCESS';
               });
               startTimer();
-              WalletRepo.getWallet(widget.user.walletId)
-                  .then((value) => WalletBloc.instance.newWallet(value));
+
             }
             else{
               setState(() {

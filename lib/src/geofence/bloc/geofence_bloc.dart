@@ -46,6 +46,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
 
   Stream<GeoFenceState> _mapUpdateMerchantToState(
       List<Merchant> merchant) async* {
+
     yield state.update(nearByMerchants: merchant);
     yield GeoFenceState.success(
         category: state.category,
@@ -63,11 +64,11 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
         nearByMerchants: state.nearByMerchants,
         categories: state.categories);
     List<Merchant> data = List();
-    GeoFirePoint center =
-        geo.point(latitude: _position.latitude, longitude: _position.longitude);
+    GeoFirePoint center = geo.point(latitude: _position.latitude, longitude: _position.longitude);
     var collectionReference = Firestore.instance
         .collection('merchants')
         .where('businessCategory', isEqualTo: category)
+        .where('businessActive',isEqualTo: true)
         .limit(10);
     Stream<List<DocumentSnapshot>> stream = geo
         .collection(collectionRef: collectionReference)
@@ -95,10 +96,17 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
         currentPosition: state.currentPosition);
     try {
       _positionSubscription?.cancel();
+
+
+      if(state.currentPosition == null){
+        geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation).then((value) =>
+            add(FetchNearByMerchant(position: value, category: category)));
+      }
+
       _positionSubscription = geolocator
           .getPositionStream(LocationOptions(
               accuracy: LocationAccuracy.bestForNavigation,
-              timeInterval: 30000))
+              distanceFilter: 5))
           .listen((position) {
         add(FetchNearByMerchant(position: position, category: category));
       });
@@ -113,8 +121,8 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
 
   @override
   Future<void> close() {
-    _positionSubscription.cancel();
-    _merchantSubscription.cancel();
+    _positionSubscription?.cancel();
+    _merchantSubscription?.cancel();
     return super.close();
   }
 }

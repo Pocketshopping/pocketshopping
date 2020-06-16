@@ -15,12 +15,45 @@ class StatisticRepo {
     return bid.documentID;
   }
 
-  static Future<void> saveAgentStatistic(AgentStatistic agentStatistic) async {
+/*  static Future<void> saveAgentStatistic(AgentStatistic agentStatistic) async {
     DocumentReference bid;
     var isExisting = await getAgentStatistic(agentStatistic.agent);
 
     if(isExisting == null)
     bid = await databaseReference.collection("agentStatistic").add(agentStatistic.toMap());
+
+  }*/
+
+  static Future<void> updateAgentStatistic(String id, {totalUnitUsed=0,totalOrderCount=0,totalDistance=0,totalCancelled=0,totalAmount=0}) async {
+    AgentStatistic agentStatistic;
+    AgentStatistic isExisting = await getAgentStatistic(id);
+
+    if(isExisting == null){
+      agentStatistic = AgentStatistic(
+        agent: id,
+        totalUnitUsed: totalUnitUsed,
+        totalOrderCount: totalOrderCount,
+        totalDistance: totalDistance,
+        totalCancelled: totalCancelled,
+        totalAmount: totalAmount,
+      );
+      await databaseReference.collection("agentStatistic").document(id).setData(
+          agentStatistic.toMap());
+    }
+    else {
+      agentStatistic = AgentStatistic(
+        agent: id,
+        totalUnitUsed: isExisting.totalUnitUsed + totalUnitUsed,
+        totalOrderCount: isExisting.totalOrderCount + totalOrderCount,
+        totalDistance: isExisting.totalDistance + totalDistance,
+        totalCancelled: isExisting.totalCancelled + totalCancelled,
+        totalAmount: isExisting.totalAmount + totalAmount,
+      );
+      await databaseReference.collection("agentStatistic").document(id).updateData(
+          agentStatistic.toMap());
+    }
+
+
 
   }
 

@@ -198,9 +198,8 @@ class _SingleOrderState extends State<SingleOrder> {
             leading:CircleAvatar(
                 radius: 30.0,
                 backgroundColor: Colors.white,
-                child: Center(
-                  child: Icon(Icons.check),
-                )),
+                child: Center(child: widget.order.receipt.psStatus == 'success'?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),),
+            ),
             title: Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -212,7 +211,7 @@ class _SingleOrderState extends State<SingleOrder> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text("${widget.order.orderMode.mode}"),
-                    Text("${widget.order.orderAmount}")
+                    Text("$CURRENCY${(widget.order.orderAmount+widget.order.orderMode.fee)}")
                   ],
                 ),
               ],

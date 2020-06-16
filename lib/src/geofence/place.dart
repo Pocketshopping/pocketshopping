@@ -9,40 +9,27 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
-class SinglePlaceWidget extends StatefulWidget {
+class SinglePlaceWidget extends StatelessWidget {
   SinglePlaceWidget({this.merchant, this.user, this.cPosition});
 
   final Merchant merchant;
   final GeoFirePoint cPosition;
   final User user;
-
-  @override
-  State<StatefulWidget> createState() => _SinglePlaceWidgetUIState();
-}
-
-class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
-  //Position cPosition;
-  double dist;
-  @override
-  void initState() {
-    dist = widget.cPosition.distance(
-        lat: widget.merchant.bGeoPoint['geopoint'].latitude,
-        lng: widget.merchant.bGeoPoint['geopoint'].longitude);
-    super.initState();
-  }
+  //double dist=0.0;
 
   place() async {
     List<Placemark> placemark = await Geolocator().placemarkFromCoordinates(
-        widget.cPosition.geoPoint.latitude, widget.cPosition.geoPoint.longitude,
+        cPosition.geoPoint.latitude, cPosition.geoPoint.longitude,
         localeIdentifier: 'en');
     print(placemark[0]);
   }
 
   address() async {
     final coordinates = new geocode.Coordinates(
-        widget.cPosition.geoPoint.latitude,
-        widget.cPosition.geoPoint.longitude);
+        cPosition.geoPoint.latitude,
+        cPosition.geoPoint.longitude);
     var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
     print(address.first.addressLine);
   }
@@ -50,20 +37,24 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
   @override
   Widget build(BuildContext context) {
 
-
+    double dist = cPosition.distance(
+        lat: merchant.bGeoPoint['geopoint'].latitude,
+        lng: merchant.bGeoPoint['geopoint'].longitude);
 
 
       return GestureDetector(
         onTap: () {
-          final page = MerchantUI(
-            merchant: widget.merchant,
-            user: widget.user,
-            distance: dist,
-            initPosition: Position(
-                latitude: widget.cPosition.latitude,
-                longitude: widget.cPosition.longitude),
-          );
-          Get.to(page);
+          if(merchant.bStatus == 1 && Utility.isOperational(merchant.bOpen, merchant.bClose)) {
+            final page = MerchantUI(
+              merchant: merchant,
+              user: user,
+              distance: dist,
+              initPosition: Position(
+                  latitude: cPosition.latitude,
+                  longitude: cPosition.longitude),
+            );
+            Get.to(page);
+          }
         },
         child: Container(
           decoration: BoxDecoration(
@@ -76,8 +67,8 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
             border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1.0),
             //color: Colors.white,
             image: DecorationImage(
-              image: NetworkImage(widget.merchant.bPhoto.isNotEmpty
-                  ? widget.merchant.bPhoto
+              image: NetworkImage(merchant.bPhoto.isNotEmpty
+                  ? merchant.bPhoto
                   : PocketShoppingDefaultCover),
               fit: BoxFit.cover,
               colorFilter: new ColorFilter.mode(
@@ -97,13 +88,13 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                       flex: 3,
                       child: Center(
                           child: Text(
-                        widget.merchant.bCategory,
+                        merchant.bCategory,
                         style: const TextStyle(fontSize: 12, color: Colors.white),
                         textAlign: TextAlign.left,
                       )),
                     ),
                     Expanded(
-                      child: widget.cPosition != null
+                      child: cPosition != null
                           ? IconButton(
                               icon: Icon(
                                 Icons.place,
@@ -117,20 +108,20 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
                                   context: context,
                                   builder: (context) {
                                     return BottomSheetMapTemplate(
-                                      source: LatLng(widget.cPosition.latitude,
-                                          widget.cPosition.longitude),
+                                      source: LatLng(cPosition.latitude,
+                                          cPosition.longitude),
                                       destination: LatLng(
-                                        widget.merchant.bGeoPoint['geopoint']
+                                        merchant.bGeoPoint['geopoint']
                                             .latitude,
-                                        widget.merchant.bGeoPoint['geopoint']
+                                        merchant.bGeoPoint['geopoint']
                                             .longitude,
                                       ),
-                                      destAddress: widget.merchant.bAddress,
-                                      destName: widget.merchant.bName,
-                                      destPhoto: widget.merchant.bPhoto,
-                                      sourceName: widget.user.fname,
-                                      sourceAddress: widget.user.defaultAddress,
-                                      sourcePhoto: widget.user.profile,
+                                      destAddress: merchant.bAddress,
+                                      destName: merchant.bName,
+                                      destPhoto: merchant.bPhoto,
+                                      sourceName: user.fname,
+                                      sourceAddress: user.defaultAddress,
+                                      sourcePhoto: user.profile,
                                     );
                                   },
                                   enableDrag: false,
@@ -163,26 +154,22 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
               Column(
                 children: <Widget>[
                   Text(
-                    widget.merchant.bName,
+                    merchant.bName,
                     style: TextStyle(
                         color: Colors.white,fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    '${AwayFrom(dist)}',
+                    '${awayFrom(dist)}',
                     style: TextStyle(fontSize: 12, color: Colors.white),
                   ),
                   const SizedBox(
                     height: 5,
                   ),
-                  if (dist > 0.1)
+                  if (merchant.bStatus == 0 || !Utility.isOperational(merchant.bOpen, merchant.bClose))
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        widget.merchant.bDelivery == 'No'
-                            ? Text('Home Delivery', style: TextStyle(fontSize: 14, color: Colors.white))
-                      :Container()
-                      ],
+                      children: <Widget>[Text('Unavailable', style: TextStyle(fontSize: 14, color: Colors.white))],
                     ),
                 ],
               ),
@@ -193,7 +180,7 @@ class _SinglePlaceWidgetUIState extends State<SinglePlaceWidget> {
 
   }
 
-  String AwayFrom(double dist) {
+  String awayFrom(double dist) {
     if (dist > 1)
       return '$dist   km away';
     else
