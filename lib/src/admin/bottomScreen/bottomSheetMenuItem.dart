@@ -1,5 +1,6 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class BsMenuItem extends StatelessWidget {
   BsMenuItem({
@@ -31,10 +32,7 @@ class BsMenuItem extends StatelessWidget {
       child: FlatButton(
         onPressed: () => {
           page != null
-              ? Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => page),
-                )
+              ? Get.off(page)
               : Container(),
         },
         padding: EdgeInsets.all(10.0),

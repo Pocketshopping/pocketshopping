@@ -634,7 +634,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                   color: Colors.black54),
                             ),
                             SizedBox(height: 10),
-                            Text(
+                           /* Text(
                               'Contact Us',
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -650,7 +650,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                   fontSize: MediaQuery.of(context).size.height *
                                       0.025,
                                   color: Colors.black54),
-                            ),
+                            ),*/
                           ],
                         ),
                       )

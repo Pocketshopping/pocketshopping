@@ -11,6 +11,13 @@ class AgentLocUp {
   final String agentTelephone;
   final bool availability;
   final String device;
+  final Timestamp startedAt;
+  final String profile;
+  final String address;
+  final String wallet;
+  final String workPlaceWallet;
+  final int limit;
+  final bool autoAssigned;
 
   AgentLocUp({
     this.agent,
@@ -21,6 +28,13 @@ class AgentLocUp {
     this.agentTelephone,
     this.availability,
     this.device,
+    this.startedAt,
+    this.profile,
+    this.address,
+    this.wallet,
+    this.workPlaceWallet,
+    this.limit,
+    this.autoAssigned,
   });
 
   AgentLocUp copyWith({
@@ -32,6 +46,13 @@ class AgentLocUp {
     String agentTelephone,
     bool availability,
     String device,
+    Timestamp startedAt,
+    String profile,
+    String address,
+    String wallet,
+    String workPlaceWallet,
+    int limit,
+    bool autoAssigned
   }) {
     return AgentLocUp(
       agent: agent ?? this.agent,
@@ -42,6 +63,13 @@ class AgentLocUp {
       agentTelephone: agentTelephone ?? this.agentTelephone,
       availability: availability ?? this.availability,
       device: device ?? this.device,
+      startedAt: startedAt??this.startedAt,
+      profile: profile??this.profile,
+      address: address??this.address,
+      wallet: wallet??this.wallet,
+      workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
+      limit: limit??this.limit,
+      autoAssigned: autoAssigned ?? this.autoAssigned,
     );
   }
 
@@ -54,7 +82,14 @@ class AgentLocUp {
       agentName.hashCode ^
       agentTelephone.hashCode ^
       availability.hashCode ^
-      device.hashCode;
+      device.hashCode ^
+      startedAt.hashCode ^
+      profile.hashCode ^
+      address.hashCode ^
+      wallet.hashCode ^
+      workPlaceWallet.hashCode ^
+      limit.hashCode ^
+      autoAssigned.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -68,9 +103,16 @@ class AgentLocUp {
           agentName == other.agentName &&
           agentTelephone == other.agentTelephone &&
           availability == other.availability &&
-          device == other.device;
+          device == other.device &&
+          startedAt == other.startedAt &&
+          profile == other.profile &&
+          address==other.address &&
+          wallet == other.wallet &&
+          workPlaceWallet == other.workPlaceWallet &&
+          limit == other.limit &&
+          autoAssigned == other.autoAssigned;
 
-  AgentLocUpupdate({
+  AgentLocUp update({
     String agent,
     String agentAutomobile,
     Timestamp agentUpdateAt,
@@ -78,7 +120,14 @@ class AgentLocUp {
     String agentName,
     String agentTelephone,
     bool availability,
+    Timestamp startedAt,
     String device,
+    String profile,
+    String address,
+    String wallet,
+    String workPlaceWallet,
+    int limit,
+    bool autoAssigned
   }) {
     return copyWith(
       agent: agent,
@@ -89,12 +138,19 @@ class AgentLocUp {
       agentTelephone: agentTelephone,
       availability: availability,
       device: device,
+      startedAt: startedAt,
+      profile: profile,
+      address: address,
+      workPlaceWallet: workPlaceWallet,
+      wallet: wallet,
+      limit: limit,
+      autoAssigned: autoAssigned
     );
   }
 
   @override
   String toString() {
-    return '''AgentLocUp{AgentID: $agent,}''';
+    return '''Instance of AgentLocUp''';
   }
 
   Map<String, dynamic> toMap() {
@@ -107,19 +163,34 @@ class AgentLocUp {
       'agentTelephone': agentTelephone,
       'availability': availability,
       'device': device,
+      'startedAt':startedAt,
+      'profile':profile,
+      'address':address,
+      'wallet':wallet,
+      'workPlaceWallet':workPlaceWallet,
+      'limit':limit,
+      'autoAssigned':autoAssigned
     };
   }
 
   static AgentLocUp fromSnap(DocumentSnapshot snap) {
     return AgentLocUp(
       agentAutomobile: snap.data['agentAutomobile'],
-      agentUpdateAt: snap.data['agentUpdateAt'],
+      agentUpdateAt: snap.data['UpdatedAt'],
       agentLocation: (snap.data['agentLocation'] as Map<String, dynamic>)['geopoint'],
       agent: snap.documentID,
       agentName: snap.data['agentName'],
       agentTelephone: snap.data['agentTelephone'],
       availability: snap.data['availability'],
       device: snap.data['device'],
+      startedAt: snap.data['startedAt'],
+      profile: snap.data['profile'],
+      address: snap.data['address'],
+      wallet: snap.data['wallet'],
+      workPlaceWallet: snap.data['workPlaceWallet'],
+      limit: snap.data['limit'],
+      autoAssigned: snap.data['autoAssigned'],
+
     );
   }
 

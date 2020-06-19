@@ -76,7 +76,6 @@ class _TodayMissesState extends State<TodayMisses> {
                       Container();
                     }
                     else{
-                      print('empty');
                       return Center(
                         child: JumpingDotsProgressIndicator(
                           fontSize: MediaQuery.of(context)

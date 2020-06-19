@@ -91,7 +91,7 @@ class _AdminScreenState extends State<AdminScreen> {
         processNotification(payload,notification);
 
       },
-      onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
+      onBackgroundMessage: Platform.isIOS ? null : backgroundMessageHandler,
       onLaunch: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
         var data = Map<String, dynamic>.from(message);
@@ -148,12 +148,13 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
-  static Future<dynamic> BackgroundMessageHandler(
+  static Future<dynamic> backgroundMessageHandler(
       Map<String, dynamic> message) {
     if (message.containsKey('data')) {
     }
     if (message.containsKey('notification')) {
     }
+    return Future.value(true);
   }
 
   unpackNotification(dynamic data) {}

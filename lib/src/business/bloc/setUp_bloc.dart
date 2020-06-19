@@ -122,7 +122,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     String address,
     String name,
     String telephone,
-    FirebaseUser user,
+    dynamic  user,
     bool isAgent
   ) async* {
     yield BusinessState.loading(

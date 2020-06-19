@@ -202,7 +202,27 @@ class _ManageProductState extends State<ManageProduct> {
                               ),
                             ),
                             title: Text('${list[index].pName}',style: TextStyle(fontSize: 18),),
-                            subtitle: Text('${list[index].pDesc}',style: TextStyle(fontSize: 16),),
+                            subtitle: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        list[index].availability == 1?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),
+                                        list[index].availability == 1?Text('Available'):Text('Unavailable')
+                                      ],
+                                    ),
+                                    Text('$CURRENCY${list[index].pPrice}'),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Text('${list[index].pDesc}',style: TextStyle(fontSize: 16),)
+                                  ],
+                                )
+                              ],
+                            ),
                           );
                         },
                         itemCount: count,

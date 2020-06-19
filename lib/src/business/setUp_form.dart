@@ -10,13 +10,15 @@ import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart'
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:recase/recase.dart';
 
 class BusinessSetupForm extends StatefulWidget {
-  BusinessSetupForm({this.data,this.isAgent});
+  BusinessSetupForm({this.data,this.isAgent,this.agent});
 
   final Map<String, dynamic> data;
   final bool isAgent;
+  final User agent;
 
   @override
   State<StatefulWidget> createState() => _BusinessSetupFormState();
@@ -29,7 +31,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
   final TextEditingController _addressController = TextEditingController();
 
   //final TextEditingController _categoryController = TextEditingController();
-  FirebaseUser CurrentUser;
+  FirebaseUser currentUser;
   Timer _timer;
   int _start = 15;
   final bool auto = false;
@@ -69,7 +71,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     _nameController.addListener(_onNameChanged);
     _telephoneController.addListener(_onTelephoneChanged);
     _addressController.addListener(_onAddressChanged);
-    CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
+    currentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
   }
 
   @override
@@ -971,7 +973,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                                 progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                                 snackPosition: SnackPosition.BOTTOM,
                                               ).show();
-                                              reclaim(_businessBloc.state.position, CurrentUser.uid, value.mID);
+                                              reclaim(_businessBloc.state.position, currentUser.uid, value.mID);
                                             },
                                             color: PRIMARYCOLOR,
                                             child: Padding(
@@ -1022,7 +1024,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
              isAgent: widget.isAgent,
              name: _nameController.text,
              telephone: _telephoneController.text,
-             user: CurrentUser,
+             user: widget.agent != null ?widget.agent :currentUser,
              category: ""
            ),
          );

@@ -31,7 +31,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
     _finish = true;
     loading =true;
     empty = false;
-     MerchantRepo.getMyBusiness(widget.user.user.uid, null).then((value){
+     MerchantRepo.getMyBusiness(widget.user.merchant.mID, null).then((value){
        //print(value);
        if(mounted)
        setState((){
@@ -49,7 +49,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
   void load() {
 
     if(list.isNotEmpty)
-    MerchantRepo.getMyBusiness(widget.user.user.uid, list.last).then((value) {
+    MerchantRepo.getMyBusiness(widget.user.merchant.mID, list.last).then((value) {
       if(mounted)
         setState((){
           list.addAll(value);
@@ -59,7 +59,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
 
     });
     else
-      MerchantRepo.getMyBusiness(widget.user.user.uid, null).then((value) {
+      MerchantRepo.getMyBusiness(widget.user.merchant.mID, null).then((value) {
         if(mounted)
           setState((){
             list.addAll(value);
@@ -134,6 +134,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
                                       },
                                     )
                                   ),
+                                  widget.user.user.role == 'admin'?
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: (){
@@ -156,7 +157,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
                                         ],
                                       ),
                                     )
-                                  )
+                                  ):const SizedBox.shrink()
                                 ],
                               ),
                             ),
@@ -171,7 +172,29 @@ class _AgentBusinessState extends State<AgentBusiness> {
                     backgroundImage: NetworkImage(list[index].bPhoto),
                   ),
                   title: Text('${list[index].bName}',style: TextStyle(fontSize: 18),),
-                  subtitle: Text('${list[index].bDescription}',style: TextStyle(fontSize: 16),),
+                  subtitle: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              list[index].bStatus == 1?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),
+                              list[index].bStatus == 1?Text('Available'):Text('Unavailable')
+                            ],
+                          ),
+                          Text('${list[index].bCategory}'),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text('${list[index].bDescription}',style: TextStyle(fontSize: 16),),
+                        ],
+                      )
+                    ],
+                  ),
+
+
                 );
               },
               itemCount: count,

@@ -1,29 +1,37 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/editProduct.dart';
+import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/agentTracker.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agent/myAuto.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:http/http.dart' as http;
 
-class AgentTracker extends StatefulWidget {
+class AgentList extends StatefulWidget {
   final Session user;
   final int callBckActionType;
-  AgentTracker({this.user,this.callBckActionType=1});
+  final String title;
+  AgentList({this.user,this.callBckActionType=1,this.title});
   @override
-  _AgentTrackerState createState() => new _AgentTrackerState();
+  _AgentListState createState() => new _AgentListState();
 }
 
-class _AgentTrackerState extends State<AgentTracker> {
+class _AgentListState extends State<AgentList> {
   int get count => list.length;
 
   List<AgentLocUp> list = [];
@@ -106,7 +114,8 @@ class _AgentTrackerState extends State<AgentTracker> {
               MediaQuery.of(context).size.height *
                   0.15),
           child: AppBar(
-              title: Text('${widget.user.merchant.bName} Agent(s)',style: TextStyle(color: PRIMARYCOLOR),),
+              title: Text(widget.title==null?'${widget.user.merchant.bName} Agent(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
+              centerTitle: true,
               backgroundColor: Color.fromRGBO(255, 255, 255, 1),
               leading: IconButton(
                 icon: Icon(
@@ -199,50 +208,7 @@ class _AgentTrackerState extends State<AgentTracker> {
 
                           return Column(
                             children: [
-                              ListTile(
-                                  onTap: (){
-                                    callBackAction(widget.callBckActionType);
-                                  },
-                                  leading: CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.grey.withOpacity(0.2),
-                                    backgroundImage: NetworkImage(list[index].profile.isNotEmpty?list[index].profile:PocketShoppingDefaultAvatar,
-                                    ),
-                                  ),
-                                  title: Text('${list[index].agentName}',style: TextStyle(fontSize: 18),),
-                                  subtitle: Column(
-                                    //mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Row(
-
-                                        children: [
-                                          Text('${list[index].agentAutomobile}',),
-
-                                          Row(
-                                            children: [
-                                              list[index].availability && Utility.isOperational(widget.user.merchant.bOpen, widget.user.merchant.bClose)?
-                                              Icon(Icons.check,color: Colors.green,):
-                                              Icon(Icons.close,color: Colors.red,),
-                                              list[index].availability && Utility.isOperational(widget.user.merchant.bOpen, widget.user.merchant.bClose)?
-                                              Text('Available')
-                                                  :
-                                              Text('Unavailable')
-                                            ],
-                                          )
-                                        ],
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      ),
-                                      if(list[index].availability && Utility.isOperational(widget.user.merchant.bOpen, widget.user.merchant.bClose))
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text('${list[index].address} (last updated: ${Utility.presentDate(DateTime.parse(list[index].agentUpdateAt.toDate().toString()))})'),
-                                          )
-                                        ],
-                                      )
-                                    ],
-                                  )
-                              ),
+                              uiType(list[index]),
                               const Divider(thickness: 1,),
                             ],
                           );
@@ -329,12 +295,378 @@ class _AgentTrackerState extends State<AgentTracker> {
     load();
   }
 
-  callBackAction(int type){
+  callBackAction(int type,dynamic item)async{
     switch(type){
       case 1:
-        print('clicked 1');
+        Get.to(AgentTracker(agent: (item as AgentLocUp),)).then((value) => null);
       break;
     }
   }
 
+  Widget uiType(dynamic data){
+    switch(widget.callBckActionType){
+      case 1:
+        return Tracker(data: data,user: widget.user);
+      break;
+      case 2:
+        return Clearance(data: data,user: widget.user,refresh: _refresh,);
+        break;
+      case 3:
+        return Manage (data: data,user: widget.user,refresh: _refresh,);
+        break;
+
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+}
+
+class Tracker extends StatelessWidget{
+  const Tracker({this.data,this.user});
+  final dynamic data;
+  final Session user;
+
+  @override
+  Widget build(BuildContext context) {
+    return  ListTile(
+        onTap: (){
+          Get.to(AgentTracker(agent: (data as AgentLocUp),)).then((value) => null);
+        },
+        leading: CircleAvatar(
+          radius: 25,
+          backgroundColor: Colors.grey.withOpacity(0.2),
+          backgroundImage: NetworkImage(data.profile.isNotEmpty?data.profile:PocketShoppingDefaultAvatar,
+          ),
+        ),
+        title: Text('${data.agentName}',style: TextStyle(fontSize: 18),),
+        subtitle:Column(
+          //mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Row(
+
+              children: [
+                Text('${data.agentAutomobile}',),
+
+                Row(
+                  children: [
+                    data.availability && Utility.isOperational(user.merchant.bOpen, user.merchant.bClose)?
+                    Icon(Icons.check,color: Colors.green,):
+                    Icon(Icons.close,color: Colors.red,),
+                    data.availability && Utility.isOperational(user.merchant.bOpen, user.merchant.bClose)?
+                    Text('Available')
+                        :
+                    Text('Unavailable')
+                  ],
+                )
+              ],
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            if(data.availability && Utility.isOperational(user.merchant.bOpen, user.merchant.bClose))
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('${data.address} (last updated: ${Utility.presentDate(DateTime.parse(data.agentUpdateAt.toDate().toString()))})'),
+                  )
+                ],
+              )
+          ],
+        )
+    );
+  }
+}
+
+
+class Clearance extends StatelessWidget{
+   Clearance({this.data,this.user,this.remittance,this.refresh});
+  final dynamic data;
+  final Session user;
+  final Map<String,dynamic> remittance;
+  final Function refresh;
+
+
+  final _clearing  = ValueNotifier<bool>(false);
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return  FutureBuilder<Map<String,dynamic>>(
+      future: LogisticRepo.getRemittance( (data as AgentLocUp).wallet,limit:(data as AgentLocUp).limit),
+      initialData: null,
+      builder: (_, AsyncSnapshot<Map<String,dynamic>> remit){
+        if(remit.hasData){
+          return ListTile(
+              onTap: (){
+                Get.bottomSheet(builder: (context){
+                  return Container(
+                    height: MediaQuery.of(context).size.height*0.35,
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Center(child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                          child: Text('${data.agentName}',style: TextStyle(fontSize: 30),
+                        ),
+                        )
+                        ),
+                        Text('Current cash',),
+                        Center(child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
+                          child: Text('$CURRENCY${remit.data['total']}',style: TextStyle(fontSize: 26),
+                          ),
+                        )
+                        ),
+
+                        remit.data['remittance']?
+                            Column(
+                              children: [
+                                Center(child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
+                                  child: Text('${remit.data['remittanceID']}',style: TextStyle(fontSize: 18),
+                                  ),
+                                )
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+                                  child: ValueListenableBuilder(
+                                    valueListenable: _clearing,
+                                    builder: (_,bool clearing,__){
+                                      return !clearing?
+                                      FlatButton(
+                                        onPressed: ()async{
+                                          
+                                          _clearing.value =true;
+                                          var result =await Utility.clearRemittance(remit.data['remittanceID']);
+                                          if(result != null){
+                                            _clearing.value =false;
+                                            if(result){
+                                              Get.back();
+                                              GetBar(
+                                                title: 'Clearance',
+                                                messageText: Text('${data.agentName} has been cleared',style: TextStyle(color: Colors.white),),
+                                                snackPosition: SnackPosition.BOTTOM,
+                                                backgroundColor: PRIMARYCOLOR,
+                                                duration: Duration(seconds: 5),
+                                              ).show();
+                                              confirmClearanceNotifier((data as AgentLocUp).device).then((value) => null);
+                                            }
+                                            else{
+                                              Get.back();
+                                              GetBar(
+                                                title: 'Clearance',
+                                                messageText: Text('Error clearing ${data.agentName}. Check your connection and try again',style: TextStyle(color: Colors.white),),
+                                                snackPosition: SnackPosition.BOTTOM,
+                                                backgroundColor: Colors.red,
+                                                duration: Duration(seconds: 5),
+                                              ).show();
+                                            }
+                                          }
+                                          else{
+                                            Get.back();
+                                            GetBar(
+                                              title: 'Clearance',
+                                              messageText: Text('Error clearing ${data.agentName}. Check your connection and try again',style: TextStyle(color: Colors.white),),
+                                              snackPosition: SnackPosition.BOTTOM,
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 5),
+                                            ).show();
+                                          }
+                                          },
+                                        color: PRIMARYCOLOR,
+                                        child: Center(
+                                          child: Text('Clear',style: TextStyle(color: Colors.white),),
+                                        ),
+                                      ):CircularProgressIndicator();
+                                    },
+                                  )
+                                )
+                              ],
+                            )
+                            :
+                            const SizedBox.shrink(),
+
+
+                      ],
+                    ),
+                  );
+                }).then((value) {refresh();} );
+              },
+              leading: CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.grey.withOpacity(0.2),
+                backgroundImage: NetworkImage(data.profile.isNotEmpty?data.profile:PocketShoppingDefaultAvatar,
+                ),
+              ),
+              title: Text('${data.agentName}',style: TextStyle(fontSize: 18),),
+              subtitle:Column(
+                //mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Row(
+
+                    children: [
+                      Text('$CURRENCY${remit.data['total']}',),
+
+                      Row(
+                        children: [
+                          !remit.data['remittance']?
+                          Icon(Icons.check,color: Colors.green,):
+                          Icon(Icons.close,color: Colors.red,),
+                          !remit.data['remittance']?
+                          Text('No Pending Clearance')
+                              :
+                          Text('Pending Clearance')
+                        ],
+                      )
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                  if(remit.data['remittance'])
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Pending clearance with ID:${remit.data['remittanceID']} '),
+                      )
+                    ],
+                  )
+                ],
+              )
+          );
+        }
+        else{
+          return Container(
+            height: 100,
+            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+            child: ListSkeleton(
+              style: SkeletonStyle(
+                theme: SkeletonTheme.Light,
+                isShowAvatar: false,
+                barCount: 3,
+                colors: [
+                  Colors.grey.withOpacity(0.5),
+                  Colors.grey,
+                  Colors.grey.withOpacity(0.5)
+                ],
+                isAnimation: true,
+              ),
+            ),
+            alignment: Alignment.center,
+          );
+        }
+      },
+    );
+  }
+
+   Future<void> confirmClearanceNotifier(String to) async {
+     //print('team meeting');
+     await FirebaseMessaging().requestNotificationPermissions(
+       const IosNotificationSettings(
+           sound: true, badge: true, alert: true, provisional: false),
+     );
+     await http.post('https://fcm.googleapis.com/fcm/send',
+         headers: <String, String>{
+           'Content-Type': 'application/json',
+           'Authorization': 'key=$serverToken'
+         },
+         body: jsonEncode(<String, dynamic>{
+           'notification': <String, dynamic>{
+             'body': 'Hello. you habe been cleared by the admin. you can now proceed with excuting delivery, Thank you',
+             'title': 'Cleared'
+           },
+           'priority': 'high',
+           'data': <String, dynamic>{
+             'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+             'id': '1',
+             'status': 'done',
+             'payload': {
+               'NotificationType': 'clearanceConfirmationResponse',
+             }
+           },
+           'to': to,
+         })).timeout(
+       Duration(seconds: TIMEOUT),
+       onTimeout: () {
+         return null;
+       },
+     );
+   }
+}
+
+
+
+class Manage extends StatelessWidget{
+  const Manage({this.data,this.user,this.refresh});
+  final dynamic data;
+  final Session user;
+  final Function refresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return  FutureBuilder<Agent>(
+    future: LogisticRepo.getOneAgent((data as AgentLocUp).agent),
+    initialData: null,
+    builder: (_, AsyncSnapshot<Agent> agent){
+    if(agent.hasData){
+      return ListTile(
+        onTap: (){
+          Get.to(MyAuto(agent: agent.data,isAdmin: true,)).then((value) {refresh();});
+        },
+        leading: CircleAvatar(
+          radius: 25,
+          backgroundColor: Colors.grey.withOpacity(0.2),
+          backgroundImage: NetworkImage(data.profile.isNotEmpty?data.profile:PocketShoppingDefaultAvatar,
+          ),
+        ),
+        title: Text('${data.agentName}',style: TextStyle(fontSize: 18),),
+        subtitle:Column(
+          //mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Row(
+
+              children: [
+                Text('${data.autoAssigned?data.agentAutomobile:'Unassign'}',),
+
+                Row(
+                  children: [
+                    Text('Collection Limit:'),
+                    Text('$CURRENCY${Utility.numberFormatter(data.limit)} ')
+
+                  ],
+                )
+              ],
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            if(!data.autoAssigned)
+              Row(
+                children: [
+                  Text('This agent is not assigned to any automobile.',style: TextStyle(color: Colors.red),)
+                ],
+              )
+          ],
+        )
+    );
+    }
+    else{
+      return Container(
+        height: 100,
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+        child: ListSkeleton(
+          style: SkeletonStyle(
+            theme: SkeletonTheme.Light,
+            isShowAvatar: false,
+            barCount: 3,
+            colors: [
+              Colors.grey.withOpacity(0.5),
+              Colors.grey,
+              Colors.grey.withOpacity(0.5)
+            ],
+            isAnimation: true,
+          ),
+        ),
+        alignment: Alignment.center,
+      );
+    }
+    },
+    );
+  }
 }

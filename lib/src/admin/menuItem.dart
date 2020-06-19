@@ -12,7 +12,9 @@ class MenuItem extends StatelessWidget {
       this.openCount = 0,
       this.content,
       this.isMultiMenu = true,
-      this.bsheet});
+      this.bsheet,
+        this.refresh,
+      });
 
   final Function bsheet;
   final double gHeight;
@@ -24,6 +26,7 @@ class MenuItem extends StatelessWidget {
   final String badgeType;
   final int openCount;
   final bool isMultiMenu;
+  final Function refresh;
 
   @override
   Widget build(BuildContext context) {
@@ -47,10 +50,7 @@ class MenuItem extends StatelessWidget {
                       )
                 )
               : content != null
-                  ? Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => content),
-                    )
+                  ? Get.to(content).then((value) { if(refresh != null)refresh();})
                   : Container(),
         },
         //color: Colors.black12,

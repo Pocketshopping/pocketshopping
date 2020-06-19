@@ -45,6 +45,8 @@ class MerchantRepo {
   }) async {
     DocumentReference bid;
     GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
+    var temp = Utility.makeIndexList(bName);
+    temp.addAll(Utility.makeIndexList(bCategory));
     bid = await databaseReference.collection("merchants").add({
       'businessCreator': databaseReference.document('users/' + uid),
       'businessName': bName.headerCase,
@@ -69,18 +71,19 @@ class MerchantRepo {
       'businessCreatedAt': DateTime.now(),
       'adminUploaded':adminUploaded,
       'businessActive':true,
-      'index': Utility.makeIndexList(bName)
+      'index': temp,
+
     });
     if(!adminUploaded) {
       await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
-      await ChannelMaker(bid.documentID, uid);
+      await channelMaker(bid.documentID, uid);
     }
 
     return bid.documentID;
   }
 
 
-  Future<void> ChannelMaker(String mid, String uid) async {
+  Future<void> channelMaker(String mid, String uid) async {
     String fcm = await _fcm.getToken();
     await databaseReference.collection("channels").document(mid).setData({
       'Messaging': {uid: fcm},
@@ -323,20 +326,26 @@ class MerchantRepo {
 
   static Future<void> update(String mid, Map<String,dynamic> data)async{
     try {
-      Get.snackbar('Updating',
-          'Business updating',duration: Duration(days: 365),
+
+
+      GetBar(
+          title: 'Updating',
+          messageText: Text('Business updating',style: TextStyle(color: Colors.black),),
+          duration: Duration(days: 365),
           backgroundColor: Colors.grey,
-          colorText: Colors.black,
-          snackStyle: SnackStyle.GROUNDED
-      );
+          snackStyle: SnackStyle.GROUNDED,
+        snackPosition: SnackPosition.TOP,
+      ).show();
       await Firestore.instance.collection('merchants').document(mid).updateData(data);
       Get.back();
-      Get.snackbar('Updated',
-          'Business updated',duration: Duration(seconds: 3),
+      GetBar(
+          title:'Updated',
+          messageText: Text('Business updated',style: TextStyle(color: Colors.white),),
+          duration: Duration(seconds: 3),
           backgroundColor: PRIMARYCOLOR,
-          colorText: Colors.white,
-          snackStyle: SnackStyle.GROUNDED
-      );
+          snackStyle: SnackStyle.GROUNDED,
+        snackPosition: SnackPosition.TOP,
+      ).show();
     }
     catch(_){}
   }

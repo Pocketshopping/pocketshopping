@@ -759,7 +759,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                             ],
                                           ),
                                         ),
-                                        !working?
+                                        /*!working?
                                         Container(
                                             padding: EdgeInsets.all(
                                                 MediaQuery.of(context).size.width *
@@ -801,7 +801,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                             color: Colors.white)),
 
                                                 )
-                                            )):Container(),
+                                            )):Container(),*/
                                       ])),
                             ),
                           )),

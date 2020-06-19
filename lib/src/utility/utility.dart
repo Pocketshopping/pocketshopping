@@ -7,6 +7,7 @@ import 'package:date_format/date_format.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
@@ -14,6 +15,7 @@ import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:geocoder/geocoder.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
@@ -372,7 +374,21 @@ class Utility {
     }
   }
 
-  static Future<dynamic> generateRemittance({String aid, int limit}) async {
+  static Future<bool> clearRemittance(String rid) async {
+    final response = await http.get("${WALLETAPI}remittance/update/clear?id=$rid").timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static Future<Map<String,dynamic>> generateRemittance({String aid, int limit}) async {
     final response = await http.get("${WALLETAPI}collection/cash/agent/remittance?id=$aid&limit=$limit").timeout(
       Duration(seconds: TIMEOUT),
       onTimeout: () {
@@ -579,6 +595,85 @@ class Utility {
     DateTime closed = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,int.tryParse(close[0])??0,int.tryParse(close[1])??0);
     DateTime now = DateTime.now();
     return now.isAfter(opened) && now.isBefore(closed);
+  }
+
+ static Future<String> address(Position position) async {
+    final coordinates = Coordinates(position.latitude, position.longitude);
+    var address = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var generatedAddress='';
+    List<String> temp = address.first.addressLine.split(',');
+    temp.removeLast();
+    generatedAddress = temp.reduce((value, element) => value + ',' + element);
+    return generatedAddress;
+  }
+
+  static bottomProgressLoader({String title='Loading', String body='...please wait',bool goBack=false}){
+    GetBar(
+      title: title,
+      messageText: Text(body,style: TextStyle(color: Colors.white),),
+      backgroundColor: PRIMARYCOLOR,
+      showProgressIndicator: true,
+      progressIndicatorValueColor:new AlwaysStoppedAnimation<Color>(Colors.white),
+      duration: Duration(days: 365),
+    ).show().then((value) {
+      if(goBack)
+        Get.back();
+    });
+  }
+
+  static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false}){
+    GetBar(
+      title: title,
+      messageText: Text(body,style: TextStyle(color: Colors.white),),
+      backgroundColor: PRIMARYCOLOR,
+      icon: Icon(Icons.check,color: Colors.white,),
+      duration: Duration(seconds: duration),
+    ).show().then((value) {
+      if(goBack)
+        Get.back();
+    });
+  }
+
+  static bottomProgressFailure({String title='Loading', String body='...please wait',int duration=3}){
+    GetBar(
+      title: title,
+      messageText: Text(body,style: TextStyle(color: Colors.white),),
+      backgroundColor: Colors.red,
+      icon: Icon(Icons.check,color: Colors.white,),
+      duration: Duration(seconds: duration),
+    ).show();
+  }
+
+  static infoDialogMaker(String body,{String title='Info',}){
+    Get.defaultDialog(title:title,
+        content: Text(body),
+        confirm: FlatButton(
+          onPressed: (){Get.back();},
+          child: Text('Ok'),
+        )
+    );
+  }
+
+  static Future<bool> confirmDialogMaker(String body,{String title='Confirm',})async{
+    bool isConfirmed=false;
+   await  Get.defaultDialog(title:title,
+        content: Text(body),
+        cancel: FlatButton(
+          onPressed: (){
+            isConfirmed = false;
+            Get.back();
+            },
+          child: Text('No'),
+        ),
+        confirm: FlatButton(
+          onPressed: (){
+            isConfirmed = true;
+            Get.back();
+            },
+          child: Text('Yes'),
+        )
+    );
+    return isConfirmed;
   }
 
 }

@@ -182,7 +182,6 @@ class ProductRepo {
     document.documents.forEach((element) {
       tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
     });
-    print(tmp.length);
     return tmp;
   }
 

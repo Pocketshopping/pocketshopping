@@ -69,6 +69,12 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
             case 'OrderConfirmationResponse':
               showBar('Delivery Confirmation','Hello. You have a Delivery has been confirmed by the customer');
               break;
+            case 'clearanceConfirmationResponse':
+              WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+              showBar('Cleared','Hello. you habe been cleared by the admin. you can now proceed with excuting delivery, Thank you');
+              backgroundWorker().then((value) => null);
+              NotificationsBloc.instance.clearNotification();
+              break;
 
             default:
               WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
@@ -85,7 +91,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     _walletStream.listen((wallet) {
       if(mounted) {
         updateWallet(wallet);
-        LogisticRepo.getRemittance(currentUser.user.walletId).then((value) => _remittanceNotifier.value=value);
+        LogisticRepo.getRemittance(currentUser.user.walletId,limit:currentUser.agent.limit).then((value) => _remittanceNotifier.value=value);
       }
     });
 
@@ -98,7 +104,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
       OrderBloc.instance.newOrder(event);
     });
 
-    LogisticRepo.getRemittance(currentUser.user.walletId).then((value) => _remittanceNotifier.value=value);
+    LogisticRepo.getRemittance(currentUser.user.walletId,limit:currentUser.agent.limit).then((value) => _remittanceNotifier.value=value);
 
     todayOrderCount = OrderRepo.agentTodayOrder(currentUser.agent.agent).listen((event) {if(mounted) _orderCountNotifier.value=event;});
     backgroundWorker();
@@ -124,6 +130,9 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'wallet':currentUser.user.walletId,
           'agentParent':currentUser.agent.agentWorkPlace,
           'workPlaceWallet':currentUser.agent.workPlaceWallet??'',
+          'profile':currentUser.user.profile,
+          'limit':currentUser.agent.limit,
+          'autoAssigned':currentUser.agent.autoAssigned.isNotEmpty
         });
 
     return Future.value();
@@ -409,7 +418,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                             const Divider(),
                                             Padding(
                                               padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                              child: Text('${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}'),
+                                              child: Text('${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup.'}'),
                                             )
                                           ],
                                         ),
@@ -422,7 +431,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                                 const Divider(),
                                                 Padding(
                                                   padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                                  child: Text('${'You are currently on hold because you have a pending clearance with the following clearance code ${remittance['remittanceID']}'} head to the office for clearance'),
+                                                  child: Text('${'You are currently on hold because you have a pending clearance with the following clearance code ${remittance['remittanceID']}'} head to the office for clearance.'),
                                                 )
                                               ],
                                             ):const SizedBox.shrink()
@@ -438,7 +447,16 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
 
                         ),
-
+                        if(currentUser.agent.autoAssigned == 'Unassign')
+                        Column(
+                          children: [
+                            const Divider(),
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                              child: Text('You are currently on hold because you are not assigned to any automobile. Contact office for more information.',style: TextStyle(color: Colors.red),),
+                            ),
+                          ],
+                        ),
                         Container(
                           height: MediaQuery.of(context).size.height * 0.02,
                         ),
@@ -621,7 +639,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       isBadged: false,
                       isMultiMenu: false,
                       openCount: 3,
-                      content: SetupBusiness(isAgent: true,),
+                      content: SetupBusiness(isAgent: true,agent: User(currentUser.agent.agentWorkPlace,email: currentUser.user.email),),
                     ),
                     MenuItem(
                       gridHeight,

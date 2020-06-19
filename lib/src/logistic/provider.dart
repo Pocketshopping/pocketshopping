@@ -28,10 +28,75 @@ class LogisticRepo {
         .collection("agentLocationUpdate")
         .where('agentParent',isEqualTo: company)
         .where('availability',isEqualTo: true)
+        .where('autoAssigned',isEqualTo: true)
         .snapshots().map((event) {return event.documents.length;
 
     });
 
+  }
+
+  static Future<bool> setAgentLimit(String agentID,{int limit=10000})async{
+    try {
+      await updateAgent(agentID, {'limit': limit,});
+      await updateAgentLoc(agentID, {'limit': limit,});
+    return true;
+  }catch(_){ return false;}
+  }
+
+  static Future<bool> activateDeactivateAgent(String agentID,{bool activate=true})async{
+    try {
+      await updateAgent(agentID, {'agentStatus': activate ? 1 : 0,});
+      await updateAgentLoc(agentID, {'parent': activate,});
+      return true;
+    }catch(_){ return false;}
+
+  }
+
+  static Future<List<AgentLocUp>> fetchMyAgents(String company,AgentLocUp last)async{
+    QuerySnapshot document;
+    if (last == null) {
+      document = await Firestore.instance
+          .collection('agentLocationUpdate')
+          .orderBy('startedAt')
+          .where('agentParent',isEqualTo: company)
+          .limit(10)
+          .getDocuments();
+    } else {
+      document = await Firestore.instance
+          .collection('agentLocationUpdate')
+          .orderBy('startedAt')
+          .where('agentParent',isEqualTo: company)
+          .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments();
+    }
+
+    return AgentLocUp.fromListSnap(document.documents);
+
+  }
+
+  static Future<List<AgentLocUp>> searchMyAgent(
+      String mID, AgentLocUp last, String search) async {
+    QuerySnapshot document;
+
+    if (last == null) {
+      document = await Firestore.instance
+          .collection('agentLocationUpdate')
+          .where('agentParent', isEqualTo: mID)
+          .where('index', arrayContains: search.toLowerCase())
+          .limit(10)
+          .getDocuments();
+    } else {
+      document = await Firestore.instance
+          .collection('agentLocationUpdate')
+          .where('agentParent', isEqualTo: mID)
+          .where('index', arrayContains: search.toLowerCase())
+          .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments();
+    }
+
+    return AgentLocUp.fromListSnap(document.documents);
   }
 
 
@@ -50,9 +115,46 @@ class LogisticRepo {
     request = request.update(requestInitiatorID: bid.documentID, requestInitiator: 'agent');
     await RequestRepo.save(request);
     await StatisticRepo.updateAgentStatistic(agent.agent);
-
+    await reAssignAutomobile((agent as Agent).autoAssigned,agent.agent,);
     return bid.documentID;
   }
+
+  static Future<bool> reAssignAutomobile(String autoID,String agent,{bool isAssigned = true}) async {
+    try{
+      await databaseReference.collection("automobile").document(autoID).updateData({
+        'autoAssigned':isAssigned,
+        'assignedTo':agent,
+      });
+      return true;
+    }
+    catch(_){
+      return false;
+    }
+  }
+
+  static Future<bool> updateAgent(String agent,Map<String,dynamic> data) async {
+    try{
+      await databaseReference.collection("agent").document(agent).updateData(data);
+      return true;
+    }
+    catch(_){
+      return false;
+    }
+  }
+
+
+  static Future<bool> updateAgentLoc(String agent,Map<String,dynamic> data) async {
+    try{
+      await databaseReference.collection("agentLocationUpdate").document(agent).updateData(data);
+      return true;
+    }
+    catch(_){
+      return false;
+    }
+  }
+
+
+
 
   static Future<Agent> getOneAgent(String agentID) async {
     var doc = await databaseReference.collection("agent").document(agentID).get();
@@ -69,7 +171,7 @@ class LogisticRepo {
 
   static Future<AgentLocUp> getOneAgentLocation(String agentID) async {
     var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get();
-    return AgentLocUp.fromSnap(doc);
+    return doc.exists?AgentLocUp.fromSnap(doc):null;
   }
 
   static Future<AgentLocUp> getOneAgentLocationUsingUid(String uid) async {
@@ -81,11 +183,7 @@ class LogisticRepo {
   static Future<bool> makeAgentBusy(String uid,{bool isBusy=true}) async {
     Agent agent = await getOneAgentByUid(uid);
     //bool remit = await remittance(agent.agentWallet);
-    await databaseReference.collection("agentLocationUpdate").document(agent.agentID).updateData({
-      'busy':isBusy,
-     // 'remitted': remit,
-    });
-
+    await updateAgentLoc(agent.agentID,{'busy':isBusy});
     if(!isBusy) {
       revalidateAgentAllowance(uid);
     }
@@ -96,19 +194,18 @@ class LogisticRepo {
   static Future<void> revalidateAgentAllowance(String uid,) async {
     User user = await UserRepo.getOneUsingUID(uid);
     Wallet agentWallet = await WalletRepo.getWallet(user.walletId);
-    bool remit = await remittance(user.walletId);
     Agent agent = await getOneAgentByUid(uid);
+    bool remit = await remittance(user.walletId,limit:agent.limit);
+
     if(agentWallet.pocketUnitBalance < 100) {
       if (agent != null)
-        databaseReference.collection("agentLocationUpdate").document(
-            agent.agentID).updateData({
+        await updateAgentLoc(agent.agentID,{
           'pocket': false,
           'remitted':remit
         });
     }
     else{
-      databaseReference.collection("agentLocationUpdate").document(
-          agent.agentID).updateData({
+      await updateAgentLoc(agent.agentID,{
         'pocket': true,
         'remitted':remit
       });
@@ -121,10 +218,7 @@ class LogisticRepo {
   }
 
   static Future<bool> accept(String agentID, String requestID, String uid) async {
-    await databaseReference
-        .collection("agent")
-        .document(agentID)
-        .updateData({'agentStatus': 'ACTIVE', 'startDate': Timestamp.now()});
+    await updateAgent(agentID, {'agentStatus': 'ACTIVE', 'startDate': Timestamp.now()});
     var agent = await getOneAgent(agentID);
     var agentAcct = await UserRepo.getOneUsingUID(agent.agent);
     await RequestRepo.clear(requestID);
@@ -147,6 +241,7 @@ class LogisticRepo {
         .where('remitted', isEqualTo: true)
         .where('busy', isEqualTo: false)
         .where('agentAutomobile', isEqualTo: autoType)
+        .where('autoAssigned', isEqualTo: true)
         .limit(5);
     Stream<List<DocumentSnapshot>> alu = geo
         .collection(collectionRef: collectionReference)
@@ -160,13 +255,11 @@ class LogisticRepo {
   }
 
   static Future<bool> decline(String agentID, String requestID) async {
-    await databaseReference
-        .collection("agent")
-        .document(agentID)
-        .updateData({'agentStatus': 'DECLINE', 'startDate': Timestamp.now()});
+    await updateAgent(agentID,{'agentStatus': 'DECLINE', 'startDate': Timestamp.now()});
     await RequestRepo.clear(requestID);
     return true;
   }
+
 
   static Future<bool> alreadyAdded(String logistic, String plate) async {
     var docs = await databaseReference
@@ -180,6 +273,8 @@ class LogisticRepo {
     return docs.documents.length > 0 ? true : false;
   }
 
+
+
   static Future<Map<String, AutoMobile>> getType(
       String logistic, String type) async {
     var docs = await databaseReference
@@ -188,6 +283,30 @@ class LogisticRepo {
           'autoType',
           isEqualTo: type,
         )
+        .where('autoLogistic', isEqualTo: logistic)
+        .getDocuments();
+    return AutoMobile.fromListSnap(docs.documents);
+  }
+
+  static Future<Map<String, AutoMobile>> getUnassignedType(
+      String logistic, String type,{bool isAssigned = false}) async {
+    var docs = await databaseReference
+        .collection("automobile")
+        .where(
+      'autoType',
+      isEqualTo: type,
+    )
+        .where('autoLogistic', isEqualTo: logistic)
+        .where('autoAssigned',isEqualTo: isAssigned)
+        .getDocuments();
+    return AutoMobile.fromListSnap(docs.documents);
+  }
+
+  static Future<Map<String, AutoMobile>> getAllAutomobile(
+      String logistic,bool assign) async {
+    var docs = await databaseReference
+        .collection("automobile")
+    .where('autoAssigned',isEqualTo: assign)
         .where('autoLogistic', isEqualTo: logistic)
         .getDocuments();
     return AutoMobile.fromListSnap(docs.documents);
@@ -205,7 +324,7 @@ class LogisticRepo {
     }
   }
 
-  static Future<dynamic> getRemittance(String wid,{int limit=10000})async{
+  static Future<Map<String,dynamic>> getRemittance(String wid,{int limit=10000})async{
     var remit = await Utility.generateRemittance(aid: wid,limit: limit);
     return remit;
   }

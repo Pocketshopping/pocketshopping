@@ -15,6 +15,7 @@ class Agent {
   final int agentStatus;
   final String workPlaceWallet;
   final String agentWallet;
+  final int limit;
 
   Agent(
       {this.agent,
@@ -28,7 +29,8 @@ class Agent {
       this.agentBehaviour,
       this.agentStatus,
       this.workPlaceWallet,
-      this.agentWallet
+      this.agentWallet,
+      this.limit,
       });
 
   Agent copyWith(
@@ -43,7 +45,8 @@ class Agent {
       String agentBehaviour,
       int agentStatus,
       String workPlaceWallet,
-      String agentWallet
+      String agentWallet,
+      int limit,
       }) {
     return Agent(
         agent: agent ?? this.agent,
@@ -57,7 +60,8 @@ class Agent {
         agentBehaviour: agentBehaviour ?? this.agentBehaviour,
         agentStatus: agentStatus ?? this.agentStatus,
         workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
-        agentWallet: agentWallet??this.agentWallet
+        agentWallet: agentWallet??this.agentWallet,
+        limit: limit??this.limit,
     );
   }
 
@@ -74,7 +78,8 @@ class Agent {
       agentBehaviour.hashCode ^
       agentStatus.hashCode ^
       workPlaceWallet.hashCode ^
-      agentWallet.hashCode;
+      agentWallet.hashCode ^
+      limit.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -92,7 +97,8 @@ class Agent {
           agentBehaviour == other.agentBehaviour &&
           agentStatus == other.agentStatus &&
           workPlaceWallet == other.workPlaceWallet &&
-          agentWallet == other.agentWallet;
+          agentWallet == other.agentWallet &&
+          limit == other.limit;
 
   Agent update(
       {String agent,
@@ -106,7 +112,8 @@ class Agent {
       String agentBehaviour,
       int agentStatus,
       String workPlaceWallet,
-      String agentWallet
+      String agentWallet,
+      int limit,
       }) {
     return copyWith(
         agent: agent,
@@ -120,7 +127,8 @@ class Agent {
         agentBehaviour: agentBehaviour,
         agentStatus: agentStatus,
         workPlaceWallet: workPlaceWallet,
-        agentWallet: agentWallet
+        agentWallet: agentWallet,
+        limit: limit
     );
   }
 
@@ -142,7 +150,8 @@ class Agent {
       'agentBehaviour': agentBehaviour,
       'agentStatus': agentStatus,
       'workPlaceWallet':workPlaceWallet,
-      'agentWallet':agentWallet
+      'agentWallet':agentWallet,
+      'limit':limit
     };
   }
 
@@ -160,6 +169,7 @@ class Agent {
       agentStatus: snap.data['agentStatus'],
       workPlaceWallet: snap.data['workPlaceWallet'],
       agentWallet: snap.data['agentWallet'],
+      limit: snap.data['limit']??10000,
     );
   }
 }

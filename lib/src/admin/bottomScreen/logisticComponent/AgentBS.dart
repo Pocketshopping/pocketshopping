@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/page/admin/manageStaff.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
+
 
 class AgentBottomPage extends StatelessWidget {
   AgentBottomPage({this.session});
@@ -69,7 +71,7 @@ class AgentBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Manage Agent',
-              page: ManageStaff(),
+              page: AgentList(user: session,title: 'Manage Agent(s)',callBckActionType: 3,),
             ),
           ]),
         ],

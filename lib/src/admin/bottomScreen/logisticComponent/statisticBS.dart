@@ -4,7 +4,7 @@ import 'package:pocketshopping/page/admin/finStats.dart';
 import 'package:pocketshopping/page/admin/productStats.dart';
 import 'package:pocketshopping/page/admin/staffStats.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
-import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 
 class LogisticStatBottomPage extends StatelessWidget {
   @override

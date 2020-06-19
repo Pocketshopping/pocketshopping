@@ -10,6 +10,7 @@ class AutoMobile {
   final String autoID;
   final String autoLogistic;
   final bool autoAssigned;
+  final String assignedTo;
 
   AutoMobile(
       {this.autoPlateNumber,
@@ -18,7 +19,9 @@ class AutoMobile {
       this.autoName,
       this.autoID,
       this.autoLogistic,
-      this.autoAssigned});
+      this.autoAssigned,
+      this.assignedTo
+      });
 
   AutoMobile copyWith(
       {String autoPlateNumber,
@@ -27,7 +30,9 @@ class AutoMobile {
       String autoName,
       String autoID,
       String autoLogistic,
-      bool autoAssigned}) {
+      bool autoAssigned,
+      String assignedTo
+      }) {
     return AutoMobile(
       autoPlateNumber: autoPlateNumber ?? this.autoPlateNumber,
       autoModelNumber: autoModelNumber ?? this.autoModelNumber,
@@ -36,6 +41,7 @@ class AutoMobile {
       autoID: autoID ?? this.autoID,
       autoLogistic: autoLogistic ?? this.autoLogistic,
       autoAssigned: autoAssigned ?? this.autoAssigned,
+      assignedTo: assignedTo?? this.assignedTo
     );
   }
 
@@ -47,7 +53,8 @@ class AutoMobile {
       autoPlateNumber.hashCode ^
       autoID.hashCode ^
       autoLogistic.hashCode ^
-      autoAssigned.hashCode;
+      autoAssigned.hashCode ^
+      assignedTo.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -60,7 +67,8 @@ class AutoMobile {
           autoPlateNumber == other.autoPlateNumber &&
           autoID == other.autoID &&
           autoLogistic == other.autoLogistic &&
-          autoAssigned == other.autoAssigned;
+          autoAssigned == other.autoAssigned &&
+          assignedTo == other.assignedTo;
 
   AutoMobile update(
       {String autoPlateNumber,
@@ -69,7 +77,8 @@ class AutoMobile {
       String autoName,
       String autoID,
       String autoLogistic,
-      bool autoAssigned}) {
+      bool autoAssigned,
+      String assignedTo}) {
     return copyWith(
         autoPlateNumber: autoPlateNumber,
         autoModelNumber: autoModelNumber,
@@ -77,12 +86,15 @@ class AutoMobile {
         autoName: autoName,
         autoID: autoID,
         autoLogistic: autoLogistic,
-        autoAssigned: autoAssigned);
+        autoAssigned: autoAssigned,
+        assignedTo: assignedTo
+
+    );
   }
 
   @override
   String toString() {
-    return '''Channels ${autoAssigned && autoLogistic.isNotEmpty && autoID.isNotEmpty && autoPlateNumber.isNotEmpty && autoModelNumber.isNotEmpty && autoType.isNotEmpty && autoName.isNotEmpty}''';
+    return '''Instance of AutoMobile''';
   }
 
   Map<String, dynamic> toMap() {
@@ -93,7 +105,8 @@ class AutoMobile {
       'autoName': autoName,
       'autoLogistic': autoLogistic,
       'autoAssigned': autoAssigned,
-      'autoAddedAt': Timestamp.now()
+      'autoAddedAt': Timestamp.now(),
+      'assignedTo':assignedTo
     };
   }
 
@@ -105,7 +118,8 @@ class AutoMobile {
         autoName: (snap.data['autoName']),
         autoLogistic: snap.data['autoLogistic'],
         autoID: snap.documentID,
-        autoAssigned: snap.data['autoAssigned']);
+        autoAssigned: snap.data['autoAssigned'],
+        assignedTo: snap.data['assignedTo']);
   }
 
   static Map<String, AutoMobile> fromListSnap(List<DocumentSnapshot> snap) {

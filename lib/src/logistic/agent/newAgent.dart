@@ -24,6 +24,7 @@ class AgentForm extends StatefulWidget {
 
 class _AgentFormState extends State<AgentForm> {
   final TextEditingController _agentController = TextEditingController();
+  final TextEditingController _limitController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Session CurrentUser;
@@ -220,6 +221,40 @@ class _AgentFormState extends State<AgentForm> {
                                     padding: EdgeInsets.all(
                                         MediaQuery.of(context).size.width *
                                             0.02),
+                                    child: TextFormField(
+                                      controller: _limitController,
+                                      decoration: InputDecoration(
+                                          labelText: 'Collection Limit:$CURRENCY',
+                                          hintText: 'Collection Limit:$CURRENCY',
+                                          border: InputBorder.none),
+                                      keyboardType: TextInputType.number,
+                                      autocorrect: false,
+                                      autovalidate: autoValidate,
+                                      validator: (value) {
+                                        if (value.isEmpty) {
+                                          return 'Collection Limit can not be empty';
+                                        }
+                                        if ((int.tryParse(value.trim())??0) < 1000) {
+                                          return 'Collection Limit must be greater than $CURRENCY 1000';
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {},
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
                                     child: Column(
                                       children: <Widget>[
                                         Align(
@@ -263,7 +298,7 @@ class _AgentFormState extends State<AgentForm> {
                                               type = value;
                                               if (value != 'Select') {
                                                 assigning = true;
-                                                LogisticRepo.getType(
+                                                LogisticRepo.getUnassignedType(
                                                         widget.session.merchant
                                                             .mID,
                                                         value)
@@ -423,6 +458,8 @@ class _AgentFormState extends State<AgentForm> {
                                                                           .autoID,
                                                                   agent:
                                                                       agent.uid,
+                                                                  limit: int.tryParse(_limitController.text.trim())??10000,
+                                                                  agentWallet: agent.walletId,
                                                                   autoType:
                                                                       type,
                                                                   agentStatus:1,

@@ -35,8 +35,9 @@ async function getCategories(merchant) {
   
     var doc = await admin.firestore()
     .collection('products')
-    .where('productMerchant','==',admin.firestore()
-    .collection('merchants').doc(merchant))
+    .where('productMerchant','==',admin.firestore().collection('merchants').doc(merchant))
+    .where('productAvailability','==',1)
+    .where('productStatus','==',1)
     .get();
 
     doc.docs.forEach((result)=>{

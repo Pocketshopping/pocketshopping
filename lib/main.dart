@@ -86,6 +86,7 @@ import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:rxdart/rxdart.dart';
@@ -207,7 +208,11 @@ void callbackDispatcher() {
             'busy':false,
             'device':fcmToken,
             'UpdatedAt':Timestamp.now(),
-            'workPlaceWallet':inputData['workPlaceWallet']
+            'address':await Utility.address(position),
+            'workPlaceWallet':inputData['workPlaceWallet'],
+            'profile':inputData['profile'],
+            'limit':inputData['limit'],
+            'index':Utility.makeIndexList(inputData['agentName']),
           });
         }
         //print(position.toString());

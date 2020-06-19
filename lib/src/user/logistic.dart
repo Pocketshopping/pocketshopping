@@ -6,18 +6,25 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/component/scanScreen.dart';
 import 'package:pocketshopping/page/admin/settings.dart';
 import 'package:pocketshopping/page/admin/viewItem.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
+import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
@@ -87,6 +94,10 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     _walletStream = null;
     iosSubscription?.cancel();
     super.dispose();
+  }
+
+  void reloadMerchant(){
+    MerchantRepo.getMerchant(currentUser.merchant.mID).then((value) => setState((){currentUser=currentUser.copyWith(merchant: value);}));
   }
 
   @override
@@ -291,7 +302,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                         valueListenable: _agentNotifier,
                         builder: (_,agent,__){
                           return GestureDetector(
-                              onTap: (){},
+                              onTap: (){
+                                Get.to(AgentList(user: currentUser,)).then((value) => null);
+                              },
                               child:
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -422,12 +435,36 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                   children: [
                     MenuItem(
                       gridHeight,
+                      Icon(MaterialIcons.local_pizza,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Deliveries',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: Reviews(themeColor: PRIMARYCOLOR),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.check,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Clearance',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: AgentList(user: currentUser,callBckActionType: 2,title: 'Agent Clearance',),
+                    ),
+                    MenuItem(
+                      gridHeight,
                       Icon(MaterialIcons.pie_chart,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Report',
                       border: PRIMARYCOLOR,
-                      content: LogisticStatBottomPage(),
+                      content: LogisticReportBottomPage(session: currentUser,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -453,15 +490,39 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.local_pizza,
+                      Icon(MaterialIcons.business_center,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Deliveries',
+                      'New Business',
                       border: PRIMARYCOLOR,
                       isBadged: false,
                       isMultiMenu: false,
                       openCount: 3,
-                      content: Reviews(themeColor: PRIMARYCOLOR),
+                      content: SetupBusiness(isAgent: true,agent: User(currentUser.merchant.mID,email: currentUser.user.email),),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.home,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'My Business(es)',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: AgentBusiness(user: currentUser,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.sentiment_satisfied,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'PocketSense',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: RequestPocketSense(user: currentUser,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -471,19 +532,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       'Settings',
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
-                      content: Settings(),
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(Icons.account_box,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Business Account',
-                      border: PRIMARYCOLOR,
-                      content: AccountPage(
-                        themeColor: PRIMARYCOLOR,
-                      ),
-                      isMultiMenu: false,
+                      content: ManageBusiness(session: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                   ],
                 ),

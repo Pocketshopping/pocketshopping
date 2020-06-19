@@ -111,6 +111,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                 child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: <Widget>[
+                                      !widget.session.merchant.adminUploaded?
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -172,7 +173,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                               ,
                                             ],
                                           )
-                                      ),
+                                      ):const SizedBox.shrink(),
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -604,6 +605,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ],
                                           )
                                       ),
+                                      !widget.session.merchant.adminUploaded?
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -670,7 +672,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                 )
                                               ]
                                           )
-                                      ),
+                                      ):const SizedBox.shrink(),
                                       Container(
                                         decoration: BoxDecoration(
                                           border: Border(
@@ -824,6 +826,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                           ],
                                         ),
                                       ),
+                                     /* !widget.session.merchant.adminUploaded?
                                       !working?
                                           widget.session.merchant.bActive?
                                       Container(
@@ -835,8 +838,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                 onPressed:(){
                                                   Get.defaultDialog(
                                                     title: 'Confirm',
-                                                    content: Text('Are you sure?'
-                                                        'Note. This process can not be undone'),
+                                                    content: Text('Are you sure you want to deactivate this business?'),
                                                     cancel: FlatButton(
                                                       onPressed: (){Get.back();},
                                                       child: Text('No'),
@@ -888,7 +890,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
 
                                                   )
                                               ))
-                                          :Container(),
+                                          :Container():const SizedBox.shrink(),*/
                                     ])),
                           ),
                         )),

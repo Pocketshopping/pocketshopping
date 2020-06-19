@@ -103,7 +103,7 @@ class Submitted extends BusinessEvent {
   final String category;
   final String name;
   final String telephone;
-  final FirebaseUser user;
+  final dynamic user;
   final bool isAgent;
 
   const Submitted({
