@@ -79,6 +79,25 @@ class _EditProductFormState extends State<EditProductForm> {
 
           },
           child: Scaffold(
+              appBar: PreferredSize(
+                  preferredSize: Size.fromHeight(
+                      MediaQuery.of(context).size.height *
+                          0.08),
+                  child: AppBar(
+                    title: Text('Product Settings',style: TextStyle(color: PRIMARYCOLOR),),
+                    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+                    leading: IconButton(
+                      icon: Icon(
+                        Icons.arrow_back_ios,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        Get.back();
+                      },
+                    ),
+                    elevation: 0.0,
+                  )
+              ),
               backgroundColor: Colors.white,
               body: CustomScrollView(slivers: <Widget>[
                 SliverList(

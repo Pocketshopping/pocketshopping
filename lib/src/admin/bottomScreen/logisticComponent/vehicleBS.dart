@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/page/admin/manageStaff.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/logistic/vehicle/newVehicle.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -69,7 +70,7 @@ class VehicleBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Manage Automobile',
-              page: ManageStaff(),
+              page: AutomobileList(user: session,title: 'My Automobile',callBckActionType: 1,),
             ),
           ]),
         ],

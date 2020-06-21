@@ -14,7 +14,7 @@ class CategoryData extends Data {
     var document = await Firestore.instance
         .collection('categories')
         .orderBy('sort')
-        .getDocuments();
+        .getDocuments(source: Source.server);
     document.documents.forEach((doc) {
       categories.add(doc.data['title']);
     });
@@ -26,7 +26,7 @@ class CategoryData extends Data {
 
   Future<int> getLength() async {
     var document =
-        await Firestore.instance.collection('categories').getDocuments();
+        await Firestore.instance.collection('categories').getDocuments(source: Source.server);
     return document.documents.length;
   }
 }

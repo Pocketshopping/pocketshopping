@@ -48,7 +48,6 @@ class _TopUpState extends State<TopUp> {
   }
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return WillPopScope(onWillPop: _willPopScope,child:
     Scaffold(
       backgroundColor: Colors.white,
@@ -58,13 +57,13 @@ class _TopUpState extends State<TopUp> {
             fontSize: MediaQuery.of(context).size.height * 0.12,
             color: PRIMARYCOLOR,
           ),
-        ):Manager()
+        ):manager()
       ),
     )
       ,);
   }
 
-  Widget Manager(){
+  Widget manager(){
     switch(status){
       case "INIT":
         return init();
@@ -89,7 +88,7 @@ class _TopUpState extends State<TopUp> {
       case "SUCCESS":
         return ListView(
             children: [
-              PaySuccess()
+              paySuccess()
             ]);
         break;
     }
@@ -320,7 +319,7 @@ class _TopUpState extends State<TopUp> {
     );
   }
 
-  Widget PaySuccess(){
+  Widget paySuccess(){
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       child: Column(

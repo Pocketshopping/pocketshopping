@@ -41,7 +41,7 @@ class _NotificationPageState extends State<NotificationPage> {
       setState(() {
         loading = true;
       });
-      var tempData = await doc.data['notificationInitiator'].get();
+      var tempData = await doc.data['notificationInitiator'].get(source: Source.server);
       UserData(
               uid: psProvider.of(context).value['uid'],
               role: 'staff',

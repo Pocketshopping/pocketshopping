@@ -70,7 +70,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
         .where('businessCategory', isEqualTo: category)
         .where('businessActive',isEqualTo: true)
         .limit(10);
-    Stream<List<DocumentSnapshot>> stream = geo
+        Stream<List<DocumentSnapshot>> stream = geo
         .collection(collectionRef: collectionReference)
         .within(center: center, radius: radius, field: field, strictMode: true);
 

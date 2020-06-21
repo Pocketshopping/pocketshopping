@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_skeleton/flutter_skeleton.dart';
@@ -11,6 +12,7 @@ import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
 class CompletedOrder extends StatefulWidget {
@@ -32,7 +34,9 @@ class _CompletedOrderState extends State<CompletedOrder> {
     _finish = true;
     loading =true;
     empty = false;
-    OrderRepo.fetchCompletedOrder(widget.user.agent.agent, null).then((value){
+
+    OrderRepo.fetchCompletedOrder(widget.user.agent != null?widget.user.agent.agent:widget.user.merchant.mID
+        , null,whose: widget.user.agent != null?'agent':'orderLogistic').then((value){
       //print(value);
           list=value;
           loading =false;
@@ -41,20 +45,23 @@ class _CompletedOrderState extends State<CompletedOrder> {
           if(mounted)
           setState((){ });
     });
+
     super.initState();
   }
 
   void load() {
 
     if(list.isNotEmpty)
-      OrderRepo.fetchCompletedOrder(widget.user.agent.agent, list.last).then((value) {
+      OrderRepo.fetchCompletedOrder(widget.user.agent != null?widget.user.agent.agent:widget.user.merchant.mID,
+          list.last,whose: widget.user.agent != null?'agent':'orderLogistic').then((value) {
                 list.addAll(value);
                 _finish = value.length == 10 ? false : true;
                 if(mounted)
                 setState((){ });
       });
     else
-      OrderRepo.fetchCompletedOrder(widget.user.agent.agent, null).then((value) {
+      OrderRepo.fetchCompletedOrder(widget.user.agent != null?widget.user.agent.agent:widget.user.merchant.mID,
+          null,whose: widget.user.agent != null?'agent':'orderLogistic').then((value) {
               list=value;
               _finish = value.length == 10 ? false : true;
               empty=value.isEmpty?true:false;
@@ -233,6 +240,18 @@ class _SingleOrderState extends State<SingleOrder> {
                     }")
                   ],
                 ),
+                if(widget.user.agent == null)
+                  Row(
+                    children: [
+                      Text('Agent: ${widget.order.orderMode.deliveryMan}'),
+                      Text('${Utility.presentDate((widget.order.orderCreatedAt as Timestamp).toDate())}')
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text('${Utility.presentDate((widget.order.orderCreatedAt as Timestamp).toDate())}')
+                    ],
+                  )
 
               ],
             ),

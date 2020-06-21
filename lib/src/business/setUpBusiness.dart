@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -17,6 +18,15 @@ class SetupBusiness extends StatelessWidget {
             'PocketShopping',
             style: TextStyle(color: PRIMARYCOLOR),
           ),
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: Colors.grey,
+          ),
+          onPressed: () {
+            Get.back();
+          },
         ),
         elevation: 0,
         backgroundColor: Colors.white,

@@ -77,7 +77,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
             MediaQuery.of(context).size.height *
-                0.12),
+                0.17),
         child: AppBar(
           title: Text('Business(es)',style: TextStyle(color: PRIMARYCOLOR),),
           backgroundColor: Color.fromRGBO(255, 255, 255, 1),
@@ -91,6 +91,69 @@ class _AgentBusinessState extends State<AgentBusiness> {
             },
           ),
           elevation: 0.0,
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(
+                  MediaQuery.of(context).size.height *
+                      0.1),
+              child: Container(
+                  child: TextFormField(
+                    controller: null,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Search ${widget.user.merchant.bName} Business',
+                      filled: true,
+                      fillColor: Colors.grey.withOpacity(0.2),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                    ),
+                    autofocus: false,
+                    enableSuggestions: true,
+                    textInputAction: TextInputAction.done,
+                    onChanged: (value) {
+                      if(value.isEmpty){
+
+                        MerchantRepo.getMyBusiness(widget.user.merchant.mID, null).then((value) {
+                          if(mounted)
+                            setState((){
+                              empty = false;
+                              list=value;
+                              if(list.length >= 10)
+                                _finish=false;
+                            });
+
+                        });
+                      }
+                      else{
+                        MerchantRepo.searchMyBusiness(widget.user.merchant.mID, null,value.trim()).then((result) {
+
+                          if(mounted)
+                            setState((){
+                              if(result.isNotEmpty) {
+                                list = result;
+                                if (list.length >= 10)
+                                  _finish = false;
+                                empty = false;
+                              }
+                              else {
+                                //list.clear();
+                                empty = true;
+                              }
+
+                            });
+
+
+                        });
+                      }
+                    },
+                  )
+
+              ),
+
+            )
         ),
       ),
       body: !loading?
@@ -100,7 +163,8 @@ class _AgentBusinessState extends State<AgentBusiness> {
           child: LoadMore(
             isFinish: _finish,
             onLoadMore: _loadMore,
-            child: ListView.builder(
+            child: ListView.separated(
+              separatorBuilder: (_,i){return const Divider(thickness: 1,);},
               itemBuilder: (BuildContext context, int index) {
                 return ListTile(
                   onTap: (){
@@ -172,28 +236,19 @@ class _AgentBusinessState extends State<AgentBusiness> {
                     backgroundImage: NetworkImage(list[index].bPhoto),
                   ),
                   title: Text('${list[index].bName}',style: TextStyle(fontSize: 18),),
-                  subtitle: Column(
+                  subtitle: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              list[index].bStatus == 1?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),
-                              list[index].bStatus == 1?Text('Available'):Text('Unavailable')
-                            ],
-                          ),
-                          Text('${list[index].bCategory}'),
+                          list[index].bStatus == 1?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),
+                          list[index].bStatus == 1?Text('Available'):Text('Unavailable')
                         ],
                       ),
-                      Row(
-                        children: [
-                          Text('${list[index].bDescription}',style: TextStyle(fontSize: 16),),
-                        ],
-                      )
+                      Text('${list[index].bCategory}'),
                     ],
                   ),
-
+                  trailing:  Icon(Icons.arrow_forward_ios),
 
                 );
               },

@@ -76,6 +76,7 @@ class _MyDeliveryState extends State<MyDelivery>{
       ActiveOrder(user: widget.user,),
       CompletedOrder(user: widget.user,)
     ],
+        physics: NeverScrollableScrollPhysics(),
     )
     )
     );

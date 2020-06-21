@@ -10,7 +10,7 @@ const runtimeOpts = {
   memory: '1GB'
 }
 
-const CategoryruntimeOpts = {
+const CategoryRuntimeOpts = {
   timeoutSeconds: 120,
   memory: '512MB'
 }
@@ -21,7 +21,7 @@ const CategoryruntimeOpts = {
 
 
 
- exports.FetchMerchantsProductCategory = functions.https.onCall((data, context) => {
+ exports.FetchMerchantsProductCategory = functions.runWith(CategoryRuntimeOpts).https.onCall((data, context) => {
      var merchant = data['mID'];
      return getCategories(merchant).then((doc)=>{
        return doc;

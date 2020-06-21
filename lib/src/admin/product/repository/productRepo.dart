@@ -66,7 +66,7 @@ class ProductRepo {
 
 /*  Future<void> saveCategory(String pCategory, String mid) async {
     var cat= await databaseReference.collection("productsCategory")
-     .document(mid).get(source: Source.server);
+     .document(mid).get(source: Source.serverAndCache);
     if(cat.exists){
       var proCate = ProductCategory.fromSnap(cat);
       await databaseReference.collection("productsCategory").document(mid).updateData(proCate.toMap(pCategory));
@@ -128,7 +128,7 @@ class ProductRepo {
 
   Future<Map<String, dynamic>> getOne(String pID) async {
     var document =
-        await Firestore.instance.collection('products').document(pID).get();
+        await Firestore.instance.collection('products').document(pID).get(source: Source.serverAndCache);
     return document.data;
   }
 
@@ -149,7 +149,7 @@ class ProductRepo {
         .collection('productsCategory')
         .where('productCategory', isGreaterThanOrEqualTo: pCategory)
         .where('productCategory', isLessThan: pCategory + 'z')
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     document.documents.forEach((element) {
       suggestion.add(element.documentID);
     });
@@ -168,7 +168,7 @@ class ProductRepo {
           .orderBy('productCreatedAt', descending: true)
           .where('productMerchant', isEqualTo: mRef)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       document = await Firestore.instance
           .collection('products')
@@ -176,7 +176,38 @@ class ProductRepo {
           .where('productMerchant', isEqualTo: mRef)
           .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
+    }
+
+    document.documents.forEach((element) {
+      tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
+    });
+    return tmp;
+  }
+
+  static Future<List<Product>> fetchCategoryProduct(String mID, dynamic lastDoc,String category) async {
+    var mRef = Firestore.instance.document('merchants/$mID');
+    List<Product> tmp = List();
+    var document;
+
+
+    if (lastDoc == null) {
+      document = await Firestore.instance
+          .collection('products')
+          .orderBy('productCreatedAt', descending: true)
+          .where('productMerchant', isEqualTo: mRef)
+          .where('productCategory',isEqualTo: category)
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
+    } else {
+      document = await Firestore.instance
+          .collection('products')
+          .orderBy('productCreatedAt', descending: true)
+          .where('productMerchant', isEqualTo: mRef)
+          .where('productCategory',isEqualTo: category)
+          .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
     }
 
     document.documents.forEach((element) {
@@ -198,7 +229,7 @@ class ProductRepo {
           .where('productMerchant', isEqualTo: mRef)
           .where('productCategory', isEqualTo: category)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       //print(lastDoc !=null ?DateTime.parse(lastDoc.pCreatedAt.toDate().toString()):'');
       document = await Firestore.instance
@@ -208,7 +239,7 @@ class ProductRepo {
           .where('productCategory', isEqualTo: category)
           .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     }
 
     document.documents.forEach((element) {
@@ -219,7 +250,7 @@ class ProductRepo {
     return tmp;
   }
 
- static Future<List<Product>> SearchProduct(
+ static Future<List<Product>> searchProduct(
       String mID, dynamic lastDoc, String search) async {
     var mRef = Firestore.instance.document('merchants/$mID');
     List<Product> tmp = List();
@@ -231,7 +262,7 @@ class ProductRepo {
           .where('productMerchant', isEqualTo: mRef)
           .where('index', arrayContains: search.toLowerCase())
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       print(lastDoc != null
           ? DateTime.parse(lastDoc.pCreatedAt.toDate().toString())
@@ -242,7 +273,7 @@ class ProductRepo {
           .where('index', arrayContains: search.toLowerCase())
           .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
       print('length: ${document.documents.length}');
     }
 

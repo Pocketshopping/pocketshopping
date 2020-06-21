@@ -458,6 +458,7 @@ class _AgentFormState extends State<AgentForm> {
                                                                           .autoID,
                                                                   agent:
                                                                       agent.uid,
+                                                                  name: (agent as User).fname,
                                                                   limit: int.tryParse(_limitController.text.trim())??10000,
                                                                   agentWallet: agent.walletId,
                                                                   autoType:

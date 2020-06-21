@@ -1,68 +1,3 @@
-/*
-import 'package:custom_splash/custom_splash.dart';
-import 'package:flutter/material.dart';
-import 'package:pocketshopping/firebase/BaseAuth.dart';
-import 'package:pocketshopping/page/signUp.dart';
-import 'package:pocketshopping/page/getStarted.dart';
-import 'package:pocketshopping/component/psProvider.dart';
-import 'package:provider/provider.dart';
-
-void main() => runApp(MyApp());
-
-
-
-
-class MyApp extends StatelessWidget {
-
-
-
-  @override
-  Widget build(BuildContext context) {
-
-
-    return psProvider(
-      data: appState,
-      child:MaterialApp(
-        builder: (context, child) =>
-            MediaQuery(data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true), child: child),
-      theme: ThemeData(
-        backgroundColor: Colors.transparent,
-        bottomSheetTheme: BottomSheetThemeData(
-            backgroundColor: Colors.black.withOpacity(0)),
-      ),
-      home: CustomSplash(
-        imagePath: 'assets/images/blogo.png',
-        backGroundColor: Colors.white,
-        animationEffect: 'fade-in',
-        logoSize: 200,
-        home: ChangeNotifierProvider<Auth>(
-    child: GetStartedPage(),
-    create:(BuildContext context) {
-    return Auth();
-          }     ),
-        duration: 2000,
-        type: CustomSplashType.StaticDuration,
-      ),
-
-
-
-      )
-
-    );
-  }
-
-
-
-}
-
-class AppState extends ValueNotifier {
-
-  AppState(value) : super(value);
-}
-var appState = new AppState({'instanceID':'34','cart':0});
-
-*/
-
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
@@ -95,8 +30,6 @@ import 'package:workmanager/workmanager.dart';
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-// Streams are created so that app can respond to notification-related events since the plugin is initialised in the `main` function
 final BehaviorSubject<ReceivedNotification> didReceiveLocalNotificationSubject = BehaviorSubject<ReceivedNotification>();
 
 final BehaviorSubject<String> selectNotificationSubject = BehaviorSubject<String>();
@@ -123,9 +56,10 @@ void main()async{
   notificationAppLaunchDetails =
   await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
 
-  var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
-  // Note: permissions aren't requested here just to demonstrate that can be done later using the `requestPermissions()` method
-  // of the `IOSFlutterLocalNotificationsPlugin` class
+  var initializationSettingsAndroid = AndroidInitializationSettings(
+    'app_icon',
+
+  );
   var initializationSettingsIOS = IOSInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -137,6 +71,8 @@ void main()async{
       });
   var initializationSettings = InitializationSettings(
       initializationSettingsAndroid, initializationSettingsIOS);
+
+
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
       onSelectNotification: (String payload) async {
         if (payload != null) {
@@ -144,7 +80,9 @@ void main()async{
         }
         selectNotificationSubject.add(payload);
       });
+
   await _createNotificationChannel('PocketShopping','PocketShopping','default notification channel for pocketshopping');
+
   BlocSupervisor.delegate = SimpleBlocDelegate();
   final UserRepository userRepository = UserRepository();
   runApp(
@@ -168,7 +106,7 @@ Future<void> _createNotificationChannel(String id, String name,
     description,
     enableLights: true,
     playSound: true,
-    importance: Importance.Max,
+    importance: Importance.Default,
     enableVibration: true,
     showBadge: true,
 
@@ -184,11 +122,9 @@ void callbackDispatcher() {
     bool enable = await Geolocator().isLocationServiceEnabled();
     final FirebaseMessaging _fcm = FirebaseMessaging();
     GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
-   // Wallet wallet = await WalletRepo.getWallet(inputData['wallet']);
     if(enable){
       if(permit == GeolocationStatus.granted){
         Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,locationPermissionLevel: GeolocationPermission.locationAlways);
-       // final databaseReference = Firestore.instance;
         if(position != null){
           String fcmToken = await _fcm.getToken();
           Geoflutterfire geo = Geoflutterfire();
@@ -215,13 +151,12 @@ void callbackDispatcher() {
             'index':Utility.makeIndexList(inputData['agentName']),
           });
         }
-        //print(position.toString());
       }
       else{
         var androidPlatformChannelSpecifics = AndroidNotificationDetails(
             'PocketShopping', 'PocketShopping', 'LocationUpdate',
           importance: Importance.Default,
-          priority: Priority.High,
+          priority: Priority.Default,
           ticker: 'ticker',
           icon: 'app_icon',
           ongoing: true,
@@ -233,7 +168,7 @@ void callbackDispatcher() {
         var platformChannelSpecifics = NotificationDetails(
             androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
         await flutterLocalNotificationsPlugin.show(
-            0,
+            123,
             'Permission',
             'Grant Location Access to PocketShopping',
             platformChannelSpecifics,
@@ -247,7 +182,7 @@ void callbackDispatcher() {
       var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'PocketShopping', 'PocketShopping', 'LocationUpdate',
         importance: Importance.Default,
-        priority: Priority.High,
+        priority: Priority.Default,
         ticker: 'ticker',
         icon: 'app_icon',
         ongoing: true,
@@ -259,7 +194,7 @@ void callbackDispatcher() {
       var platformChannelSpecifics = NotificationDetails(
           androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
       await flutterLocalNotificationsPlugin.show(
-        0,
+        1234,
         'Location',
         'Enable Location',
         platformChannelSpecifics,
@@ -267,11 +202,7 @@ void callbackDispatcher() {
 
 
       );
-      //print('No location enabled');
     }
-
-
-    //print("Native called background task at ${DateTime.now().toString()}");
     return Future.value(true);
   });
 }
@@ -292,8 +223,7 @@ class MyApp extends StatelessWidget {
           child: child),
       theme: ThemeData(
         backgroundColor: Colors.transparent,
-        bottomSheetTheme:
-            BottomSheetThemeData(backgroundColor: Colors.black.withOpacity(0)),
+        bottomSheetTheme: BottomSheetThemeData(backgroundColor: Colors.black.withOpacity(0)),
       ),
       home:Splash(userRepository: _userRepository,),
       defaultTransition: _get.Transition.rightToLeftWithFade,

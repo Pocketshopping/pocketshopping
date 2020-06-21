@@ -61,7 +61,7 @@ class StaffDataModel extends Data {
     var documents = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
-        .getDocuments();
+        .getDocuments(source: Source.server);
     if (documents.documents.length > 0) {
       collection.addAll(documents.documents[0].data);
       collection.putIfAbsent(
@@ -76,7 +76,7 @@ class StaffDataModel extends Data {
     var documents = await Firestore.instance
         .collection('merchants')
         .where('businessCreator', isEqualTo: userRef)
-        .getDocuments();
+        .getDocuments(source: Source.server);
     if (documents.documents.length > 0) {
       collection.addAll(documents.documents[0].data);
     }

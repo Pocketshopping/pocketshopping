@@ -86,7 +86,7 @@ class LocRepo {
   }
 
   static Future<bool> getLocUpdate(String agentID) async {
-    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get();
+    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get(source: Source.serverAndCache);
     if(doc.exists) return true;
     else return false;
   }

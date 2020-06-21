@@ -40,7 +40,7 @@ class ViewModel extends ChangeNotifier {
       case 'PRODUCT':
         searchTerm = search;
         var result =
-            await ProductRepo.SearchProduct(query['mid'], lastItem, search);
+            await ProductRepo.searchProduct(query['mid'], lastItem, search);
         _items.clear();
         if (result.isNotEmpty)
           _items.addAll(result);

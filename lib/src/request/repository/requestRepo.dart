@@ -16,7 +16,7 @@ class RequestRepo {
         .orderBy('requestCreatedAt', descending: true)
         .where('requestReceiver', isEqualTo: uid)
         .where('requestCleared', isEqualTo: false)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     return Request.fromListSnap(docs.documents);
   }
 

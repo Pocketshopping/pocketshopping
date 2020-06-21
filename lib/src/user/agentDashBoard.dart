@@ -71,7 +71,21 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
               break;
             case 'clearanceConfirmationResponse':
               WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-              showBar('Cleared','Hello. you habe been cleared by the admin. you can now proceed with excuting delivery, Thank you');
+              showBar('Cleared','Hello. you have been cleared by the admin. you can now proceed with excuting delivery, Thank you');
+              backgroundWorker().then((value) => null);
+              NotificationsBloc.instance.clearNotification();
+              break;
+
+            case 'PendingRemittanceNotification':
+              WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+              showBar('Pending Clearance','Hello. you have a pending clearance. Head straight to the office or request for clearance to enable you continue');
+              backgroundWorker().then((value) => null);
+              NotificationsBloc.instance.clearNotification();
+              break;
+
+            case 'agentCancellationNotifier':
+              WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+              showBar('Order Cancelled','Hello. An Order has been cancelled by the office, check delivery dashboard for details');
               backgroundWorker().then((value) => null);
               NotificationsBloc.instance.clearNotification();
               break;

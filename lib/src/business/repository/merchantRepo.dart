@@ -1,5 +1,6 @@
 import 'dart:math';
-
+import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class MerchantRepo {
   static final databaseReference = Firestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   static final Geoflutterfire geo = Geoflutterfire();
-  //Geoflutterfire geo = Geoflutterfire();
+
 
   Future<String> save({
     String bID,
@@ -41,7 +42,8 @@ class MerchantRepo {
     int bStatus,
     String bCountry,
     String bBranchUnique,
-    bool adminUploaded
+    bool adminUploaded,
+    String walletID
   }) async {
     DocumentReference bid;
     GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
@@ -74,9 +76,16 @@ class MerchantRepo {
       'index': temp,
 
     });
+    if(bid != null)
     if(!adminUploaded) {
       await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
       await channelMaker(bid.documentID, uid);
+      await CustomerCareRepo.saveCustomerCare(bid.documentID, [
+        CustomerCareLine(number: bTelephone,name:bName.headerCase ),
+        if(bTelephone.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
+      ]);
+      var user = await UserRepo().getOne(uid: uid);
+      await Utility.updateWallet(uid: user.user.walletId,cid: user.user.walletId,type: 3);
     }
 
     return bid.documentID;
@@ -93,17 +102,17 @@ class MerchantRepo {
     });
   }
 
-  Future<void> CategoryMaker(String category) async {
+  Future<void> categoryMaker(String category) async {
     CollectionReference catRef = Firestore.instance.collection('categories');
     var document = await catRef
         .where('title', isEqualTo: category)
-        .getDocuments(source: Source.server);
+        .getDocuments(source: Source.serverAndCache);
     if (document.documents.isEmpty) {
       catRef.add({'title': category, 'sort': 1});
     }
   }
 
-  Future<String> BranchOTP(String mid) async {
+  Future<String> branchOTP(String mid) async {
     Random random = new Random();
     int randomNumber = random.nextInt(999999);
     var result = {};
@@ -132,7 +141,7 @@ class MerchantRepo {
     var document = await Firestore.instance
         .collection('merchantsOTP')
         .document(mid)
-        .get(source: Source.server);
+        .get(source: Source.serverAndCache);
 
     if (document.exists) {
       if (getDifference(document.data['createdAt']) > 60)
@@ -141,7 +150,7 @@ class MerchantRepo {
         Map<String, dynamic> collection = Map();
         collection.addAll(document.data);
 
-        var temp = await document.data['merchant'].get();
+        var temp = await document.data['merchant'].get(source: Source.serverAndCache);
         collection.putIfAbsent('merchantID', () => temp.documentID);
         collection.addAll(temp.data);
         return collection;
@@ -167,7 +176,7 @@ class MerchantRepo {
             isEqualTo: databaseReference.document('merchants/' + mid))
         .where('isBranch', isEqualTo: true)
         .where('branchUnique', isEqualTo: branchName)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
 
     if (document.documents.length > 0)
       return false;
@@ -179,18 +188,16 @@ class MerchantRepo {
     var document = await Firestore.instance
         .collection('merchants')
         .where('uid', isEqualTo: uid)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
 
     return document.documents[0].data;
   }
 
   static Future<Merchant> getMerchant(String mid) async {
     Merchant merchant;
-    var value = await Firestore.instance.document('merchants/$mid').get();
+    var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache);
     merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
-    //print('$mid merchant ${merchant.bName}');
     return merchant;
-    //
   }
 
   static Future<List<Merchant>> getMyBusiness(String uid, Merchant lastDoc,) async {
@@ -204,7 +211,7 @@ class MerchantRepo {
           .orderBy('businessCreatedAt', descending: true)
           .where('businessCreator', isEqualTo: uRef)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       document = await Firestore.instance
           .collection('merchants')
@@ -212,7 +219,36 @@ class MerchantRepo {
           .where('businessCreator', isEqualTo: uRef)
           .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
+    }
+    document.documents.forEach((element) {
+      tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+    });
+
+    return tmp;
+
+  }
+
+
+  static Future<List<Merchant>> searchMyBusiness(String uid, Merchant lastDoc,String key) async {
+    var uRef = Firestore.instance.document('users/$uid');
+    List<Merchant> tmp = List();
+    var document;
+
+    if (lastDoc == null) {
+      document = await Firestore.instance
+          .collection('merchants')
+          .where('businessCreator', isEqualTo: uRef)
+          .where('index',arrayContains: key)
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
+    } else {
+      document = await Firestore.instance
+          .collection('merchants')
+          .where('businessCreator', isEqualTo: uRef)
+          .where('index',arrayContains: key)
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
     }
     document.documents.forEach((element) {
       tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
@@ -234,7 +270,7 @@ class MerchantRepo {
     var document = await Firestore.instance
         .collection('merchants')
         .where('businessID', isEqualTo: bID)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
 
     if (document.documents.length > 0) {
       Map<String, dynamic> doc = document.documents[0].data;
@@ -246,7 +282,7 @@ class MerchantRepo {
 
   Future<DocumentSnapshot> getAnyOneUsingID(String mid) async {
     var document =
-        await Firestore.instance.collection('merchants').document(mid).get();
+        await Firestore.instance.collection('merchants').document(mid).get(source: Source.serverAndCache);
     return document;
   }
 
@@ -257,7 +293,7 @@ class MerchantRepo {
             isEqualTo: databaseReference.document('merchants/' + mid))
         .where('isBranch', isEqualTo: true)
         .orderBy('businessCreatedAt', descending: false)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
 
     if (document.documents.length > 0) {
       return document.documents;
@@ -265,13 +301,13 @@ class MerchantRepo {
       return [];
   }
 
-  Future<List<String>> getCategory(String Category) async {
+  Future<List<String>> getCategory(String category) async {
     List<String> suggestion = List();
     var document = await Firestore.instance
         .collection('categories')
-        .where('title', isGreaterThanOrEqualTo: Category)
-        .where('title', isLessThan: Category + 'z')
-        .getDocuments();
+        .where('title', isGreaterThanOrEqualTo: category)
+        .where('title', isLessThan: category + 'z')
+        .getDocuments(source: Source.serverAndCache);
     document.documents.forEach((element) {
       suggestion.add(element.data['title']);
     });
@@ -324,7 +360,7 @@ class MerchantRepo {
   }
 
 
-  static Future<void> update(String mid, Map<String,dynamic> data)async{
+  static Future<bool> update(String mid, Map<String,dynamic> data)async{
     try {
 
 
@@ -346,8 +382,10 @@ class MerchantRepo {
           snackStyle: SnackStyle.GROUNDED,
         snackPosition: SnackPosition.TOP,
       ).show();
+
+      return true;
     }
-    catch(_){}
+    catch(_){return false;}
   }
 
 }

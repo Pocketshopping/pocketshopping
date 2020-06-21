@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 @immutable
 class AutoMobile {
@@ -11,6 +12,7 @@ class AutoMobile {
   final String autoLogistic;
   final bool autoAssigned;
   final String assignedTo;
+  final Timestamp autoAddedAt;
 
   AutoMobile(
       {this.autoPlateNumber,
@@ -20,7 +22,8 @@ class AutoMobile {
       this.autoID,
       this.autoLogistic,
       this.autoAssigned,
-      this.assignedTo
+      this.assignedTo,
+      this.autoAddedAt
       });
 
   AutoMobile copyWith(
@@ -31,7 +34,8 @@ class AutoMobile {
       String autoID,
       String autoLogistic,
       bool autoAssigned,
-      String assignedTo
+      String assignedTo,
+      Timestamp autoAddedAt
       }) {
     return AutoMobile(
       autoPlateNumber: autoPlateNumber ?? this.autoPlateNumber,
@@ -41,7 +45,8 @@ class AutoMobile {
       autoID: autoID ?? this.autoID,
       autoLogistic: autoLogistic ?? this.autoLogistic,
       autoAssigned: autoAssigned ?? this.autoAssigned,
-      assignedTo: assignedTo?? this.assignedTo
+      assignedTo: assignedTo?? this.assignedTo,
+      autoAddedAt: autoAddedAt ??this.autoAddedAt
     );
   }
 
@@ -54,7 +59,8 @@ class AutoMobile {
       autoID.hashCode ^
       autoLogistic.hashCode ^
       autoAssigned.hashCode ^
-      assignedTo.hashCode;
+      assignedTo.hashCode ^
+      autoAddedAt.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -68,7 +74,8 @@ class AutoMobile {
           autoID == other.autoID &&
           autoLogistic == other.autoLogistic &&
           autoAssigned == other.autoAssigned &&
-          assignedTo == other.assignedTo;
+          assignedTo == other.assignedTo &&
+          autoAddedAt == other.autoAddedAt;
 
   AutoMobile update(
       {String autoPlateNumber,
@@ -78,7 +85,9 @@ class AutoMobile {
       String autoID,
       String autoLogistic,
       bool autoAssigned,
-      String assignedTo}) {
+      String assignedTo,
+      Timestamp autoAddedAt
+      }) {
     return copyWith(
         autoPlateNumber: autoPlateNumber,
         autoModelNumber: autoModelNumber,
@@ -87,7 +96,8 @@ class AutoMobile {
         autoID: autoID,
         autoLogistic: autoLogistic,
         autoAssigned: autoAssigned,
-        assignedTo: assignedTo
+        assignedTo: assignedTo,
+      autoAddedAt: autoAddedAt
 
     );
   }
@@ -106,8 +116,17 @@ class AutoMobile {
       'autoLogistic': autoLogistic,
       'autoAssigned': autoAssigned,
       'autoAddedAt': Timestamp.now(),
-      'assignedTo':assignedTo
+      'assignedTo':assignedTo,
+      'index':makeAutomobileIndex()
     };
+  }
+
+  List<String> makeAutomobileIndex(){
+    var temp = Utility.makeIndexList(autoPlateNumber);
+    temp.addAll(Utility.makeIndexList(autoType));
+    if(autoName.isNotEmpty)
+      temp.addAll(Utility.makeIndexList(autoName));
+    return temp;
   }
 
   static AutoMobile fromSnap(DocumentSnapshot snap) {
@@ -119,7 +138,10 @@ class AutoMobile {
         autoLogistic: snap.data['autoLogistic'],
         autoID: snap.documentID,
         autoAssigned: snap.data['autoAssigned'],
-        assignedTo: snap.data['assignedTo']);
+        assignedTo: snap.data['assignedTo'],
+        autoAddedAt: snap.data['autoAddedAt'],
+    );
+
   }
 
   static Map<String, AutoMobile> fromListSnap(List<DocumentSnapshot> snap) {

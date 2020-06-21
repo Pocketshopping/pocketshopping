@@ -83,11 +83,6 @@ class _AdminScreenState extends State<AdminScreen> {
         var payload = jsonDecode(data['data']['payload']);
         final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
-        //GetBar(title: 'tdsd',messageText: Text('sdsd'),
-        // duration: Duration(seconds: 5),
-        // ).show();
-        //print(payload['Items'].first['productName']);
-        print(message);
         processNotification(payload,notification);
 
       },

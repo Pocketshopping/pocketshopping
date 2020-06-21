@@ -129,7 +129,7 @@ class UserData extends Data {
     var document = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
-        .getDocuments();
+        .getDocuments(source: Source.server);
     if (document.documents.length > 0)
       return false;
     else
@@ -140,7 +140,7 @@ class UserData extends Data {
     var document = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
-        .getDocuments();
+        .getDocuments(source: Source.server);
     if (document.documents.length > 0)
       return document.documents;
     else

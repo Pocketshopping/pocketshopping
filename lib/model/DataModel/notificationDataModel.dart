@@ -47,7 +47,7 @@ class NotificationDataModel extends Data {
         .where('notificationReceiver', isEqualTo: user)
         .where('notificationCleared', isEqualTo: nCleared)
         .orderBy('notificationCreatedAt', descending: false)
-        .getDocuments();
+        .getDocuments(source: Source.server);
 
     return data.documents;
   }

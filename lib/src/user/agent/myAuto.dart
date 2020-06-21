@@ -593,12 +593,19 @@ class _MyAutoState extends State<MyAuto>{
 
                                                     }
                                                     else{
+
                                                       bool resultTwo;
                                                       bool resultThree;
+
+
+
                                                       var result =await  Utility.confirmDialogMaker('Are you sure you want to assign $assign to ${agentAcct.fname}');
                                                       //autos[assign]
                                                       if(result){
                                                         Get.back();
+                                                        if(_assigned.value != 'Unassign' ){
+                                                          await LogisticRepo.reAssignAutomobile(auto.autoID,"",isAssigned: false);
+                                                        }
                                                         Utility.bottomProgressLoader(title: 'Reassigning Agent',body: '...please wait');
                                                         bool resultOne = await LogisticRepo.updateAgent(agent.agentID, {
                                                           'autoAssigned':autos[assign].autoID,

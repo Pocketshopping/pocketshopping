@@ -13,32 +13,32 @@ class OrderRepo {
 
   static Future<String> save(Order order) async {
     DocumentReference bid;
-    bid = await databaseReference.collection("orders").add(order.toMap());
+    bid = await databaseReference.collection("orders").add(await order.toMap());
     await LogisticRepo.makeAgentBusy(order.agent);
     return bid.documentID;
   }
 
   static Future<List<Order>> get(
-      dynamic lastDoc, int OpenOrClose, String uid) async {
+      dynamic lastDoc, int openOrClose, String uid) async {
     var snap;
     if (lastDoc == null) {
       snap = await databaseReference
           .collection('orders')
           .orderBy('orderCreatedAt', descending: true)
           .where("customerID", isEqualTo: uid)
-          .where("status", isEqualTo: OpenOrClose)
+          .where("status", isEqualTo: openOrClose)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       snap = await databaseReference
           .collection('orders')
           .orderBy('orderCreatedAt', descending: true)
           .where("customerID", isEqualTo: uid)
-          .where("status", isEqualTo: OpenOrClose)
+          .where("status", isEqualTo: openOrClose)
           .startAfter(
               [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     }
 
     List<Order> orders = [];
@@ -61,7 +61,7 @@ class OrderRepo {
           .where("customerID", isEqualTo: uid)
           .where("status", isEqualTo: 1)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       snap = await databaseReference
           .collection('orders')
@@ -71,7 +71,7 @@ class OrderRepo {
           .startAfter(
           [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     }
 
     List<Order> orders = [];
@@ -101,7 +101,7 @@ class OrderRepo {
   }
 
   static Future<Order> getOne(String oid) async {
-    var doc = await databaseReference.collection("orders").document(oid).get();
+    var doc = await databaseReference.collection("orders").document(oid).get(source: Source.serverAndCache);
     return Order.fromEntity(OrderEntity.fromSnapshot(doc));
   }
 
@@ -118,27 +118,41 @@ class OrderRepo {
         .updateData({'status': 1});
   }
 
-  static Stream<List<Order>> agentOrder(String agentID, {int type=0}) async* {
+  static Stream<List<Order>> agentOrder(String agentID, {int type=0,String whose= 'agent'}) async* {
      yield* databaseReference
         .collection("orders")
-        .where('agent',isEqualTo: agentID)
+        .where('$whose',isEqualTo: agentID)
         .where('status',isEqualTo: type)
         .orderBy('orderCreatedAt',descending: true)
+        .limit(50)
          .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
 
     });
   }
 
-  static Stream<int> agentTodayOrder(String agentID) async* {
+  static Stream<List<Order>> searchAgentOrder(String agentID,String keyword, {int type=0,String whose= 'agent'}) async* {
     yield* databaseReference
         .collection("orders")
-        .where('agent',isEqualTo: agentID)
+        .where('$whose',isEqualTo: agentID)
+        .where('status',isEqualTo: type)
+        .orderBy('orderCreatedAt',descending: true)
+        .where('index',arrayContains: keyword)
+        .limit(50)
+        .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+
+    });
+  }
+
+  static Stream<int> agentTodayOrder(String agentID,{String whose= 'agent'}) async* {
+    yield* databaseReference
+        .collection("orders")
+        .where('$whose',isEqualTo: agentID)
         .where('orderCreatedAt',isGreaterThanOrEqualTo: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))
         .orderBy('orderCreatedAt',descending: true)
         .snapshots().map((event) => event.documents.length);
   }
 
-  static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc) async {
+  static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc,{String whose= 'agent'}) async {
     List<Order> tmp = List();
     print(lastDoc);
     var document;
@@ -148,28 +162,30 @@ class OrderRepo {
           .collection('orders')
           //.orderBy('status',descending: true)
           .orderBy('orderCreatedAt',descending: true)
-          .where('agent',isEqualTo: agentID)
+          .where('$whose',isEqualTo: agentID)
           .where('status',isEqualTo: 1)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       document = await Firestore.instance
           .collection('orders')
           //.orderBy('status',descending: true)
           .orderBy('orderCreatedAt',descending: true)
-          .where('agent',isEqualTo: agentID)
+          .where('$whose',isEqualTo: agentID)
           .where('status',isEqualTo: 1)
           .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     }
     //tmp.clear();
     document.documents.forEach((element) {
       tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
     });
-    print('dgdg: ${tmp.length}');
     return tmp;
   }
+
+
+
 
 
 

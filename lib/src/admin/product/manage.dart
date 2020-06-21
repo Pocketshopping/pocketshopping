@@ -147,7 +147,7 @@ class _ManageProductState extends State<ManageProduct> {
                     });
                   }
                   else{
-                    ProductRepo.SearchProduct(widget.user.merchant.mID, null,value.trim()).then((result) {
+                    ProductRepo.searchProduct(widget.user.merchant.mID, null,value.trim()).then((result) {
 
                       if(mounted)
                         setState((){
@@ -186,7 +186,8 @@ class _ManageProductState extends State<ManageProduct> {
                     child: LoadMore(
                       isFinish: _finish,
                       onLoadMore: _loadMore,
-                      child: ListView.builder(
+                      child: ListView.separated(
+                        separatorBuilder: (_,i){return const Divider(thickness: 1,);},
                         itemBuilder: (BuildContext context, int index) {
                           return ListTile(
                             onTap: (){
@@ -223,6 +224,7 @@ class _ManageProductState extends State<ManageProduct> {
                                 )
                               ],
                             ),
+                            trailing:  Icon(Icons.arrow_forward_ios),
                           );
                         },
                         itemCount: count,
@@ -301,7 +303,7 @@ class _ManageProductState extends State<ManageProduct> {
                     child: FlatButton.icon(
                         onPressed: (){
                           Get.to(admin.AddProduct(session: widget.user,)).then((value) {
-                            if (value == 'Refresh')
+
                               _refresh();
                           });
                         },

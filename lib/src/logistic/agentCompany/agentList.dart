@@ -11,6 +11,7 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/editProduct.dart';
+import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentTracker.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
@@ -26,7 +27,8 @@ class AgentList extends StatefulWidget {
   final Session user;
   final int callBckActionType;
   final String title;
-  AgentList({this.user,this.callBckActionType=1,this.title});
+  final int route;
+  AgentList({this.user,this.callBckActionType=1,this.title,this.route=0});
   @override
   _AgentListState createState() => new _AgentListState();
 }
@@ -203,15 +205,11 @@ class _AgentListState extends State<AgentList> {
                     child: LoadMore(
                       isFinish: _finish,
                       onLoadMore: _loadMore,
-                      child: ListView.builder(
+                      child: ListView.separated(
+                        separatorBuilder: (_,i){return const Divider(thickness: 1,);},
                         itemBuilder: (BuildContext context, int index) {
 
-                          return Column(
-                            children: [
-                              uiType(list[index]),
-                              const Divider(thickness: 1,),
-                            ],
-                          );
+                          return uiType(list[index]);
                         },
                         itemCount: count,
                       ),
@@ -278,6 +276,32 @@ class _AgentListState extends State<AgentList> {
                   ),
                 )
             ),
+            if(widget.route>0)
+            Expanded(
+              flex: 0,
+              child: Container(
+                color: PRIMARYCOLOR,
+                child:Padding(
+                    padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
+                    child: Center(
+                      child: FlatButton.icon(
+                        color: PRIMARYCOLOR,
+                        onPressed: (){
+                          Get.to(
+                              AgentForm(
+                                session: widget.user,
+                              )
+                          ).then((value) {
+                            _refresh();
+                          });
+                        },
+                        icon: Icon(Icons.add,color: Colors.white,),
+                        label: Text('New Agent',style: TextStyle(color: Colors.white),),
+                      ),
+                    )
+                ),
+              ),
+            )
           ],
         )
     );
@@ -371,7 +395,8 @@ class Tracker extends StatelessWidget{
                 ],
               )
           ],
-        )
+        ),
+      trailing:  Icon(Icons.arrow_forward_ios),
     );
   }
 }
@@ -449,7 +474,7 @@ class Clearance extends StatelessWidget{
                                                 backgroundColor: PRIMARYCOLOR,
                                                 duration: Duration(seconds: 5),
                                               ).show();
-                                              confirmClearanceNotifier((data as AgentLocUp).device).then((value) => null);
+                                              clearanceNotifier((data as AgentLocUp).device).then((value) => null);
                                             }
                                             else{
                                               Get.back();
@@ -484,7 +509,58 @@ class Clearance extends StatelessWidget{
                               ],
                             )
                             :
-                            const SizedBox.shrink(),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: PRIMARYCOLOR
+                                    .withOpacity(0.5)),
+                            color:
+                            PRIMARYCOLOR.withOpacity(0.8),
+                          ),
+                          child: FlatButton(
+                            onPressed: () {
+
+                                if(remit.data['total']>0.0){
+                                  Get.back();
+                                  Utility.bottomProgressLoader(body: 'Generating clearaance code.. please wait');
+                                  LogisticRepo.getRemittance((data as AgentLocUp).wallet,limit: remit.data['total'].round()).then((value)
+                                  {
+                                    Get.back();
+                                  GetBar(title: 'Clearance Code Generated',
+                                    messageText: Text( 'Notification has been sent to the agent ',style: TextStyle(color: Colors.white),),
+                                    backgroundColor: PRIMARYCOLOR,
+                                    snackStyle: SnackStyle.GROUNDED,
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    duration: const Duration(seconds: 5),
+                                  ).show();
+                                    clearanceNotifier((data as AgentLocUp).device,
+                                        title: 'Pending Clearance',
+                                    body: 'You have a pending clearance. Head to office for clearance',
+                                      notificationID: 'PendingRemittanceNotification'
+                                    ).then((value) => null);
+                                  });
+                                }
+                                else{
+                                  Get.back();
+                                  GetBar(title: 'Error Generating Clearance',
+                                    messageText: Text( 'Cash total is ${CURRENCY}0.0 ',style: TextStyle(color: Colors.white),),
+                                    backgroundColor: PRIMARYCOLOR,
+                                    snackStyle: SnackStyle.GROUNDED,
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    duration: const Duration(seconds: 3),
+                                  ).show();
+                                }
+
+
+                            },
+                            child: Center(
+                                child: Text(
+                                 "Generate Clearance",
+                                  style: TextStyle(
+                                      color: Colors.white),
+                                )),
+                          ),
+                        )
 
 
                       ],
@@ -530,7 +606,8 @@ class Clearance extends StatelessWidget{
                     ],
                   )
                 ],
-              )
+              ),
+            trailing:  Icon(Icons.arrow_forward_ios),
           );
         }
         else{
@@ -557,7 +634,9 @@ class Clearance extends StatelessWidget{
     );
   }
 
-   Future<void> confirmClearanceNotifier(String to) async {
+   Future<void> clearanceNotifier(String to,{String title='Cleared',
+   String body='Hello. you habe been cleared by the admin. you can now proceed with excuting delivery, Thank you',
+   String notificationID= 'clearanceConfirmationResponse'}) async {
      //print('team meeting');
      await FirebaseMessaging().requestNotificationPermissions(
        const IosNotificationSettings(
@@ -570,8 +649,8 @@ class Clearance extends StatelessWidget{
          },
          body: jsonEncode(<String, dynamic>{
            'notification': <String, dynamic>{
-             'body': 'Hello. you habe been cleared by the admin. you can now proceed with excuting delivery, Thank you',
-             'title': 'Cleared'
+             'body': '$body',
+             'title': '$title'
            },
            'priority': 'high',
            'data': <String, dynamic>{
@@ -579,7 +658,7 @@ class Clearance extends StatelessWidget{
              'id': '1',
              'status': 'done',
              'payload': {
-               'NotificationType': 'clearanceConfirmationResponse',
+               'NotificationType': '$notificationID',
              }
            },
            'to': to,
@@ -643,7 +722,8 @@ class Manage extends StatelessWidget{
                 ],
               )
           ],
-        )
+        ),
+        trailing:  Icon(Icons.arrow_forward_ios),
     );
     }
     else{

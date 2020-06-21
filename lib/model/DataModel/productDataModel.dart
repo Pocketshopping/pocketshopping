@@ -101,7 +101,7 @@ class ProductDataModel extends Data {
   @override
   Future<Map<String, dynamic>> getOne() async {
     var document =
-        await Firestore.instance.collection('products').document(pID).get();
+        await Firestore.instance.collection('products').document(pID).get(source: Source.server);
 
     return document.data;
   }
@@ -111,7 +111,7 @@ class ProductDataModel extends Data {
     var document = await Firestore.instance
         .collection('products')
         .where('productMerchant', isEqualTo: businessRef)
-        .getDocuments();
+        .getDocuments(source: Source.server);
 
     return document.documents.length;
   }
@@ -122,7 +122,7 @@ class ProductDataModel extends Data {
         .collection('productsCategory')
         .where('productCategory', isGreaterThanOrEqualTo: pCategory)
         .where('productCategory', isLessThan: pCategory + 'z')
-        .getDocuments();
+        .getDocuments(source: Source.server);
     document.documents.forEach((element) {
       suggestion.add(element.documentID);
     });

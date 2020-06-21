@@ -17,7 +17,7 @@ class CategoryRepo {
     var docs = await databaseReference
         .collection("categories")
         .orderBy('categoryView', descending: true)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     docs.documents.forEach((element) {
       categories
           .add(MCategory.fromEntity(MCategoryEntity.fromSnapshot(element)));
@@ -41,7 +41,7 @@ class CategoryRepo {
         .collection("delivery")
         .orderBy('sort')
         .where('enable', isEqualTo: true)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     docs.documents.forEach((element) {
       options.add(element.data['key']);
     });

@@ -122,7 +122,7 @@ class MerchantDataModel extends Data {
         Map<String, dynamic> collection = Map();
         collection.addAll(document.data);
 
-        var temp = await document.data['merchant'].get();
+        var temp = await document.data['merchant'].get(source: Source.server);
         collection.putIfAbsent('merchantID', () => temp.documentID);
         collection.addAll(temp.data);
         return collection;
@@ -148,7 +148,7 @@ class MerchantDataModel extends Data {
             isEqualTo: databaseReference.document('merchants/' + mid))
         .where('isBranch', isEqualTo: true)
         .where('branchUnique', isEqualTo: branchName)
-        .getDocuments();
+        .getDocuments(source: Source.server);
 
     if (document.documents.length > 0)
       return false;
@@ -161,7 +161,7 @@ class MerchantDataModel extends Data {
     var document = await Firestore.instance
         .collection('merchants')
         .where('uid', isEqualTo: uid)
-        .getDocuments();
+        .getDocuments(source: Source.server);
 
     return document.documents[0].data;
   }
@@ -170,7 +170,7 @@ class MerchantDataModel extends Data {
     var document = await Firestore.instance
         .collection('merchants')
         .where('businessID', isEqualTo: bID)
-        .getDocuments();
+        .getDocuments(source: Source.server);
 
     if (document.documents.length > 0) {
       Map<String, dynamic> doc = document.documents[0].data;
@@ -182,7 +182,7 @@ class MerchantDataModel extends Data {
 
   Future<DocumentSnapshot> getAnyOneUsingID(String mid) async {
     var document =
-        await Firestore.instance.collection('merchants').document(mid).get();
+        await Firestore.instance.collection('merchants').document(mid).get(source: Source.server);
     return document;
   }
 
@@ -193,7 +193,7 @@ class MerchantDataModel extends Data {
             isEqualTo: databaseReference.document('merchants/' + mid))
         .where('isBranch', isEqualTo: true)
         .orderBy('businessCreatedAt', descending: false)
-        .getDocuments();
+        .getDocuments(source: Source.server);
 
     if (document.documents.length > 0) {
       return document.documents;

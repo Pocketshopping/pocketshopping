@@ -19,10 +19,15 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/repository/order.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
 import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -33,8 +38,7 @@ import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/widget/account.dart';
 import 'package:pocketshopping/widget/reviews.dart';
 import 'package:pocketshopping/widget/status.dart';
-
-import 'file:///C:/dev/others/pocketshopping/lib/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
+import 'package:pocketshopping/src/customerCare/customerCare.dart';
 
 class LogisticDashBoardScreen extends StatefulWidget {
   LogisticDashBoardScreen();
@@ -54,6 +58,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
   Wallet _wallet;
   final _agentNotifier = ValueNotifier<int>(0);
   final _isOperationalNotifier = ValueNotifier<bool>(true);
+  final _orderNotifier = ValueNotifier<List<Order>>([]);
+  StreamSubscription orders;
 
   @override
   void initState() {
@@ -62,6 +68,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     _notificationsStream.listen((notification) {
       showBottom();
     });
+
+    _isOperationalNotifier.value=currentUser.merchant.bStatus==1?true:false;
 
     WalletRepo.getWallet(currentUser.user.walletId)
         .then((value) => WalletBloc.instance.newWallet(value));
@@ -72,6 +80,16 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
         setState(() {});
       }
     });
+
+    orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
+      if(mounted)
+      {
+        _orderNotifier.value=[];
+        _orderNotifier.value=event;
+      }
+      OrderBloc.instance.newOrder(event);
+    });
+
 
     LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {
 
@@ -93,11 +111,12 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     _notificationsStream = null;
     _walletStream = null;
     iosSubscription?.cancel();
+    orders?.cancel();
     super.dispose();
   }
 
   void reloadMerchant(){
-    MerchantRepo.getMerchant(currentUser.merchant.mID).then((value) => setState((){currentUser=currentUser.copyWith(merchant: value);}));
+    BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
 
   @override
@@ -201,8 +220,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                           ),
                                           child: FlatButton(
                                             onPressed: () => {
-                                              sendAndRetrieveMessage()
-                                                  .then((value) => null)
+
                                             },
                                             child: Center(
                                                 child: Text(
@@ -259,8 +277,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                           ),
                                           child: FlatButton(
                                             onPressed: () => {
-                                              sendAndRetrieveMessage()
-                                                  .then((value) => null)
+
                                             },
                                             child: Center(
                                                 child: Text(
@@ -360,6 +377,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                   ValueListenableBuilder(
                       valueListenable: _isOperationalNotifier,
                       builder: (_,available,__){
+                        print(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose));
                         return GestureDetector(
                           onTap: (){},
                           child: Container(
@@ -374,22 +392,26 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                 ),
                               ],
                             ),
-                            child: Column(
+                            child: Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose)?
+                            Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text('We are currently '
-                                    '${available?'Operational':'Unoperational'}',
+                                    '${available?'Available':'Unavailable'}',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: Colors.white),),
                                 FlatButton(
                                   onPressed: ()async{
-                                    /*bool change =!available;
-                                    bool result = await LocRepo.updateAvailability(currentUser.agent.agentID, change);
-                                    if(!(change == result))
+                                    bool change =!available;
+                                    bool result = await  MerchantRepo.update(currentUser.merchant.mID,{'businessStatus':change?1:0});
+
+                                    if(!result)
                                       GetBar(title: 'Error changing your status please try again');
-                                    else
-                                      _isAvailableNotifier.value = result;*/
+                                    else {
+                                      _isOperationalNotifier.value = change;
+                                      BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
+                                    }
                                   },
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
@@ -398,6 +420,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                   color: Colors.white.withOpacity(0.5),
                                 )
                               ],
+                            ):Center(
+                              child: Text('Business is Closed for today',style: TextStyle(color: Colors.white),textAlign: TextAlign.center,),
                             ),
                           ),
                         );
@@ -433,18 +457,23 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                 SliverGrid.count(
                   crossAxisCount: 3,
                   children: [
-                    MenuItem(
-                      gridHeight,
-                      Icon(MaterialIcons.local_pizza,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Deliveries',
-                      border: PRIMARYCOLOR,
-                      isBadged: false,
-                      isMultiMenu: false,
-                      openCount: 3,
-                      content: Reviews(themeColor: PRIMARYCOLOR),
-                    ),
+                    ValueListenableBuilder(
+                        valueListenable: _orderNotifier,
+                        builder: (_, orders,__){
+                          return
+                            MenuItem(
+                              gridHeight,
+                              Icon(MaterialIcons.local_pizza,
+                                  size: MediaQuery.of(context).size.width * 0.12,
+                                  color: PRIMARYCOLOR.withOpacity(0.8)),
+                              'Deliveries',
+                              border: PRIMARYCOLOR,
+                              isBadged: true,
+                              isMultiMenu: false,
+                              openCount: orders.length,
+                              content: MyDelivery(orders: orders,user: currentUser,),
+                            );
+                        }),
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,
@@ -473,9 +502,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
-                      content: VehicleBottomPage(
-                        session: currentUser,
-                      ),
+                      isMultiMenu: false,
+                      content: AutomobileList(user: currentUser,title: 'My Automobile',callBckActionType: 1,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -484,9 +512,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Agent(s)',
                       border: PRIMARYCOLOR,
-                      content: AgentBottomPage(
-                        session: currentUser,
-                      ),
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,title: 'Manage Agent(s)',callBckActionType: 3,route: 1,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -523,6 +550,15 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: RequestPocketSense(user: currentUser,),
+                    ),MenuItem(
+                      gridHeight,
+                      Icon(Icons.add_call,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Customer Care',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: CustomerCare(session: currentUser,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -548,41 +584,5 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                 )),
               ],
             )));
-  }
-
-  Future<void> sendAndRetrieveMessage() async {
-    print('team meeting');
-    await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
-    );
-    var response = await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'notification': <String, dynamic>{
-            'body': 'big body',
-            'title': 'titler'
-          },
-          'priority': 'high',
-          'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done',
-            'payload': ['route', 'heart']
-          },
-          'registration_ids': [
-            'dI7Jp8onQPi2icNicdNqMU:APA91bFUZEsW-z2Vo5dMjeyqd2mY3No20gmCBoCZZkeKD58fzBKnAEehiZvTmYuYVNwUKSvozpUuCZadGvBrN2HdoXlY6BsCsblf0QaF10fBmxuJrKz1OB4NbpG9i5r8ABLdUON2wUqg',
-            'cjFv_dGURZGxSJnBnHL3YU:APA91bECZPoh-OPVxk9QMkieFLXu9TBOKAw2MkfRmBkp8aOeMhnEtc_f7kgSxJCX5GNkV75300HLebhpLQ-vYn_VVwi1fMm9IMvwqfJlx3HPFewM4L56j24xklA8JP9qQaq6ooi_xxoZ'
-          ],
-        }));
-
-    if (response.statusCode == 200) {
-      print("Notification send !");
-    } else {
-      print("false");
-    }
   }
 }

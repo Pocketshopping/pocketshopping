@@ -9,6 +9,7 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/deliveryTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -25,27 +26,31 @@ class ActiveOrder extends StatefulWidget {
 class _ActiveOrderState extends State<ActiveOrder> {
   int get count => list.length;
 
+  final _search = TextEditingController();
   List<Order> list = [];
   bool _finish;
   bool loading;
   bool empty;
   Stream<List<Order>> _orderStream;
   OrderGlobalState odState;
+  bool searchStarted;
 
   void initState() {
     _finish = true;
+    searchStarted= false;
     loading =false;//list.isEmpty;
     empty = list.isEmpty;
     _orderStream = OrderBloc.instance.orderStream;
     _orderStream.listen((orders) {
-
       if(mounted) {
-        list.clear();
-        setState(() {
-          if (!list.contains(orders))
-            list.addAll(orders);
-          empty = list.isEmpty;
-        });
+        //if(searchStarted) {
+          list.clear();
+          setState(() {
+            if (!list.contains(orders))
+              list.addAll(orders);
+            empty = list.isEmpty;
+          });
+       // }
       }
     });
     try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
@@ -67,7 +72,54 @@ class _ActiveOrderState extends State<ActiveOrder> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-        body: Column(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(
+              MediaQuery.of(context).size.height *
+                  0.09),
+          child: AppBar(
+            elevation: 0.0,
+            backgroundColor: Colors.white,
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(
+                    MediaQuery.of(context).size.height *
+                        0.09),
+                child: widget.user.agent  == null ?Container(
+                    child: TextFormField(
+                      controller: _search,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        hintText: 'Search open orders',
+                        filled: true,
+                        fillColor: Colors.grey.withOpacity(0.2),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                        ),
+                      ),
+                      autofocus: false,
+                      enableSuggestions: true,
+                      textInputAction: TextInputAction.done,
+                      onChanged: (value) {
+                        if(value.length > 0 )
+                          setState(() {searchStarted = true; });
+                        else
+                          {
+                            _refresh();
+                            setState(() {searchStarted = false; });
+                          }
+
+
+                      }
+                    )
+
+                ):const SizedBox.shrink(),
+
+              )
+          ),
+        ),
+        body: !searchStarted?Column(
           children: [
             Expanded(
                 flex:3,
@@ -149,7 +201,72 @@ class _ActiveOrderState extends State<ActiveOrder> {
             ),
 
           ],
-        )
+        ):StreamBuilder<List<Order>>(
+            stream: OrderRepo.searchAgentOrder(widget.user.merchant.mID,_search.text,whose: 'orderLogistic'),
+            builder: (BuildContext context, AsyncSnapshot<List<Order>> snapshot) {
+              if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+              switch (snapshot.connectionState) {
+                case ConnectionState.waiting:
+                  return Center(
+                    child: JumpingDotsProgressIndicator(
+                      fontSize: MediaQuery.of(context).size.height * 0.12,
+                      color: PRIMARYCOLOR,
+                    ),
+                  );
+                default:
+                  return snapshot.data.isNotEmpty?Container(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ListView.separated(
+                          shrinkWrap: true,
+                          padding: EdgeInsets.all(10.0),
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (context, index) {
+                            return SingleOrder(order: snapshot.data[index],user: widget.user,refresh: _refresh,);
+                            //return buildUserRow(snapshot.data.documents[index]);
+                          },
+                          separatorBuilder: (context, index) {
+                            return Divider();
+                          },
+                        ),
+                      ],
+                    ),
+                  ):ListTile(
+                    title: Image.asset('assets/images/empty.gif'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Center(
+                          child: Text(
+                            'Empty',
+                            style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.height * 0.06),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: Text(
+                                  "No Such Order",
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+              }
+            })
     );
   }
 
@@ -183,7 +300,7 @@ class _SingleOrderState extends State<SingleOrder> {
   void initState() {
     try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
     _start =isNotEmpty(widget.order.docID)?Utility.setStartCount(getItem("eDelayTime",widget.order.docID), (getItem("eMoreSec",widget.order.docID)*60)) : Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
-    MerchantRepo.getMerchant(widget.order.orderMerchant).then((value) => setState((){merchant=value;}));
+    MerchantRepo.getMerchant(widget.order.orderMerchant).then((value) { if(mounted)setState((){merchant=value;});});
     startTimer();
     super.initState();
   }
@@ -230,11 +347,17 @@ class _SingleOrderState extends State<SingleOrder> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              Text("N${
+              Text("$CURRENCY${
               widget.order.orderAmount
               }")
             ],
           ),
+          if(widget.user.agent == null)
+          Row(
+            children: [
+              Text('Agent: ${widget.order.orderMode.deliveryMan}')
+            ],
+          )
 
         ],
       ),

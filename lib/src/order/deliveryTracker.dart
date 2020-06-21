@@ -11,7 +11,10 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/customerMapTracker.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
@@ -336,6 +339,89 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                         ),
                       )
                    ):Container(),
+                  if(widget.user.uid != _order.agent)
+                  FutureBuilder<AgentLocUp>(
+                    future: LogisticRepo.getOneAgentLocationUsingUid((_order.agent)),
+                    initialData: null,
+                    builder: (_, AsyncSnapshot<AgentLocUp> agent){
+                      if(agent.hasData){
+                        return psHeadlessCard(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey,
+                                //offset: Offset(1.0, 0), //(x,y)
+                                blurRadius: 6.0,
+                              ),
+                            ],
+                            child: Column(
+                                children: <Widget>[
+                                  Container(
+                                      decoration: BoxDecoration(
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              //                   <--- left side
+                                              color: Colors.black12,
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          color: PRIMARYCOLOR),
+                                      padding: EdgeInsets.all(
+                                          MediaQuery.of(context).size.width * 0.02),
+                                      child:const Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: const Text(
+                                          'Delivery Agent',
+                                          style: const TextStyle(color: Colors.white),
+                                        ),
+                                      )
+                                  ),
+                                  Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(
+                                          MediaQuery.of(context).size.width * 0.02),
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '${agent.data.agentName}',
+                                          style: const TextStyle(color: Colors.black,fontSize: 18),
+                                        ),
+                                      )
+                                  ),
+                                  Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(
+                                          MediaQuery.of(context).size.width * 0.02),
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '${agent.data.agentTelephone}',
+                                          style: const TextStyle(color: Colors.black,fontSize: 18),
+                                        ),
+                                      )
+                                  ),
+                                ]
+                            )
+                        );
+                      }
+                      else{return const SizedBox.shrink();}
+                    },
+                  ),
                   psHeadlessCard(
                     boxShadow: [
                       BoxShadow(
@@ -452,8 +538,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 Expanded(
                                   child: FlatButton.icon(
                                       onPressed: (){
-                                        print(_order.orderMode.coordinate.latitude);
                                         Get.to(
+                                            (widget.user.uid == _order.agent)?
                                             Direction(
                                               source: LatLng(merchant.bGeoPoint['geopoint']
                                                   .latitude,
@@ -470,7 +556,12 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                               sourceName: merchant.bName,
                                               sourceAddress: merchant.bAddress,
                                               sourcePhoto: merchant.bPhoto,
-                                            )
+                                            ):
+                                                CustomerMapTracker(
+                                                  latLng: LatLng(_order.orderMode.coordinate.latitude,_order.orderMode.coordinate.longitude,),
+                                                  customerName: _order.orderCustomer.customerName,
+                                                  telephone: _order.orderCustomer.customerTelephone
+                                                  ,)
                                         );
                                       },
                                       color: Colors.green,
@@ -669,9 +760,9 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                   child: FlatButton.icon(
                                       onPressed: (){
                                         Get.to(
+                                            (widget.user.uid == _order.agent)?
                                             Direction(
-                                              source: LatLng(merchant.bGeoPoint['geopoint']
-                                                  .latitude,
+                                              source: LatLng(merchant.bGeoPoint['geopoint'].latitude,
                                                   merchant.bGeoPoint['geopoint']
                                                       .longitude
                                               ),
@@ -687,7 +778,15 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                               sourceName: widget.user.fname,
                                               sourceAddress: widget.user.defaultAddress,
                                               sourcePhoto: widget.user.profile,
-                                            )
+                                            ):
+                                                CustomerMapTracker(
+                                                  latLng: LatLng(merchant.bGeoPoint['geopoint'].latitude,
+                                                      merchant.bGeoPoint['geopoint']
+                                                          .longitude
+                                                  ),
+                                                  customerName: merchant.bName,
+                                                )
+
                                         );
                                       },
                                       color: Colors.green,
@@ -915,7 +1014,9 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 {
                                   Get.back();
                                   var result = cancel(_order.docID,
-                                      Receipt.fromMap(_order.receipt.copyWith(psStatus: "fail",pRef: reason).toMap()));
+                                      Receipt.fromMap(_order.receipt.copyWith(psStatus: "fail",
+                                          pRef: '"$reason" order was cancelled by ${widget.user.fname}('
+                                              '${(widget.user.uid == _order.agent)?'Agent':'Logistic'})').toMap()));
                                   if(result)
                                     await cancelOrder(customer.notificationID, _order.docID, reason);
 
@@ -1004,7 +1105,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
   Widget Resolution() {
     switch (resolution) {
       case 'START':
-        return Container(
+        return (widget.user.uid == _order.agent) ? Container(
           //padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
             child: psHeadlessCard(
                 boxShadow: [
@@ -1120,12 +1221,19 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                           ),
                         )
                       ],
-                    ):Container()
+                    )
+                        :Container()
                   ],
                 )
                 )
               )
-            );
+            ):Padding(
+          padding: EdgeInsets.symmetric(horizontal: 15),
+          child: Center(
+            child: Text('Order has not been delivered by your agent. Contact your agent to confirm what holding him/her.',
+              textAlign: TextAlign.center,style: TextStyle(fontSize: 16,color: Colors.red),),
+          )
+        );
         break;
         case "WAIT":
           startTimer();
@@ -1188,7 +1296,9 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
           : Container();
     } else {
       return !rating
-          ? Container(
+          ?
+      (widget.user.uid == _order.agent)?
+      Container(
           child: psHeadlessCard(
               boxShadow: [
                 BoxShadow(
@@ -1287,7 +1397,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                     child: Text('Your review is very important to us.'),
                   ),
                 ],
-              )))
+              ))):const SizedBox.shrink()
           : Center(
         child: JumpingDotsProgressIndicator(
           fontSize: MediaQuery.of(context).size.height * 0.12,
@@ -1323,7 +1433,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
 
   bool cancel(String oid,Receipt receipt) {
     bool isDone = true;
-    OrderRepo.cancel(oid,receipt,widget.user.uid).catchError((onError) {
+    OrderRepo.cancel(oid,receipt,_order.agent).catchError((onError) {
       isDone = false;
     });
 
@@ -1339,6 +1449,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
         duration: Duration(seconds: 10),
         backgroundColor: PRIMARYCOLOR,
       ).show();
+      if(widget.user.uid != _order.agent)
+      agentCancellationNotifier(_order.agent);
     }
 
     return isDone;
@@ -1350,7 +1462,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     int unit = (_order.orderMode.fee * 0.1).round();
     Geolocator().distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
         _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude).then((value) {
-      OrderRepo.confirm(oid, confirmation,receipt,widget.user.uid,
+      OrderRepo.confirm(oid, confirmation,receipt,_order.agent,
         _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
         isDone = false;
       });
@@ -1390,7 +1502,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
           'notification': <String, dynamic>{
             'body': 'Your order has been cancelled '
                 'by the agent (reason: $reason}). ${_order.receipt.type != 'CASH'?'Please Note. your money has been refunded to your wallet':''}',
-            'title': 'Order Canelled'
+            'title': 'Order Cancelled'
           },
           'priority': 'high',
           'data': <String, dynamic>{
@@ -1405,6 +1517,36 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
             }
           },
           'to': fcm,
+        }));
+  }
+
+  Future<void> agentCancellationNotifier(String agentId) async {
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),
+
+    );
+    var agent = await LogisticRepo.getOneAgentLocationUsingUid(agentId);
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Order has been Cancelled by the office. Check you dashboard for details',
+            'title': 'Order Cancelled'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'agentCancellationNotifier',
+              'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
+            }
+          },
+          'to': agent.device,
         }));
   }
 

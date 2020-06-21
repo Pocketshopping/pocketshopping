@@ -25,6 +25,7 @@ class OrderEntity extends Equatable {
   final Confirmation orderConfirmation;
   final String customerID;
   final String agent;
+  final String orderLogistic;
 
   const OrderEntity(
       this.orderItem,
@@ -40,7 +41,8 @@ class OrderEntity extends Equatable {
       this.docID,
       this.orderConfirmation,
       this.customerID,
-      this.agent
+      this.agent,
+      this.orderLogistic,
       );
 
   Map<String, Object> toJson() {
@@ -58,7 +60,8 @@ class OrderEntity extends Equatable {
       'docID': docID,
       'orderConfirmation': orderConfirmation,
       'customerID': customerID,
-      'agent':agent
+      'agent':agent,
+      'orderLogistic':orderLogistic
     };
   }
 
@@ -78,6 +81,7 @@ class OrderEntity extends Equatable {
         orderConfirmation,
         customerID,
         agent,
+        orderLogistic
       ];
 
   @override
@@ -100,7 +104,8 @@ class OrderEntity extends Equatable {
         json['docID'] as String,
         json['orderConfirmation'] as Confirmation,
         json['customerID'] as String,
-        json['agent'] as String
+        json['agent'] as String,
+        json['orderLogistic'] as String
     );
   }
 
@@ -121,6 +126,7 @@ class OrderEntity extends Equatable {
         Confirmation.fromMap(snap.data['orderConfirmation']),
         snap.data['customerID'],
         snap.data['agent'],
+        snap.data['orderLogistic'],
     );
   }
 
@@ -146,6 +152,7 @@ class OrderEntity extends Equatable {
       'orderConfirmation': orderConfirmation,
       'customerID': customerID,
       'agent':agent,
+      'orderLogistic':orderLogistic
     };
   }
 }

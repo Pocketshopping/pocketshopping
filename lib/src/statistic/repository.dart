@@ -85,7 +85,7 @@ class StatisticRepo {
 
   static Future<AgentStatistic> getAgentStatistic(String agent) async {
     DocumentSnapshot doc;
-    doc = await databaseReference.collection("agentStatistic").document(agent).get();
+    doc = await databaseReference.collection("agentStatistic").document(agent).get(source: Source.serverAndCache);
     return doc.exists?AgentStatistic.fromSnapshot(doc):null;
   }
 

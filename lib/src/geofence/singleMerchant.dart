@@ -51,7 +51,7 @@ class _MerchantUIState extends State<MerchantUI> {
   String selectedCategory;
   bool searchMode;
   int track;
-  int OrderCount;
+  int orderCount;
   StreamSubscription<loc.LocationData> geoStream;
   Position position;
   double dist;
@@ -69,7 +69,7 @@ class _MerchantUIState extends State<MerchantUI> {
     track = 0;
     cart = List();
     location = new loc.Location();
-    OrderCount = 1;
+    orderCount = 1;
     position = widget.initPosition;
     CloudFunctions.instance
         .getHttpsCallable(

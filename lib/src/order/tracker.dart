@@ -10,6 +10,8 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
@@ -912,6 +914,79 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                     ],
                                   )),
                             ])),
+                        FutureBuilder<List<CustomerCareLine>>(
+                          future: CustomerCareRepo.fetchCustomerCareLine((_order.orderMode.mode=='Delivery'?_order.orderLogistic:_order.orderMerchant)),
+                          initialData: null,
+                          builder: (_, AsyncSnapshot<List<CustomerCareLine>> customerCare){
+                            if(customerCare.hasData){
+                              return psHeadlessCard(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey,
+                                      //offset: Offset(1.0, 0), //(x,y)
+                                      blurRadius: 6.0,
+                                    ),
+                                  ],
+                                  child: Column(
+                                      children: <Widget>[
+                                        Container(
+                                            decoration: BoxDecoration(
+                                                border: Border(
+                                                  bottom: BorderSide(
+                                                    //                   <--- left side
+                                                    color: Colors.black12,
+                                                    width: 1.0,
+                                                  ),
+                                                ),
+                                                color: PRIMARYCOLOR),
+                                            padding: EdgeInsets.all(
+                                                MediaQuery.of(context).size.width * 0.02),
+                                            child:const Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: const Text(
+                                                'Customer care line',
+                                                style: const TextStyle(color: Colors.white),
+                                              ),
+                                            )
+                                        ),
+                                        Column(
+                                          children:List<Widget>.generate(customerCare.data.length, (index) {
+                                            return Container(
+                                                decoration: BoxDecoration(
+                                                  border: Border(
+                                                    bottom: BorderSide(
+                                                      //                   <--- left side
+                                                      color: Colors.black12,
+                                                      width: 1.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                padding: EdgeInsets.all(
+                                                    MediaQuery.of(context).size.width * 0.02),
+                                                child: Align(
+                                                    alignment: Alignment.center,
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text('${customerCare.data[index].name}'),
+                                                        ),
+                                                        Expanded(
+                                                          child: Text('${customerCare.data[index].number}')
+                                                        )
+                                                      ],
+                                                    )
+                                                )
+                                            );
+                                          }).toList()
+                                        )
+
+                                      ]
+                                  )
+                              );
+                            }
+                            else{return const SizedBox.shrink();}
+                          },
+                        ),
                         psHeadlessCard(
                             boxShadow: [
                               BoxShadow(

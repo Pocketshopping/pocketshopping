@@ -108,16 +108,16 @@ class UserRepo {
     User user;
     Agent agent;
     Staff staff;
-    var doc = await Firestore.instance.collection('users').document(uid).get();
+    var doc = await Firestore.instance.collection('users').document(uid).get(source: Source.serverAndCache);
     user = User.fromEntity(UserEntity.fromSnapshot(doc));
 
     if (user.role == 'admin' || user.role == 'staff') {
-      var temp = await user.bid.get();
+      var temp = await user.bid.get(source: Source.serverAndCache);
       merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(temp));
       var _agent = await Firestore.instance
           .collection('agent')
           .where('agent', isEqualTo: uid)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
       if (_agent.documents.length > 0)
         agent = Agent.fromSnap(_agent.documents[0]);
     }
@@ -144,7 +144,7 @@ class UserRepo {
     var document = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     if (document.documents.length > 0)
       return false;
     else
@@ -155,7 +155,7 @@ class UserRepo {
     var document = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     if (document.documents.length > 0)
       return document.documents;
     else
@@ -166,7 +166,7 @@ class UserRepo {
     var document = await Firestore.instance
         .collection('users')
         .where('wallet', isEqualTo: wallet)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     if (document.documents.length > 0) if (document.documents[0].data['role'] ==
         'user')
       return User.fromEntity(UserEntity.fromSnapshot(document.documents[0]));
@@ -179,7 +179,7 @@ class UserRepo {
 
   static Future<User> getOneUsingUID(String uid) async {
     var document = await Firestore.instance
-        .collection('users').document(uid).get();
+        .collection('users').document(uid).get(source: Source.serverAndCache);
       return User.fromEntity(UserEntity.fromSnapshot(document));
   }
 }

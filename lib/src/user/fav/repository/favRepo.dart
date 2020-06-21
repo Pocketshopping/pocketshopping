@@ -23,7 +23,7 @@ class FavRepo {
   static Future<Favourite> getFavourites(String uid,String by) async {
     var doc = await databaseReference.collection("favourite")
         .where('uid',isEqualTo: uid)
-        .orderBy(by,descending: true).getDocuments();
+        .orderBy(by,descending: true).getDocuments(source: Source.serverAndCache);
     return Favourite.fromSnap(doc.documents);
   }
 
@@ -31,7 +31,7 @@ class FavRepo {
     var doc = await databaseReference.collection("favourite")
         .where('uid',isEqualTo: uid)
         .where('merchant',isEqualTo: mid)
-        .orderBy('count',descending: true).getDocuments();
+        .orderBy('count',descending: true).getDocuments(source: Source.serverAndCache);
 
     if(doc.documents.isNotEmpty)
       return Favourite.fromSnap(doc.documents);

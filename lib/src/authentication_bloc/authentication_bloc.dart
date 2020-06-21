@@ -92,6 +92,7 @@ class AuthenticationBloc
     }, onError: (OnLinkErrorException e) async {
       return null;
     });
+    return null;
   }
 
   Future<Uri> _handleDeepLink(PendingDynamicLinkData data) async {

@@ -1,10 +1,12 @@
 import 'package:meta/meta.dart';
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 @immutable
 class Order {
@@ -22,6 +24,7 @@ class Order {
   final Confirmation orderConfirmation;
   final String customerID;
   final String agent;
+  final String orderLogistic;
 
   Order({
       this.orderItem,
@@ -38,6 +41,7 @@ class Order {
       this.orderConfirmation,
       this.customerID,
       this.agent,
+      this.orderLogistic,
       });
 
   Order copyWith({
@@ -55,7 +59,8 @@ class Order {
       String docID,
       Confirmation orderConfirmation,
       String customerID,
-      String agent
+      String agent,
+      String orderLogistic
 
       }) {
     return Order(
@@ -72,7 +77,8 @@ class Order {
         docID: docID ?? this.docID,
         orderConfirmation: orderConfirmation ?? this.orderConfirmation,
         customerID: customerID ?? this.customerID,
-        agent: agent ?? this.agent
+        agent: agent ?? this.agent,
+        orderLogistic: orderLogistic ?? this.orderLogistic
     );
   }
 
@@ -91,7 +97,8 @@ class Order {
       docID.hashCode ^
       orderConfirmation.hashCode ^
       customerID.hashCode ^
-      agent.hashCode;
+      agent.hashCode ^
+      orderLogistic.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -111,7 +118,8 @@ class Order {
           docID == other.docID &&
           orderConfirmation == other.orderConfirmation &&
           customerID == other.customerID &&
-          agent == other.agent;
+          agent == other.agent &&
+          orderLogistic == other.orderLogistic;
 
   Order update(
       {List<OrderItem> orderItem,
@@ -127,7 +135,9 @@ class Order {
       String docID,
       Confirmation orderConfirmation,
       String customerID,
-      String agent}) {
+      String agent,
+      String orderLogistic
+      }) {
     return copyWith(
       orderItem: orderItem,
       orderAmount: orderAmount,
@@ -142,7 +152,8 @@ class Order {
       docID: docID,
       orderConfirmation: orderConfirmation,
       customerID: customerID,
-      agent: agent
+      agent: agent,
+      orderLogistic: orderLogistic
     );
   }
 
@@ -151,7 +162,7 @@ class Order {
     return '''Instance of Order''';
   }
 
-  Map<String, dynamic> toMap() {
+  Future<Map<String, dynamic>> toMap() async{
     return {
       'orderItem': OrderItem.toListMap(orderItem),
       'orderAmount': orderAmount,
@@ -166,10 +177,18 @@ class Order {
       'docID': docID,
       'orderConfirmation': orderConfirmation.toMap(),
       'customerID': customerID,
-      'agent':agent
+      'agent':agent,
+      'orderLogistic':orderLogistic,
+      'index': await makeOrderIndex()
     };
   }
-
+  Future<List<String>> makeOrderIndex()async{
+    var merchant = await MerchantRepo.getMerchant(orderMerchant);
+    var temp = Utility.makeIndexList(orderMode.deliveryMan);
+    temp.addAll(Utility.makeIndexList(orderCustomer.customerName));
+      temp.addAll(Utility.makeIndexList(merchant.bName));
+    return temp;
+  }
   static Order fromEntity(OrderEntity orderEntity) {
     return Order(
         orderItem: orderEntity.orderItem,
@@ -186,6 +205,7 @@ class Order {
         orderConfirmation: orderEntity.orderConfirmation,
         customerID: orderEntity.customerID,
         agent: orderEntity.agent,
+        orderLogistic: orderEntity.orderLogistic
         );
   }
 

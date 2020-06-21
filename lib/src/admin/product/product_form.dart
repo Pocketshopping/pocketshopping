@@ -29,7 +29,7 @@ class _ProductFormState extends State<ProductForm> {
   final TextEditingController _unitController = TextEditingController();
   final TextEditingController _stockController = TextEditingController(text: '1');
   final TextEditingController _categoryController = TextEditingController();
-  Session CurrentUser;
+  Session currentUser;
   ProductBloc _productBloc;
 
   bool get isPopulated =>

@@ -60,7 +60,7 @@ class LogisticRepo {
           .orderBy('startedAt')
           .where('agentParent',isEqualTo: company)
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       document = await Firestore.instance
           .collection('agentLocationUpdate')
@@ -68,11 +68,67 @@ class LogisticRepo {
           .where('agentParent',isEqualTo: company)
           .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     }
 
     return AgentLocUp.fromListSnap(document.documents);
 
+  }
+
+  static Future<Map<String,AutoMobile>> fetchMyAutomobile(String company,AutoMobile last)async{
+    QuerySnapshot document;
+    if (last == null) {
+      document = await Firestore.instance
+          .collection('automobile')
+          .orderBy('autoAddedAt',descending: true)
+          .where('autoLogistic',isEqualTo: company)
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
+    } else {
+      document = await Firestore.instance
+          .collection('automobile')
+          .orderBy('autoAddedAt',descending: true)
+          .where('autoLogistic',isEqualTo: company)
+          .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
+    }
+
+    return AutoMobile.fromListSnap(document.documents);
+
+  }
+
+  static Future<bool> deleteAutomobile(String autoID)async{
+    try{
+      await Firestore.instance
+          .collection('automobile').document(autoID).delete();
+      return true;
+    }
+    catch(_){return false;}
+  }
+
+  static Future<Map<String,AutoMobile>> searchMyAutomobile(
+      String mID, AutoMobile last, String search) async {
+    QuerySnapshot document;
+
+    if (last == null) {
+      document = await Firestore.instance
+          .collection('automobile')
+          .where('autoLogistic', isEqualTo: mID)
+          .where('index', arrayContains: search.toLowerCase())
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
+    } else {
+      document = await Firestore.instance
+          .collection('automobile')
+          .where('autoLogistic', isEqualTo: mID)
+          .where('index', arrayContains: search.toLowerCase())
+          .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
+          .limit(10)
+          .getDocuments(source: Source.serverAndCache);
+    }
+
+    return AutoMobile.fromListSnap(document.documents);
   }
 
   static Future<List<AgentLocUp>> searchMyAgent(
@@ -85,7 +141,7 @@ class LogisticRepo {
           .where('agentParent', isEqualTo: mID)
           .where('index', arrayContains: search.toLowerCase())
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     } else {
       document = await Firestore.instance
           .collection('agentLocationUpdate')
@@ -93,7 +149,7 @@ class LogisticRepo {
           .where('index', arrayContains: search.toLowerCase())
           .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
           .limit(10)
-          .getDocuments();
+          .getDocuments(source: Source.serverAndCache);
     }
 
     return AgentLocUp.fromListSnap(document.documents);
@@ -157,7 +213,7 @@ class LogisticRepo {
 
 
   static Future<Agent> getOneAgent(String agentID) async {
-    var doc = await databaseReference.collection("agent").document(agentID).get();
+    var doc = await databaseReference.collection("agent").document(agentID).get(source: Source.serverAndCache);
     return Agent.fromSnap(doc);
   }
 
@@ -165,18 +221,18 @@ class LogisticRepo {
     var doc = await databaseReference.collection("agent")
         .where('agent',isEqualTo: uid)
         .where('endDate',isEqualTo: null)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     return doc.documents.isNotEmpty?Agent.fromSnap(doc.documents.first):null;
   }
 
   static Future<AgentLocUp> getOneAgentLocation(String agentID) async {
-    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get();
+    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get(source: Source.serverAndCache);
     return doc.exists?AgentLocUp.fromSnap(doc):null;
   }
 
   static Future<AgentLocUp> getOneAgentLocationUsingUid(String uid) async {
     Agent agent = await getOneAgentByUid(uid);
-    var doc = await databaseReference.collection("agentLocationUpdate").document(agent.agentID).get();
+    var doc = await databaseReference.collection("agentLocationUpdate").document(agent.agentID).get(source: Source.serverAndCache);
     return AgentLocUp.fromSnap(doc);
   }
 
@@ -195,25 +251,27 @@ class LogisticRepo {
     User user = await UserRepo.getOneUsingUID(uid);
     Wallet agentWallet = await WalletRepo.getWallet(user.walletId);
     Agent agent = await getOneAgentByUid(uid);
-    bool remit = await remittance(user.walletId,limit:agent.limit);
+    bool remit;
+    if(agent != null)
+    remit = await remittance(user.walletId,limit:agent.limit);
 
     if(agentWallet.pocketUnitBalance < 100) {
       if (agent != null)
         await updateAgentLoc(agent.agentID,{
           'pocket': false,
-          'remitted':remit
+          if(remit!=null) 'remitted':remit
         });
     }
     else{
       await updateAgentLoc(agent.agentID,{
         'pocket': true,
-        'remitted':remit
+        if(remit!=null) 'remitted':remit
       });
     }
   }
 
   static Future<AutoMobile> getAutomobile(String autoID) async {
-    var doc = await databaseReference.collection("automobile").document(autoID).get();
+    var doc = await databaseReference.collection("automobile").document(autoID).get(source: Source.serverAndCache);
     return AutoMobile.fromSnap(doc);
   }
 
@@ -269,7 +327,7 @@ class LogisticRepo {
           isEqualTo: plate,
         )
         .where('autoLogistic', isEqualTo: logistic)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     return docs.documents.length > 0 ? true : false;
   }
 
@@ -284,7 +342,7 @@ class LogisticRepo {
           isEqualTo: type,
         )
         .where('autoLogistic', isEqualTo: logistic)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     return AutoMobile.fromListSnap(docs.documents);
   }
 
@@ -298,7 +356,7 @@ class LogisticRepo {
     )
         .where('autoLogistic', isEqualTo: logistic)
         .where('autoAssigned',isEqualTo: isAssigned)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     return AutoMobile.fromListSnap(docs.documents);
   }
 
@@ -308,7 +366,7 @@ class LogisticRepo {
         .collection("automobile")
     .where('autoAssigned',isEqualTo: assign)
         .where('autoLogistic', isEqualTo: logistic)
-        .getDocuments();
+        .getDocuments(source: Source.serverAndCache);
     return AutoMobile.fromListSnap(docs.documents);
   }
 

@@ -91,7 +91,7 @@ class _StaffScreenState extends State<StaffScreen> {
         NotificationsBloc.instance.newNotification(notification);
         processNotification(payload,notification);
       },
-      onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
+      onBackgroundMessage: Platform.isIOS ? null : backgroundMessageHandler,
       onLaunch: (Map<String, dynamic> message) async {
         _fcm.onTokenRefresh;
         var data = Map<String, dynamic>.from(message);
@@ -131,7 +131,6 @@ class _StaffScreenState extends State<StaffScreen> {
             ndata: notification.data,
             uid: CurrentUser.uid,
           ));
-        //Get.dialog(Resolution(payload: payload,));
         break;
       case 'NearByAgent':
         if (!Get.isDialogOpen)
@@ -139,21 +138,21 @@ class _StaffScreenState extends State<StaffScreen> {
             ndata: notification.data,
             uid: CurrentUser.uid,
           ));
-        //Get.dialog(Resolution(payload: payload,));
         break;
     }
   }
 
-  static Future<dynamic> BackgroundMessageHandler(
+  static Future<dynamic> backgroundMessageHandler(
       Map<String, dynamic> message) {
     if (message.containsKey('data')) {
      // print(message);
     }
     if (message.containsKey('notification')) {
     }
+    return Future.value(true);
   }
 
-  unpackNotification(dynamic data) {}
+
 
   @override
   void dispose() {
@@ -189,9 +188,7 @@ class _StaffScreenState extends State<StaffScreen> {
               body: Container(
                   child: Center(
                     child: <Widget>[
-                      state.user.merchant.bCategory == 'Logistic'
-                          ? AgentDashBoardScreen()
-                          : StaffDashBoardScreen(),
+                      state.user.merchant.bCategory == 'Logistic' ? AgentDashBoardScreen() : StaffDashBoardScreen(),
                       GeoFence(),
                       Favourite(),
                       MyOrders(),

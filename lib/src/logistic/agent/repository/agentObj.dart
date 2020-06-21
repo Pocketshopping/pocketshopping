@@ -16,6 +16,7 @@ class Agent {
   final String workPlaceWallet;
   final String agentWallet;
   final int limit;
+  final String name;
 
   Agent(
       {this.agent,
@@ -31,6 +32,8 @@ class Agent {
       this.workPlaceWallet,
       this.agentWallet,
       this.limit,
+        this.name
+
       });
 
   Agent copyWith(
@@ -47,6 +50,7 @@ class Agent {
       String workPlaceWallet,
       String agentWallet,
       int limit,
+      String name
       }) {
     return Agent(
         agent: agent ?? this.agent,
@@ -62,6 +66,7 @@ class Agent {
         workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
         agentWallet: agentWallet??this.agentWallet,
         limit: limit??this.limit,
+        name: name ?? this.name
     );
   }
 
@@ -79,7 +84,8 @@ class Agent {
       agentStatus.hashCode ^
       workPlaceWallet.hashCode ^
       agentWallet.hashCode ^
-      limit.hashCode;
+      limit.hashCode ^
+      name.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -98,7 +104,8 @@ class Agent {
           agentStatus == other.agentStatus &&
           workPlaceWallet == other.workPlaceWallet &&
           agentWallet == other.agentWallet &&
-          limit == other.limit;
+          limit == other.limit &&
+          name == other.name;
 
   Agent update(
       {String agent,
@@ -114,6 +121,7 @@ class Agent {
       String workPlaceWallet,
       String agentWallet,
       int limit,
+      String name
       }) {
     return copyWith(
         agent: agent,
@@ -128,7 +136,8 @@ class Agent {
         agentStatus: agentStatus,
         workPlaceWallet: workPlaceWallet,
         agentWallet: agentWallet,
-        limit: limit
+        limit: limit,
+       name: name
     );
   }
 
@@ -151,7 +160,8 @@ class Agent {
       'agentStatus': agentStatus,
       'workPlaceWallet':workPlaceWallet,
       'agentWallet':agentWallet,
-      'limit':limit
+      'limit':limit,
+      'name':name
     };
   }
 
@@ -170,6 +180,7 @@ class Agent {
       workPlaceWallet: snap.data['workPlaceWallet'],
       agentWallet: snap.data['agentWallet'],
       limit: snap.data['limit']??10000,
+      name: snap.data['name'],
     );
   }
 }

@@ -10,12 +10,22 @@ import 'package:pocketshopping/page/admin/openOrder.dart';
 import 'package:pocketshopping/page/admin/settings.dart';
 import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/admin/product/manage.dart';
+import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/customerCare/customerCare.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
+import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pos/productList.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
+import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
@@ -39,7 +49,7 @@ class DashBoardScreen extends StatefulWidget {
 
 class _DashBoardScreenState extends State<DashBoardScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  Session CurrentUser;
+  Session currentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
@@ -49,12 +59,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
   @override
   void initState() {
-    CurrentUser = BlocProvider.of<UserBloc>(context).state.props[0];
+    currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       showBottom();
     });
-    WalletRepo.getWallet(CurrentUser.user.walletId).
+    WalletRepo.getWallet(currentUser.user.walletId).
     then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
@@ -62,7 +72,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
         _walletNotifier.value = wallet;
       }
     });
-    ChannelRepo.update(CurrentUser.merchant.mID, CurrentUser.user.uid);
+    ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
     Workmanager.cancelAll();
     super.initState();
   }
@@ -78,6 +88,10 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     _walletStream = null;
     iosSubscription?.cancel();
     super.dispose();
+  }
+
+  void reloadMerchant(){
+    BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
 
   @override
@@ -100,23 +114,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 Scaffold.of(context).openDrawer();
               },
             ),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(
-                  Icons.notification_important,
-                  color: PRIMARYCOLOR,
-                  size: marginLR * 0.08,
-                ),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
-            ],
             centerTitle: true,
             elevation: 0.0,
             backgroundColor: Colors.white,
             title: Text(
-              CurrentUser.merchant.bName ?? "Pocketshopping",
+              currentUser.merchant.bName ?? "Pocketshopping",
               style: TextStyle(color: PRIMARYCOLOR),
             ),
             automaticallyImplyLeading: false,
@@ -157,12 +159,18 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.bold),
                                               )),
+                                          Center(
+                                              child: Text(
+                                                "collected by pocketshopping",
+                                                style: TextStyle(
+                                                    fontSize: 11),
+                                              )),
                                           const SizedBox(
                                             height: 10,
                                           ),
                                           Center(
                                               child: Text(
-                                                "\u20A6 ${wallet.businessMoney}",
+                                                "\u20A6 ${wallet.merchantBalance}",
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.bold),
                                               )),
@@ -207,6 +215,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                                 style: const TextStyle(
                                                     fontWeight: FontWeight.bold),
                                               )),
+                                          Center(
+                                              child: Text(
+                                                "1.00 unit = ${CURRENCY}1.00",
+                                                style: TextStyle(
+                                                    fontSize: 11),
+                                              )),
                                           const SizedBox(
                                             height: 10,
                                           ),
@@ -238,7 +252,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                                 //  'randomNumber.toString()',
                                                 //'route': 'branch'
                                                 //}).then((value) => print(value))
-                                                Get.dialog(TopUp(user: CurrentUser.user,payType: "TOPUPUNIT",));
+                                                Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",));
 
                                               },
                                               child: const Center(
@@ -264,6 +278,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                                 "Delivery Revenue",
                                                 style: const TextStyle(
                                                     fontWeight: FontWeight.bold),
+                                              )),
+                                          Center(
+                                              child: Text(
+                                                "collected by pocketshopping",
+                                                style: TextStyle(
+                                                    fontSize: 11),
                                               )),
                                           const SizedBox(
                                             height: 10,
@@ -346,15 +366,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
                     ),
                   ),
-                  /*ViewItem(
-                    gridHeight,
-                    Header: '0',
-                    actionText: 'click to extend screen',
-                    subHeader: 'Open Order(s)',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: ScanScreen(PRIMARYCOLOR.withOpacity(0.8)),
-                  ),*/
                   GestureDetector(
                     onTap: (){},
                     child: Container(
@@ -373,12 +384,15 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('\u20A6 O',
+                          Text('$CURRENCY O',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.white,fontSize: 18),),
-                          const Text('Amount Today',
+                          const Text('Amount Made Today',
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: Colors.white),),
+                          const Text('click for more',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white,fontSize: 11),),
                         ],
                       ),
                     ),
@@ -408,7 +422,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           FlatButton(
                             onPressed: ()async{
                               /*bool change =!available;
-                              bool result = await LocRepo.updateAvailability(CurrentUser.agent.agentID, change);
+                              bool result = await LocRepo.updateAvailability(currentUser.agent.agentID, change);
                               if(!(change == result))
                                 GetBar(title: 'Error changing your status please try again');
                               else
@@ -423,17 +437,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         ],
                       ),
                     ),
-                  )/*
-                  ViewItem(
-                    gridHeight,
-                    Header: 'Open',
-                    subHeader: 'Store Status',
-                    actionText: 'click to Change',
-                    skey: scaffoldKey,
-                    bgColor: PRIMARYCOLOR.withOpacity(0.8),
-                    content: StatusBottomPage(
-                        themeColor: PRIMARYCOLOR.withOpacity(0.8)),
-                  ),*/
+                  )
+             
                 ]),
                 SliverList(
                     delegate: SliverChildListDelegate([
@@ -496,29 +501,15 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(
-                        Icons.person_pin,
+                        Icons.attach_money,
                         size: MediaQuery.of(context).size.width * 0.16,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
-                      'Place Order For Customer',
+                      'Point of Sale',
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
-                      content: MerchantWidget(),
+                      content: ProductList(user: currentUser,callBckActionType: 3,route: 1,),
                     ),
-                    /*MenuItem(
-                      gridHeight,
-                      Icon(Icons.message,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Customer Message',
-                      border: PRIMARYCOLOR,
-                      isBadged: true,
-                      openCount: 3,
-                      isMultiMenu: false,
-                      content: Message(
-                        themeColor: PRIMARYCOLOR,
-                      ),
-                    ),*/
                     MenuItem(
                       gridHeight,
                       Icon(Icons.fastfood,
@@ -526,9 +517,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Products',
                       border: PRIMARYCOLOR,
-                      content: ProductBottomPage(
-                        session: CurrentUser,
-                      ),
+                      isMultiMenu: false,
+                      content: ManageProduct(user: currentUser,),
                     ),
                     MenuItem(
                       gridHeight,
@@ -537,6 +527,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Statistic',
                       border: PRIMARYCOLOR,
+
                       content: StatisticBottomPage(
                         themeColor: PRIMARYCOLOR,
                       ),
@@ -596,7 +587,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       'Settings',
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
-                      content: Settings(),
+                      content: ManageBusiness(session: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -610,39 +602,59 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
                     ),
 
-                    /*MenuItem(
+
+                    MenuItem(
                       gridHeight,
-                      Icon(Icons.account_box,
+                      Icon(MaterialIcons.check,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Business Account',
+                      'Clearance',
                       border: PRIMARYCOLOR,
-                      content: AccountPage(
-                        themeColor: PRIMARYCOLOR,
-                      ),
+                      isBadged: false,
                       isMultiMenu: false,
-                    ),*/
+                      openCount: 3,
+                      content: AgentList(user: currentUser,callBckActionType: 2,title: 'Agent Clearance',),
+                    ),
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.local_taxi,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'AutoMobile(s)',
+                      'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
-                      content: VehicleBottomPage(
-                        session: CurrentUser,
-                      ),
+                      isMultiMenu: false,
+                      content: AutomobileList(user: currentUser,title: 'My Automobile',callBckActionType: 1,),
                     ),
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.motorcycle,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Agent',
+                      'My Agent(s)',
                       border: PRIMARYCOLOR,
-                      content: AgentBottomPage(
-                        session: CurrentUser,
-                      ),
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,title: 'Manage Agent(s)',callBckActionType: 3,route: 1,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(MaterialIcons.sentiment_satisfied,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'PocketSense',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: RequestPocketSense(user: currentUser,),
+                    ),MenuItem(
+                      gridHeight,
+                      Icon(Icons.add_call,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Customer Care',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: CustomerCare(session: currentUser,),
                     ),
                   ],
                 ),

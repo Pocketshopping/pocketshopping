@@ -203,7 +203,7 @@ class _OrderUIState extends State<OrderUI> {
     );
   }
 
-  Widget CardPage() {
+  Widget cardPage() {
     setState(() {
       scrollable = false;
       screenHeight = 1;
@@ -233,10 +233,10 @@ class _OrderUIState extends State<OrderUI> {
                     //print('$distance');
                   })
                 : null);
+    return 1;
   }
 
   double deliveryETA(double distance, String type, double ttc, int server, double top) {
-    //print('${distance}');/*double eta=0.0;eta = (distance/8.33333)+960;return eta;*/
     CloudFunctions.instance
         .getHttpsCallable(
       functionName: "ETA",
@@ -265,7 +265,7 @@ class _OrderUIState extends State<OrderUI> {
             return 0.0;
   }
 
-  Widget DetailMaker() {
+  Widget detailMaker() {
     switch (mode) {
       case 'Delivery':
         return Padding(
@@ -549,6 +549,8 @@ class _OrderUIState extends State<OrderUI> {
           ),
         );
         break;
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -568,7 +570,7 @@ class _OrderUIState extends State<OrderUI> {
 
   inHouseETA(double distance) {}
 
-  List<Widget> ItemMaker(dynamic payload) {
+  List<Widget> itemMaker(dynamic payload) {
     if (payload.runtimeType == List<CartItem>().runtimeType) {
       return List<Widget>.generate(
           payload.length,
@@ -646,6 +648,7 @@ class _OrderUIState extends State<OrderUI> {
                         address: _address.text,
                         acceptedBy: accepted,
                         fee: dCut,
+
                       ),
                       orderETA: dETA.round(),
                       orderConfirmation: Confirmation(
@@ -767,11 +770,11 @@ class _OrderUIState extends State<OrderUI> {
     );
   }
 
-  int PickupETA() {
+  int pickupETA() {
     int eta = 360;
     CloudFunctions.instance
         .getHttpsCallable(
-          functionName: "PickupETA",
+          functionName: "pickupETA",
         )
         .call()
         .then((value) => eta = value.data);
@@ -823,6 +826,8 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
+              orderLogistic: agent.agentWorkPlace,
+              orderMode: order.orderMode.copyWith(deliveryMan: agent.name)
             );
           });
         else setState(() {
@@ -884,6 +889,8 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
+             orderLogistic: agent.agentWorkPlace,
+             orderMode: order.orderMode.copyWith(deliveryMan: agent.name)
             );
         });
         else setState(() {
@@ -923,6 +930,8 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
+              orderLogistic: agent.agentWorkPlace,
+              orderMode: order.orderMode.copyWith(deliveryMan: agent.name)
             );
           });
 
@@ -951,7 +960,7 @@ class _OrderUIState extends State<OrderUI> {
     //});
   }
 
-  Future<void> nearByAgent() {
+  Future<void> nearByAgent() async{
     LogisticRepo.getNearByAgent(
             Position(
                 latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
@@ -961,6 +970,7 @@ class _OrderUIState extends State<OrderUI> {
       //print('agent around: $value');
       queryAgent(value);
     });
+    return Future.value();
   }
 
   Future<void> queryAgent(List<String> nAgent) async {
@@ -1657,7 +1667,7 @@ class _OrderUIState extends State<OrderUI> {
         return payDone();
         break;
       case 'PAYCARD':
-        return CardPage();
+        return cardPage();
         break;
       case 'REQUEST':
         return orderRequest();
@@ -1739,7 +1749,7 @@ class _OrderUIState extends State<OrderUI> {
                       color: Colors.grey,
                     ),
                     Column(
-                      children: ItemMaker(widget.payload),
+                      children: itemMaker(widget.payload),
                     ),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -1758,7 +1768,7 @@ class _OrderUIState extends State<OrderUI> {
                       height: 2,
                       color: Colors.grey,
                     ),
-                    DetailMaker()
+                    detailMaker()
                   ],
                 ),
               )),
@@ -2140,7 +2150,7 @@ class _OrderUIState extends State<OrderUI> {
                             customerTelephone: _contact.text,
                           ),
                           customerID: widget.user.uid,
-                          orderETA: PickupETA(),
+                          orderETA: pickupETA(),
                         );
                         deliveryETA(0, 'Pickup', 0.0, 0, 120.0);
                         setState(() {});
@@ -2328,7 +2338,7 @@ class _OrderUIState extends State<OrderUI> {
                             customerTelephone: _contact.text,
                           ),
                           customerID: widget.user.uid,
-                          orderETA: PickupETA(),
+                          orderETA: pickupETA(),
                         );
                         deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
                         setState(() {});
