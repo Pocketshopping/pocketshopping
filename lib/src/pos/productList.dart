@@ -25,6 +25,10 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:http/http.dart' as http;
+import 'package:pocketshopping/src/pos/checkOut.dart';
+import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
+import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
 
 class ProductList extends StatefulWidget {
   final Session user;
@@ -48,6 +52,8 @@ class _ProductListState extends State<ProductList> {
   String selectedCategory;
   final _count = ValueNotifier<int>(1);
   List<CartItem> _cartItem;
+  Stream<Wallet> _walletStream;
+  final _walletNotifier = ValueNotifier<Wallet>(null);
 
 
   void initState() {
@@ -74,8 +80,18 @@ class _ProductListState extends State<ProductList> {
           }
         });
     });
+    _walletStream = WalletBloc.instance.walletStream;
+    _walletStream.listen((wallet) {
+      if (mounted) {
+        _walletNotifier.value=null;
+        _walletNotifier.value = wallet;
+
+      }
+    });
     super.initState();
   }
+
+
 
   void load() {
     if(list.isNotEmpty)
@@ -348,110 +364,147 @@ class _ProductListState extends State<ProductList> {
                           separatorBuilder: (_,i){return const Divider(thickness: 1,);},
                           itemBuilder: (BuildContext context, int index) {
                             return ListTile(
-                              onTap: (){
-                                Get.defaultDialog(
+                              onTap: ()async
+                            {
+                              if(_walletNotifier.value.pocketUnitBalance >= 100){
+                              Get.defaultDialog(
                                   title: 'Quantity',
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Expanded(flex: 0,child:
-                                        Center(
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              if(_count.value > 1 )
-                                              _count.value -=1;
-                                            },
-                                            child: Container(
-                                              margin:
-                                              EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                              padding:
-                                              EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                              decoration: BoxDecoration(
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                  border: Border.all(
-                                                    width: 1,
-                                                    color: Colors.grey.withOpacity(0.4),
-                                                  ),
-                                                  borderRadius: BorderRadius.all(Radius.circular(5))),
-                                              child: Text('-'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Expanded(flex: 0, child:
+                                          Center(
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                if (_count.value > 1)
+                                                  _count.value -= 1;
+                                              },
+                                              child: Container(
+                                                margin:
+                                                EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                    horizontal: 15),
+                                                padding:
+                                                EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                    horizontal: 15),
+                                                decoration: BoxDecoration(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.3),
+                                                    border: Border.all(
+                                                      width: 1,
+                                                      color: Colors.grey
+                                                          .withOpacity(0.4),
+                                                    ),
+                                                    borderRadius: BorderRadius
+                                                        .all(
+                                                        Radius.circular(5))),
+                                                child: Text('-'),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        ),
-                                        Expanded(child: Center(child:
+                                          ),
+                                          Expanded(child: Center(child:
 
-                                        ValueListenableBuilder(
-                                          valueListenable: _count,
-                                          builder: (_,int count,__){
-                                            return Text('$count',style: TextStyle(fontWeight: FontWeight.bold),);
-                                          },
-                                        )
-
-                                        ),),
-                                        Expanded(flex: 0,child:
-                                        Center(
-                                          child: GestureDetector(
-                                            onTap: () {
-
-                                             _count.value +=1;
+                                          ValueListenableBuilder(
+                                            valueListenable: _count,
+                                            builder: (_, int count, __) {
+                                              return Text('$count',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight
+                                                        .bold),);
                                             },
-                                            child: Container(
-                                              margin:
-                                              EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                              padding:
-                                              EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                                              decoration: BoxDecoration(
-                                                  color: Colors.grey.withOpacity(0.3),
-                                                  border: Border.all(
-                                                    width: 1,
-                                                    color: Colors.grey.withOpacity(0.4),
-                                                  ),
-                                                  borderRadius: BorderRadius.all(Radius.circular(5))),
-                                              child: Text('+'),
+                                          )
+
+                                          ),),
+                                          Expanded(flex: 0, child:
+                                          Center(
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                _count.value += 1;
+                                              },
+                                              child: Container(
+                                                margin:
+                                                EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                    horizontal: 15),
+                                                padding:
+                                                EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                    horizontal: 15),
+                                                decoration: BoxDecoration(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.3),
+                                                    border: Border.all(
+                                                      width: 1,
+                                                      color: Colors.grey
+                                                          .withOpacity(0.4),
+                                                    ),
+                                                    borderRadius: BorderRadius
+                                                        .all(
+                                                        Radius.circular(5))),
+                                                child: Text('+'),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                                  cancel: FlatButton(
-                                    onPressed: (){Get.back();},
-                                    child: Text('Cancel',style: TextStyle(color: Colors.grey[400]),),
+                                          ),
+                                        ],
+                                      )
+                                    ],
                                   ),
-                                  confirm: FlatButton(
-                                    onPressed: (){
+                                  cancel: FlatButton(
+                                    onPressed: () {
                                       Get.back();
-                                      if(list[index].availability == 0)
-                                        {Utility.infoDialogMaker('Product currently not available.',title: '');}
-                                      else{
+                                    },
+                                    child: Text('Cancel', style: TextStyle(
+                                        color: Colors.grey[400]),),
+                                  ),
+                                  confirm: FlatButton.icon(
+                                    onPressed: () {
+                                      Get.back();
+                                      if (list[index].availability == 0) {
+                                        Utility.infoDialogMaker(
+                                            'Product currently not available.',
+                                            title: '');
+                                      }
+                                      else {
                                         CartItem cartItem = CartItem(
                                             count: _count.value,
                                             item: list[index],
-                                            total: (list[index].pPrice * _count.value)
+                                            total: (list[index].pPrice *
+                                                _count.value)
                                         );
-                                        if(_cartItem.contains(cartItem))
-                                          Utility.infoDialogMaker('Product already in cart.',title: '');
+                                        if (_cartItem.contains(cartItem))
+                                          Utility.infoDialogMaker(
+                                              'Product already in cart.',
+                                              title: '');
                                         else
                                           _cartItem.add(cartItem);
 
-                                        setState(() { });
+                                        setState(() {});
                                       }
-
-
                                     },
-                                    child: Text('Add'),
+                                    label: Text('Add'),
+                                    icon: Icon(Icons.add),
+
                                   )
-                                );
+                              );
+                            }
+                              else{
+                                bool result = await Utility.confirmDialogMaker('PocketUnit can not be below expected quota ($CURRENCY 100). Do you want to TopUp');
+                              if(result){
+                                Get.dialog(TopUp(user: widget.user.user,payType: "TOPUPUNIT",));
+                              }
+
+                              }
                               },
                               leading: CircleAvatar(
                                 radius: 25,
                                 backgroundColor: Colors.grey.withOpacity(0.2),
-                                backgroundImage: NetworkImage(list[index].pPhoto.isNotEmpty?list[index].pPhoto.first:PRODUCTDEFAULT,
+                                child: Image.network(list[index].pPhoto.isNotEmpty?list[index].pPhoto.first:PRODUCTDEFAULT,
                                 ),
                               ),
                               title: Text('${list[index].pName}',style: TextStyle(fontSize: 18),),
@@ -476,7 +529,7 @@ class _ProductListState extends State<ProductList> {
                                   )
                                 ],
                               ),
-                              trailing:  Icon(Icons.arrow_forward_ios),
+                              trailing:  Icon(Icons.shopping_basket),
                             );
                           },
                           itemCount: count,
@@ -561,23 +614,34 @@ class _ProductListState extends State<ProductList> {
                   top: 1, right: 1),
               child: IconButton(
                 onPressed: () {
+                  if(_cartItem.isNotEmpty)
                   Get.bottomSheet(builder: (context){
                     return Container(
                       color: Colors.white,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Column(children: itemMaker(_cartItem),),
-
-                          ),
-                          Expanded(
-                            flex: 0,
-                            child: Text('sdvsd'),
-                          )
-                        ],
+                      child: PosCheckOut(payload: _cartItem,cartOps: cartOps,
+                        isRestaurant: widget.user.merchant.bCategory == 'Restuarant',
+                      session: widget.user,
                       )
                     );
-                  }).then((value) => _refresh());
+                  },
+                    isScrollControlled: true,
+                    isDismissible: false,
+                    enableDrag: false,
+                  ).then((value) {
+                    if(value != null){
+                      if(value == 'clear'){
+                        _cartItem.clear();
+                        _refresh();
+                      }
+                      else{
+                        _refresh();
+                      }
+                    }
+                    else{
+                      _refresh();
+                    }
+                  }
+                  );
                 },
                 color: PRIMARYCOLOR,
                 icon: Icon(
@@ -639,44 +703,15 @@ class _ProductListState extends State<ProductList> {
   }
 
 
-  List<Widget> itemMaker(List<CartItem> payload) {
-    return List<Widget>.generate(
-        payload.length,
-            (index) =>
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                            ' ${payload[index].item.pName} @ ${payload[index]
-                                .item.pPrice}'),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Text('${payload[index].count}'),
-                        ),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Text('${payload[index].total}'),
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              ),
-            )).toList();
+
+
+  cartOps() {
+    setState(() {});
   }
 
 
 
 
-
-  
 
 
 }

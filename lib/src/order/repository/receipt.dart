@@ -70,11 +70,11 @@ class Receipt {
 
   Map<String, dynamic> toMap() {
     return {
-      'psStatus': psStatus,
-      'reference': reference,
-      'type':type,
-      'pRef':pRef,
-      'collectionID':collectionID,
+      'psStatus': psStatus??'',
+      'reference': reference??'',
+      'type':type??'',
+      'pRef':pRef??'',
+      'collectionID':collectionID??'',
     };
   }
 

@@ -324,7 +324,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                                         child: IconButton(
                                                           onPressed: () {
                                                             if (cart.length > 0)
-                                                              ShowCart(cart);
+                                                              showCart(cart);
                                                             else
                                                               Scaffold.of(
                                                                   context)
@@ -373,7 +373,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                                     child: IconButton(
                                                       onPressed: () {
                                                         if (cart.length > 0)
-                                                          ShowCart(cart);
+                                                          showCart(cart);
                                                         else
                                                           Scaffold.of(context)
                                                             ..hideCurrentSnackBar()
@@ -555,7 +555,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                 detailCallback();
                                 break;
                               case 'CART':
-                                CartCallback(value['payload'], context);
+                                cartCallback(value['payload'], context);
                                 break;
                               default:
                                 detailCallback();
@@ -679,7 +679,7 @@ class _MerchantUIState extends State<MerchantUI> {
             ));
   }
 
-  CartCallback(dynamic data, BuildContext cntx) {
+  cartCallback(dynamic data, BuildContext cntx) {
     CartItem item = CartItem(item: data, count: 1, total: (data.pPrice * 1));
     if (cart.contains(item)) {
       if (!Get.isSnackbarOpen)
@@ -738,7 +738,7 @@ class _MerchantUIState extends State<MerchantUI> {
     setState(() {});
   }
 
-  ShowCart(dynamic data) {
+  showCart(dynamic data) {
     showModalBottomSheet(
       context: context,
       builder: (_) => OrderUI(

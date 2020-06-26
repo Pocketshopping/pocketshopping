@@ -53,7 +53,7 @@ class MainActivity: FlutterActivity() {
                         charge.card = Card(cnumber, month, year, cvv)
                         //Log.e("cnumber",charge.card.toString())
                         charge.email=call.argument<String>("email").toString()//"manuelemeka@gmail.com"
-                        charge.amount=call.argument<Int>("amount")!!.toInt()//400//sets the card to charge
+                        charge.amount=call.argument<Int>("amount")!!.toInt()*100//400//sets the card to charge
                         PaystackSdk.chargeCard(this@MainActivity, charge, object : Paystack.TransactionCallback {
                             override fun onSuccess(transaction: Transaction) {
                                 // This is called only after transaction is deemed successful.

@@ -10,14 +10,14 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 import io.flutter.plugins.firebasemessaging.FlutterFirebaseMessagingService
 //import com.google.firebase.messaging.FirebaseMessagingService
 
-class Application : FlutterApplication() , PluginRegistrantCallback {
+class Application : FlutterApplication(), PluginRegistrantCallback {
 
     override fun onCreate() {
         super.onCreate()
-        FlutterFirebaseMessagingService.setPluginRegistrant(this)
+        FlutterFirebaseMessagingService.setPluginRegistrant(this);
     }
 
-    override fun registerWith( registry: PluginRegistry) {
-        FirebaseCloudMessagingPluginRegistrant.registerWith(registry)
+    override fun registerWith(registry: PluginRegistry?) {
+        io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin.registerWith(registry?.registrarFor("io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin"));
     }
 }

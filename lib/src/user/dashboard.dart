@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,11 @@ import 'package:pocketshopping/page/user/merchant.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
+import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/manage.dart';
+import 'package:pocketshopping/src/admin/staff/staffList.dart';
+import 'package:pocketshopping/src/bank/BankWithdraw.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
@@ -22,11 +26,13 @@ import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/pos/productList.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
 import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
@@ -56,6 +62,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   Stream<Wallet> _walletStream;
   //Wallet _wallet;
   final _walletNotifier = ValueNotifier<Wallet>(null);
+  final _isOperationalNotifier = ValueNotifier<bool>(true);
 
   @override
   void initState() {
@@ -74,6 +81,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     });
     ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
     Workmanager.cancelAll();
+    _isOperationalNotifier.value=currentUser.merchant.bStatus==1?true:false;
     super.initState();
   }
 
@@ -139,195 +147,47 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       //margin:  MediaQuery.of(context).size.height*0.05,
                       margin: EdgeInsets.only(
                           left: marginLR * 0.01, right: marginLR * 0.01),
-                      child: ValueListenableBuilder(
-                        valueListenable: _walletNotifier,
-                        builder: (_,wallet,__){
-                        if(wallet != null)
-                          return Column(
-                            children: <Widget>[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
+                      child: AdminFinance(topUp: (){Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",));},
+                        withdraw: (Wallet wallet)async{
+                          double total = wallet.merchantBalance + wallet.deliveryBalance;
+                          bool canWithdraw = wallet.accountNumber.isNotEmpty;
+                          bool isSet = await PinRepo.isSet(currentUser.user.walletId);
+                          if(total > 10){
+                            if(currentUser.user.role == 'admin'){
+                              if(currentUser.user.uid == currentUser.merchant.bCreator.documentID){
+                                if(isSet){
+                                  if(canWithdraw){
 
-                                  Expanded(
-                                      flex: 1,
-                                      child: Column(
-                                        children: [
-                                          Center(
-                                              child: const Text(
-                                                "Business Revenue",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              )),
-                                          Center(
-                                              child: Text(
-                                                "collected by pocketshopping",
-                                                style: TextStyle(
-                                                    fontSize: 11),
-                                              )),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          Center(
-                                              child: Text(
-                                                "\u20A6 ${wallet.merchantBalance}",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              )),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: PRIMARYCOLOR
-                                                      .withOpacity(0.5)),
-                                              color:
-                                              PRIMARYCOLOR.withOpacity(0.5),
-                                            ),
-                                            child: FlatButton(
-                                              onPressed: () => {
+                                    Get.dialog(BankWithdraw(wallet: wallet,walletID: currentUser.user.walletId,callBackAction: (){},)).then((value){
+                                      WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+                                    });
 
-                                              },
-                                              child: const Center(
-                                                  child:  const Text(
-                                                    "Withdraw",
-                                                    style: const TextStyle(
-                                                        color: Colors.white),
-                                                  )),
-                                            ),
-                                          )
-                                        ],
-                                      )),
-                                  const Expanded(
-                                    flex: 0,
-                                    child: const SizedBox(
-                                      width: 10,
-                                    ),
-                                  ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Column(
-                                        children: [
-                                          Center(
-                                              child: const Text(
-                                                "PocketUnit",
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              )),
-                                          Center(
-                                              child: Text(
-                                                "1.00 unit = ${CURRENCY}1.00",
-                                                style: TextStyle(
-                                                    fontSize: 11),
-                                              )),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          Center(
-                                              child: Text(
-                                                "${wallet.pocketUnitBalance}",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              )),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: PRIMARYCOLOR
-                                                      .withOpacity(0.5)),
-                                              color:
-                                              PRIMARYCOLOR.withOpacity(0.5),
-                                            ),
-                                            child: FlatButton(
-                                              onPressed: ()  {
-                                                //sendAndRetrieveMessage()
-                                                //  .then((value) => null)
-                                                //DynamicLinks
-                                                //  .createLinkWithParams({
-                                                //'merchant': 'rerereg',
-                                                //'OTP':
-                                                //  'randomNumber.toString()',
-                                                //'route': 'branch'
-                                                //}).then((value) => print(value))
-                                                Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",));
+                                  }
+                                  else{
+                                    Utility.infoDialogMaker('You can not withdraw without adding your account number.'
+                                        ' click on settings on the side menu for adding up bank account',title: '');
+                                  }
+                                }
+                                else{
+                                  Utility.infoDialogMaker('You can not withdraw without setting up Pocket PIN.'
+                                      ' click on settings on the side menu for setting up Pocket PIN',title: '');
+                                }
 
-                                              },
-                                              child: const Center(
-                                                  child: const Text(
-                                                    "TopUp",
-                                                    style: const TextStyle(
-                                                        color: Colors.white),
-                                                  )),
-                                            ),
-                                          )
-                                        ],
-                                      )),
-                                ],
-                              ),
-                              const SizedBox(height: 20,),
-                              Row(
-                                children: <Widget>[
-                                  Expanded(
-                                      child: Column(
-                                        children: [
-                                          const Center(
-                                              child: const Text(
-                                                "Delivery Revenue",
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              )),
-                                          Center(
-                                              child: Text(
-                                                "collected by pocketshopping",
-                                                style: TextStyle(
-                                                    fontSize: 11),
-                                              )),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          Center(
-                                              child: Text(
-                                                "\u20A6 ${wallet.deliveryBalance}",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold),
-                                              )),
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: PRIMARYCOLOR
-                                                      .withOpacity(0.5)),
-                                              color:
-                                              PRIMARYCOLOR.withOpacity(0.5),
-                                            ),
-                                            child: FlatButton(
-                                              onPressed: () => {
-                                              },
-                                              child: const Center(
-                                                  child: const Text(
-                                                    "Withdraw",
-                                                    style: const TextStyle(
-                                                        color: Colors.white),
-                                                  )),
-                                            ),
-                                          )
-                                        ],
-                                      )),
-                                ],
-                              ),
-                            ],
-                          );
-                        else
-                          return const SizedBox.shrink();
-                        } ,
-                      )
+                              }
+                              else{
+                                Utility.infoDialogMaker('You are not the owner of this business',title: '');
+                              }
+                            }
+                            else{
+                              Utility.infoDialogMaker('You do not have permission to withdraw from this account,',title: '');
+                            }
+                          }
+                          else{
+                            Utility.infoDialogMaker('Insufficient Funds for withdrawal',title: '');
+                          }
 
-
+                        },
+                      ),
                     ),
                      SizedBox(
                       height: MediaQuery.of(context).size.height * 0.02,
@@ -397,47 +257,58 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('Store is '
-                              '${true?'Open':'Close'}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white),),
-                          FlatButton(
-                            onPressed: ()async{
-                              /*bool change =!available;
-                              bool result = await LocRepo.updateAvailability(currentUser.agent.agentID, change);
-                              if(!(change == result))
-                                GetBar(title: 'Error changing your status please try again');
-                              else
-                                setState(() {available = result; });*/
-                            },
-                            child: const Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                              child: const Text('Change'),
+                  ValueListenableBuilder(
+                      valueListenable: _isOperationalNotifier,
+                      builder: (_,available,__){
+                        print(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose));
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: PRIMARYCOLOR.withOpacity(0.8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey,
+                                  //offset: Offset(1.0, 0), //(x,y)
+                                  blurRadius: 6.0,
+                                ),
+                              ],
                             ),
-                            color: Colors.white.withOpacity(0.5),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
+                            child: Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose)?
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('We are currently '
+                                    '${available?'Available':'Unavailable'}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white),),
+                                FlatButton(
+                                  onPressed: ()async{
+                                    bool change =!available;
+                                    bool result = await  MerchantRepo.update(currentUser.merchant.mID,{'businessStatus':change?1:0});
+
+                                    if(!result)
+                                      GetBar(title: 'Error changing your status please try again');
+                                    else {
+                                      _isOperationalNotifier.value = change;
+                                      BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                                    child: const Text('Change'),
+                                  ),
+                                  color: Colors.white.withOpacity(0.5),
+                                )
+                              ],
+                            ):Center(
+                              child: Text('Business is Closed for today',style: TextStyle(color: Colors.white),textAlign: TextAlign.center,),
+                            ),
+                          ),
+                        );
+                      })
              
                 ]),
                 SliverList(
@@ -473,25 +344,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(
-                        Icons.folder_open,
+                        AntIcons.shop_outline,
                         size: MediaQuery.of(context).size.width * 0.16,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
-                      'Open Orders',
-                      border: PRIMARYCOLOR,
-                      isBadged: true,
-                      openCount: 3,
-                      isMultiMenu: false,
-                      content: Orders(),
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(
-                        Icons.folder,
-                        size: MediaQuery.of(context).size.width * 0.16,
-                        color: PRIMARYCOLOR.withOpacity(0.8),
-                      ),
-                      'Manage Orders',
+                      'Orders',
                       border: PRIMARYCOLOR,
                       content: ManageOrder(
                         themeColor: PRIMARYCOLOR,
@@ -501,7 +358,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(
-                        Icons.attach_money,
+                        AntIcons.printer_outline,
                         size: MediaQuery.of(context).size.width * 0.16,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
@@ -512,7 +369,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.fastfood,
+                      Icon(AntIcons.shopping_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Products',
@@ -522,7 +379,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.show_chart,
+                      Icon(AntIcons.pie_chart_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Statistic',
@@ -534,18 +391,17 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.people,
+                      Icon(AntIcons.user,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Staffs',
                       border: PRIMARYCOLOR,
-                      content: StaffBottomPage(
-                        themeColor: PRIMARYCOLOR,
-                      ),
+                      isMultiMenu: false,
+                      content: StaffList(user: currentUser,title: 'Manage Staff(s)',callBckActionType: 3,route: 1,),
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.credit_card,
+                      Icon(AntIcons.deployment_unit,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
@@ -553,6 +409,16 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       content: UnitBottomPage(
                         themeColor: PRIMARYCOLOR,
                       ),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.history,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Withdrawal(s)',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,title: 'Manage Agent(s)',callBckActionType: 3,route: 1,),
                     ),
                     /*MenuItem(
                       gridHeight,
@@ -569,19 +435,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),*/
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.people_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Customers',
-                      border: PRIMARYCOLOR,
-                      isMultiMenu: false,
-                      content: Customer(
-                        themeColor: PRIMARYCOLOR,
-                      ),
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(Icons.settings,
+                      Icon(AntIcons.setting_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',
@@ -592,7 +446,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.business,
+                      Icon(AntIcons.home_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Branch',
@@ -608,7 +462,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       Icon(MaterialIcons.check,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Clearance',
+                      'Rider Clearance',
                       border: PRIMARYCOLOR,
                       isBadged: false,
                       isMultiMenu: false,
@@ -617,7 +471,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.local_taxi,
+                      Icon(AntIcons.car_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
@@ -627,17 +481,27 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.motorcycle,
+                      Icon(AntIcons.user_add_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'My Agent(s)',
+                      'My Rider(s)',
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
-                      content: AgentList(user: currentUser,title: 'Manage Agent(s)',callBckActionType: 3,route: 1,),
+                      content: AgentList(user: currentUser,title: 'Manage Rider(s)',callBckActionType: 3,route: 1,),
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.sentiment_satisfied,
+                      Icon(AntIcons.pushpin_outline,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Rider Tracker',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.smile_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
@@ -648,7 +512,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       content: RequestPocketSense(user: currentUser,),
                     ),MenuItem(
                       gridHeight,
-                      Icon(Icons.add_call,
+                      Icon(AntIcons.customer_service_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',

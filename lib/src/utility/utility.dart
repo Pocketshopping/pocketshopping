@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -20,6 +21,7 @@ import 'package:geocoder/geocoder.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
   static var location = Location();
+  static final  FirebaseMessaging _fcm = FirebaseMessaging();
   static String mapStyles = '''[
   {
     "elementType": "geometry",
@@ -228,7 +230,7 @@ class Utility {
 
   static int setStartCount(dynamic dtime, int second) {
     //print(dtime);
-    var otime = DateTime.parse((dtime as Timestamp).toDate().toString())
+    var otime = DateTime.parse((dtime).toDate().toString())
         .add(Duration(seconds: second));
     int diff = otime.difference(DateTime.now()).inSeconds;
     if (diff > 0)
@@ -250,11 +252,14 @@ class Utility {
         return null;
       },
     );
+    if(response !=null)
     if (response.statusCode == 200) {
       return response;
     } else {
       return null;
     }
+    else
+      return null;
   }
 
 
@@ -269,7 +274,7 @@ class Utility {
           <String, dynamic>{
             "refID": "$ReferenceID",
             "statusId": Status,
-            "amount":Amount,
+            "amount":(Amount/100).round(),
             "paymentId": 1,
             "channelId": PaymentMethod,
             "from": "$From",
@@ -281,13 +286,15 @@ class Utility {
         return null;
       },
     );
-    //print(response.body);
+    if(response != null)
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
       return result['Message'].toString();
     } else {
       return null;
     }
+    else
+      return null;
   }
 
   static Future<dynamic> initializePay({
@@ -318,13 +325,77 @@ class Utility {
         return null;
       },
     );
-    
+
+    if(response != null)
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
       return result['id'].toString();
     } else {
       return null;
     }
+    else
+      return null;
+  }
+
+  static Future<dynamic> initializePosPay({
+     String from, String to, int status=4,int amount,int paymentMethod=2,
+    int channelId=2,String agent }) async {
+    Map<String, dynamic> data = {
+      "amount": amount,
+      "from": from,
+      "to": to,
+      "agentID": agent,
+      "channelId": channelId,
+      "paymentId": paymentMethod,
+      "statusId": status,
+    };
+    final response = await http.post("${WALLETAPI}wallets/pay/pos/initiate/",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+            data
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null){
+    if (response.statusCode == 200) {
+      var result = jsonDecode(response.body);
+      return result['id'].toString();
+    } else {
+      return null;
+    }}
+    else{
+      return null;
+    }
+  }
+
+  static Future<dynamic> finalizePosPay({String collectionID, bool isSuccessful=true }) async {
+    final response = await http.post("${WALLETAPI}wallets/pay/pos/finalize/",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "collectionID": collectionID,
+            "status": isSuccessful,
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return null;
+    }
+    return null;
   }
 
   static Future<dynamic> finalizePay({String collectionID, bool isSuccessful=true }) async {
@@ -343,11 +414,13 @@ class Utility {
         return null;
       },
     );
+    if(response != null)
     if (response.statusCode == 200) {
       return true;
     } else {
       return null;
     }
+    return null;
   }
 
   static Future<dynamic> updateWallet({String uid, String cid,int type }) async {
@@ -367,11 +440,68 @@ class Utility {
         return null;
       },
     );
+    if(response != null)
     if (response.statusCode == 200) {
       return true;
     } else {
       return null;
     }
+    else
+      return null;
+  }
+
+  static Future<bool> updateWalletAccount({String wid, String accountNumber,String sortCode,String bankName }) async {
+    final response = await http.post("${WALLETAPI}wallets/updatebank",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "walletID": wid,
+            "accountNumber": accountNumber,
+            "sortCode":sortCode,
+            "bankName":bankName
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    else
+      return false;
+  }
+
+  static Future<bool> withdrawFunds({String wid, int type=1 }) async {
+    final response = await http.post("${WALLETAPI}Withdraw",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "walletID": wid,
+            "type": type,
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    else
+      return false;
   }
 
   static Future<bool> clearRemittance(String rid) async {
@@ -381,12 +511,17 @@ class Utility {
         return null;
       },
     );
+    if(response != null)
     if (response.statusCode == 200) {
       return true;
     } else {
       return false;
     }
+    else
+      return null;
   }
+
+
 
   static Future<Map<String,dynamic>> generateRemittance({String aid, int limit}) async {
     final response = await http.get("${WALLETAPI}collection/cash/agent/remittance?id=$aid&limit=$limit").timeout(
@@ -395,12 +530,15 @@ class Utility {
         return null;
       },
     );
+    if(response != null)
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
       return result;
     } else {
       return null;
     }
+    else
+      return null;
   }
 
   static Future<dynamic> topUpUnit(
@@ -414,7 +552,7 @@ class Utility {
           <String, dynamic>{
             "refID": "$referenceID",
             "statusId": status,
-            "amount":amount,
+            "amount":(amount/100).round(),
             "paymentId": 5,
             "channelId": paymentMethod,
             "from": "$from",
@@ -426,12 +564,15 @@ class Utility {
         return null;
       },
     );
+    if(response != null)
     if (response.statusCode == 200) {
       var result = jsonDecode(response.body);
       return result['Message'].toString();
     } else {
       return null;
     }
+    else
+      return null;
   }
 
   static dynamic presentDate(dynamic datetime) {
@@ -674,6 +815,43 @@ class Utility {
         )
     );
     return isConfirmed;
+  }
+
+ static double sum(List<dynamic> items) {
+    double sum = 0;
+    items.forEach((element) {
+      sum += element.total;
+    });
+    return sum;
+  }
+
+  static Future<void> requestPusher(String fcm) async {
+    //print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body':  'You have a request to attend to click for more information',
+            'title': 'Request'
+          },
+          'priority': 'HIGH',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'WorkRequestResponse',
+            }
+          },
+          'to': fcm,
+        }));
   }
 
 }

@@ -30,6 +30,7 @@ class MerchantEntity extends Equatable {
   final String bCountry;
   final bool adminUploaded;
   final bool bActive;
+  final String bWallet;
 
   const MerchantEntity(
       this.bName,
@@ -55,7 +56,8 @@ class MerchantEntity extends Equatable {
       this.bOpen,
       this.bUnique,
       this.adminUploaded,
-      this.bActive);
+      this.bActive,
+      this.bWallet);
 
   Map<String, Object> toJson() {
     return {
@@ -82,7 +84,8 @@ class MerchantEntity extends Equatable {
       'bCreatedAt': bCreatedAt,
       'bCountry': bCountry,
       'adminUploaded':adminUploaded,
-      'bActive':bActive
+      'bActive':bActive,
+      'bWallet':bWallet,
     };
   }
 
@@ -111,7 +114,8 @@ class MerchantEntity extends Equatable {
         bOpen,
         bUnique,
         adminUploaded,
-        bActive
+        bActive,
+        bWallet
       ];
 
   @override
@@ -144,7 +148,8 @@ class MerchantEntity extends Equatable {
       json['bOpen'] as String,
       json['bUnique'] as String,
       json['adminUploaded'] as bool,
-      json['bActive'] as bool
+      json['bActive'] as bool,
+      json['bWallet'] as String
     );
   }
 
@@ -175,6 +180,7 @@ class MerchantEntity extends Equatable {
       snap.data['branchUnique'],
       snap.data['adminUploaded']??false,
       snap.data['businessActive']??true,
+      snap.data['bWallet']??"",
     );
   }
 
@@ -203,7 +209,8 @@ class MerchantEntity extends Equatable {
       'bCreatedAt': bCreatedAt,
       'bCountry': bCountry,
       'adminUploaded':adminUploaded,
-      'bActive':bActive
+      'bActive':bActive,
+      'bWallet':bWallet
     };
   }
 }

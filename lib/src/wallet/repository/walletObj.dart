@@ -76,7 +76,7 @@ class Wallet {
 
   @override
   String toString() {
-    return '''Wallet {walletBalance: $walletBalance,}''';
+    return '''Instance of Wallet''';
   }
 
   static Wallet fromMap(Map<String, dynamic> data) {

@@ -146,7 +146,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'workPlaceWallet':currentUser.agent.workPlaceWallet??'',
           'profile':currentUser.user.profile,
           'limit':currentUser.agent.limit,
-          'autoAssigned':currentUser.agent.autoAssigned.isNotEmpty
+          'autoAssigned':currentUser.agent.autoAssigned!=null?currentUser.agent.autoAssigned.isNotEmpty:false
         });
 
     return Future.value();
@@ -710,6 +710,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                   ],
                 )),
               ],
-            )));
+            )
+        )
+    );
   }
 }

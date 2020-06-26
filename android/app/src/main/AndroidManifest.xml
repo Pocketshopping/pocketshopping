@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.REQUEST_COMPANION_USE_DATA_IN_BACKGROUND"/>
     <application
         android:name=".Application"
         android:label="pocketshopping"
@@ -19,7 +20,7 @@
             android:value="AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc"/>
         <meta-data
             android:name="co.paystack.android.PublicKey"
-            android:value="pk_test_75aba332cc72ea999034955083704a16da6f8c1c"/>
+            android:value="pk_test_78f1f0d36abc662437755f96525a64b35cec0a6c"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id"/>

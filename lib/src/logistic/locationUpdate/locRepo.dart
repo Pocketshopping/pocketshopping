@@ -72,16 +72,11 @@ class LocRepo {
         Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
       }
 
-      if(!data['autoAssigned'])
-      {
-        data.remove('agentLocation');
-      }
-
       data['startedAt']=Timestamp.now();
-      data['autoAssigned']=agent.autoAssigned.isNotEmpty && agent.autoAssigned != 'Unassign';
-      await LogisticRepo.updateAgentLoc(data['agentID'], data);
+      data['autoAssigned']=agent.autoAssigned!=null?(agent.autoAssigned.isNotEmpty && agent.autoAssigned != 'Unassign'):false;
 
 
+      await databaseReference.collection("agentLocationUpdate").document(data['agentID']).setData(data);
     }
   }
 

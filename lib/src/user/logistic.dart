@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,9 @@ import 'package:pocketshopping/page/admin/viewItem.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
+import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/bank/BankWithdraw.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
@@ -26,6 +29,8 @@ import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
@@ -71,14 +76,13 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
 
     _isOperationalNotifier.value=currentUser.merchant.bStatus==1?true:false;
 
-    WalletRepo.getWallet(currentUser.user.walletId)
-        .then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
-      if (mounted) {
+      /*if (mounted) {
         _wallet = wallet;
         setState(() {});
-      }
+      }*/
     });
 
     orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
@@ -176,123 +180,46 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       //margin:  MediaQuery.of(context).size.height*0.05,
                       margin: EdgeInsets.only(
                           left: marginLR * 0.01, right: marginLR * 0.01),
-                      child: Column(
-                        children: <Widget>[
-                          if (_wallet != null)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: <Widget>[
-                                Expanded(
-                                    flex: 1,
-                                    child: Column(
-                                      children: [
-                                        Center(
-                                            child: Text(
-                                          "Business Revenue",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
-                                        Center(
-                                            child: Text(
-                                              "collected by pocketshopping",
-                                              style: TextStyle(
-                                                  fontSize: 11),
-                                            )),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        Center(
-                                            child: Text(
-                                          "\u20A6 ${_wallet.merchantBalance}",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        )),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        if(_wallet.deliveryBalance>100) Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: PRIMARYCOLOR
-                                                    .withOpacity(0.5)),
-                                            color:
-                                                PRIMARYCOLOR.withOpacity(0.5),
-                                          ),
-                                          child: FlatButton(
-                                            onPressed: () => {
+                      child: AdminFinance(topUp: (){Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",));},
+                      withdraw: (Wallet wallet)async{
+                        double total = wallet.merchantBalance + wallet.deliveryBalance;
+                        bool canWithdraw = wallet.accountNumber.isNotEmpty;
+                        bool isSet = await PinRepo.isSet(currentUser.user.walletId);
+                        if(total > 10){
+                          if(currentUser.user.role == 'admin'){
+                            if(currentUser.user.uid == currentUser.merchant.bCreator.documentID){
+                              if(isSet){
+                                if(canWithdraw){
 
-                                            },
-                                            child: Center(
-                                                child: Text(
-                                              "Withdraw",
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            )),
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                ),
-                               const Expanded(
-                                  flex: 0,
-                                  child: SizedBox(
-                                    width: 10,
-                                  ),
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Column(
-                                      children: [
-                                        Center(
-                                            child: Text(
-                                              "Delivery Revenue",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            )),
-                                        const Center(
-                                            child: Text(
-                                              "collected by pocketshopping",
-                                              style: TextStyle(
-                                                  fontSize: 11),
-                                            )),
-                                       const  SizedBox(
-                                          height: 10,
-                                        ),
-                                        Center(
-                                            child: Text(
-                                              "\u20A6 ${_wallet.deliveryBalance}",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            )),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        if(_wallet.deliveryBalance>100)Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: PRIMARYCOLOR
-                                                    .withOpacity(0.5)),
-                                            color:
-                                            PRIMARYCOLOR.withOpacity(0.5),
-                                          ),
-                                          child: FlatButton(
-                                            onPressed: () => {
+                                  Get.dialog(BankWithdraw(wallet: wallet,walletID: currentUser.user.walletId,callBackAction: (){},)).then((value){
+                                    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+                                  });
 
-                                            },
-                                            child: Center(
-                                                child: Text(
-                                                  "Withdraw",
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                )),
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                ),
-                              ],
-                            ),
-                        ],
+                                }
+                                else{
+                                  Utility.infoDialogMaker('You can not withdraw without adding your account number.'
+                                      ' click on settings on the side menu for adding up bank account',title: '');
+                                }
+                              }
+                              else{
+                                Utility.infoDialogMaker('You can not withdraw without setting up Pocket PIN.'
+                                    ' click on settings on the side menu for setting up Pocket PIN',title: '');
+                              }
+
+                            }
+                            else{
+                              Utility.infoDialogMaker('You are not the owner of this business',title: '');
+                            }
+                          }
+                          else{
+                            Utility.infoDialogMaker('You do not have permission to withdraw from this account,',title: '');
+                          }
+                        }
+                        else{
+                          Utility.infoDialogMaker('Insufficient Funds for withdrawal',title: '');
+                        }
+
+                      },
                       ),
                     ),
                     Container(
@@ -463,7 +390,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                           return
                             MenuItem(
                               gridHeight,
-                              Icon(MaterialIcons.local_pizza,
+                              Icon(AntIcons.shopping_outline,
                                   size: MediaQuery.of(context).size.width * 0.12,
                                   color: PRIMARYCOLOR.withOpacity(0.8)),
                               'Deliveries',
@@ -488,7 +415,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.pie_chart,
+                      Icon(AntIcons.pie_chart_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Report',
@@ -497,7 +424,17 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.local_taxi,
+                      Icon(AntIcons.history,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Withdrawal(s)',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,title: 'Manage Agent(s)',callBckActionType: 3,route: 1,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.car_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
@@ -507,7 +444,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.motorcycle,
+                      Icon(AntIcons.user_add_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Agent(s)',
@@ -517,7 +454,17 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.business_center,
+                      Icon(AntIcons.pushpin_outline,
+                          size: MediaQuery.of(context).size.width * 0.12,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Agent Tracker',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,),
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.bulb_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'New Business',
@@ -529,7 +476,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.home,
+                      Icon(AntIcons.shop_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Business(es)',
@@ -541,7 +488,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.sentiment_satisfied,
+                      Icon(AntIcons.smile_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
@@ -552,7 +499,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       content: RequestPocketSense(user: currentUser,),
                     ),MenuItem(
                       gridHeight,
-                      Icon(Icons.add_call,
+                      Icon(AntIcons.customer_service_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',
@@ -562,7 +509,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.settings,
+                      Icon(AntIcons.setting_outline,
                           size: MediaQuery.of(context).size.width * 0.12,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',

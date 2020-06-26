@@ -28,4 +28,15 @@ class RequestRepo {
             {'requestCleared': true, 'requestClearedAt': Timestamp.now()});
     return true;
   }
+
+  static Future<List<Request>> getSacked(String uid) async {
+    var docs = await databaseReference
+        .collection("request")
+        .orderBy('requestCreatedAt', descending: true)
+        .where('requestReceiver', isEqualTo: uid)
+        .where('requestCleared', isEqualTo: false)
+        .where('requestAction', isEqualTo: "REMOVEWORK")
+        .getDocuments(source: Source.serverAndCache);
+    return Request.fromListSnap(docs.documents);
+  }
 }

@@ -11,6 +11,9 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/editProduct.dart';
+import 'package:pocketshopping/src/admin/staff/newStaff.dart';
+import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
+import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
 import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentTracker.dart';
@@ -23,20 +26,20 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:http/http.dart' as http;
 
-class AgentList extends StatefulWidget {
+class StaffList extends StatefulWidget {
   final Session user;
   final int callBckActionType;
   final String title;
   final int route;
-  AgentList({this.user,this.callBckActionType=1,this.title,this.route=0});
+  StaffList({this.user,this.callBckActionType=1,this.title,this.route=0});
   @override
-  _AgentListState createState() => new _AgentListState();
+  _StaffListState createState() => new _StaffListState();
 }
 
-class _AgentListState extends State<AgentList> {
+class _StaffListState extends State<StaffList> {
   int get count => list.length;
 
-  List<AgentLocUp> list = [];
+  List<Staff> list = [];
   bool _finish;
   bool loading;
   bool empty;
@@ -47,7 +50,7 @@ class _AgentListState extends State<AgentList> {
     _finish = true;
     loading =true;
     empty = false;
-    LogisticRepo.fetchMyAgents(widget.user.merchant.mID, null).then((value){
+    StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null).then((value){
       //print(value);
       if(mounted)
         setState((){
@@ -70,7 +73,7 @@ class _AgentListState extends State<AgentList> {
   void load() {
 
     if(list.isNotEmpty)
-      LogisticRepo.fetchMyAgents(widget.user.merchant.mID, list.last).then((value) {
+     StaffRepo.fetchMyStaffs(widget.user.merchant.mID, list.last).then((value) {
         if(mounted)
           if(value.isNotEmpty)
             setState((){
@@ -88,7 +91,7 @@ class _AgentListState extends State<AgentList> {
 
       });
     else
-      LogisticRepo.fetchMyAgents(widget.user.merchant.mID, null).then((value) {
+     StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null).then((value) {
         if(mounted)
           if(value.isNotEmpty)
             setState((){
@@ -116,7 +119,7 @@ class _AgentListState extends State<AgentList> {
               MediaQuery.of(context).size.height *
                   0.15),
           child: AppBar(
-              title: Text(widget.title==null?'${widget.user.merchant.bName} Agent(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
+              title: Text(widget.title==null?'${widget.user.merchant.bName} Staff(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
               centerTitle: true,
               backgroundColor: Color.fromRGBO(255, 255, 255, 1),
               leading: IconButton(
@@ -138,7 +141,7 @@ class _AgentListState extends State<AgentList> {
                       controller: null,
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.search),
-                        hintText: 'Search ${widget.user.merchant.bName} Agent(s)',
+                        hintText: 'Search ${widget.user.merchant.bName} Staff(s)',
                         filled: true,
                         fillColor: Colors.grey.withOpacity(0.2),
                         focusedBorder: OutlineInputBorder(
@@ -154,7 +157,7 @@ class _AgentListState extends State<AgentList> {
                       onChanged: (value) {
                         if(value.isEmpty){
 
-                          LogisticRepo.fetchMyAgents(widget.user.merchant.mID, null).then((value) {
+                         StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null).then((value) {
                             if(mounted)
                               setState((){
                                 empty = false;
@@ -166,7 +169,7 @@ class _AgentListState extends State<AgentList> {
                           });
                         }
                         else{
-                          LogisticRepo.searchMyAgent(widget.user.merchant.mID, null,value.trim()).then((result) {
+                          StaffRepo.searchMyStaffs(widget.user.merchant.mID, null,value.trim()).then((result) {
 
                             if(mounted)
                               setState((){
@@ -258,7 +261,7 @@ class _AgentListState extends State<AgentList> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 10),
                               child: Text(
-                                "No Agent added yet",
+                                "No Staff added yet",
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -288,7 +291,7 @@ class _AgentListState extends State<AgentList> {
                         color: PRIMARYCOLOR,
                         onPressed: (){
                           Get.to(
-                              AgentForm(
+                              StaffForm(
                                 session: widget.user,
                               )
                           ).then((value) {
@@ -296,7 +299,7 @@ class _AgentListState extends State<AgentList> {
                           });
                         },
                         icon: Icon(Icons.add,color: Colors.white,),
-                        label: Text('New Agent',style: TextStyle(color: Colors.white),),
+                        label: Text('New Staff',style: TextStyle(color: Colors.white),),
                       ),
                     )
                 ),

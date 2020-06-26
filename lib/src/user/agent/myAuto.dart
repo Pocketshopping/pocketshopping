@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/logistic/vehicle/repository/vehicleObj.dart';
+import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
@@ -26,7 +29,8 @@ class _MyAutoState extends State<MyAuto>{
   Agent agent;
   User agentAcct;
   final TextEditingController _limitController = TextEditingController();
-  final _autovalidate  = ValueNotifier<bool>(false);
+  final _reasonController = TextEditingController();
+  final _autoValidate  = ValueNotifier<bool>(false);
   final _isSelected  = ValueNotifier<List<bool>>([true,false]);
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _assigned  = ValueNotifier<String>("Select");
@@ -300,7 +304,7 @@ class _MyAutoState extends State<MyAuto>{
                           children: [
                             Text('State reason for removing this agent'),
                             TextFormField(
-                              controller: _limitController,
+                              controller: _reasonController,
                               decoration: InputDecoration(
                                   labelText: 'Reason',
                                   hintText: 'Reason',
@@ -324,13 +328,44 @@ class _MyAutoState extends State<MyAuto>{
                           child: Text('No'),
                         ),
                         confirm: FlatButton(
-                          onPressed: (){},
+                          onPressed: ()async{
+                            Get.back();
+                            Utility.bottomProgressLoader(title: 'Removing Rider',body: '...please wait');
+                            Merchant merchant =await MerchantRepo.getMerchant(agent.agentWorkPlace);
+                            bool result = await LogisticRepo.removeAgent(
+                            agent,
+                            Request(
+                              requestCleared: false,
+                              requestClearedAt: null,
+                              requestReceiver: agent.agent,
+                              requestTitle: 'Work',
+                              requestAction: 'REMOVEWORK',
+                              requestBody: 'The Management of ${merchant.bName} has removed your account from list of their riders(${_reasonController.text}). Contact ${merchant.bName} for more infomation',
+                              requestInitiatorID: merchant.mID,
+                              requestInitiator: merchant.bName,
+                              requestCreatedAt: Timestamp.now()
+                            )
+                            );
+                            Get.back();
+                            if(result) {
+                              Utility.requestPusher(agentAcct.notificationID);
+                              Utility.bottomProgressSuccess(
+                                  title: 'Rider Removed',
+                                  body: 'running Clean up..',
+                                  goBack: true);
+                            }
+                            else
+                              Utility.bottomProgressFailure(title: 'Error',body: 'Error encountered while removing rider. Check connection and try again');
+
+
+                          },
                           child: Text('Yes'),
+
                         )
                       );
                     },
                     color: Colors.redAccent,
-                    child: const Text('Delete Agent',style: TextStyle(color: Colors.white),),
+                    child: const Text('Delete Rider',style: TextStyle(color: Colors.white),),
                   ),
                 ),
               ),
@@ -352,7 +387,7 @@ class _MyAutoState extends State<MyAuto>{
                                 child: Text('${agentAcct.fname}',style: TextStyle(fontSize: 28),),
                               ),
                               ValueListenableBuilder(
-                                valueListenable: _autovalidate,
+                                valueListenable: _autoValidate,
                                 builder: (_,autoValidate,__){
                                   return Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 15,vertical: 5),
@@ -424,7 +459,7 @@ class _MyAutoState extends State<MyAuto>{
 
                                                 }
                                                 else{
-                                                  _autovalidate.value=true;
+                                                  _autoValidate.value=true;
                                                 }
                                               },
                                               color: PRIMARYCOLOR,
@@ -603,6 +638,7 @@ class _MyAutoState extends State<MyAuto>{
                                                       //autos[assign]
                                                       if(result){
                                                         Get.back();
+                                                        print(auto.toMap());
                                                         if(_assigned.value != 'Unassign' ){
                                                           await LogisticRepo.reAssignAutomobile(auto.autoID,"",isAssigned: false);
                                                         }

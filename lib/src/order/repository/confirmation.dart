@@ -44,9 +44,9 @@ class Confirmation {
 
   Map<String, dynamic> toMap() {
     return {
-      'confirmedAt': this.confirmedAt,
-      'confirmOTP': this.confirmOTP,
-      'isConfirmed': this.isConfirmed,
+      'confirmedAt': this.confirmedAt??'',
+      'confirmOTP': this.confirmOTP??'',
+      'isConfirmed': this.isConfirmed??'',
     };
   }
 

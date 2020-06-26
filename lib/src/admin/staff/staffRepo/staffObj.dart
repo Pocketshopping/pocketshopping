@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 import 'staffPermission.dart';
 
@@ -10,11 +11,13 @@ class Staff {
   final Timestamp staffCreatedAt;
   final String staffJobTitle;
   final Permission staffPermissions;
-  final String staffStatus;
+  final int staffStatus;
   final String staffWorkPlace;
   final Timestamp startDate;
   final Timestamp endDate;
   final String staffID;
+  final String staffName;
+  final bool parentAllowed;
 
   Staff({
     this.staff,
@@ -27,6 +30,8 @@ class Staff {
     this.startDate,
     this.endDate,
     this.staffID,
+    this.staffName,
+    this.parentAllowed,
   });
 
   Staff copyWith({
@@ -35,11 +40,13 @@ class Staff {
     Timestamp staffCreatedAt,
     String staffJobTitle,
     Permission staffPermissions,
-    String staffStatus,
+    int staffStatus,
     String staffWorkPlace,
     Timestamp startDate,
     Timestamp endDate,
     String staffID,
+    String staffName,
+    bool parentAllowed
   }) {
     return Staff(
       staff: staff ?? this.staff,
@@ -52,6 +59,8 @@ class Staff {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       staffID: staffID ?? this.staffID,
+      staffName: staffName ?? this.staffName,
+      parentAllowed: parentAllowed??this.parentAllowed
     );
   }
 
@@ -66,7 +75,9 @@ class Staff {
       staffWorkPlace.hashCode ^
       startDate.hashCode ^
       endDate.hashCode ^
-      staffID.hashCode;
+      staffID.hashCode ^
+      staffName.hashCode ^
+      parentAllowed.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -82,7 +93,9 @@ class Staff {
           staffWorkPlace == other.staffWorkPlace &&
           startDate == other.startDate &&
           endDate == other.endDate &&
-          staffID == other.staffID;
+          staffID == other.staffID &&
+          staffName == other.staffName &&
+          parentAllowed == other.parentAllowed;
 
   Staff update({
     String staff,
@@ -90,11 +103,13 @@ class Staff {
     Timestamp staffCreatedAt,
     String staffJobTitle,
     Permission staffPermissions,
-    String staffStatus,
+    int staffStatus,
     String staffWorkPlace,
     Timestamp startDate,
     Timestamp endDate,
     String staffID,
+    String staffName,
+    bool parentAllowed
   }) {
     return copyWith(
       staff: staff,
@@ -107,26 +122,31 @@ class Staff {
       startDate: startDate,
       endDate: endDate,
       staffID: staffID,
+      staffName: staffName,
+      parentAllowed: parentAllowed
     );
   }
 
   @override
   String toString() {
-    return '''Staff {staffID: $staffID,}''';
+    return '''Instance of Staff''';
   }
 
   Map<String, dynamic> toMap() {
     return {
       'staff': staff,
       'staffBehaviour': staffBehaviour,
-      'staffCreatedAt': staffCreatedAt,
+      'staffCreatedAt': Timestamp.now(),
       'staffJobTitle': staffJobTitle,
-      'staffPermissions': staffPermissions,
+      'staffPermissions': staffPermissions.toMap(),
       'staffStatus': staffStatus,
       'staffWorkPlace': staffWorkPlace,
       'startDate': startDate,
       'endDate': endDate,
       'staffID': staffID,
+      'staffName': staffName,
+      'parentAllowed': parentAllowed,
+      'index': Utility.makeIndexList(staffName)
     };
   }
 
@@ -136,13 +156,18 @@ class Staff {
       staffBehaviour: snap.data['staffBehaviour'],
       staffCreatedAt: snap.data['staffCreatedAt'],
       staffJobTitle: snap.data['staffJobTitle'],
-      staffPermissions: Permission.fromMap(
-          snap.data['staffPermissions'] as Map<String, dynamic>),
+      staffPermissions: Permission.fromMap(snap.data['staffPermissions'] as Map<String, dynamic>),
       staffStatus: snap.data['staffStatus'],
       staffWorkPlace: snap.data['staffWorkPlace'],
       startDate: snap.data['startDate'],
       endDate: snap.data['endDate'],
+      staffName: snap.data['staffName'],
+      parentAllowed: snap.data['parentAllowed'],
       staffID: snap.documentID,
     );
+  }
+
+  static List<Staff> fromListSnap(List<DocumentSnapshot> snap){
+    return snap.map((e) => Staff.fromSnap(e)).toList();
   }
 }

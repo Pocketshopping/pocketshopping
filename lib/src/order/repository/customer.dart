@@ -46,9 +46,9 @@ class Customer {
 
   Map<String, dynamic> toMap() {
     return {
-      'customerTelephone': customerTelephone,
-      'customerReview': customerReview,
-      'customerName': customerName
+      'customerTelephone': customerTelephone??'',
+      'customerReview': customerReview??'',
+      'customerName': customerName??''
     };
   }
 

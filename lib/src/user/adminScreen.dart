@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -21,8 +22,15 @@ import 'package:pocketshopping/src/user/logistic.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:pocketshopping/src/pocketPay/pocket.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
+import 'package:pocketshopping/src/request/repository/requestRepo.dart';
+import 'package:pocketshopping/src/request/request.dart';
 
 import 'bloc/user.dart';
+
+
 
 class AdminScreen extends StatefulWidget {
   final UserRepository _userRepository;
@@ -38,15 +46,16 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   int _selectedIndex;
-  FirebaseUser CurrentUser;
+  FirebaseUser currentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   String userName;
+  Stream<LocalNotification> _notificationsStream;
 
 
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     const BottomNavigationBarItem(
-      icon: Icon(Icons.check_box_outline_blank),
+      icon: Icon(AntIcons.shop_outline),
       title: Text('DashBoard'),
     ),
     const BottomNavigationBarItem(
@@ -59,7 +68,14 @@ class _AdminScreenState extends State<AdminScreen> {
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('My Order(s)'),
+      title: Text('Transations'),
+    ),
+    const BottomNavigationBarItem(
+      icon: ImageIcon(
+          AssetImage("assets/images/blogo.png"),
+          color: PRIMARYCOLOR,
+        ),
+      title: Text('Pocket'),
     ),
   ];
 
@@ -68,69 +84,39 @@ class _AdminScreenState extends State<AdminScreen> {
     //LocalNotificationService.instance.start();
     userName = '';
     _selectedIndex = 0;
-    CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
-    UserRepo()
-        .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
-        .then((value) => null);
+    currentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
+    UserRepo().upDate(uid: currentUser.uid, notificationID: 'fcm').then((value) => null);
     //sendAndRetrieveMessage();
-    if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
-      _fcm.requestNotificationPermissions(IosNotificationSettings());
-    }
-    _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-        processNotification(payload,notification);
-
-      },
-      onBackgroundMessage: Platform.isIOS ? null : backgroundMessageHandler,
-      onLaunch: (Map<String, dynamic> message) async {
-        _fcm.onTokenRefresh;
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-        processNotification(payload,notification);
-
-      },
-      onResume: (Map<String, dynamic> message) async {
-        _fcm.onTokenRefresh;
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-        processNotification(payload,notification);
-      },
-    );
+    _notificationsStream = NotificationsBloc.instance.notificationsStream;
+    _notificationsStream.listen((notification) {
+      if (notification != null) {
+        var payload = jsonDecode(notification.data['data']['payload']);
+        processNotification(payload, notification);
+      }
+    });
 
     super.initState();
   }
 
-  processNotification(dynamic payload,dynamic notification){
+
+    processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
       case 'OrderRequest':
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
-            uid: CurrentUser.uid,
+            uid: currentUser.uid,
           ));
         break;
       case 'OrderResolutionResponse':
-        print('OrderResolutionResponse');
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
-            uid: CurrentUser.uid,
+            uid: currentUser.uid,
           ));
         //Get.dialog(Resolution(payload: payload,));
         break;
       case 'NewDeliveryOrderRequest':
-        print('NewDeliveryOrderRequest');
         GetBar(titleText: Text('New Delivery',style: TextStyle(color: Colors.white),),
           messageText:Text('You have new Delivery. Check you dashboard for details',style: TextStyle(color: Colors.white),),
             snackPosition: SnackPosition.BOTTOM,
@@ -139,20 +125,49 @@ class _AdminScreenState extends State<AdminScreen> {
             duration: Duration(seconds: 3)
         ).show();
 
+
       break;
+      case 'WorkRequestResponse':
+        await requester();
+        break;
     }
   }
 
-  static Future<dynamic> backgroundMessageHandler(
-      Map<String, dynamic> message) {
-    if (message.containsKey('data')) {
-    }
-    if (message.containsKey('notification')) {
-    }
-    return Future.value(true);
+  Future<void> requester()async{
+    var value = await RequestRepo.getAll(currentUser.uid);
+    RequestBloc.instance.newCount(value.length);
+    if (value.length > 0)
+      GetBar(
+        title: 'Rquest',
+        messageText: Text(
+          'You have an important request to attend to',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: PRIMARYCOLOR,
+        mainButton: FlatButton(
+          onPressed: () {
+            Get.back();
+            Get.to(RequestScreen(
+              requests: value,
+            ));
+          },
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              child: Text(
+                'View',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ).show();
+    Future.value();
   }
 
-  unpackNotification(dynamic data) {}
 
   @override
   void dispose() {
@@ -173,13 +188,13 @@ class _AdminScreenState extends State<AdminScreen> {
       child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),
-        )..add(LoadUser(CurrentUser.uid)),
+        )..add(LoadUser(currentUser.uid)),
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
             //setState(() {
             userName = state.user.user.fname;
             // });
-            return Scaffold(
+            return state.user.merchant != null ?Scaffold(
               drawer: DrawerScreen(
                 userRepository: widget._userRepository,
                 user: state.user.user,
@@ -193,6 +208,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       GeoFence(),
                       Favourite(),
                       MyOrders(),
+                      PocketPay(),
                     ].elementAt(_selectedIndex),
                   ),
                   decoration:  BoxDecoration(
@@ -206,6 +222,11 @@ class _AdminScreenState extends State<AdminScreen> {
                 unselectedItemColor: Colors.black54,
                 showUnselectedLabels: true,
                 onTap: _onItemTapped,
+              ),
+            ):
+            Scaffold(
+              body:  Center(
+                  child: Text('Error')
               ),
             );
           } else {
@@ -243,7 +264,7 @@ class _AdminScreenState extends State<AdminScreen> {
     ));
   }
 
-  Future<void> Respond(bool yesNo, String response, String fcm) async {
+  Future<void> respond(bool yesNo, String response, String fcm) async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
@@ -494,7 +515,7 @@ class _ResolutionState extends State<Resolution> {
                         color: PRIMARYCOLOR,
                         onPressed: () {
                           if (_formKey.currentState.validate()) {
-                            Respond(delay, _delay.text, payload['fcmToken'],
+                            respond(delay, _delay.text, payload['fcmToken'],
                                     _telephone.text, payload['oID'])
                                 .then((value) => null);
                             Get.back();
@@ -515,7 +536,7 @@ class _ResolutionState extends State<Resolution> {
         ));
   }
 
-  Future<void> Respond(int delay, String comment, String fcm, String telephone,
+  Future<void> respond(int delay, String comment, String fcm, String telephone,
       String oID) async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(

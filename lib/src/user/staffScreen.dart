@@ -15,11 +15,17 @@ import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart'
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/request/blank.dart';
+import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
+import 'package:pocketshopping/src/request/repository/requestRepo.dart';
+import 'package:pocketshopping/src/request/request.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:pocketshopping/src/pocketPay/pocket.dart';
 
 import 'bloc/user.dart';
 
@@ -37,11 +43,12 @@ class StaffScreen extends StatefulWidget {
 
 class _StaffScreenState extends State<StaffScreen> {
   int _selectedIndex;
-  FirebaseUser CurrentUser;
+  FirebaseUser currentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   final TextEditingController _comment = TextEditingController();
   String userName;
+  Stream<LocalNotification> _notificationsStream;
 
   BottomNavigationBadge badger = new BottomNavigationBadge(
       backgroundColor: Colors.red,
@@ -66,6 +73,13 @@ class _StaffScreenState extends State<StaffScreen> {
       icon: Icon(Icons.folder_open),
       title: Text('My Order(s)'),
     ),
+    const BottomNavigationBarItem(
+      icon: ImageIcon(
+        AssetImage("assets/images/blogo.png"),
+        color: PRIMARYCOLOR,
+      ),
+      title: Text('Pocket'),
+    ),
   ];
 
   @override
@@ -73,55 +87,63 @@ class _StaffScreenState extends State<StaffScreen> {
     //LocalNotificationService.instance.start();
     userName = '';
     _selectedIndex = 0;
-    CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
-    UserRepo()
-        .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
-        .then((value) => null);
-    //sendAndRetrieveMessage();
-    if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
-      _fcm.requestNotificationPermissions(IosNotificationSettings());
-    }
-    _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-        processNotification(payload,notification);
-      },
-      onBackgroundMessage: Platform.isIOS ? null : backgroundMessageHandler,
-      onLaunch: (Map<String, dynamic> message) async {
-        _fcm.onTokenRefresh;
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-        processNotification(payload,notification);
-      },
-      onResume: (Map<String, dynamic> message) async {
-        _fcm.onTokenRefresh;
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification(
-            "notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-        processNotification(payload,notification);
-      },
-    );
+    currentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
+    UserRepo().upDate(uid: currentUser.uid, notificationID: 'fcm').then((value) => null);
+    //initConfigure();
+    _notificationsStream = NotificationsBloc.instance.notificationsStream;
+    _notificationsStream.listen((notification) {
 
+      if (notification != null) {
+        var payload = jsonDecode(notification.data['data']['payload']);
+        processNotification(payload, notification);
+      }
+    });
     super.initState();
   }
 
-  processNotification(dynamic payload,dynamic notification){
+
+  Future<void> requester()async{
+    var value = await RequestRepo.getAll(currentUser.uid);
+    RequestBloc.instance.newCount(value.length);
+    if (value.length > 0)
+      GetBar(
+        title: 'Rquest',
+        messageText: Text(
+          'You have an important request to attend to',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: PRIMARYCOLOR,
+        mainButton: FlatButton(
+          onPressed: () {
+            Get.back();
+            Get.to(RequestScreen(
+              requests: value,
+            ));
+          },
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              child: Text(
+                'View',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ).show();
+    Future.value();
+  }
+
+  processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
       case 'OrderRequest':
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
-            uid: CurrentUser.uid,
+            uid: currentUser.uid,
           ));
         break;
       case 'OrderResolutionResponse':
@@ -129,34 +151,26 @@ class _StaffScreenState extends State<StaffScreen> {
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
-            uid: CurrentUser.uid,
+            uid: currentUser.uid,
           ));
         break;
       case 'NearByAgent':
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
-            uid: CurrentUser.uid,
+            uid: currentUser.uid,
           ));
+        break;
+        break;
+      case 'WorkRequestResponse':
+        await requester();
         break;
     }
   }
 
-  static Future<dynamic> backgroundMessageHandler(
-      Map<String, dynamic> message) {
-    if (message.containsKey('data')) {
-     // print(message);
-    }
-    if (message.containsKey('notification')) {
-    }
-    return Future.value(true);
-  }
-
-
-
   @override
   void dispose() {
-    if (iosSubscription != null) iosSubscription.cancel();
+    iosSubscription?.cancel();
     super.dispose();
   }
 
@@ -173,13 +187,14 @@ class _StaffScreenState extends State<StaffScreen> {
       child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),
-        )..add(LoadUser(CurrentUser.uid)),
+        )..add(LoadUser(currentUser.uid)),
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
             //print(state.user.agent.autoType);
             //setState(() {
             userName = state.user.user.fname;
             // });
+            if(state.user.merchant != null)
             return Scaffold(
               drawer: DrawerScreen(
                 userRepository: widget._userRepository,
@@ -192,6 +207,7 @@ class _StaffScreenState extends State<StaffScreen> {
                       GeoFence(),
                       Favourite(),
                       MyOrders(),
+                      PocketPay(),
                     ].elementAt(_selectedIndex),
                   ),
                   decoration: BoxDecoration(
@@ -207,6 +223,36 @@ class _StaffScreenState extends State<StaffScreen> {
                 onTap: _onItemTapped,
               ),
             );
+
+            else
+              return Scaffold(
+                drawer: DrawerScreen(
+                  userRepository: widget._userRepository,
+                  user: state.user.user,
+                ),
+                body: Container(
+                    child: Center(
+                      child: <Widget>[
+                        BlankWorkplace(),
+                        GeoFence(),
+                        Favourite(),
+                        MyOrders(),
+                        PocketPay(),
+                      ].elementAt(_selectedIndex),
+                    ),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                                color: Colors.black54.withOpacity(0.2))))),
+                bottomNavigationBar: BottomNavigationBar(
+                  items: items,
+                  currentIndex: _selectedIndex,
+                  selectedItemColor: PRIMARYCOLOR,
+                  unselectedItemColor: Colors.black54,
+                  showUnselectedLabels: true,
+                  onTap: _onItemTapped,
+                ),
+              );
           } else {
             return Scaffold(
               body: Center(

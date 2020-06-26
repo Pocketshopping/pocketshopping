@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
@@ -164,29 +165,33 @@ class Order {
 
   Future<Map<String, dynamic>> toMap() async{
     return {
-      'orderItem': OrderItem.toListMap(orderItem),
-      'orderAmount': orderAmount,
-      'orderCustomer': orderCustomer.toMap(),
-      'orderMerchant': orderMerchant,
-      'orderCreatedAt': orderCreatedAt,
-      'orderMode': orderMode.toMap(),
-      'orderETA': orderETA,
-      'receipt': receipt.toMap(),
-      'status': status,
-      'orderID': orderID,
-      'docID': docID,
-      'orderConfirmation': orderConfirmation.toMap(),
-      'customerID': customerID,
-      'agent':agent,
-      'orderLogistic':orderLogistic,
+      'orderItem': OrderItem.toListMap(orderItem)??[],
+      'orderAmount': orderAmount??0,
+      'orderCustomer': orderCustomer.toMap()??{},
+      'orderMerchant': orderMerchant??'',
+      'orderCreatedAt': Timestamp.now(),
+      'orderMode': orderMode.toMap()??{},
+      'orderETA': orderETA??0,
+      'receipt': receipt.toMap()??{},
+      'status': status??0,
+      'orderID': orderID??'',
+      'docID': docID??'',
+      'orderConfirmation': orderConfirmation.toMap()??{},
+      'customerID': customerID??'',
+      'agent':agent??'',
+      'orderLogistic':orderLogistic??'',
       'index': await makeOrderIndex()
     };
   }
   Future<List<String>> makeOrderIndex()async{
+    List<String> temp=[];
     var merchant = await MerchantRepo.getMerchant(orderMerchant);
-    var temp = Utility.makeIndexList(orderMode.deliveryMan);
+    if(orderMode.deliveryMan != null)
+    temp = Utility.makeIndexList(orderMode.deliveryMan);
+    if(orderMode.deliveryMan != null)
     temp.addAll(Utility.makeIndexList(orderCustomer.customerName));
-      temp.addAll(Utility.makeIndexList(merchant.bName));
+
+    temp.addAll(Utility.makeIndexList(merchant.bName));
     return temp;
   }
   static Order fromEntity(OrderEntity orderEntity) {

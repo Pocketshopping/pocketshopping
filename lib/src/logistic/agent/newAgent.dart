@@ -9,9 +9,14 @@ import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
 import 'repository/agentObj.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 class AgentForm extends StatefulWidget {
   AgentForm({this.session});
@@ -27,7 +32,8 @@ class _AgentFormState extends State<AgentForm> {
   final TextEditingController _limitController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  Session CurrentUser;
+
+  Session currentUser;
   bool isSubmitting;
   String type;
   String assigned;
@@ -75,7 +81,7 @@ class _AgentFormState extends State<AgentForm> {
                 },
               ),
               title: Text(
-                'New Agent',
+                'New Rider',
                 style: TextStyle(color: PRIMARYCOLOR),
               ),
               automaticallyImplyLeading: false,
@@ -91,7 +97,7 @@ class _AgentFormState extends State<AgentForm> {
                     child: Center(
                       child: psCard(
                         color: PRIMARYCOLOR,
-                        title: 'New Agent',
+                        title: 'New Rider',
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey,
@@ -141,7 +147,7 @@ class _AgentFormState extends State<AgentForm> {
                                           ),
                                           Center(
                                             child: Text(
-                                                '${agent != null ? agent.runtimeType != String ? agent.fname : 'Agent' : 'Agent'}'),
+                                                '${agent != null ? agent.runtimeType != String ? agent.fname : 'Rider' : 'Rider'}'),
                                           ),
                                           SizedBox(
                                             height: 20,
@@ -150,17 +156,17 @@ class _AgentFormState extends State<AgentForm> {
                                               ? agent.runtimeType == String
                                                   ? Center(
                                                       child: Text(
-                                                      'This user can not be an agent, because the account is registered as $agent',
+                                                      'This user can not be a Rider, because the account is registered as ${agent=='admin'?' a business owner':' a staff'}',
                                                       style: TextStyle(
-                                                          color: Colors.red),
+                                                          color: Colors.red),textAlign: TextAlign.center,
                                                     ))
                                                   : Container()
-                                              : Center(
+                                              : _agentController.text.isNotEmpty?Center(
                                                   child: Text(
-                                                  'No Agent with this ID',
+                                                  'No Rider with this ID',
                                                   style: TextStyle(
                                                       color: Colors.red),
-                                                )),
+                                                )):const SizedBox.shrink(),
                                         ],
                                       )),
                                   Container(
@@ -179,20 +185,21 @@ class _AgentFormState extends State<AgentForm> {
                                     child: TextFormField(
                                       controller: _agentController,
                                       decoration: InputDecoration(
-                                          labelText: 'Agent ID',
-                                          hintText: 'Agent ID',
+                                          labelText: 'Rider ID',
+                                          hintText: 'Rider ID',
                                           border: InputBorder.none),
                                       keyboardType: TextInputType.text,
                                       autocorrect: false,
                                       autovalidate: autoValidate,
+
                                       validator: (value) {
                                         if (value.isEmpty) {
-                                          return 'Agent ID can not be empty';
+                                          return 'Rider ID can not be empty';
                                         } else if (agent == null) {
-                                          return 'No Agent with this ID';
+                                          return 'No Rider with this ID';
                                         } else if (agent.runtimeType ==
                                             String) {
-                                          return 'This user can not be an agent, because the account is registered as $agent';
+                                          return 'This user can not be a Rider, because the account is registered as $agent';
                                         }
                                         return null;
                                       },
@@ -414,9 +421,9 @@ class _AgentFormState extends State<AgentForm> {
                                                         isSubmitting = true;
                                                       });
                                                       GetBar(
-                                                        title: 'Agent',
+                                                        title: 'Rider',
                                                         messageText: Text(
-                                                          'Adding new Agent please wait',
+                                                          'Adding new Rider please wait',
                                                           style: TextStyle(
                                                               color:
                                                                   Colors.white),
@@ -492,11 +499,12 @@ class _AgentFormState extends State<AgentForm> {
                                                             totalUnitUsed: 0,
                                                           ),
                                                       )
-                                                          .then((value) => {
+                                                          .then((value)  {
                                                                 if (Get
                                                                     .isSnackbarOpen)
                                                                   {
-                                                                    Get.back(),
+                                                                    Get.back();
+                                                                    Utility.requestPusher(agent.notificationID);
                                                                     GetBar(
                                                                       title:
                                                                           'Agent',
@@ -522,21 +530,21 @@ class _AgentFormState extends State<AgentForm> {
                                                                         color: Colors
                                                                             .white,
                                                                       ),
-                                                                    ).show(),
+                                                                    ).show();
                                                                     _agentController
-                                                                        .clear(),
+                                                                        .clear();
                                                                     setState(
                                                                         () {
                                                                       autoValidate =
                                                                           false;
                                                                       agent =
                                                                           null;
-                                                                    }),
-                                                                  },
+                                                                    });
+                                                                  }
                                                                 setState(() {
                                                                   isSubmitting =
                                                                       false;
-                                                                })
+                                                                });
                                                               })
                                                           .catchError((_) {
                                                         if (Get
@@ -545,7 +553,7 @@ class _AgentFormState extends State<AgentForm> {
                                                           GetBar(
                                                             title: 'Agent',
                                                             messageText: Text(
-                                                              'Error adding Agent, check your connection and try again',
+                                                              'Error adding Rider, check your connection and try again',
                                                               style: TextStyle(
                                                                   color: Colors
                                                                       .white),
@@ -596,4 +604,11 @@ class _AgentFormState extends State<AgentForm> {
     _agentController.dispose();
     super.dispose();
   }
+
+
+
+
+
+
+
 }

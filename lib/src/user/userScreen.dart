@@ -14,6 +14,7 @@ import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart'
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/request/request.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -22,6 +23,7 @@ import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:pocketshopping/src/pocketPay/pocket.dart';
 
 import 'bloc/user.dart';
 
@@ -40,7 +42,8 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   int _selectedIndex;
   Color fabColor;
-  FirebaseUser CurrentUser;
+  FirebaseUser currentUser;
+  Stream<LocalNotification> _notificationsStream;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   BottomNavigationBadge badger = new BottomNavigationBadge(
@@ -62,75 +65,72 @@ class _UserScreenState extends State<UserScreen> {
       icon: Icon(Icons.folder_open),
       title: Text('Order'),
     ),
+    const BottomNavigationBarItem(
+      icon: ImageIcon(
+        AssetImage("assets/images/blogo.png"),
+        color: PRIMARYCOLOR,
+      ),
+      title: Text('Pocket'),
+    ),
   ];
 
   @override
   void initState() {
     _selectedIndex = 0;
     fabColor = PRIMARYCOLOR;
-    CurrentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
+    currentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
     UserRepo()
-        .upDate(uid: CurrentUser.uid, notificationID: 'fcm')
+        .upDate(uid: currentUser.uid, notificationID: 'fcm')
         .then((value) => null);
-    if (Platform.isIOS) {
-      iosSubscription = _fcm.onIosSettingsRegistered.listen((data) {});
-      _fcm.requestNotificationPermissions(IosNotificationSettings());
-    }
-    _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        var data = Map<String, dynamic>.from(message);
-        var payload = jsonDecode(data['data']['payload']);
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-      },
-      onBackgroundMessage: Platform.isIOS ? null : BackgroundMessageHandler,
-      onLaunch: (Map<String, dynamic> message) async {
-        _fcm.onTokenRefresh;
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-      },
-      onResume: (Map<String, dynamic> message) async {
-        _fcm.onTokenRefresh;
-        final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
-        NotificationsBloc.instance.newNotification(notification);
-      },
-    );
+    _notificationsStream = NotificationsBloc.instance.notificationsStream;
+    _notificationsStream.listen((notification) {
+      if (notification != null) {
+        var payload = jsonDecode(notification.data['data']['payload']);
+        processNotification(payload, notification);
+      }
+    });
 
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      RequestRepo.getAll(CurrentUser.uid).then((value) {
-        if (value.length > 0)
-          GetBar(
-            title: 'Rquest',
-            messageText: Text(
-              'You have an important request to attend to',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: PRIMARYCOLOR,
-            mainButton: FlatButton(
-              onPressed: () {
-                Get.back();
-                Get.to(RequestScreen(
-                  requests: value,
-                ));
-              },
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 1),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  child: Text(
-                    'View',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-          ).show();
-      });
+    SchedulerBinding.instance.addPostFrameCallback((_) async{
+      await requester();
     });
     Workmanager.cancelAll();
     super.initState();
+  }
+
+
+  Future<void> requester()async{
+    var value = await RequestRepo.getAll(currentUser.uid);
+    RequestBloc.instance.newCount(value.length);
+    if (value.length > 0)
+      GetBar(
+        title: 'Rquest',
+        messageText: Text(
+          'You have an important request to attend to',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: PRIMARYCOLOR,
+        mainButton: FlatButton(
+          onPressed: () {
+            Get.back();
+            Get.to(RequestScreen(
+              requests: value,
+            ));
+          },
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              child: Text(
+                'View',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ).show();
+    Future.value();
   }
 
   static Future<dynamic> BackgroundMessageHandler(Map<String, dynamic> message) {
@@ -140,6 +140,19 @@ class _UserScreenState extends State<UserScreen> {
     }
     
   }
+
+
+
+  processNotification(dynamic payload,dynamic notification)async{
+    switch (payload['NotificationType']) {
+      case 'WorkRequestResponse':
+        await requester();
+        break;
+    }
+  }
+
+
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -155,7 +168,7 @@ class _UserScreenState extends State<UserScreen> {
       child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),
-        )..add(LoadUser(CurrentUser.uid)),
+        )..add(LoadUser(currentUser.uid)),
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
             return Scaffold(
@@ -169,6 +182,7 @@ class _UserScreenState extends State<UserScreen> {
                       GeoFence(),
                       Favourite(),
                       MyOrders(),
+                      PocketPay(),
                     ].elementAt(_selectedIndex),
                   ),
                   decoration: BoxDecoration(

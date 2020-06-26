@@ -77,11 +77,11 @@ class OrderItem {
 
   static Map<String, dynamic> toMap(OrderItem orderItem) {
     return {
-      'ProductName': orderItem.ProductName,
-      'ProductId': orderItem.ProductId,
-      'ProductPrice': orderItem.ProductPrice,
-      'count': orderItem.count,
-      'totalAmount': orderItem.totalAmount,
+      'ProductName': orderItem.ProductName??'',
+      'ProductId': orderItem.ProductId??'',
+      'ProductPrice': orderItem.ProductPrice??"",
+      'count': orderItem.count??0,
+      'totalAmount': orderItem.totalAmount??0,
     };
   }
 

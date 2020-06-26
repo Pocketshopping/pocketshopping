@@ -7,8 +7,8 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserRepo {
-  final databaseReference = Firestore.instance;
-  final FirebaseMessaging _fcm = FirebaseMessaging();
+  final  databaseReference = Firestore.instance;
+  final  _fcm = FirebaseMessaging();
 
   UserRepo();
 
@@ -47,7 +47,6 @@ class UserRepo {
     String country,
   }) async {
     String fcmToken = await _fcm.getToken();
-    //print(fcmToken);
     await databaseReference
         .collection("users")
         .document(uid)
@@ -96,8 +95,7 @@ class UserRepo {
     if (bid != null && bid.isNotEmpty)
       data['business'] = databaseReference.document('merchants/' + bid);
     if (behaviour != null && behaviour.isNotEmpty)
-      data['behaviour'] =
-          databaseReference.document('userBehaviour/' + behaviour);
+      data['behaviour'] = databaseReference.document('userBehaviour/' + behaviour);
 
     //print(data.toString());
     return data;

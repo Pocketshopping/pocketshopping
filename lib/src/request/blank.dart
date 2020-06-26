@@ -1,28 +1,34 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/request/repository/requestObject.dart';
+import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/bloc/user.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 
-class RequestScreen extends StatefulWidget {
+class BlankWorkplace extends StatefulWidget {
 
   @override
-  State<StatefulWidget> createState() => _RequestScreenState();
+  State<StatefulWidget> createState() => _BlankWorkplaceState();
 }
 
-class _RequestScreenState extends State<RequestScreen> {
+class _BlankWorkplaceState extends State<BlankWorkplace> {
   bool isSubmitting;
-  List<Request> _requests;
-  bool workRequestAccepted;
+  Session currentUser;
+
 
   @override
   void initState() {
+    currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     isSubmitting = false;
-    _requests = widget.requests;
-    workRequestAccepted = false;
     super.initState();
   }
 
@@ -41,15 +47,6 @@ class _RequestScreenState extends State<RequestScreen> {
               elevation: 0.0,
               centerTitle: true,
               backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-              leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.grey,
-                ),
-                onPressed: () {
-                  if (!isSubmitting) Get.back();
-                },
-              ),
               title: Text(
                 'My WorkPlace',
                 style: TextStyle(color: PRIMARYCOLOR),
@@ -58,210 +55,66 @@ class _RequestScreenState extends State<RequestScreen> {
             ),
             backgroundColor: Colors.white,
             body: Container(
-              child: ListView(
-                children: [
-                  _requests.isNotEmpty
-                      ? Column(
-                    children: requests(),
-                  )
-                      : Container()
-                ],
-              ),
+              child: FutureBuilder(
+                future: RequestRepo.getSacked(currentUser.user.uid),
+                builder: (context,AsyncSnapshot<List<Request>>request){
+                  if(request.connectionState == ConnectionState.waiting){
+                    return Center(
+                      child: JumpingDotsProgressIndicator(
+                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        color: PRIMARYCOLOR,
+                      ),
+                    );
+                  }
+                  else if(request.hasError){
+                    return Center(
+                      child: Text('Error accessing your workplce. Restart the app and try again, if the problem persist report to your employer for further action.',
+                      textAlign: TextAlign.center,),
+                    );
+                  }
+                  else{
+                    if(request.data.isNotEmpty){
+                      return Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                              child: Text('${request.data.first.requestBody}',textAlign: TextAlign.center,),
+                            ),
+                            Center(
+                              child: FlatButton(
+                                onPressed: ()async{
+                                  Utility.bottomProgressLoader(body: 'Changing account..please wait');
+                                  await RequestRepo.clear(request.data.first.requestID);
+                                  Get.back();
+                                  await UserRepository().changeRole('user');
+                                  BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
+                                },
+                                color: PRIMARYCOLOR,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                                  child: Text(
+                                    'Click here to continue using app as user',style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    }
+                    else
+                      return Center(
+                        child: Text('Error accessing your workplce. Restart the app and try again, if the problem persist report to your employer for further action.'
+                        ,textAlign: TextAlign.center,),
+                      );
+                  }
+                },
+              )
             )
         )
     );
-  }
-
-  List<Widget> requests() {
-    return List<Widget>.generate(
-        _requests.length, (index) => oneRequest(_requests[index]));
-  }
-
-  Widget oneRequest(Request request) {
-    return psCard(
-        color: PRIMARYCOLOR,
-        title: request.requestTitle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey,
-            //offset: Offset(1.0, 0), //(x,y)
-            blurRadius: 6.0,
-          ),
-        ],
-        child: Center(
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                child: Center(
-                  child: Text(
-                    request.requestBody,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              !isSubmitting
-                  ? Row(
-                children: [
-                  Expanded(
-                    child: FlatButton(
-                      onPressed: () {
-                        processResponse(request, 'Y');
-                      },
-                      child: Text('Accept'),
-                    ),
-                  ),
-                  Expanded(
-                    child: FlatButton(
-                      onPressed: () {
-                        processResponse(request, 'n');
-                      },
-                      child: Text('Decline'),
-                    ),
-                  )
-                ],
-              )
-                  : Container()
-            ],
-          ),
-        ));
-  }
-
-  processResponse(Request request, String response) {
-    setState(() {
-      isSubmitting = true;
-    });
-    GetBar(
-      title: 'Response',
-      messageText: Text(
-        'Processing Response',
-        style: TextStyle(color: Colors.white),
-      ),
-      duration: Duration(days: 365),
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: PRIMARYCOLOR,
-      showProgressIndicator: true,
-      progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-    ).show();
-    if (response == 'Y') {
-      LogisticRepo.agentAccept(request.requestInitiatorID, request.requestID,
-          request.requestReceiver)
-          .then((value) {
-        if (Get.isSnackbarOpen) {
-          Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Work request has been approved.',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 5),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: PRIMARYCOLOR,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-            mainButton: FlatButton(
-              onPressed: () {
-                BlocProvider.of<AuthenticationBloc>(context).add(
-                  AppStarted(),
-                );
-                Get.back();
-              },
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 1),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  child: Text(
-                    'View',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-          ).show();
-          setState(() {
-            _requests.removeWhere(
-                    (element) => element.requestAction == 'WORKREQUEST');
-            isSubmitting = false;
-          });
-        }
-      }).catchError((_) {
-        print(_);
-        if (Get.isSnackbarOpen) {
-          Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Error responding, check your connection and try again',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 3),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-          ).show();
-          setState(() {
-            isSubmitting = false;
-          });
-        }
-      });
-    } else {
-      LogisticRepo.decline(request.requestInitiatorID, request.requestID)
-          .then((value) {
-        setState(() {
-          _requests.removeWhere((element) => element == request);
-        });
-        if (Get.isSnackbarOpen) {
-          Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Work request has been declined.',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 5),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: PRIMARYCOLOR,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-          ).show();
-          setState(() {
-            _requests.removeWhere((element) => element == request);
-            isSubmitting = false;
-          });
-        }
-      }).catchError((_) {
-        if (Get.isSnackbarOpen) {
-          Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Error responding, check your connection and try again',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 3),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-          ).show();
-          setState(() {
-            isSubmitting = false;
-          });
-        }
-      });
-    }
   }
 }

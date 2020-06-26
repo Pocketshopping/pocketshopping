@@ -42,6 +42,9 @@ import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:random_string/random_string.dart';
+import 'package:pocketshopping/src/profile/pinTester.dart';
+import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
+import 'package:pocketshopping/src/profile/pinSetter.dart';
 
 class OrderUI extends StatefulWidget {
   final Merchant merchant;
@@ -64,9 +67,8 @@ class OrderUI extends StatefulWidget {
 }
 
 class _OrderUIState extends State<OrderUI> {
-  //methodchannel
+
   static const platform = const MethodChannel('fleepage.pocketshopping');
-  //firebase messaging instance
   final FirebaseMessaging _fcm = FirebaseMessaging();
 
   int orderCount;
@@ -107,15 +109,16 @@ class _OrderUIState extends State<OrderUI> {
   String payerror;
   String agentDevice;
   final isLogged = ValueNotifier<bool>(false);
+  String randomKey;
 
   @override
   void initState() {
+    randomKey =randomAlphaNumeric(10);
     agentDevice = "";
     payerror = "";
     emptyAgent  = false;
     type = 'MotorBike';
     odState = Get.put(OrderGlobalState());
-    //eta = '';
     dCut = 0;
     dETA = 0.0;
     order = Order(orderMerchant: widget.merchant.mID);
@@ -134,29 +137,15 @@ class _OrderUIState extends State<OrderUI> {
     paydone = false;
     position = widget.initPosition;
     location = new loc.Location();
-    location.changeSettings(
-        accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
+    location.changeSettings(accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
-      position = Position(
-          latitude: cLoc.latitude,
-          longitude: cLoc.longitude,
-          altitude: cLoc.altitude,
-          accuracy: cLoc.accuracy);
-      dist = await Geolocator().distanceBetween(
-          cLoc.latitude,
-          cLoc.longitude,
-          widget.merchant.bGeoPoint['geopoint'].latitude,
-          widget.merchant.bGeoPoint['geopoint'].longitude);
-      if (mounted) setState(() {});
-      await address(Position(
-          latitude: cLoc.latitude,
-          longitude: cLoc.longitude,
-          altitude: cLoc.altitude,
-          accuracy: cLoc.accuracy));
+    position = Position(latitude: cLoc.latitude, longitude: cLoc.longitude, altitude: cLoc.altitude, accuracy: cLoc.accuracy);
+    dist = await Geolocator().distanceBetween(cLoc.latitude, cLoc.longitude, widget.merchant.bGeoPoint['geopoint'].latitude, widget.merchant.bGeoPoint['geopoint'].longitude);
+    if (mounted) setState(() {});
+    await address(Position(latitude: cLoc.latitude, longitude: cLoc.longitude, altitude: cLoc.altitude, accuracy: cLoc.accuracy));
     });
     userChange = false;
-    WalletRepo.getWallet(widget.user.walletId)
-        .then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
@@ -164,14 +153,8 @@ class _OrderUIState extends State<OrderUI> {
         setState(() {});
       }
     });
-    //_notificationsStream = NotificationsBloc.instance.notificationsStream;
-    // _notificationsStream.listen((notification) {});
-    //deliveryETA(widget.distance * 1000);
-    //deliveryCut(widget.distance * 1000);
     address(widget.initPosition).then((value) => null);
-    if(!widget.merchant.adminUploaded)
-    ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
-    //print('${widget.merchant.bGeoPoint['geopoint']}');
+    if(!widget.merchant.adminUploaded) ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
     super.initState();
   }
 
@@ -183,7 +166,6 @@ class _OrderUIState extends State<OrderUI> {
         List<String> temp = address.first.addressLine.split(',');
         temp.removeLast();
         deliveryAddress = temp.reduce((value, element) => value + ',' + element);
-        //print(_contact.text);
         if (deliveryAddress != _address.text && !userChange)
           homeDelivery = false;
       });
@@ -210,7 +192,6 @@ class _OrderUIState extends State<OrderUI> {
     });
     return ATMCard(
       onPressed:(Map<String,dynamic> details) {
-        //print(details[0]);
         setState(() {
           stage = "PAY";
         });
@@ -223,16 +204,7 @@ class _OrderUIState extends State<OrderUI> {
     CloudFunctions.instance
         .getHttpsCallable(
       functionName: "DeliveryCut",
-    )
-        .call({'distance': distance}).then((value) =>
-
-
-            mounted
-                ? setState(() {
-                    dCut = value.data;
-                    //print('$distance');
-                  })
-                : null);
+    ).call({'distance': distance}).then((value) => mounted ? setState(() {dCut = value.data;}) : null);
     return 1;
   }
 
@@ -240,29 +212,14 @@ class _OrderUIState extends State<OrderUI> {
     CloudFunctions.instance
         .getHttpsCallable(
       functionName: "ETA",
-    )
-        .call({
+    ).call({
       'distance': distance,
       'type': type,
       'ttc': ttc,
       'server': server,
       'top': top
-    }).then((value) =>
-
-                //print('DeliveryETA ${value.data/60}')
-
-                {
-                  if (mounted)
-                    setState(() {
-                      dETA = value.data * 1.0; //(value.data as double).toDouble();
-                      //eta = '0'; //etaDisplay((value.data as double)).toString();
-                    })
-                }
-            // value.data
-
-            );
-
-            return 0.0;
+    }).then((value) => {if (mounted)setState(() {dETA = value.data * 1.0;})});
+    return 0.0;
   }
 
   Widget detailMaker() {
@@ -297,7 +254,7 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('$CURRENCY${dCut}'),
+                      child: Text('$CURRENCY$dCut'),
                     ),
                   )
                 ],
@@ -782,15 +739,13 @@ class _OrderUIState extends State<OrderUI> {
   }
 
   processPay(String method,Map<String,dynamic> details ) async {
-    setState(() {
-      screenHeight = 1;
-    });
+    setState(() {screenHeight = 1;});
     Map<String,String> reference;
     details['email']=widget.user.email;
     Agent agent = await LogisticRepo.getOneAgentByUid(order.agent);
     User agentAccount = await UserRepo.getOneUsingUID(agent.agent);
-
     var temp = details['expiry'].toString().split('/');
+
     switch(method){
       case 'CARD':
         reference =Map.from(
@@ -817,7 +772,6 @@ class _OrderUIState extends State<OrderUI> {
             referenceID: reference['reference'],
             amount: order.orderAmount.round(),
             agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
-        //print(collectId);
         if(collectId != null)
           setState(() {
             order = order.update(
@@ -858,8 +812,6 @@ class _OrderUIState extends State<OrderUI> {
           setState(() {
             screenHeight = 0.8;
             stage = 'CHECKOUT';
-            //paydone = true;
-            //startTimer();
           });
         }
       }
@@ -867,8 +819,6 @@ class _OrderUIState extends State<OrderUI> {
       setState(() {
         screenHeight = 0.8;
         stage = 'CHECKOUT';
-        //paydone = true;
-        //startTimer();
       });
     }
         break;
@@ -880,7 +830,6 @@ class _OrderUIState extends State<OrderUI> {
             referenceID: "",
             amount: order.orderAmount.round(),
             agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
-        //print(collectId);
         if(collectId != null)
         setState(() {
             order = order.update(
@@ -918,7 +867,6 @@ class _OrderUIState extends State<OrderUI> {
             referenceID: "",
             amount: order.orderAmount.round(),
             agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
-        //print(collectId);
         if(collectId != null) {
           setState(() {
             order = order.update(
@@ -967,14 +915,12 @@ class _OrderUIState extends State<OrderUI> {
                 longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
             type)
         .then((value) {
-      //print('agent around: $value');
       queryAgent(value);
     });
     return Future.value();
   }
 
   Future<void> queryAgent(List<String> nAgent) async {
-    //print('team meeting');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
           sound: true, badge: true, alert: true, provisional: false),
@@ -987,13 +933,12 @@ class _OrderUIState extends State<OrderUI> {
         body: jsonEncode(<String, dynamic>{
           'notification': <String, dynamic>{
             'body': 'Hi. Can you run this delivery, click for details',
-            'title': 'New Delivery'
+            'title': 'New Delivery',
+              "icon" : "app_icon",
           },
           'priority': 'high',
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
           'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done',
             'payload': {
               'NotificationType': 'NearByAgent',
               'Items':
@@ -1009,16 +954,13 @@ class _OrderUIState extends State<OrderUI> {
               'mAddress': widget.merchant.bAddress,
               'Amount': order.orderAmount,
               'type': order.orderMode.mode,
-              'Address': order.orderMode.mode == 'Delivery'
-                  ? order.orderMode.address
-                  : '',
+              'Address': order.orderMode.mode == 'Delivery' ? order.orderMode.address : '',
               'deliveryFee': order.orderMode.mode == 'Delivery' ? dCut : 0.0,
-              'deliveryDistance':
-                  order.orderMode.mode == 'Delivery' ? dist : 0.0,
+              'deliveryDistance': order.orderMode.mode == 'Delivery' ? dist : 0.0,
               'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
               'fcmToken': widget.user.notificationID,
               'agentCount': nAgent.length,
-              'otp':randomAlphaNumeric(10),
+              'otp':randomKey,
               'agents':nAgent
             }
           },
@@ -1027,7 +969,6 @@ class _OrderUIState extends State<OrderUI> {
   }
 
   Future<void> queryMerchant() async {
-    //print('team meeting');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
           sound: true, badge: true, alert: true, provisional: false),
@@ -1126,30 +1067,41 @@ class _OrderUIState extends State<OrderUI> {
               ListTile(
                 onTap: () async {
                   if (_wallet.walletBalance > (order.orderAmount+order.orderMode.fee)) {
-                    Get.defaultDialog(
-                        title: 'Confirmation',
-                        content: Text(
-                            'The agent account will be credited the moment you confirm the order'),
-                        cancel: FlatButton(
-                          onPressed: () {
+                    bool set = await PinRepo.isSet(widget.user.walletId);
+                    if(set)
+                      Get.dialog(PinTester(wallet: widget.user.walletId,callBackAction: ()async{
+                        setState(() {stage = 'PAY';});
+                        await processPay('POCKET',{});},));
+                    else
+                      {
+                        Get.defaultDialog(
+                            title: 'Pocket PIN',
+                            content: Text(
+                                'You need to setup pocket PIN before you can proceed with payment'),
+                            cancel: FlatButton(
+                              onPressed: () {
 
-                            Get.back();
+                                Get.back();
 
 
-                          },
-                          child: Text('Cancel'),
-                        ),
-                        confirm: FlatButton(
-                          onPressed: ()async {
-                            Get.back();
-                            setState(() {
-                              stage = 'PAY';
-                            });
-                            await processPay('POCKET',{});
-                          },
-                          child: Text('Ok'),
-                        )
-                    );
+                              },
+                              child: Text('Cancel'),
+                            ),
+                            confirm: FlatButton(
+                              onPressed: ()async {
+                                Get.back();
+                                Get.dialog(PinSetter(user: widget.user,callBackAction: ()async{
+                                  setState(() {stage = 'PAY';});
+                                  await processPay('POCKET',{});},));
+
+                              },
+                              child: Text('Setup PIN'),
+                            )
+                        );
+                      }
+
+
+
                   }
                   else{
                     Get.defaultDialog(
@@ -1630,12 +1582,12 @@ class _OrderUIState extends State<OrderUI> {
                     setState(() {
                       order = order.update(
                           orderItem: OrderItem.fromCartList(widget.payload),
-                          orderAmount: sum(widget.payload));
+                          orderAmount: Utility.sum(widget.payload));
                       stage = 'FAROPTION';
                     });
                   },
                   child: Text(
-                    'Next ($CURRENCY ${sum(widget.payload)})',
+                    'Next ($CURRENCY ${Utility.sum(widget.payload)})',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -2391,13 +2343,7 @@ class _OrderUIState extends State<OrderUI> {
     );
   }
 
-  double sum(List<dynamic> items) {
-    double sum = 0;
-    items.forEach((element) {
-      sum += element.total;
-    });
-    return sum;
-  }
+
 
   Widget uploadingOrder() {
     return !paydone

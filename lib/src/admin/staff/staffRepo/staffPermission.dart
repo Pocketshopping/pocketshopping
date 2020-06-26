@@ -4,38 +4,32 @@ import 'package:meta/meta.dart';
 class Permission {
   final bool finances;
   final bool managers;
-  final bool messages;
-  final bool orders;
+  final bool sales;
   final bool products;
-  final bool deliveryOp;
-  final bool deliveryAgent;
+  final bool logistic;
+
 
   Permission(
       {this.finances,
       this.managers,
-      this.messages,
-      this.orders,
+      this.sales,
       this.products,
-      this.deliveryOp,
-      this.deliveryAgent});
+      this.logistic,
+      });
 
   Permission copyWith({
     bool finances,
     bool managers,
-    bool messages,
-    bool orders,
+    bool sales,
     bool products,
-    bool deliveryOp,
-    bool deliveryAgent,
+    bool logistic,
   }) {
     return Permission(
       finances: finances ?? this.finances,
       managers: managers ?? this.managers,
-      messages: messages ?? this.messages,
-      orders: orders ?? this.orders,
+      sales: sales ?? this.sales,
       products: products ?? this.products,
-      deliveryOp: deliveryOp ?? this.deliveryOp,
-      deliveryAgent: deliveryAgent ?? this.deliveryAgent,
+      logistic: logistic ?? this.logistic,
     );
   }
 
@@ -43,11 +37,9 @@ class Permission {
   int get hashCode =>
       finances.hashCode ^
       managers.hashCode ^
-      messages.hashCode ^
-      orders.hashCode ^
+      sales.hashCode ^
       products.hashCode ^
-      deliveryOp.hashCode ^
-      deliveryAgent.hashCode;
+      logistic.hashCode ;
 
   @override
   bool operator ==(Object other) =>
@@ -56,45 +48,37 @@ class Permission {
           runtimeType == other.runtimeType &&
           finances == other.finances &&
           managers == other.managers &&
-          messages == other.messages &&
-          orders == other.orders &&
+          sales == other.sales &&
           products == other.products &&
-          deliveryOp == other.deliveryOp &&
-          deliveryAgent == other.deliveryAgent;
+          logistic == other.logistic;
 
   Permission update({
     bool finances,
     bool managers,
-    bool messages,
-    bool orders,
+    bool sales,
     bool products,
-    bool deliveryOp,
-    bool deliveryAgent,
+    bool logistic,
   }) {
     return copyWith(
         finances: finances,
         managers: managers,
-        messages: messages,
-        orders: orders,
+        sales: sales,
         products: products,
-        deliveryOp: deliveryOp,
-        deliveryAgent: deliveryAgent);
+        logistic: logistic,);
   }
 
   @override
   String toString() {
-    return '''Permission ${finances && managers && messages && orders && products && deliveryOp && deliveryAgent}''';
+    return '''Instance of Permission''';
   }
 
   Map<String, dynamic> toMap() {
     return {
       'finances': finances,
       'managers': managers,
-      'messages': messages,
-      'orders': orders,
+      'sales': sales,
       'products': products,
-      'deliveryOp': deliveryOp,
-      'deliveryAgent': deliveryAgent
+      'logistic': logistic,
     };
   }
 
@@ -102,10 +86,9 @@ class Permission {
     return Permission(
         finances: (snap['finances']),
         managers: (snap['managers']),
-        messages: (snap['messages']),
-        orders: (snap['orders']),
+        sales: (snap['sales']),
         products: snap['products'],
-        deliveryOp: snap['deliveryOp'],
-        deliveryAgent: snap['deliveryAgent']);
+        logistic: snap['logistic'],
+        );
   }
 }

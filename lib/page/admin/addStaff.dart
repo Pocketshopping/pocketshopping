@@ -57,7 +57,7 @@ class _AddStaffState extends State<AddStaff> {
     loading = false;
     branches = ['Default'];
     office = 'Default';
-    permissions = {};
+
   }
 
   setBranches() {

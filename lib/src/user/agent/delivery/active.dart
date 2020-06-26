@@ -76,7 +76,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
           preferredSize: Size.fromHeight(
               MediaQuery.of(context).size.height *
                   0.09),
-          child: AppBar(
+          child: widget.user.agent  == null ?AppBar(
             elevation: 0.0,
             backgroundColor: Colors.white,
               bottom: PreferredSize(
@@ -117,7 +117,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
                 ):const SizedBox.shrink(),
 
               )
-          ),
+          ):const SizedBox.shrink(),
         ),
         body: !searchStarted?Column(
           children: [

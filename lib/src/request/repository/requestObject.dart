@@ -109,7 +109,7 @@ class Request {
 
   @override
   String toString() {
-    return '''Request $requestID''';
+    return '''Instance of Request''';
   }
 
   Map<String, dynamic> toMap() {

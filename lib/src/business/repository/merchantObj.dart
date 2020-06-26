@@ -28,6 +28,7 @@ class Merchant {
   final String bCountry;
   final bool adminUploaded;
   final bool bActive;
+  final String bWallet;
 
   Merchant(
       {this.bName = "",
@@ -53,7 +54,8 @@ class Merchant {
       this.bOpen,
       this.bUnique,
       this.adminUploaded,
-      this.bActive
+      this.bActive,
+      this.bWallet
       });
 
   Merchant copyWith({
@@ -81,6 +83,7 @@ class Merchant {
     String bCountry,
     bool adminUploaded,
     bool bActive,
+    String bWallet
   }) {
     return Merchant(
       bName: bName ?? this.bName,
@@ -106,7 +109,8 @@ class Merchant {
       bCreatedAt: bCreatedAt ?? this.bCreatedAt,
       bCountry: bCountry ?? this.bCountry,
       adminUploaded: adminUploaded??this.adminUploaded,
-      bActive: bActive??this.bActive
+      bActive: bActive??this.bActive,
+      bWallet: bWallet??this.bWallet
     );
   }
 
@@ -135,7 +139,8 @@ class Merchant {
       bCategory.hashCode ^
       bPhoto.hashCode ^
       adminUploaded.hashCode ^
-      bActive.hashCode;
+      bActive.hashCode ^
+      bWallet.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -165,7 +170,8 @@ class Merchant {
           bCreatedAt == other.bCreatedAt &&
           bCountry == other.bCountry &&
           adminUploaded == other.adminUploaded &&
-          bActive == other.bActive;
+          bActive == other.bActive &&
+          bWallet == other.bWallet;
 
   @override
   String toString() {
@@ -197,7 +203,8 @@ class Merchant {
         bOpen,
         bUnique,
         adminUploaded,
-        bActive);
+        bActive,
+        bWallet);
   }
 
   static Merchant fromEntity(MerchantEntity merchant) {
@@ -225,7 +232,8 @@ class Merchant {
       bCreatedAt: merchant.bCreatedAt,
       bCountry: merchant.bCountry ?? '',
       adminUploaded: merchant.adminUploaded ?? false,
-      bActive: merchant.bActive ?? true
+      bActive: merchant.bActive ?? true,
+      bWallet: merchant.bWallet ?? ""
 
     );
   }

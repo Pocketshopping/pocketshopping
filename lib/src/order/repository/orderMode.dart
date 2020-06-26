@@ -70,13 +70,13 @@ class OrderMode {
 
   Map<String, dynamic> toMap() {
     return {
-      'mode': mode,
-      'tableNumber': tableNumber,
-      'coordinate': coordinate,
-      'address': address,
-      'deliveryMan': deliveryMan,
-      'acceptedBy': acceptedBy,
-      'fee': fee,
+      'mode': mode??'',
+      'tableNumber': tableNumber??'',
+      'coordinate': coordinate??null,
+      'address': address??'',
+      'deliveryMan': deliveryMan??'',
+      'acceptedBy': acceptedBy??'',
+      'fee': fee??'',
     };
   }
 

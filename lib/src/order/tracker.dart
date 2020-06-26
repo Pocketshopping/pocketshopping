@@ -566,7 +566,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
                                         ),
                                         Expanded(
                                           child: Text(
-                                              '${_order.orderConfirmation.confirmedAt == null ? '-' :Utility.presentDate(DateTime.parse((_order.orderConfirmation.confirmedAt as Timestamp).toDate().toString()))}'),
+                                              '${_order.orderConfirmation.confirmedAt == null || _order.orderConfirmation.confirmedAt=="" ? '-' :Utility.presentDate(DateTime.parse(((_order.orderConfirmation.confirmedAt as Timestamp).toDate()).toString()))}'),
                                         )
                                       ],
                                     )),

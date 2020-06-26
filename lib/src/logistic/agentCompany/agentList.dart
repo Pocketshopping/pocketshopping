@@ -116,7 +116,7 @@ class _AgentListState extends State<AgentList> {
               MediaQuery.of(context).size.height *
                   0.15),
           child: AppBar(
-              title: Text(widget.title==null?'${widget.user.merchant.bName} Agent(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
+              title: Text(widget.title==null?'${widget.user.merchant.bName} Rider(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
               centerTitle: true,
               backgroundColor: Color.fromRGBO(255, 255, 255, 1),
               leading: IconButton(
@@ -138,7 +138,7 @@ class _AgentListState extends State<AgentList> {
                       controller: null,
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.search),
-                        hintText: 'Search ${widget.user.merchant.bName} Agent(s)',
+                        hintText: 'Search ${widget.user.merchant.bName} Rider(s)',
                         filled: true,
                         fillColor: Colors.grey.withOpacity(0.2),
                         focusedBorder: OutlineInputBorder(
@@ -258,7 +258,7 @@ class _AgentListState extends State<AgentList> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 10),
                               child: Text(
-                                "No Agent added yet",
+                                "No Rider added yet",
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -296,7 +296,7 @@ class _AgentListState extends State<AgentList> {
                           });
                         },
                         icon: Icon(Icons.add,color: Colors.white,),
-                        label: Text('New Agent',style: TextStyle(color: Colors.white),),
+                        label: Text('New Rider',style: TextStyle(color: Colors.white),),
                       ),
                     )
                 ),
@@ -635,7 +635,7 @@ class Clearance extends StatelessWidget{
   }
 
    Future<void> clearanceNotifier(String to,{String title='Cleared',
-   String body='Hello. you habe been cleared by the admin. you can now proceed with excuting delivery, Thank you',
+   String body='Hello. you have been cleared by the admin. you can now proceed with excuting delivery, Thank you',
    String notificationID= 'clearanceConfirmationResponse'}) async {
      //print('team meeting');
      await FirebaseMessaging().requestNotificationPermissions(
@@ -718,7 +718,9 @@ class Manage extends StatelessWidget{
             if(!data.autoAssigned)
               Row(
                 children: [
-                  Text('This agent is not assigned to any automobile.',style: TextStyle(color: Colors.red),)
+                  Expanded(
+                    child: Text('This Rider is not assigned to any automobile.',style: TextStyle(color: Colors.red),)
+                  )
                 ],
               )
           ],

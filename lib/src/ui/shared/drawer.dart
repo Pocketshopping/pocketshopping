@@ -1,3 +1,4 @@
+import 'package:badges/badges.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +11,8 @@ import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart'
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
+import 'package:pocketshopping/src/request/request.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
@@ -17,6 +20,7 @@ import 'package:pocketshopping/src/ui/shared/drawer/referral.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/profile/settings.dart';
 
 class DrawerScreen extends StatefulWidget {
   final UserRepository _userRepository;
@@ -33,7 +37,11 @@ class DrawerScreen extends StatefulWidget {
 class _DrawerScreenState extends State<DrawerScreen> {
   Stream<Wallet> _walletStream;
   final _walletNotifier = ValueNotifier<Wallet>(null);
+
+  Stream<int> _requestCounterStream;
+  final _requestCounter = ValueNotifier<int>(0);
   @override
+
   void initState() {
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
@@ -43,6 +51,13 @@ class _DrawerScreenState extends State<DrawerScreen> {
 
       }
     });
+
+    _requestCounterStream = RequestBloc.instance.requestCounter;
+    _requestCounterStream.listen((event) {
+      _requestCounter.value=0;
+      _requestCounter.value=event;
+    });
+
     super.initState();
   }
 
@@ -131,31 +146,20 @@ class _DrawerScreenState extends State<DrawerScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.attach_money),
-            title: const Text("Manage Fund"),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => PocketPage()));
-            },
-          ),
-          /*if(false)
-          ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text("referral"),
-            onTap: () {
-              Get.back();
-              Get.to(Referral(walletId: widget.user.walletId));
-            },
-          ),*/
-          ListTile(
             leading: const Icon(Icons.notifications_active),
             title: const Text("Request"),
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => NotificationPage()));
+              Get.to(RequestScreen(requests: [],uid: widget.user.uid,));
             },
+            trailing: ValueListenableBuilder(
+              valueListenable: _requestCounter,
+              builder: (_,int count,__){
+                return Badge(badgeContent: Text('$count',style: TextStyle(color: Colors.white),),
+                showBadge: count>0,
+                );
+              },
+            )
           ),
           if (widget.user.role == 'user')
             ListTile(
@@ -170,9 +174,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             leading: const Icon(Icons.settings),
             title: const Text("Settings"),
             onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => UserSettingPage()));
+              Get.back();
+              Get.to(Settings(user: widget.user,));
             },
           ),
           ListTile(

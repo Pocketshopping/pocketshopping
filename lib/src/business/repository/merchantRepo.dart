@@ -48,10 +48,11 @@ class MerchantRepo {
     DocumentReference bid;
     GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
     var temp = Utility.makeIndexList(bName);
+    var user = await UserRepo().getOne(uid: uid);
     temp.addAll(Utility.makeIndexList(bCategory));
     bid = await databaseReference.collection("merchants").add({
       'businessCreator': databaseReference.document('users/' + uid),
-      'businessName': bName.headerCase,
+      'businessName': bName.sentenceCase,
       'businessAdress': bAddress,
       'businessCategory': bCategory,
       'businessOpenTime': bOpenTime,
@@ -73,6 +74,7 @@ class MerchantRepo {
       'businessCreatedAt': DateTime.now(),
       'adminUploaded':adminUploaded,
       'businessActive':true,
+      'businessWallet':!adminUploaded?user.user.walletId:'',
       'index': temp,
 
     });
@@ -84,7 +86,6 @@ class MerchantRepo {
         CustomerCareLine(number: bTelephone,name:bName.headerCase ),
         if(bTelephone.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
       ]);
-      var user = await UserRepo().getOne(uid: uid);
       await Utility.updateWallet(uid: user.user.walletId,cid: user.user.walletId,type: 3);
     }
 

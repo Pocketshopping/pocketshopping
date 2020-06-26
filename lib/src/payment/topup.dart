@@ -75,7 +75,7 @@ class _TopUpState extends State<TopUp> {
               ATMCard(
             onPressed:(Map<String,dynamic> details) {
               setState(() {paying=true;});
-              ProcessPay(details);
+              processPay(details);
             }
         )]);
       break;
@@ -191,7 +191,7 @@ class _TopUpState extends State<TopUp> {
   }
 
 
-  ProcessPay(Map<String,dynamic> details ) async {
+  processPay(Map<String,dynamic> details ) async {
     Map<String,String> reference;
     details['email']=widget.user.email;
     var temp = details['expiry'].toString().split('/');

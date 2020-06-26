@@ -106,7 +106,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
       _positionSubscription = geolocator
           .getPositionStream(LocationOptions(
               accuracy: LocationAccuracy.bestForNavigation,
-              distanceFilter: 5))
+              timeInterval: 60000))
           .listen((position) {
         add(FetchNearByMerchant(position: position, category: category));
       });

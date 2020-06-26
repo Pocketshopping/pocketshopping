@@ -175,6 +175,26 @@ class LogisticRepo {
     return bid.documentID;
   }
 
+  static Future<bool> removeAgent(Agent agent,Request request,) async {
+    bool isDeleted = await deleteAgentLocUpdate(agent.agentID);
+
+    if(isDeleted){
+      await RequestRepo.save(request);
+      await UserRepo().upDate(uid: agent.agent,role: 'user',bid: 'null');
+      await reAssignAutomobile(agent.autoAssigned,'Unassign',isAssigned: false);
+      await updateAgent(agent.agentID, {'endDate':Timestamp.now(),'autoAssigned':'Unassign','agentStatus':1});
+    }
+    return true;
+  }
+
+  static Future<bool> deleteAgentLocUpdate(String agentId)async{
+    try{
+      await databaseReference.collection('agentLocationUpdate').document(agentId).delete();
+      return true;
+    }
+    catch(_){return false;}
+  }
+
   static Future<bool> reAssignAutomobile(String autoID,String agent,{bool isAssigned = true}) async {
     try{
       await databaseReference.collection("automobile").document(autoID).updateData({
@@ -239,11 +259,17 @@ class LogisticRepo {
   static Future<bool> makeAgentBusy(String uid,{bool isBusy=true}) async {
     Agent agent = await getOneAgentByUid(uid);
     //bool remit = await remittance(agent.agentWallet);
-    await updateAgentLoc(agent.agentID,{'busy':isBusy});
-    if(!isBusy) {
-      revalidateAgentAllowance(uid);
+    if(agent != null)
+    {
+      await updateAgentLoc(agent.agentID,{'busy':isBusy});
+      if(!isBusy) {
+        revalidateAgentAllowance(uid);
+      }
+      return isBusy;
     }
-    return isBusy;
+    else{
+      return false;
+    }
   }
 
 
@@ -252,21 +278,22 @@ class LogisticRepo {
     Wallet agentWallet = await WalletRepo.getWallet(user.walletId);
     Agent agent = await getOneAgentByUid(uid);
     bool remit;
-    if(agent != null)
-    remit = await remittance(user.walletId,limit:agent.limit);
+    if(agent != null) {
+      remit = await remittance(user.walletId, limit: agent.limit);
 
-    if(agentWallet.pocketUnitBalance < 100) {
-      if (agent != null)
-        await updateAgentLoc(agent.agentID,{
-          'pocket': false,
-          if(remit!=null) 'remitted':remit
+      if (agentWallet.pocketUnitBalance < 100) {
+        if (agent != null)
+          await updateAgentLoc(agent.agentID, {
+            'pocket': false,
+            if(remit != null) 'remitted': remit
+          });
+      }
+      else {
+        await updateAgentLoc(agent.agentID, {
+          'pocket': true,
+          if(remit != null) 'remitted': remit
         });
-    }
-    else{
-      await updateAgentLoc(agent.agentID,{
-        'pocket': true,
-        if(remit!=null) 'remitted':remit
-      });
+      }
     }
   }
 
@@ -275,8 +302,8 @@ class LogisticRepo {
     return AutoMobile.fromSnap(doc);
   }
 
-  static Future<bool> accept(String agentID, String requestID, String uid) async {
-    await updateAgent(agentID, {'agentStatus': 'ACTIVE', 'startDate': Timestamp.now()});
+  static Future<bool> agentAccept(String agentID, String requestID, String uid) async {
+    await updateAgent(agentID, {'agentStatus': 1, 'startDate': Timestamp.now()});
     var agent = await getOneAgent(agentID);
     var agentAcct = await UserRepo.getOneUsingUID(agent.agent);
     await RequestRepo.clear(requestID);
@@ -313,7 +340,11 @@ class LogisticRepo {
   }
 
   static Future<bool> decline(String agentID, String requestID) async {
-    await updateAgent(agentID,{'agentStatus': 'DECLINE', 'startDate': Timestamp.now()});
+    Agent agent  = await getOneAgent(agentID);
+    AutoMobile auto = await getAutomobile(agent.autoAssigned);
+    await databaseReference.collection('agent').document(agentID).delete();
+    await reAssignAutomobile(auto.autoID, 'Unassign',isAssigned: false);
+    //await updateAgent(agentID,{'agentStatus': 0, 'startDate': Timestamp.now()});
     await RequestRepo.clear(requestID);
     return true;
   }

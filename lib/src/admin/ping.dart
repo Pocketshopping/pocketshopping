@@ -27,14 +27,15 @@ class _PingWidgetState extends State<PingWidget> {
   int counter;
   Stream<LocalNotification> _notificationsStream;
   List<Map<String, dynamic>> data;
+  List<String> otps;
 
   @override
   void initState() {
     //print((jsonDecode(widget.ndata['data']['payload']) as Map<String,dynamic>));
+    otps=[];
     data = List();
     if (!data.contains(widget.ndata)) {
-      data.add((jsonDecode(widget.ndata['data']['payload'])
-          as Map<String, dynamic>));
+      data.add((jsonDecode(widget.ndata['data']['payload']) as Map<String, dynamic>));
       counter = 1;
     }
 
@@ -43,13 +44,16 @@ class _PingWidgetState extends State<PingWidget> {
       if (notification != null) {
         var payload = (jsonDecode(notification.data['data']['payload'])
             as Map<String, dynamic>);
-        if (!data.contains(payload)) {
+        if (!otps.contains(payload['otp'])) {
           if (payload['NotificationType'] == 'OrderRequest' ||
               payload['NotificationType'] == 'OrderResolutionResponse' ||
               payload['NotificationType'] == 'NearByAgent') {
-            data.add(payload);
-            counter += 1;
-            if (mounted) setState(() {});
+              print(otps.contains(payload['otp']));
+                data.add(payload);
+                otps.add(payload['otp']);
+                counter += 1;
+                if (mounted) setState(() {});
+
           }
         }
         NotificationsBloc.instance.clearNotification();

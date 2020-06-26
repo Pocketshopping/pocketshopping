@@ -71,6 +71,8 @@ dependencies:
   loadmore: ^1.0.4
   image_crop: ^0.3.2
   circular_profile_avatar: ^1.0.6
+  ant_icons: ^1.0.0
+
 
 dev_dependencies:
   flutter_test:
