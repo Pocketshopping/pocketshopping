@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
@@ -30,6 +34,10 @@ import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
+//import 'package:pocketshopping/src/backgrounder/constant.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+
+
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -62,6 +70,13 @@ Future<dynamic> myBackgroundMessageHandler(Map<String, dynamic> message) async{
 
 }
 
+void printHello() {
+  final DateTime now = DateTime.now();
+  final int isolateId = Isolate.current.hashCode;
+  Utility.localNotifier("PocketShopping", "PocketShopping", "test", "body");
+  debugPrint("[$now] Hello, world! isolate=${isolateId} function='$printHello'");
+}
+
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
   Workmanager.initialize(callbackDispatcher, isInDebugMode: false);
@@ -69,6 +84,17 @@ void main()async{
   BlocSupervisor.delegate = SimpleBlocDelegate();
   final UserRepository userRepository = UserRepository();
   await _createNotificationChannel('PocketShopping','PocketShopping','default notification channel for pocketshopping');
+
+/*  IsolateNameServer.registerPortWithName(
+    port.sendPort,
+    isolateName,
+  );*/
+
+
+/*  var channel = const MethodChannel('com.example/background_service');
+  var callbackHandle = PluginUtilities.getCallbackHandle(backgroundMain);
+  channel.invokeMethod('startService', callbackHandle.toRawHandle());
+  ListenerService().startListening();*/
 
   /*var initializationSettingsAndroid = AndroidInitializationSettings('app_icon',);
   var initializationSettingsIOS = IOSInitializationSettings(
@@ -139,88 +165,61 @@ Future<void> _createNotificationChannel(String id, String name,
 
 void callbackDispatcher() {
   Workmanager.executeTask((task, inputData)async{
-    bool enable = await Geolocator().isLocationServiceEnabled();
-    final FirebaseMessaging _fcm = FirebaseMessaging();
-    GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
-    if(enable){
-      if(permit == GeolocationStatus.granted){
-        Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,locationPermissionLevel: GeolocationPermission.locationAlways);
-        if(position != null){
-          String fcmToken = await _fcm.getToken();
-          Geoflutterfire geo = Geoflutterfire();
-          GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
-          await LocRepo.update({
-            'agentParent':inputData['agentParent'],
-            'wallet':inputData['wallet'],
-            'agentID':inputData['agentID'],
-            'agentLocation':agentLocation.data,
-            'agentAutomobile':inputData['agentAutomobile'],
-            'agentName':inputData['agentName'],
-            'agentTelephone':inputData['agentTelephone'],
-            'availability':inputData['availability'],
-            'pocket':true,
-            'parent':true,
-            'remitted':true,
-            'busy':false,
-            'device':fcmToken,
-            'UpdatedAt':Timestamp.now(),
-            'address':await Utility.address(position),
-            'workPlaceWallet':inputData['workPlaceWallet'],
-            'profile':inputData['profile'],
-            'limit':inputData['limit'],
-            'index':Utility.makeIndexList(inputData['agentName']),
-          });
+    if(task == "LocationUpdateTask"){
+      //final prefs = await SharedPreferences.getInstance();
+      try{
+        bool enable = await Geolocator().isLocationServiceEnabled();
+        final FirebaseMessaging _fcm = FirebaseMessaging();
+        GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
+        if(enable){
+          if(permit == GeolocationStatus.granted){
+            Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,locationPermissionLevel: GeolocationPermission.locationAlways);
+            if(position != null){
+              String fcmToken = await _fcm.getToken();
+              Geoflutterfire geo = Geoflutterfire();
+              GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
+
+              await LocRepo.update({
+                'agentParent':inputData['agentParent'],
+                'wallet':inputData['wallet'],
+                'agentID':inputData['agentID'],
+                'agentLocation':agentLocation.data,
+                'agentAutomobile':inputData['agentAutomobile'],
+                'agentName':inputData['agentName'],
+                'agentTelephone':inputData['agentTelephone'],
+                'availability':inputData['availability'],
+                'pocket':true,
+                'parent':true,
+                'remitted':true,
+                'busy':false,
+                'device':fcmToken,
+                'UpdatedAt':Timestamp.now(),
+                'address':await Utility.address(position),
+                'workPlaceWallet':inputData['workPlaceWallet'],
+                'profile':inputData['profile'],
+                'limit':inputData['limit'],
+                'index':Utility.makeIndexList(inputData['agentName']),
+              });
+            }
+          }
+          else{
+            Utility.localNotifier("PocketShopping", "PocketShopping", 'Permission', 'Grant Location Access to PocketShopping');
+          }
         }
-      }
-      else{
-        var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-            'PocketShopping', 'PocketShopping', 'LocationUpdate',
-          importance: Importance.Default,
-          priority: Priority.High,
-          ticker: 'ticker',
-          icon: 'app_icon',
-          ongoing: true,
-          enableVibration: true,
-          enableLights: true,
-          playSound: true,
-        );
-        var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-        var platformChannelSpecifics = NotificationDetails(
-            androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-        await flutterLocalNotificationsPlugin.show(
-            123,
-            'Permission',
-            'Grant Location Access to PocketShopping',
-            platformChannelSpecifics,
-            payload: 'LocationUpdate',
-
-        );
-      }
+        else{
+          Utility.localNotifier("PocketShopping", "PocketShopping", 'Location', 'Enable Location');
+        }
+      }catch(_){debugPrint(_);}
     }
-    else{
-      var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'PocketShopping', 'PocketShopping', 'LocationUpdate',
-        importance: Importance.Default,
-        priority: Priority.High,
-        ticker: 'ticker',
-        icon: 'app_icon',
-        ongoing: true,
-        enableVibration: true,
-        enableLights: true,
-        playSound: true,
-      );
-      var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-      var platformChannelSpecifics = NotificationDetails(
-          androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-      await flutterLocalNotificationsPlugin.show(
-        1234,
-        'Location',
-        'Enable Location',
-        platformChannelSpecifics,
-        payload: 'LocationUpdate',
-
-
-      );
+    else if(task  == 'DeliveryRequestUpdateTask'){
+     try{
+       final prefs = await SharedPreferences.getInstance();
+       String currentAgent = prefs.getString('rider');
+       int count = await OrderRepo.getUnclaimedDelivery(currentAgent);
+       if(count>0)
+         Utility.localNotifier("PocketShopping", "PocketShopping",
+             "Delivery Request", 'New Delivery request. view dashboard to accept');
+     }catch(_){debugPrint(_);}
     }
     return true;
   });

@@ -17,7 +17,6 @@ dependencies:
   rflutter_alert: ^1.0.2
   google_maps_flutter: ^0.5.24+1
   flutter_polyline_points: ^0.1.0
-  palette_generator: ^0.2.0
   flutter_rating_bar: ^3.0.1+1
   camera: ^0.5.7+4
   flutter_icons: ^1.0.0+1
@@ -72,6 +71,8 @@ dependencies:
   image_crop: ^0.3.2
   circular_profile_avatar: ^1.0.6
   ant_icons: ^1.0.0
+  android_alarm_manager: ^0.4.5+11
+
 
 
 dev_dependencies:

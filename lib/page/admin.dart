@@ -110,9 +110,7 @@ class _AdminPageState extends State<AdminPage> {
                   DashBoardPage(),
                   //PlaceWidget(_session,fabColor),
                   LocationUI(themeColor: fabColor),
-                  Favourite(
-                    themeColor: fabColor,
-                  ),
+
                   //MerchantWidget(_session),
                   OrderWidget(fabColor),
                 ].elementAt(_selectedIndex),

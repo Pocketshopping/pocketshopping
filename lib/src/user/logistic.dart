@@ -233,12 +233,19 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                       decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
                           ),
                         ],
                       ),
@@ -256,13 +263,13 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                 children: [
                                   Text('${agent}',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.white,fontSize: 18),),
+                                    style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
                                   const Text('Available Agent',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Colors.white),),
+                                    style: const TextStyle(color: PRIMARYCOLOR,),),
                                   const Text('click for details',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Colors.white,fontSize: 11),),
+                                    style: const TextStyle(color: PRIMARYCOLOR,fontSize: 11),),
                                 ],
                               )
                           );
@@ -275,12 +282,19 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                       decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
                           ),
                         ],
                       ),
@@ -290,13 +304,13 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                         children: [
                           Text('$CURRENCY O',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
                           const Text('Amount Made Today',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white),),
+                            style: const TextStyle(color:PRIMARYCOLOR, ),),
                           const Text('click for more',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white,fontSize: 11),),
+                            style: const TextStyle(color:PRIMARYCOLOR,fontSize: 11),),
                         ],
                       ),
                     ),
@@ -310,12 +324,19 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                           child: Container(
                             margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                             decoration: BoxDecoration(
-                              color: PRIMARYCOLOR.withOpacity(0.8),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey,
-                                  //offset: Offset(1.0, 0), //(x,y)
-                                  blurRadius: 6.0,
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
                                 ),
                               ],
                             ),
@@ -327,7 +348,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                 Text('We are currently '
                                     '${available?'Available':'Unavailable'}',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white),),
+                                  style: TextStyle(color: PRIMARYCOLOR),),
                                 FlatButton(
                                   onPressed: ()async{
                                     bool change =!available;
@@ -342,9 +363,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                   },
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                                    child: const Text('Change'),
+                                    child: const Text('Change',style: TextStyle(color: Colors.white),),
                                   ),
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: PRIMARYCOLOR.withOpacity(0.8),
                                 )
                               ],
                             ):Center(
@@ -391,7 +412,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                             MenuItem(
                               gridHeight,
                               Icon(AntIcons.shopping_outline,
-                                  size: MediaQuery.of(context).size.width * 0.12,
+                                  size: MediaQuery.of(context).size.width * 0.1,
                                   color: PRIMARYCOLOR.withOpacity(0.8)),
                               'Deliveries',
                               border: PRIMARYCOLOR,
@@ -404,7 +425,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Clearance',
                       border: PRIMARYCOLOR,
@@ -416,7 +437,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pie_chart_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Report',
                       border: PRIMARYCOLOR,
@@ -425,7 +446,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.history,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Withdrawal(s)',
                       border: PRIMARYCOLOR,
@@ -435,7 +456,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.car_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
@@ -445,7 +466,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user_add_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Agent(s)',
                       border: PRIMARYCOLOR,
@@ -455,7 +476,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pushpin_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Agent Tracker',
                       border: PRIMARYCOLOR,
@@ -465,7 +486,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.bulb_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'New Business',
                       border: PRIMARYCOLOR,
@@ -477,7 +498,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.shop_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Business(es)',
                       border: PRIMARYCOLOR,
@@ -489,7 +510,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.smile_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -500,7 +521,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),MenuItem(
                       gridHeight,
                       Icon(AntIcons.customer_service_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',
                       border: PRIMARYCOLOR,
@@ -510,7 +531,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.setting_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',
                       border: PRIMARYCOLOR,

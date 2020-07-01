@@ -26,6 +26,10 @@ class OrderEntity extends Equatable {
   final String customerID;
   final String agent;
   final String orderLogistic;
+  final bool isAssigned;
+  final String resolution;
+  final List<String> potentials;
+  final List<String> index;
 
   const OrderEntity(
       this.orderItem,
@@ -43,6 +47,10 @@ class OrderEntity extends Equatable {
       this.customerID,
       this.agent,
       this.orderLogistic,
+      this.isAssigned,
+      this.resolution,
+      this.potentials,
+      this.index,
       );
 
   Map<String, Object> toJson() {
@@ -61,7 +69,11 @@ class OrderEntity extends Equatable {
       'orderConfirmation': orderConfirmation,
       'customerID': customerID,
       'agent':agent,
-      'orderLogistic':orderLogistic
+      'orderLogistic':orderLogistic,
+      'isAssigned':isAssigned,
+      'resolution':resolution,
+      'potentials':potentials,
+      'index':index
     };
   }
 
@@ -81,7 +93,11 @@ class OrderEntity extends Equatable {
         orderConfirmation,
         customerID,
         agent,
-        orderLogistic
+        orderLogistic,
+        isAssigned,
+        resolution,
+        potentials,
+        index
       ];
 
   @override
@@ -105,7 +121,11 @@ class OrderEntity extends Equatable {
         json['orderConfirmation'] as Confirmation,
         json['customerID'] as String,
         json['agent'] as String,
-        json['orderLogistic'] as String
+        json['orderLogistic'] as String,
+        json['isAssigned'] as bool,
+        json['resolution'] as String,
+        json['potentials'] as List,
+      json['index'] as List,
     );
   }
 
@@ -127,6 +147,10 @@ class OrderEntity extends Equatable {
         snap.data['customerID'],
         snap.data['agent'],
         snap.data['orderLogistic'],
+        snap.data['isAssigned'],
+        snap.data['resolution'],
+        List.castFrom(snap.data['potentials']),
+       List.castFrom(snap.data['index']),
     );
   }
 
@@ -152,7 +176,11 @@ class OrderEntity extends Equatable {
       'orderConfirmation': orderConfirmation,
       'customerID': customerID,
       'agent':agent,
-      'orderLogistic':orderLogistic
+      'orderLogistic':orderLogistic,
+      'isAssigned':agent,
+      'resolution':orderLogistic,
+      'potentials':potentials,
+      'index':index
     };
   }
 }

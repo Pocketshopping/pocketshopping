@@ -209,4 +209,12 @@ class AgentLocUp {
     });
     return collection;
   }
+
+  static List<String> getAgent(List<AgentLocUp> alu) {
+    List<String> collection = List();
+    alu.forEach((element) {
+      collection.add(element.agent);
+    });
+    return collection;
+  }
 }

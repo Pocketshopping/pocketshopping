@@ -314,7 +314,7 @@ class LogisticRepo {
   }
 
   static Future<List<String>> getNearByAgent(
-      Position mpos, String autoType) async {
+      Position mpos, String autoType, {bool isDevice=true}) async {
     List<String> collect = List();
     GeoFirePoint center =
         geo.point(latitude: mpos.latitude, longitude: mpos.longitude);
@@ -336,7 +336,11 @@ class LogisticRepo {
             field: 'agentLocation',
             strictMode: true);
     var doc = await alu.first;
+    if(isDevice)
     return AgentLocUp.getDeviceToken(AgentLocUp.fromListSnap(doc));
+    else
+      return AgentLocUp.getAgent(AgentLocUp.fromListSnap(doc));
+
   }
 
   static Future<bool> decline(String agentID, String requestID) async {

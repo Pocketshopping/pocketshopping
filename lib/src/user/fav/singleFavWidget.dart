@@ -66,9 +66,12 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
                     child:
                 Column(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('${merchant.bName}',style: TextStyle(color: Colors.white,fontSize: 18),),
-                    Text('${Utility.presentDate(DateTime.parse(widget.item.visitedAt.toDate().toString()))}',style: TextStyle(color: Colors.white),)
+                    Text('${merchant.bName}',style: TextStyle(color: Colors.white),),
+                    Text('${Utility.presentDate(DateTime.parse(widget.item.visitedAt.toDate().toString()))}',style: TextStyle(color: Colors.white,
+                        fontSize: 12),textAlign: TextAlign.center,)
                   ],
                 )
                 )

@@ -135,7 +135,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   ) async* {
     yield RegisterState.loading(code: state.code);
     try {
-      var wID = await makeWallet(name, email, telephone, referral);
+      var wID = await makeWallet(name, email, telephone, referral,password);
       print(wID);
       if (wID.isNotEmpty) {
         var uid = await _userRepository.signUp(
@@ -168,7 +168,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   }
 
   Future<String> makeWallet(
-      String name, String email, String telephone, String refferal) async {
+      String name, String email, String telephone, String refferal,String password) async {
     final response = await http.post("${WALLETAPI}wallets",
         headers: {
           'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           <String, dynamic>{
             "email": "$email",
             "name": "$name",
-            //"PhoneNumber": "$telephone",
+            "password": "$password",
             "typeId": 2,
             "accountNumber": "",
             "sortCode": "",

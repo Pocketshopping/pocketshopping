@@ -1,5 +1,6 @@
 package fleepage.pocketshopping
 
+import android.os.Build
 import android.os.Bundle
 
 import io.flutter.app.FlutterActivity
@@ -14,10 +15,14 @@ class Application : FlutterApplication(), PluginRegistrantCallback {
 
     override fun onCreate() {
         super.onCreate()
-        FlutterFirebaseMessagingService.setPluginRegistrant(this);
+        FlutterFirebaseMessagingService.setPluginRegistrant(this)
+        //AlarmService.setPluginRegistrant(this);
+
+
     }
 
     override fun registerWith(registry: PluginRegistry?) {
         io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin.registerWith(registry?.registrarFor("io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin"));
+        //AndroidAlarmManagerPlugin.registerWith(registry?.registrarFor("io.flutter.plugins.androidalarmmanager.AndroidAlarmManagerPlugin"));
     }
 }

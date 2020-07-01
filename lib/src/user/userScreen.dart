@@ -24,7 +24,7 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
-
+import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'bloc/user.dart';
 
 class UserScreen extends StatefulWidget {
@@ -163,8 +163,7 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     setState(() {});
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return AppRetainWidget(
       child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),

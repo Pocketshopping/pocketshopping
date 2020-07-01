@@ -8,7 +8,7 @@ class AppRetainWidget extends StatelessWidget {
 
   final Widget child;
 
-  final _channel = const MethodChannel('com.example/app_retain');
+  final _channel = const MethodChannel('fleepage.pocketshopping');
 
   @override
   Widget build(BuildContext context) {

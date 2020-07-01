@@ -18,6 +18,7 @@ import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/oTracker.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
@@ -136,6 +137,7 @@ class _OrderUIState extends State<OrderUI> {
     mode = '';
     paydone = false;
     position = widget.initPosition;
+    //Utility.getState(position).then((value) => print(value));
     location = new loc.Location();
     location.changeSettings(accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
@@ -166,8 +168,8 @@ class _OrderUIState extends State<OrderUI> {
         List<String> temp = address.first.addressLine.split(',');
         temp.removeLast();
         deliveryAddress = temp.reduce((value, element) => value + ',' + element);
-        if (deliveryAddress != _address.text && !userChange)
-          homeDelivery = false;
+        //if (deliveryAddress != _address.text && !userChange)
+          //homeDelivery = false;
       });
   }
 
@@ -588,7 +590,7 @@ class _OrderUIState extends State<OrderUI> {
     }
   }
 
-  Widget orderRequest() {
+/*  Widget orderRequest() {
     return Container(
       child: Column(
         children: <Widget>[
@@ -600,8 +602,7 @@ class _OrderUIState extends State<OrderUI> {
                   order = order.update(
                       orderMode: OrderMode(
                         mode: mode,
-                        coordinate:
-                            GeoPoint(position.latitude, position.longitude),
+                        coordinate: GeoPoint(position.latitude, position.longitude),
                         address: _address.text,
                         acceptedBy: accepted,
                         fee: dCut,
@@ -626,7 +627,7 @@ class _OrderUIState extends State<OrderUI> {
         ],
       ),
     );
-  }
+  }*/
 
   Widget payDone() {
     return paydone
@@ -718,7 +719,8 @@ class _OrderUIState extends State<OrderUI> {
                     stage = 'CHECKOUT';
                   });
                 },
-                child: const Text('Try Again'),
+                color: PRIMARYCOLOR,
+                child: const Text('Try Again',style: TextStyle(color: Colors.white),),
               ),
             )
           ],
@@ -742,8 +744,8 @@ class _OrderUIState extends State<OrderUI> {
     setState(() {screenHeight = 1;});
     Map<String,String> reference;
     details['email']=widget.user.email;
-    Agent agent = await LogisticRepo.getOneAgentByUid(order.agent);
-    User agentAccount = await UserRepo.getOneUsingUID(agent.agent);
+    //Agent agent = await LogisticRepo.getOneAgentByUid(order.agent);
+    //User agentAccount = await UserRepo.getOneUsingUID(agent.agent);
     var temp = details['expiry'].toString().split('/');
 
     switch(method){
@@ -771,7 +773,8 @@ class _OrderUIState extends State<OrderUI> {
             channelId: 1,
             referenceID: reference['reference'],
             amount: order.orderAmount.round(),
-            agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
+            from: widget.user.walletId,
+            state: await Utility.getState(position) );
         if(collectId != null)
           setState(() {
             order = order.update(
@@ -780,8 +783,7 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
-              orderLogistic: agent.agentWorkPlace,
-              orderMode: order.orderMode.copyWith(deliveryMan: agent.name)
+              orderLogistic: '',
             );
           });
         else setState(() {
@@ -798,10 +800,11 @@ class _OrderUIState extends State<OrderUI> {
               }));
           WalletRepo.getWallet(widget.user.walletId).
           then((value) => WalletBloc.instance.newWallet(value));
-          newOrderNotifier();
+
+          if(method=='Delivery')queryAgent();
         }
       } else {
-        print('Important!!! $reference');
+        //print('Important!!! $reference');
         if (reference['error'].toString().isNotEmpty) {
           setState(() {
             screenHeight = 0.8;
@@ -829,7 +832,9 @@ class _OrderUIState extends State<OrderUI> {
             channelId: 2,
             referenceID: "",
             amount: order.orderAmount.round(),
-            agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
+            from: widget.user.walletId,
+            state: await Utility.getState(position)
+        );
         if(collectId != null)
         setState(() {
             order = order.update(
@@ -838,8 +843,7 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
-             orderLogistic: agent.agentWorkPlace,
-             orderMode: order.orderMode.copyWith(deliveryMan: agent.name)
+             orderLogistic: '',
             );
         });
         else setState(() {
@@ -847,7 +851,7 @@ class _OrderUIState extends State<OrderUI> {
           stage = 'ERROR';
           payerror = "Error encountered while placing Order.";
         });
-        if(collectId != null) {
+      if(collectId != null) {
           OrderRepo.save(order).then((value) =>
               setState(() {
                 startTimer();
@@ -856,7 +860,7 @@ class _OrderUIState extends State<OrderUI> {
               }));
           WalletRepo.getWallet(widget.user.walletId).
           then((value) => WalletBloc.instance.newWallet(value));
-          newOrderNotifier();
+          if(method=='Delivery')queryAgent();
         }
         break;
       case 'POCKET':
@@ -866,7 +870,9 @@ class _OrderUIState extends State<OrderUI> {
             channelId: 3,
             referenceID: "",
             amount: order.orderAmount.round(),
-            agent: agentAccount.walletId,to: agent.workPlaceWallet,logistic: agent.workPlaceWallet,from: widget.user.walletId);
+            from: widget.user.walletId,
+            state: await Utility.getState(position)
+        );
         if(collectId != null) {
           setState(() {
             order = order.update(
@@ -878,8 +884,7 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
-              orderLogistic: agent.agentWorkPlace,
-              orderMode: order.orderMode.copyWith(deliveryMan: agent.name)
+              orderLogistic: '',
             );
           });
 
@@ -898,7 +903,7 @@ class _OrderUIState extends State<OrderUI> {
               }));
           WalletRepo.getWallet(widget.user.walletId).
           then((value) => WalletBloc.instance.newWallet(value));
-          newOrderNotifier();
+          if(method=='Delivery')queryAgent();
         }
         break;
 
@@ -908,19 +913,12 @@ class _OrderUIState extends State<OrderUI> {
     //});
   }
 
-  Future<void> nearByAgent() async{
-    LogisticRepo.getNearByAgent(
-            Position(
-                latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
-                longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
-            type)
-        .then((value) {
-      queryAgent(value);
-    });
-    return Future.value();
+  Future<List<String>> nearByAgent({bool isDevice=false}) async{
+    var nearbyAgent = await LogisticRepo.getNearByAgent(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude, longitude: widget.merchant.bGeoPoint['geopoint'].longitude), type,isDevice: isDevice);
+    return nearbyAgent;
   }
 
-  Future<void> queryAgent(List<String> nAgent) async {
+  Future<void> queryAgent() async {
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
           sound: true, badge: true, alert: true, provisional: false),
@@ -932,39 +930,13 @@ class _OrderUIState extends State<OrderUI> {
         },
         body: jsonEncode(<String, dynamic>{
           'notification': <String, dynamic>{
-            'body': 'Hi. Can you run this delivery, click for details',
+            'body': 'New Delivery Request, view request bucket for details',
             'title': 'New Delivery',
               "icon" : "app_icon",
           },
           'priority': 'high',
           'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-          'data': <String, dynamic>{
-            'payload': {
-              'NotificationType': 'NearByAgent',
-              'Items':
-                  widget.payload.runtimeType == List<CartItem>().runtimeType
-                      ? CartItem.toListMap(widget.payload)
-                      : [
-                          {
-                            'productName': widget.payload.pName,
-                            'productCount': orderCount
-                          }
-                        ],
-              'merchant': widget.merchant.bName,
-              'mAddress': widget.merchant.bAddress,
-              'Amount': order.orderAmount,
-              'type': order.orderMode.mode,
-              'Address': order.orderMode.mode == 'Delivery' ? order.orderMode.address : '',
-              'deliveryFee': order.orderMode.mode == 'Delivery' ? dCut : 0.0,
-              'deliveryDistance': order.orderMode.mode == 'Delivery' ? dist : 0.0,
-              'time': [Timestamp.now().seconds, Timestamp.now().nanoseconds],
-              'fcmToken': widget.user.notificationID,
-              'agentCount': nAgent.length,
-              'otp':randomKey,
-              'agents':nAgent
-            }
-          },
-          'registration_ids': nAgent,
+          'registration_ids': await nearByAgent(isDevice: true),
         }));
   }
 
@@ -1046,23 +1018,35 @@ class _OrderUIState extends State<OrderUI> {
           ),
           Column(
             children: <Widget>[
+              if(_wallet == null)
+                Center(
+                  child: Text(
+                    'Error communicating with server. Check internet and try again',
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.height * 0.025,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              _wallet != null?
               Container(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 margin: EdgeInsets.only(bottom: 20),
                 child: Text(
-                  'Your order has been confirmed. Proceed with payment to complete order',
+                  'Proceed with method of payment to complete order',
                   style: TextStyle(
                     fontSize: MediaQuery.of(context).size.height * 0.025,
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ),
+              ):const SizedBox.shrink(),
+              _wallet != null?
               Container(
                 margin: EdgeInsets.only(bottom: 20),
                 child: Text(
                   'Pay With',
                   style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),),
-              ),
+              ):const SizedBox.shrink(),
               _wallet != null?
               ListTile(
                 onTap: () async {
@@ -1201,6 +1185,7 @@ class _OrderUIState extends State<OrderUI> {
               const SizedBox(
                 height: 5,
               ),
+              _wallet != null?
               ListTile(
                 onTap: () async {
                   //await processPay('CASH');
@@ -1245,7 +1230,7 @@ class _OrderUIState extends State<OrderUI> {
 
                   icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                 ),
-              ),
+              ):const SizedBox.shrink(),
               SizedBox(
                 height: 40,
               )
@@ -1621,9 +1606,9 @@ class _OrderUIState extends State<OrderUI> {
       case 'PAYCARD':
         return cardPage();
         break;
-      case 'REQUEST':
-        return orderRequest();
-        break;
+      //case 'REQUEST':
+        //return orderRequest();
+        //break;
       case 'ERROR':
         return payError();
         break;
@@ -1730,10 +1715,33 @@ class _OrderUIState extends State<OrderUI> {
                 color: PRIMARYCOLOR,
                 child: Center(
                   child: FlatButton(
-                    onPressed: () {
-                      //sendAndRetrieveMessage();
-                      stage = 'REQUEST';
-                      //stage = 'CHECKOUT';
+                    onPressed: ()async {
+                      order = order.update(
+                        orderMode: OrderMode(
+                          mode: mode,
+                          coordinate: GeoPoint(position.latitude, position.longitude),
+                          address: _address.text,
+                          acceptedBy: '',
+                          fee: dCut,
+                          deliveryMan: '',
+                          tableNumber: '',
+
+                        ),
+                        orderETA: dETA.round(),
+                        orderConfirmation: Confirmation(
+                          isConfirmed: false,
+                          confirmOTP: randomAlphaNumeric(6),
+                        ),
+                        agent:'',
+                        resolution: '',
+                        isAssigned: false,
+                        potentials:  await nearByAgent(),
+                        status: 0,
+                        orderID: '',
+                        docID: '',
+                        orderLogistic:'',
+                      );
+                      stage = 'CHECKOUT';
                       setState(() {});
                     },
                     child: Text(
@@ -1973,7 +1981,7 @@ class _OrderUIState extends State<OrderUI> {
                                                 if(emptyAgent != null)
                                                 if(emptyAgent)
                                                 const Center(
-                                                  child: Text('Logistic agent is currently unavailable... try again later',textAlign: TextAlign.center,style: TextStyle(color: Colors.red),),
+                                                  child: Text('No rider within reach... try again later',textAlign: TextAlign.center,style: TextStyle(color: Colors.red),),
                                                 ),
                                                 SizedBox(height: 10,),
                                                 FlatButton(
@@ -2330,8 +2338,8 @@ class _OrderUIState extends State<OrderUI> {
             setState(() {
               stage = 'ORDERNOW';
             });
-            Get.off(OrderTrackerWidget(
-              order: order,
+            Get.off(TrackerWidget(
+              order: order.docID,
               user: widget.user,
             ));
 
@@ -2342,6 +2350,30 @@ class _OrderUIState extends State<OrderUI> {
       ),
     );
   }
+
+
+/*  static Future<void> callback() async {
+
+
+    // Get the previous cached count and increment it.
+    final prefs = await SharedPreferences.getInstance();
+    String currentAgent = prefs.getString(riderKey);
+    int count = await OrderRepo.getUnclaimedDelivery(currentAgent);
+    debugPrint(" function='$callback'");
+    if(count>0)
+      Utility.localNotifier("PocketShopping", "PocketShopping",
+          "Delivery Request", 'New Delivery request. view dashboard to accept');
+  }
+
+  Future<void> requestListenerWorker()async{
+    final int workerID = 0369;
+    await AndroidAlarmManager.cancel(workerID);
+    await AndroidAlarmManager.periodic(
+      const Duration(minutes: 2),
+      workerID,
+      callback,
+      rescheduleOnReboot: true,exact: true,);
+  }*/
 
 
 

@@ -99,38 +99,45 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       if (notification != null) {
-        if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
-          var payload = jsonDecode(notification.data['data']['payload']);
-          switch (payload['NotificationType']) {
-            case 'OrderConfirmationResponse':
-              if(payload['orderID'] == _order.docID){
-                Get.defaultDialog(title:
-                "Confirmation",
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: Icon(Icons.check,color: Colors.green,size: 100,),
-                      ),
-                      Center(
-                        child: Text('This Order(${payload['orderID']}) has been confirmed by the customer(${customer.fname}). Your cut has been transferred to the neccessary channel. Thanks'),
-                      )
-                    ],
-                  ),
-                  confirm: FlatButton(
-                    onPressed: () {
-                      Get.back();
-                      refreshOrder();
-                    },
-                    child: Text('OK'),
-                  ),
-                );
-                NotificationsBloc.instance.clearNotification();
-              }
+        try {
+          if (mounted && notification.data['data']['payload']
+              .toString()
+              .isNotEmpty) {
+            var payload = jsonDecode(notification.data['data']['payload']);
+            switch (payload['NotificationType']) {
+              case 'OrderConfirmationResponse':
+                if (payload['orderID'] == _order.docID) {
+                  Get.defaultDialog(title:
+                  "Confirmation",
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Center(
+                          child: Icon(
+                            Icons.check, color: Colors.green, size: 100,),
+                        ),
+                        Center(
+                          child: Text(
+                              'This Order(${payload['orderID']}) has been confirmed by the customer(${customer
+                                  .fname}). Your cut has been transferred to the neccessary channel. Thanks'),
+                        )
+                      ],
+                    ),
+                    confirm: FlatButton(
+                      onPressed: () {
+                        Get.back();
+                        refreshOrder();
+                      },
+                      child: Text('OK'),
+                    ),
+                  );
+                  NotificationsBloc.instance.clearNotification();
+                }
 
-              break;
+                break;
+            }
           }
-        }
+        }catch(_){}
       }
     });
     setRate();

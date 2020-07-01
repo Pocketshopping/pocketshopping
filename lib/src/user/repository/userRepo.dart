@@ -176,8 +176,17 @@ class UserRepo {
 
 
   static Future<User> getOneUsingUID(String uid) async {
-    var document = await Firestore.instance
-        .collection('users').document(uid).get(source: Source.serverAndCache);
+    if(uid == null)
+      return null;
+    if(uid.isEmpty)
+      return null;
+
+    try{
+      var document = await Firestore.instance
+          .collection('users').document(uid).get(source: Source.serverAndCache);
       return User.fromEntity(UserEntity.fromSnapshot(document));
+    }catch(_){
+      return null;
+    }
   }
 }

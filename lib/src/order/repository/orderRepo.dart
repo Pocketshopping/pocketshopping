@@ -14,8 +14,77 @@ class OrderRepo {
   static Future<String> save(Order order) async {
     DocumentReference bid;
     bid = await databaseReference.collection("orders").add(await order.toMap());
-    await LogisticRepo.makeAgentBusy(order.agent);
+    //await LogisticRepo.makeAgentBusy(order.agent);
     return bid.documentID;
+  }
+
+
+  static Stream<Order> getOneSnapshot(String order)async* {
+
+    yield* databaseReference.collection("orders").document(order).snapshots().map((event)  {
+      return Order.fromEntity(OrderEntity.fromSnapshot(event));
+    });
+  }
+
+  static Future<bool> removeOnePotential(String order, List<String>potentials)async {
+
+    try{
+      if(potentials.isEmpty)
+     {
+       await databaseReference.collection("orders").document(order).updateData({
+         'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.','isAssigned':true,'status':1});
+     }
+      else{
+        await databaseReference.collection("orders").document(order).updateData({
+          'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.'});
+      }
+      return true;
+    }
+    catch(_){return false;}
+
+  }
+
+
+  static Future<bool> convertPotential({String orderId,
+    String agentId,String logisticId,String agentName,
+    List<String> index,String agentWallet,String collectionId,String logisticWallet})async {
+    try{
+      Order order = await getOne(orderId);
+      if(!order.isAssigned) {
+        await databaseReference.collection("orders")
+            .document(orderId)
+            .updateData({
+          'agent': '$agentId',
+          'orderLogistic': '$logisticId',
+          'orderMode.deliveryMan': '$agentName',
+          'index': index,
+          'potentials': [],
+          'isAssigned': true,
+        });
+        await LogisticRepo.makeAgentBusy(agentId, isBusy: true);
+        await Utility.agentAccept(collectionID: collectionId,
+            status: true,
+            agent: agentWallet,
+            to: logisticWallet);
+        return true;
+      }
+
+      else return false;
+
+    }
+    catch(_){return false;}
+
+  }
+
+  static Stream<List<Order>> getRequestBucket(String agentId)async* {
+
+    yield* databaseReference.collection("orders")
+        .where('potentials',arrayContains: agentId)
+        .where('isAssigned',isEqualTo: false)
+        .where('status',isEqualTo: 0)
+        .snapshots().map((event)  {
+      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+    });
   }
 
   static Future<List<Order>> get(
@@ -130,6 +199,18 @@ class OrderRepo {
     });
   }
 
+  static Stream<int> agentBucketCount(String agentID) async* {
+    yield* databaseReference
+        .collection("orders")
+        .where('potentials',arrayContains: agentID)
+        .where('status',isEqualTo: 0)
+        .where('isAssigned',isEqualTo: false)
+        .limit(50)
+        .snapshots().map((event) {return event.documents.length;
+
+    });
+  }
+
   static Stream<List<Order>> searchAgentOrder(String agentID,String keyword, {int type=0,String whose= 'agent'}) async* {
     yield* databaseReference
         .collection("orders")
@@ -182,6 +263,25 @@ class OrderRepo {
       tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
     });
     return tmp;
+  }
+
+
+  static Future<int> getUnclaimedDelivery(String agentID)async{
+    QuerySnapshot document;
+    try{
+      document = await Firestore.instance
+          .collection('orders')
+          .orderBy('orderCreatedAt',descending: true)
+          .where('potentials',arrayContains: agentID)
+          .where('status',isEqualTo: 0)
+          .where('isAssigned',isEqualTo: false)
+          .getDocuments(source: Source.server);
+      return document.documents.length;
+    }
+    catch(_){
+      return 0;
+    }
+    
   }
 
 

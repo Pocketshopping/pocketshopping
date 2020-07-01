@@ -26,6 +26,7 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
+import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 
 import 'bloc/user.dart';
 
@@ -94,8 +95,10 @@ class _StaffScreenState extends State<StaffScreen> {
     _notificationsStream.listen((notification) {
 
       if (notification != null) {
-        var payload = jsonDecode(notification.data['data']['payload']);
-        processNotification(payload, notification);
+        try {
+          var payload = jsonDecode(notification.data['data']['payload']);
+          processNotification(payload, notification);
+        }catch(_){}
       }
     });
     super.initState();
@@ -182,8 +185,7 @@ class _StaffScreenState extends State<StaffScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return AppRetainWidget(
       child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),
@@ -280,7 +282,7 @@ class _StaffScreenState extends State<StaffScreen> {
           ),
           new FlatButton(
             onPressed: () =>
-                SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+                SystemChannels.platform.invokeMethod('sendToBackground'),
             child: new Text('Yes'),
           ),
         ],

@@ -68,6 +68,13 @@ class CustomerCareRepo {
   }
 
   static Future<List<CustomerCareLine>> fetchCustomerCareLine(String company) async {
+
+    if(company == null)
+      return null;
+    if(company.isEmpty)
+      return null;
+
+
     List<CustomerCareLine> temp=[];
    var data =  await databaseReference
         .collection("customerCare")

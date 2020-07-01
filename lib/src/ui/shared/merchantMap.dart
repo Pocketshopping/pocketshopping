@@ -72,7 +72,6 @@ class _MerchantMapState extends State<MerchantMap> {
               markers: _markers,
               initialCameraPosition: _initial,
               onMapCreated: (GoogleMapController controller) {
-                print(controller.isMarkerInfoWindowShown(markerId));
                 _controller.complete(controller);
 
                 if (mounted) {

@@ -46,31 +46,34 @@ class _PocketMenuState extends State<PocketMenu> {
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       if (notification != null) {
-        if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
-          var payload = jsonDecode(notification.data['data']['payload']);
-          switch (payload['NotificationType']) {
-            case 'paymentInitiatedConfirmResponse':
-              setState(() {_start=0;confirm=true;});
-              if(payload['isSuccessful']){
-                Utility.infoDialogMaker('Payment Recieved by the merchant.',title: '');
-              }
-              else{
-                Utility.infoDialogMaker('Error processing payment please try again',title: '');
-              }
-              NotificationsBloc.instance.clearNotification();
-              break;
-            case 'RefreshPocketResponse':
-              WalletRepo.getWallet(widget.user.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-              break;
+        try {
+          if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
+            var payload = jsonDecode(notification.data['data']['payload']);
+            switch (payload['NotificationType']) {
+              case 'paymentInitiatedConfirmResponse':
+                setState(() {_start=0;confirm=true;});
+                if(payload['isSuccessful']){
+                  Utility.infoDialogMaker('Payment Recieved by the merchant.',title: '');
+                }
+                else{
+                  Utility.infoDialogMaker('Error processing payment please try again',title: '');
+                }
+                NotificationsBloc.instance.clearNotification();
+                break;
+              case 'RefreshPocketResponse':
+                WalletRepo.getWallet(widget.user.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+                break;
 
-            default:
-              NotificationsBloc.instance.clearNotification();
-              break;
+              default:
+                NotificationsBloc.instance.clearNotification();
+                break;
+            }
+
+
+
           }
-
-
-
         }
+        catch(_){}
       }
     }
     );

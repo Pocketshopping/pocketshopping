@@ -200,12 +200,19 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                       decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
                           ),
                         ],
                       ),
@@ -215,13 +222,13 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         children: [
                           Text('O',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
                           const Text('Open Order(s)',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white),),
+                            style: const TextStyle(color: PRIMARYCOLOR),),
                           const Text('click to extend screen',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white),),
+                            style: const TextStyle(color: PRIMARYCOLOR),),
                         ],
                       ),
                     ),
@@ -231,12 +238,19 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                       decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
                           ),
                         ],
                       ),
@@ -246,13 +260,13 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         children: [
                           Text('$CURRENCY O',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
                           const Text('Amount Made Today',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white),),
+                            style: const TextStyle(color: PRIMARYCOLOR),),
                           const Text('click for more',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white,fontSize: 11),),
+                            style: const TextStyle(color: PRIMARYCOLOR,fontSize: 11),),
                         ],
                       ),
                     ),
@@ -266,12 +280,19 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           child: Container(
                             margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                             decoration: BoxDecoration(
-                              color: PRIMARYCOLOR.withOpacity(0.8),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey,
-                                  //offset: Offset(1.0, 0), //(x,y)
-                                  blurRadius: 6.0,
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
                                 ),
                               ],
                             ),
@@ -283,7 +304,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                 Text('We are currently '
                                     '${available?'Available':'Unavailable'}',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white),),
+                                  style: TextStyle(color: PRIMARYCOLOR),),
                                 FlatButton(
                                   onPressed: ()async{
                                     bool change =!available;
@@ -298,9 +319,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   },
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                                    child: const Text('Change'),
+                                    child: const Text('Change',style: TextStyle(color: Colors.white),),
                                   ),
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: PRIMARYCOLOR.withOpacity(0.8),
                                 )
                               ],
                             ):Center(
@@ -345,7 +366,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       gridHeight,
                       Icon(
                         AntIcons.shop_outline,
-                        size: MediaQuery.of(context).size.width * 0.16,
+                        size: MediaQuery.of(context).size.width * 0.1,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       'Orders',
@@ -359,7 +380,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       gridHeight,
                       Icon(
                         AntIcons.printer_outline,
-                        size: MediaQuery.of(context).size.width * 0.16,
+                        size: MediaQuery.of(context).size.width * 0.1,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       'Point of Sale',
@@ -370,7 +391,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.shopping_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Products',
                       border: PRIMARYCOLOR,
@@ -380,7 +401,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pie_chart_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Statistic',
                       border: PRIMARYCOLOR,
@@ -392,7 +413,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Staffs',
                       border: PRIMARYCOLOR,
@@ -402,7 +423,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.deployment_unit,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
@@ -413,7 +434,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.history,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Withdrawal(s)',
                       border: PRIMARYCOLOR,
@@ -423,7 +444,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(Icons.thumb_up,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Reviews',
                       border: PRIMARYCOLOR,
@@ -436,7 +457,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.setting_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',
                       border: PRIMARYCOLOR,
@@ -447,7 +468,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.home_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Branch',
                       border: PRIMARYCOLOR,
@@ -460,7 +481,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Clearance',
                       border: PRIMARYCOLOR,
@@ -472,7 +493,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.car_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
@@ -482,7 +503,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user_add_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Rider(s)',
                       border: PRIMARYCOLOR,
@@ -492,7 +513,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pushpin_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Tracker',
                       border: PRIMARYCOLOR,
@@ -502,7 +523,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.smile_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -513,7 +534,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),MenuItem(
                       gridHeight,
                       Icon(AntIcons.customer_service_outline,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',
                       border: PRIMARYCOLOR,

@@ -105,7 +105,7 @@ class _UserPageState extends State<UserPage> {
               child: Center(
                 child: <Widget>[
                   LocationUI(themeColor: fabColor),
-                  Favourite(),
+
                   OrderWidget(fabColor),
                 ].elementAt(_selectedIndex),
               ),

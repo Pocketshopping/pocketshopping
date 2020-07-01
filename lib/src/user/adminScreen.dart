@@ -27,7 +27,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/request/request.dart';
-
+import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'bloc/user.dart';
 
 
@@ -183,8 +183,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return AppRetainWidget(
       child: BlocProvider(
         create: (context) => UserBloc(
           userRepository: UserRepo(),

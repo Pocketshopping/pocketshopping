@@ -13,6 +13,7 @@ import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:pocketshopping/src/order/oTracker.dart';
 
 class OpenOrder extends StatefulWidget {
   final Session user;
@@ -206,8 +207,9 @@ class _SingleOrderState extends State<SingleOrder> {
           const SizedBox(height: 10,),
           ListTile(
             onTap: () {
-              Get.to(OrderTrackerWidget(
-                order: widget.order,
+              print(widget.order.docID);
+              Get.to(TrackerWidget(
+                order: widget.order.docID,
                 user: widget.user.user,
               )
               ).then((value) {

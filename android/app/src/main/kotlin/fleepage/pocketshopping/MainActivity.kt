@@ -35,15 +35,8 @@ class MainActivity: FlutterActivity() {
         PaystackSdk.initialize(getApplicationContext())
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
                 .setMethodCallHandler { call, result ->
-
-                    if (call.method=="CardVerify"){
-
-
-
-                    }
-                    else if (call.method =="CardPay"){
-                        //PaystackSdk.initialize(getApplicationContext())
-
+                    //if (call.method=="CardVerify"){ }
+                    if (call.method =="CardPay"){
                         var month:Int? = call.argument<Int>("month")
                         var cnumber:String = call.argument<String>("card").toString()
                         var year:Int? = call.argument<Int>("year")
@@ -85,26 +78,16 @@ class MainActivity: FlutterActivity() {
 
                         })
                     }
+
+                    else if(call.method =="sendToBackground"){
+                        moveTaskToBack(true)
+                        result.success(null)
+                    }
                     else{
-                        result.success("PayStack")
+                        result.notImplemented()
                     }
                 }
 
-
                     super.configureFlutterEngine(flutterEngine)
                 }
-
-    fun paycard(cNumber: String, eMonth:Int?, eYear:Int?, cvv:String? ):Card{
-        var cardNumber = cNumber//"5060666666666666666"
-        var expiryMonth =3// eMonth //expiryMonth
-        var expiryYear = 22//eYear //expiryYear
-        var cvv = "123"//cvv//"$cvv"//"123"  // cvv of the test card
-        return Card(cardNumber, expiryMonth, expiryYear, cvv)
-    }
-
-
-    fun performCharge() {
-        //create a Charge object
-
-    }
             }

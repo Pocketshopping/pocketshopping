@@ -64,6 +64,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
@@ -198,8 +199,25 @@ class _DrawerScreenState extends State<DrawerScreen> {
               //Navigator.pop(context);
             },
           ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              decoration: new BoxDecoration(
+                //color: Colors.white,
+                image: new DecorationImage(
+                  fit: BoxFit.contain,
+                  colorFilter: new ColorFilter.mode(Colors.white.withOpacity(0.2), BlendMode.dstATop),
+                  image: AssetImage('assets/images/blogo.png',),
+                ),
+              ),
+              height: 100,
+              width: 200,
+              //child:
+            )
+          )
         ],
       ),
+
     );
   }
 }

@@ -59,7 +59,7 @@ class DirectionState extends State<Direction> {
       labelColor: Colors.grey);
   PinInformation sourcePinInfo;
   PinInformation destinationPinInfo;
-  FirebaseUser CurrentUser;
+  FirebaseUser currentUser;
   StreamSubscription<LocationData> locStream;
   RouteMode routeMode;
   String distance;
@@ -82,7 +82,7 @@ class DirectionState extends State<Direction> {
     setInitialLocation();
   }
 
-  AwayFrom(List<LatLng> polylineCoordinates) async {
+  awayFrom(List<LatLng> polylineCoordinates) async {
     print(polylineCoordinates[0]);
     double dist = 0.0;
 
@@ -316,7 +316,7 @@ class DirectionState extends State<Direction> {
       result.forEach((LatLng point) {
         polylineCoordinates.add(point);
       });
-      await AwayFrom(polylineCoordinates);
+      await awayFrom(polylineCoordinates);
       if (mounted) {
         setState(() {
           _polylines.add(Polyline(

@@ -299,20 +299,18 @@ class Utility {
 
   static Future<dynamic> initializePay({
       String referenceID, String from, String to, int status=4,int amount,int paymentMethod=4,
-      int channelId,String agent,String logistic,int deliveryFee}) async {
+      int channelId,int deliveryFee,String state='Abuja'}) async {
     Map<String, dynamic> data = {
       "amount": amount,
       "from": from,
       "to": to,
-      "agentID": agent,
       "channelId": channelId,
       "paymentId": paymentMethod,
       "statusId": status,
       "refID": referenceID,
       "deliveryfee": deliveryFee,
-      "logistics": logistic
+      'state':state
     };
-    print(data);
     final response = await http.post("${WALLETAPI}wallets/pay/initiate/",
         headers: {
           'Content-Type': 'application/json',
@@ -333,6 +331,38 @@ class Utility {
     } else {
       return null;
     }
+    else
+      return null;
+  }
+
+  static Future<dynamic> agentAccept({String collectionID, String to, bool status=true,String agent,}) async {
+    Map<String, dynamic> data = {
+      "to": to,
+      "agentID": agent,
+      "status": status,
+      "collectionID": collectionID,
+      "logistics": to
+    };
+    final response = await http.post("${WALLETAPI}wallets/pay/agent/accept",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+            data
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+
+    if(response != null)
+      if (response.statusCode == 200) {
+
+        return true;
+      } else {
+        return null;
+      }
     else
       return null;
   }
@@ -746,6 +776,22 @@ class Utility {
     temp.removeLast();
     generatedAddress = temp.reduce((value, element) => value + ',' + element);
     return generatedAddress;
+  }
+
+
+  static Future<String> getState(Position position) async {
+    final coordinates = Coordinates(position.latitude, position.longitude);
+    var address = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var state='';
+    List<String> temp = address.first.addressLine.split(',');
+    if(temp.length>2){
+      temp.removeLast();
+      state = temp.last;
+    }
+    else{
+      state = address.first.adminArea;
+    }
+    return state;
   }
 
   static bottomProgressLoader({String title='Loading', String body='...please wait',bool goBack=false}){

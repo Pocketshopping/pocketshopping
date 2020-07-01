@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:ant_icons/ant_icons.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +19,7 @@ import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/order/requestBucket.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/agent/myAuto.dart';
@@ -28,6 +32,13 @@ import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:workmanager/workmanager.dart';
+//import 'package:pocketshopping/src/backgrounder/constant.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:ui';
+
+
+
+
 
 class AgentDashBoardScreen extends StatefulWidget {
   static String tag = 'Agent Dashboard';
@@ -42,14 +53,18 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
   StreamSubscription orders;
+  StreamSubscription bucket;
   StreamSubscription todayOrderCount;
   Stream<Wallet> _walletStream;
 
   final _isAvailableNotifier = ValueNotifier<bool>(true);
   final _walletNotifier = ValueNotifier<Wallet>(null);
   final _orderNotifier = ValueNotifier<List<Order>>([]);
+  final _bucketCount = ValueNotifier<int>(0);
   final _orderCountNotifier = ValueNotifier<int>(0);
   final _remittanceNotifier = ValueNotifier<Map<String,dynamic>>(null);
+  // The background
+  //static SendPort uiSendPort;
 
 
   @override
@@ -59,6 +74,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     _notificationsStream.listen((notification) {
       if (notification != null) {
         //print('Notifications: ${notification.data['data']}');
+        try{
         if (mounted && notification.data['data']['payload'].toString().isNotEmpty) {
           Map<String,dynamic> payload = jsonDecode(notification.data['data']['payload']);
           switch (payload['NotificationType']) {
@@ -95,7 +111,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
               break;
           }
           WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-        }
+        }}catch(_){}
       }
 
     });
@@ -118,23 +134,102 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
       OrderBloc.instance.newOrder(event);
     });
 
+    bucket = OrderRepo.agentBucketCount(currentUser.agent.agentID).listen((event) {
+      if(mounted)
+      {
+        _bucketCount.value=event;
+      }
+
+    });
+
     LogisticRepo.getRemittance(currentUser.user.walletId,limit:currentUser.agent.limit).then((value) => _remittanceNotifier.value=value);
 
     todayOrderCount = OrderRepo.agentTodayOrder(currentUser.agent.agent).listen((event) {if(mounted) _orderCountNotifier.value=event;});
-    backgroundWorker();
+    //backgroundWorker();
     if(currentUser.agent == null) ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
-
 
     Utility.locationAccess();
     LogisticRepo.getOneAgentLocation(currentUser.agent.agentID).then((value){if(value != null) _isAvailableNotifier.value =value.availability;});
+    //requestListenerWorker();
+
+    backgroundWorker();
+    setAgentID().then((value) {
+        AndroidAlarmManager.initialize();
+        requestListenerWorker();
+    });
+
+
     super.initState();
   }
+
+  Future<bool> setAgentLocationDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('agentID', currentUser.agent.agentID??"");
+    await prefs.setString('agentAutomobile', currentUser.agent.autoType??"");
+    await prefs.setBool('availability', true);
+    await prefs.setString('agentTelephone', currentUser.user.telephone??"");
+    await prefs.setString('agentName', currentUser.user.fname??"");
+    await prefs.setString('wallet', currentUser.user.walletId??"");
+    await prefs.setString('agentParent', currentUser.agent.agentWorkPlace??"");
+    await prefs.setString('workPlaceWallet', currentUser.agent.workPlaceWallet??"");
+    await prefs.setString('profile', currentUser.user.profile??"");
+    await prefs.setInt('limit', currentUser.agent.limit??1000);
+    await prefs.setBool('autoAssigned', currentUser.agent.autoAssigned!=null?currentUser.agent.autoAssigned.isNotEmpty:false);
+
+    return true;
+
+  }
+
+  Future<bool> setAgentID() async {
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('rider', currentUser.agent.agentID);
+    return true;
+
+  }
+
+  static Future<void> requestCallback() async {
+    /*try {
+      //Workmanager.cancelByTag('DeliveryRequestUpdateTag');
+      Workmanager.registerOneOffTask(
+          "DELIVERYREQUESTUPDATE", "DeliveryRequestUpdateTask",
+          tag: 'DeliveryRequestUpdateTag',
+          inputData: {});
+    }catch(_){}*/
+
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      String currentAgent = prefs.getString('rider');
+      int count = await OrderRepo.getUnclaimedDelivery(currentAgent);
+      if(count>0)
+        Utility.localNotifier("PocketShopping", "PocketShopping",
+            "Delivery Request", 'There is a Delivery request in request bucket. check it out');
+    }catch(_){debugPrint(_);}
+
+
+  }
+
+  static Future<void> locationUpdateCallback() async {
+    try {
+      Workmanager.cancelByTag('LocationUpdateTag');
+    }catch(_){}
+
+      Workmanager.registerPeriodicTask(
+          "AGENTLOCATIONUPDATE", "LocationUpdateTask",
+          frequency: Duration(minutes: 15),
+          tag: 'LocationUpdateTag',
+          inputData: {});
+
+  }
+
+
 
   Future<void> backgroundWorker(){
     Workmanager.cancelAll();
     Workmanager.registerPeriodicTask(
         "AGENTLOCATIONUPDATE", "LocationUpdateTask",
         frequency: Duration(minutes: 15),
+        tag: 'LocationUpdateTag',
         inputData: {
           'agentID': currentUser.agent.agentID,
           'agentAutomobile': currentUser.agent.autoType,
@@ -149,8 +244,24 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'autoAssigned':currentUser.agent.autoAssigned!=null?currentUser.agent.autoAssigned.isNotEmpty:false
         });
 
-    return Future.value();
+
   }
+
+
+
+  Future<void> requestListenerWorker()async{
+    //final prefs = await SharedPreferences.getInstance();
+   // await prefs.setString('rider', currentUser.agent.agentID);
+    final int requestWorkerID = 369;
+    await AndroidAlarmManager.cancel(requestWorkerID);
+    await AndroidAlarmManager.periodic(
+        const Duration(minutes: 2), requestWorkerID, requestCallback,
+        rescheduleOnReboot: true, exact: true,);
+  }
+
+
+
+
 
   Future<bool> updateWallet(Wallet wallet){
     _walletNotifier.value=null;
@@ -192,6 +303,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     orders?.cancel();
     todayOrderCount?.cancel();
     iosSubscription?.cancel();
+    bucket?.cancel();
     super.dispose();
   }
 
@@ -236,7 +348,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
                     Center(
                       child: const Text(
-                        'Agent',
+                        'Rider',
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
@@ -478,40 +590,45 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     )),
                 SliverGrid.count(crossAxisCount: 3, children: [
                   GestureDetector(
-                    onTap: (){},
+                    onTap: (){
+                      //print(currentUser.agent.agentID);
+                      Get.to(RequestBucket(user: currentUser,)).then((value) => null);
+                    },
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                       decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
                           ),
                         ],
                       ),
                       child: ValueListenableBuilder(
-                        valueListenable: _orderCountNotifier,
+                        valueListenable: _bucketCount,
                         builder: (_,count,__){
-                          return GestureDetector(
-                              onTap: (){},
-                            child:
+                          return
                             Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text('$count',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white,fontSize: 18),),
-                              const Text('Deliveries Today',
+                                style: TextStyle(color:PRIMARYCOLOR,fontSize: 25),),
+                              const Text('Request Bucket',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white),),
-                             const Text('click for more',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white,fontSize: 11),),
+                                style: const TextStyle(color: PRIMARYCOLOR),),
                             ],
-                          )
+
                           );
                         },
                       ),
@@ -522,12 +639,19 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                       decoration: BoxDecoration(
-                        color: PRIMARYCOLOR.withOpacity(0.8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey,
-                            //offset: Offset(1.0, 0), //(x,y)
-                            blurRadius: 6.0,
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
                           ),
                         ],
                       ),
@@ -535,15 +659,12 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('$CURRENCY O',
+                          Text('$CURRENCY ${Utility.numberFormatter(0)}',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white,fontSize: 18),),
+                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
                          const Text('Amount Made Today',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white),),
-                         const Text('click for more',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white,fontSize: 11),),
+                            style: const TextStyle(color: PRIMARYCOLOR),),
                         ],
                       ),
                     ),
@@ -556,12 +677,19 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                          child: Container(
                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
                            decoration: BoxDecoration(
-                             color: PRIMARYCOLOR.withOpacity(0.8),
+                             color: Colors.white,
+                             borderRadius: BorderRadius.only(
+                                 topLeft: Radius.circular(10),
+                                 topRight: Radius.circular(10),
+                                 bottomLeft: Radius.circular(10),
+                                 bottomRight: Radius.circular(10)
+                             ),
                              boxShadow: [
                                BoxShadow(
-                                 color: Colors.grey,
-                                 //offset: Offset(1.0, 0), //(x,y)
-                                 blurRadius: 6.0,
+                                 color: Colors.grey.withOpacity(0.2),
+                                 spreadRadius: 2,
+                                 blurRadius: 7,
+                                 offset: Offset(0, 1), // changes position of shadow
                                ),
                              ],
                            ),
@@ -572,7 +700,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                Text('I am currently '
                                    '${available?'Available':'Unavailable'}',
                                  textAlign: TextAlign.center,
-                                 style: TextStyle(color: Colors.white),),
+                                 style: TextStyle(color: PRIMARYCOLOR),),
                                FlatButton(
                                  onPressed: ()async{
                                    bool change =!available;
@@ -584,9 +712,9 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                  },
                                  child: Padding(
                                    padding: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                                   child: const Text('Change'),
+                                   child: const Text('Change',style: TextStyle(color: Colors.white),),
                                  ),
-                                 color: Colors.white.withOpacity(0.5),
+                                 color: PRIMARYCOLOR.withOpacity(0.8),
                                )
                              ],
                            ),
@@ -632,8 +760,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                         return
                         MenuItem(
                           gridHeight,
-                          Icon(MaterialIcons.local_pizza,
-                              size: MediaQuery.of(context).size.width * 0.12,
+                          Icon(AntIcons.shopping_outline,
+                              size: MediaQuery.of(context).size.width * 0.1,
                               color: PRIMARYCOLOR.withOpacity(0.8)),
                           'Deliveries',
                           border: PRIMARYCOLOR,
@@ -645,9 +773,10 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       }),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.business_center,
-                          size: MediaQuery.of(context).size.width * 0.12,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      Icon(AntIcons.bulb_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8),
+                      ),
                       'New Business',
                       border: PRIMARYCOLOR,
                       isBadged: false,
@@ -657,8 +786,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.home,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                      Icon(AntIcons.shop_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Business(es)',
                       border: PRIMARYCOLOR,
@@ -669,8 +798,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(MaterialIcons.sentiment_satisfied,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                      Icon(AntIcons.smile_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -682,8 +811,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
                     MenuItem(
                       gridHeight,
-                      Icon(Icons.credit_card,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                      Icon(AntIcons.deployment_unit,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
@@ -691,8 +820,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(currentUser.agent.autoType=='MotorBike'?Icons.motorcycle:MaterialIcons.local_taxi,
-                          size: MediaQuery.of(context).size.width * 0.12,
+                      Icon(AntIcons.user,
+                          size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Account',
                       isBadged: false,

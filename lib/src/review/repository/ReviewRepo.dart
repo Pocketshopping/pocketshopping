@@ -12,6 +12,12 @@ class ReviewRepo {
   }
 
   static Future<Review> getOne(String rid) async {
+    if(rid == null)
+      return null;
+    if(rid.isEmpty)
+      return null;
+
+
     var doc = await databaseReference.collection("reviews").document(rid).get(source: Source.serverAndCache);
     return Review.fromEntity(ReviewEntity.fromSnapshot(doc));
   }

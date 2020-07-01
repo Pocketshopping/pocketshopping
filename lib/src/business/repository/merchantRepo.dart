@@ -196,9 +196,13 @@ class MerchantRepo {
 
   static Future<Merchant> getMerchant(String mid) async {
     Merchant merchant;
-    var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache);
-    merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
-    return merchant;
+    try{
+      var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache);
+      merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
+      return merchant;
+    }catch(_){
+      return null;
+    }
   }
 
   static Future<List<Merchant>> getMyBusiness(String uid, Merchant lastDoc,) async {

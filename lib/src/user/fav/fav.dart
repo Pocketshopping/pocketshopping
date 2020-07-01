@@ -26,7 +26,7 @@ class _FavoriteState extends State<FavoriteWidget> {
   void initState() {
     isSelected = [true, false];
     loading = false;
-    FavRepo.getFavourites(widget.user.user.uid,'count').then((value) => setState((){fav=value.favourite.values.toList();}));
+    FavRepo.getFavourites(widget.user.user.uid,'count').then((value) { if(mounted)setState((){fav=value.favourite.values.toList();});});
     Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,
         locationPermissionLevel: GeolocationPermission.locationAlways).then((value) => setState((){position=value;}));
 

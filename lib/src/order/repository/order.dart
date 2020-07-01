@@ -26,6 +26,10 @@ class Order {
   final String customerID;
   final String agent;
   final String orderLogistic;
+  final bool isAssigned;
+  final List<String> potentials;
+  final String resolution;
+  final List<String> index;
 
   Order({
       this.orderItem,
@@ -43,6 +47,10 @@ class Order {
       this.customerID,
       this.agent,
       this.orderLogistic,
+      this.isAssigned,
+      this.potentials,
+      this.resolution,
+      this.index
       });
 
   Order copyWith({
@@ -61,8 +69,11 @@ class Order {
       Confirmation orderConfirmation,
       String customerID,
       String agent,
-      String orderLogistic
-
+      String orderLogistic,
+      bool isAssigned,
+      List<String> potentials,
+      String resolution,
+      List<String> index
       }) {
     return Order(
         orderItem: orderItem ?? this.orderItem,
@@ -79,7 +90,11 @@ class Order {
         orderConfirmation: orderConfirmation ?? this.orderConfirmation,
         customerID: customerID ?? this.customerID,
         agent: agent ?? this.agent,
-        orderLogistic: orderLogistic ?? this.orderLogistic
+        orderLogistic: orderLogistic ?? this.orderLogistic,
+        isAssigned: isAssigned ?? this.isAssigned,
+        potentials: potentials??this.potentials,
+        resolution: resolution??this.resolution,
+      index: index??this.index
     );
   }
 
@@ -99,7 +114,11 @@ class Order {
       orderConfirmation.hashCode ^
       customerID.hashCode ^
       agent.hashCode ^
-      orderLogistic.hashCode;
+      orderLogistic.hashCode ^
+      isAssigned.hashCode ^
+      potentials.hashCode ^
+      resolution.hashCode ^
+      index.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -120,7 +139,10 @@ class Order {
           orderConfirmation == other.orderConfirmation &&
           customerID == other.customerID &&
           agent == other.agent &&
-          orderLogistic == other.orderLogistic;
+          orderLogistic == other.orderLogistic &&
+          isAssigned == other.isAssigned &&
+          resolution == other.resolution &&
+          index == other.index;
 
   Order update(
       {List<OrderItem> orderItem,
@@ -137,7 +159,11 @@ class Order {
       Confirmation orderConfirmation,
       String customerID,
       String agent,
-      String orderLogistic
+      String orderLogistic,
+      bool isAssigned,
+      List<String> potentials,
+      String resolution,
+      List<String> index
       }) {
     return copyWith(
       orderItem: orderItem,
@@ -154,7 +180,11 @@ class Order {
       orderConfirmation: orderConfirmation,
       customerID: customerID,
       agent: agent,
-      orderLogistic: orderLogistic
+      orderLogistic: orderLogistic,
+      isAssigned: isAssigned,
+      potentials: potentials,
+      resolution: resolution,
+      index: index
     );
   }
 
@@ -180,6 +210,9 @@ class Order {
       'customerID': customerID??'',
       'agent':agent??'',
       'orderLogistic':orderLogistic??'',
+      'isAssigned':isAssigned,
+      'potentials':potentials??[],
+      'resolution':resolution,
       'index': await makeOrderIndex()
     };
   }
@@ -188,7 +221,7 @@ class Order {
     var merchant = await MerchantRepo.getMerchant(orderMerchant);
     if(orderMode.deliveryMan != null)
     temp = Utility.makeIndexList(orderMode.deliveryMan);
-    if(orderMode.deliveryMan != null)
+    if(orderCustomer.customerName.isNotEmpty)
     temp.addAll(Utility.makeIndexList(orderCustomer.customerName));
 
     temp.addAll(Utility.makeIndexList(merchant.bName));
@@ -210,7 +243,11 @@ class Order {
         orderConfirmation: orderEntity.orderConfirmation,
         customerID: orderEntity.customerID,
         agent: orderEntity.agent,
-        orderLogistic: orderEntity.orderLogistic
+        orderLogistic: orderEntity.orderLogistic,
+        isAssigned:  orderEntity.isAssigned,
+        resolution:  orderEntity.resolution,
+        potentials: orderEntity.potentials,
+        index: orderEntity.index
         );
   }
 
