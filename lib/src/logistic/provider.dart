@@ -10,7 +10,6 @@ import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart'
 import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 

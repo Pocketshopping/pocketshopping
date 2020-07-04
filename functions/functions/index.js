@@ -7,7 +7,7 @@ admin.initializeApp({
 });
 const runtimeOpts = {
   timeoutSeconds: 300,
-  memory: '1GB'
+  memory: '512MB'
 }
 
 const CategoryRuntimeOpts = {
@@ -19,6 +19,12 @@ const CategoryRuntimeOpts = {
   return data['points'];
 }); */
 
+ exports.scheduledFunction = functions.pubsub.schedule('every 2 minutes')
+ .timeZone('Africa/Bangui') 
+ .onRun(async(context) => {
+  await fetchAndUpdate();
+  return null;
+}); 
 
 
  exports.FetchMerchantsProductCategory = functions.runWith(CategoryRuntimeOpts).https.onCall((data, context) => {
@@ -26,8 +32,45 @@ const CategoryRuntimeOpts = {
      return getCategories(merchant).then((doc)=>{
        return doc;
      });
-}); 
+});
 
+ async function fetchAndUpdate(){
+  var documents = await admin.firestore()
+    .collection('orders')
+    .where('isAssigned','==',false)
+    .where('status','==',0)
+    .where('etc','<', new Date())
+    .get();
+
+    let batch = admin.firestore().batch();
+    var customers =[];
+    const payload = {
+      notification: {
+          title: "Delivery",
+          body: "Your Delivery has been cancelled( Logistic problem)",
+          sound: "default",
+          icon : "app_icon",
+      },
+  
+      data: {
+          
+          'payload':JSON.stringify( {
+            "NotificationType": "CloudDeliveryCancelledResponse",
+            'message':'Your Delivery has been cancelled( Logistic problem)',
+            'title':'Delivery',
+          }),
+      }
+    };
+    documents.docs.forEach((doc) => {
+      const docRef = admin.firestore().collection('orders').doc(doc.id);
+      batch.update(docRef, {'isAssigned':true,'potentials':[],'status':1,'receipt.pRef':'Rider Currently unavailable.'});
+      customers.push(doc.data()['customerDevice']);
+  })
+  await batch.commit();
+  if(customers.length>0)
+  admin.messaging().sendToDevice(customers, payload);
+}
+ 
 async function getCategories(merchant) {
   var category=[];
   var tmp = new Object();
@@ -96,6 +139,8 @@ exports.ETA = functions.https.onCall((data, context) => {
 
     return eta;
 });
+
+
 
 exports.DeliveryCut = functions.https.onCall((data, context) => {
   var distance=data['distance'];

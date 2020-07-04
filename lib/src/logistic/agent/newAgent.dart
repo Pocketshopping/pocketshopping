@@ -11,12 +11,8 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
+
 import 'repository/agentObj.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 class AgentForm extends StatefulWidget {
   AgentForm({this.session});

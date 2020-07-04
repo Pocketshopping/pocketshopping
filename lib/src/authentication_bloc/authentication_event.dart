@@ -13,6 +13,8 @@ class LoggedOut extends AuthenticationEvent {}
 
 class Setup extends AuthenticationEvent {}
 
+class Verify extends AuthenticationEvent {}
+
 class DeepLink extends AuthenticationEvent {
   final Uri link;
 

@@ -1,25 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:barcode_scan/barcode_scan.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:loadmore/loadmore.dart';
+import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/notification/notification.dart';
-import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
-import 'package:pocketshopping/src/order/tracker.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pocketPay/tansfer.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:progress_indicators/progress_indicators.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+import 'package:pocketshopping/src/validators.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:flutter/services.dart';
-import 'package:pocketshopping/src/payment/topup.dart';
 
 class PocketMenu extends StatefulWidget {
   final Session user;
@@ -298,37 +296,56 @@ class _PocketMenuState extends State<PocketMenu> {
                         )
                       ),
                       Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
-                          child: Container(
-                            height: MediaQuery.of(context).size.height*0.2,
-                            width: MediaQuery.of(context).size.width*0.2,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  topRight: Radius.circular(10),
-                                  bottomLeft: Radius.circular(10),
-                                  bottomRight: Radius.circular(10)
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  spreadRadius: 2,
-                                  blurRadius: 7,
-                                  offset: Offset(0, 1), // changes position of shadow
+                        child: GestureDetector(
+                          onTap: (){
+                            try {
+                              if (_walletNotifier.value.walletBalance > 0) {
+                                Get.dialog(PocketTransfer(
+                                  wallet: widget.user.user.walletId,
+                                  user: widget.user.user,
+                                  callBackAction: () {
+                                    WalletRepo.getWallet(widget.user.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+                                  },));
+                              }
+                              else {
+                                Utility.infoDialogMaker(
+                                    'Insufficient Fund', title: '');
+                              }
+                            }
+                            catch(_){}
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+                            child: Container(
+                              height: MediaQuery.of(context).size.height*0.2,
+                              width: MediaQuery.of(context).size.width*0.2,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    topRight: Radius.circular(10),
+                                    bottomLeft: Radius.circular(10),
+                                    bottomRight: Radius.circular(10)
                                 ),
-                              ],
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 7,
+                                    offset: Offset(0, 1), // changes position of shadow
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.title,size: 50,color: PRIMARYCOLOR,),
+                                  Text('Pocket Transfer')
+                                ],
+                              ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.title,size: 50,color: PRIMARYCOLOR,),
-                                Text('Pocket Transfer')
-                              ],
-                            ),
-                          ),
+                          )
                         )
                       ),
                     ],

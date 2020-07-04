@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:pocketshopping/constants/appColor.dart';
-import 'package:pocketshopping/page/admin/manageProduct.dart';
-import 'package:pocketshopping/page/admin/sourceProduct.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
 
 class ProductBottomPage extends StatelessWidget {
   ProductBottomPage({this.session});
@@ -73,9 +71,7 @@ class ProductBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Add Product From Pool',
-              page: SourceProduct(
-                themeColor: PRIMARYCOLOR,
-              ),
+              page: Container(),
             ),
             BsMenuItem(
               height: gridHeight,
@@ -85,7 +81,7 @@ class ProductBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Manage Product',
-              page: ManageProduct(),
+              page: Container(),
             ),
           ]),
         ],

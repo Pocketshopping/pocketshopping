@@ -1,39 +1,15 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_skeleton/flutter_skeleton.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
-import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/deliveryTracker.dart';
-import 'package:pocketshopping/src/order/repository/confirmation.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
-import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
-import 'package:pocketshopping/src/order/repository/receipt.dart';
-import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
-import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:step_progress_indicator/step_progress_indicator.dart';
-import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
-import 'package:ant_icons/ant_icons.dart';
 
 import 'repository/order.dart';
 

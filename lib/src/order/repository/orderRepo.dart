@@ -76,12 +76,27 @@ class OrderRepo {
 
   }
 
+
+  static Stream<List<Order>> getExpiredRequestBucket(String agentId)async* {
+
+    yield* databaseReference.collection("orders")
+        .where('potentials',arrayContains: agentId)
+        .where('isAssigned',isEqualTo: false)
+        .where('status',isEqualTo: 0)
+        .where('etc',isLessThan: Timestamp.now())
+        .snapshots().map((event)  {
+      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+    });
+  }
+
+
   static Stream<List<Order>> getRequestBucket(String agentId)async* {
 
     yield* databaseReference.collection("orders")
         .where('potentials',arrayContains: agentId)
         .where('isAssigned',isEqualTo: false)
         .where('status',isEqualTo: 0)
+        //.where('etc',isLessThan: Timestamp.now())
         .snapshots().map((event)  {
       return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
     });

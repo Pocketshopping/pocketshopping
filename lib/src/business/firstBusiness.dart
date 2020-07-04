@@ -71,8 +71,8 @@ class FirstBusinessPage extends StatelessWidget {
                         padding: EdgeInsets.all(
                             MediaQuery.of(context).size.width * 0.02),
                         child: Text(
-                          "Please do well to read our terms and conditions. What do you want to do",
-                          style: TextStyle(),
+                          "Please do well to read our terms and conditions.",
+                          style: TextStyle(),textAlign: TextAlign.center,
                         ),
                       )),
                       Center(
@@ -90,7 +90,7 @@ class FirstBusinessPage extends StatelessWidget {
                           ),
                         ),
                       )),
-                      Container(
+                      /*Container(
                         padding: EdgeInsets.all(
                             MediaQuery.of(context).size.width * 0.02),
                         child: Center(
@@ -99,6 +99,7 @@ class FirstBusinessPage extends StatelessWidget {
                           style: TextStyle(fontSize: 18),
                         )),
                       ),
+
                       Center(
                           child: Container(
                         decoration: BoxDecoration(
@@ -125,7 +126,7 @@ class FirstBusinessPage extends StatelessWidget {
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
-                      )),
+                      )),*/
                     ]),
               )
             ]))

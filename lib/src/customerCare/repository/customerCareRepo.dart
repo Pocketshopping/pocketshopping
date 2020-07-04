@@ -1,18 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
-import 'package:pocketshopping/src/logistic/vehicle/repository/vehicleObj.dart';
-import 'package:pocketshopping/src/repository/user_repository.dart';
-import 'package:pocketshopping/src/request/repository/requestObject.dart';
-import 'package:pocketshopping/src/request/repository/requestRepo.dart';
-import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
-import 'package:pocketshopping/src/statistic/repository.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
 
 

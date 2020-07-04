@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
@@ -213,7 +214,9 @@ class Order {
       'isAssigned':isAssigned,
       'potentials':potentials??[],
       'resolution':resolution,
-      'index': await makeOrderIndex()
+      'index': await makeOrderIndex(),
+      'etc':DateTime.now().add(Duration(minutes: 6)),
+      'customerDevice': await FirebaseMessaging().getToken()
     };
   }
   Future<List<String>> makeOrderIndex()async{

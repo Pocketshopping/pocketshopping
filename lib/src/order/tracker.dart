@@ -85,11 +85,8 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
     reply = isNotEmpty() ? getItem('reply') : 0;
     pingStart = isNotEmpty() ? getItem('pingStart') : false;
     bubble = isNotEmpty() ? getItem('bubble') : [];
-    _start = isNotEmpty()
-        ? Utility.setStartCount(getItem('delayTime'), getItem('moreSec'))
-        : Utility.setStartCount(_order.orderCreatedAt, _order.orderETA);
-    counter =
-        '${isNotEmpty() ? (Utility.setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (Utility.setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
+    _start = isNotEmpty() ? Utility.setStartCount(getItem('delayTime'), getItem('moreSec')) : Utility.setStartCount(_order.orderCreatedAt, _order.orderETA);
+    counter = '${isNotEmpty() ? (Utility.setStartCount(getItem('delayTime'), getItem('moreSec')) / 60).round() : (Utility.setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
     startTimer();
     UserRepo.getOneUsingUID(_order.agent).then((value){if(mounted)setState((){agent=value;});} );
     MerchantRepo.getMerchant(_order.orderMerchant).then((value){if(mounted) setState(() {merchant = value;});});
@@ -182,6 +179,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
         }
       }
     });
+    if(_order.agent.isNotEmpty)
     ChannelRepo.getAgentChannel(_order.agent).then((value) => channel = value);
     setRate();
     super.initState();
@@ -208,6 +206,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
           loading = false;
         }));
     setRate();
+    return _order;
   }
 
   void globalStateUpdate() {

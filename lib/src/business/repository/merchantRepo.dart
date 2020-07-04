@@ -1,6 +1,3 @@
-import 'dart:math';
-import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +5,9 @@ import 'package:geocoder/geocoder.dart' as geocode;
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:pocketshopping/component/dynamicLinks.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -46,48 +44,56 @@ class MerchantRepo {
     String walletID
   }) async {
     DocumentReference bid;
+    var user;
     GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
     var temp = Utility.makeIndexList(bName);
-    var user = await UserRepo().getOne(uid: uid);
+    if(!adminUploaded)
+      user = await UserRepo().getOne(uid: uid);
     temp.addAll(Utility.makeIndexList(bCategory));
-    bid = await databaseReference.collection("merchants").add({
-      'businessCreator': databaseReference.document('users/' + uid),
-      'businessName': bName.sentenceCase,
-      'businessAdress': bAddress,
-      'businessCategory': bCategory,
-      'businessOpenTime': bOpenTime,
-      'businessCloseTime': bCloseTime,
-      'businessPhoto': bPhoto,
-      'businessTelephone': bTelephone,
-      'businessTelephone2': bTelephone2,
-      'businessEmail': bEmail,
-      'businessGeopint': merchantLocation.data,
-      'businessDelivery': bDelivery,
-      'businessSocials': bSocial,
-      'businessDescription': bDescription,
-      'isBranch': isBranch,
-      'businessParent': databaseReference.document('merchants/' + bParent),
-      'businessID': bID,
-      'businessStatus': bStatus,
-      'businessCountry': bCountry,
-      'branchUnique': bBranchUnique,
-      'businessCreatedAt': DateTime.now(),
-      'adminUploaded':adminUploaded,
-      'businessActive':true,
-      'businessWallet':!adminUploaded?user.user.walletId:'',
-      'index': temp,
 
-    });
-    if(bid != null)
-    if(!adminUploaded) {
-      await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
-      await channelMaker(bid.documentID, uid);
-      await CustomerCareRepo.saveCustomerCare(bid.documentID, [
-        CustomerCareLine(number: bTelephone,name:bName.headerCase ),
-        if(bTelephone.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
-      ]);
-      await Utility.updateWallet(uid: user.user.walletId,cid: user.user.walletId,type: 3);
-    }
+    try{
+
+      bid = await databaseReference.collection("merchants").add({
+        'businessCreator': databaseReference.document('users/' + uid),
+        'businessName': bName.sentenceCase,
+        'businessAdress': bAddress,
+        'businessCategory': bCategory,
+        'businessOpenTime': bOpenTime,
+        'businessCloseTime': bCloseTime,
+        'businessPhoto': bPhoto,
+        'businessTelephone': bTelephone,
+        'businessTelephone2': bTelephone2,
+        'businessEmail': bEmail,
+        'businessGeopint': merchantLocation.data,
+        'businessDelivery': bDelivery,
+        'businessSocials': bSocial,
+        'businessDescription': bDescription,
+        'isBranch': isBranch,
+        'businessParent': databaseReference.document('merchants/' + bParent),
+        'businessID': bID,
+        'businessStatus': bStatus,
+        'businessCountry': bCountry,
+        'branchUnique': bBranchUnique,
+        'businessCreatedAt': DateTime.now(),
+        'adminUploaded':adminUploaded,
+        'businessActive':true,
+        'businessWallet':!adminUploaded?user.user.walletId:'',
+        'index': temp,
+      });
+
+      if(bid != null)
+        if(!adminUploaded) {
+          await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
+          await channelMaker(bid.documentID, uid);
+          await CustomerCareRepo.saveCustomerCare(bid.documentID, [
+            CustomerCareLine(number: bTelephone,name:bName.headerCase ),
+            if(bTelephone.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
+          ]);
+          await Utility.updateWallet(uid: user.user.walletId,cid: user.user.walletId,type: 3);
+        }
+
+    }catch(_){print(_);}
+
 
     return bid.documentID;
   }
@@ -113,30 +119,7 @@ class MerchantRepo {
     }
   }
 
-  Future<String> branchOTP(String mid) async {
-    Random random = new Random();
-    int randomNumber = random.nextInt(999999);
-    var result = {};
-    result = await getOTP(mid);
-    var uri = await DynamicLinks.createLinkWithParams({
-      'merchant': '$mid',
-      'OTP': 'randomNumber.toString()',
-      'route': 'branch'
-    });
 
-    if (result.isEmpty) {
-      await databaseReference.collection("merchantsOTP").document(mid).setData({
-        'merchant': databaseReference.document('merchants/' + mid),
-        'OTP': randomNumber.toString(),
-        'status': 'unread',
-        'uri': uri.toString(),
-        'createdAt': DateTime.now(),
-      });
-      return uri.toString();
-    } else {
-      return result['uri'].toString();
-    }
-  }
 
   Future<Map<String, dynamic>> getOTP(String mid) async {
     var document = await Firestore.instance

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -8,22 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:pocketshopping/component/scanScreen.dart';
-import 'package:pocketshopping/page/admin/settings.dart';
-import 'package:pocketshopping/page/admin/viewItem.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/statisticBS.dart';
 import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/bank/BankWithdraw.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/customerCare/customerCare.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
@@ -40,10 +33,6 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/widget/account.dart';
-import 'package:pocketshopping/widget/reviews.dart';
-import 'package:pocketshopping/widget/status.dart';
-import 'package:pocketshopping/src/customerCare/customerCare.dart';
 
 class LogisticDashBoardScreen extends StatefulWidget {
   LogisticDashBoardScreen();

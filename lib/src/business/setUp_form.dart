@@ -337,7 +337,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   child: TextFormField(
                                     controller: _nameController,
                                     decoration: InputDecoration(
-                                        hintText: 'Business Name',
+                                        labelText: 'Business Name',
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
@@ -370,7 +370,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                               CountryCodeChanged(
                                                   country: value.dialCode),
                                             );
-                                            print('Country ${value.dialCode}');
+
                                           },
                                           initialSelection: 'NG',
                                           favorite: ['+234', 'NG'],
@@ -383,7 +383,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         child: TextFormField(
                                           controller: _telephoneController,
                                           decoration: InputDecoration(
-                                              hintText: 'Business Telephone',
+                                              labelText: 'Business Telephone',
                                               border: InputBorder.none),
                                           keyboardType: TextInputType.phone,
                                           autocorrect: false,
@@ -411,7 +411,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   child: TextFormField(
                                     controller: _addressController,
                                     decoration: InputDecoration(
-                                        hintText: 'Business Address',
+                                        labelText: 'Business Address',
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
@@ -892,6 +892,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
 
   void _onFormSubmitted() {
       //print(_nameController.text.trim().headerCase);
+    FocusScope.of(context).requestFocus(FocusNode());
     GetBar(
       messageText: Text('Verifying..please wait',style: TextStyle(color: Colors.white),),
     showProgressIndicator: true,

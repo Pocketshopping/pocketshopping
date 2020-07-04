@@ -232,6 +232,7 @@ class _TopUpState extends State<TopUp> {
 
 
             if(result != null){
+
               WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
               setState(() {
                 paying = false;
@@ -241,10 +242,11 @@ class _TopUpState extends State<TopUp> {
 
             }
             else{
+              print(reference['reference']);
               setState(() {
                 paying = false;
                 status = 'ERROR';
-                payerror = "Error connecting to server. check your connection and try again";
+                payerror = "Error connecting to server. check your connection.";
               });
             }
 
@@ -261,7 +263,7 @@ class _TopUpState extends State<TopUp> {
           setState(() {
             paying = false;
             status = 'ERROR';
-            payerror = "Something went wrong try again";
+            payerror = "Something went wrong.";
           });
         }
 
@@ -310,7 +312,8 @@ class _TopUpState extends State<TopUp> {
                     status = 'INIT';
                   });
                 },
-                child: Text('Try Again'),
+                color: PRIMARYCOLOR,
+                child: Text('Try Again',style: TextStyle(color: Colors.white),),
               ),
             )
           ],

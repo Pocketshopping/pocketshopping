@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class UserRepository {
   final FirebaseAuth _firebaseAuth;
@@ -10,19 +12,34 @@ class UserRepository {
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
   Future<FirebaseUser> signIn(String email, String password) async {
-    AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    FirebaseUser user = result.user;
-    return user;
+    try{
+      AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+
+      if (result.user.isEmailVerified) {
+        FirebaseUser user = result.user;
+        return user;
+      }
+      throw("EMAIL UNVERIFIED");
+    }catch(e){
+      throw(e);
+    }
   }
 
   Future<String> signUp({String role, String email, String password}) async {
     AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
+
     FirebaseUser user = result.user;
     await upDateUserRole(role, user);
+
+    try {await user.sendEmailVerification();} catch (e) {
+     // print(e);
+    }
+
     return user.uid;
   }
 
@@ -61,8 +78,27 @@ class UserRepository {
 
   Future<bool> isSignedIn() async {
     final currentUser = await _firebaseAuth.currentUser();
-    return currentUser != null;
-
-
+    return currentUser != null && currentUser.isEmailVerified;
   }
+
+  Future<int> passwordReset(String email) async {
+    try{
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+      return 1;
+    }on PlatformException catch(_){
+
+      if(_.code == 'ERROR_USER_NOT_FOUND'){
+        debugPrint(_.code);
+        return 2;
+      }
+      else{
+        return 3;
+      }
+      }
+      catch(_){
+      return 0;
+      }
+  }
+
+
 }

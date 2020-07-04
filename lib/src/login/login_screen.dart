@@ -25,7 +25,7 @@ class LoginScreen extends StatelessWidget {
         child: LoginForm(
           userRepository: _userRepository,
           fromSignup: fromSignup,
-          linkdata: linkdata,
+          linkedData: linkdata,
         ),
       ),
     );

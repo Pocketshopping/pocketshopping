@@ -10,8 +10,10 @@ import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/validators.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   final UserRepository _userRepository;
@@ -23,7 +25,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   @override
   RegisterState get initialState => RegisterState.empty();
 
-  @override
+/*  @override
   Stream<Transition<RegisterEvent, RegisterState>> transformEvents(
     Stream<RegisterEvent> events,
     TransitionFunction<RegisterEvent, RegisterState> transitionFn,
@@ -48,7 +50,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       nonDebounceStream.mergeWith([debounceStream]),
       transitionFn,
     );
-  }
+  }*/
 
   @override
   Stream<RegisterState> mapEventToState(
@@ -136,61 +138,61 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     yield RegisterState.loading(code: state.code);
     try {
       var wID = await makeWallet(name, email, telephone, referral,password);
-      print(wID);
       if (wID.isNotEmpty) {
-        var uid = await _userRepository.signUp(
-          role: 'user',
-          email: email,
-          password: password,
-        );
-        User user = User(
-          uid,
-          fname: name,
-          email: email,
-          telephone: state.code + (telephone.substring(1)),
-          bid: Firestore.instance.document('merchants/null'),
-          behaviour: Firestore.instance.document('userBehaviour/null'),
-          profile: "",
-          role: "user",
-          defaultAddress: '',
-          country: await Devicelocale.currentLocale,
-          walletId: wID,
-        );
-        await UserRepo().save(user);
-        yield RegisterState.success();
-      } else {
-        yield RegisterState.failure(code: state.code);
-      }
-    } catch (_) {
-      print(_.toString());
-      yield RegisterState.failure(code: state.code);
-    }
+        var uid = await _userRepository.signUp(role: 'user', email: email, password: password,);
+        if(uid != null){
+          User user = User(
+            uid,
+            fname: name,
+            email: email,
+            telephone: state.code + (telephone.substring(1)),
+            bid: Firestore.instance.document('merchants/null'),
+            behaviour: Firestore.instance.document('userBehaviour/null'),
+            profile: PocketShoppingDefaultAvatar,
+            role: "user",
+            defaultAddress: '',
+            country: 'NG',//await Utility.getCountryCode(),
+            walletId: wID,
+          );
+          await UserRepo().save(user);
+          SharedPreferences prefs= await SharedPreferences.getInstance();
+          if(!prefs.containsKey('uid'))prefs.setString('uid', 'loggedInBefore');
+          yield RegisterState.success();
+        }
+        else RegisterState.failure(code: state.code);}
+      else {yield RegisterState.failure(code: state.code);}
+    } catch (_) {yield RegisterState.failure(code: state.code);}
   }
 
   Future<String> makeWallet(
       String name, String email, String telephone, String refferal,String password) async {
-    final response = await http.post("${WALLETAPI}wallets",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(
-          <String, dynamic>{
-            "email": "$email",
-            "name": "$name",
-            "password": "$password",
-            "typeId": 2,
-            "accountNumber": "",
-            "sortCode": "",
-            "bankName": ""
-            //"Refferal": "$refferal",
+    try{
+      final response = await http.post("${WALLETAPI}Users/register",
+          headers: {
+            'Content-Type': 'application/json',
           },
-        )).catchError((_){print(_);});
-
-    //print('Code: ${response.statusCode}');
-    if (response.statusCode == 200) {
-      var result = jsonDecode(response.body);
-      return result['walletID'].toString();
-    } else {
+          body: jsonEncode(
+            <String, dynamic>{
+              "email": "$email",
+              "name": "$name",
+              "password": "$password",
+              "typeId": 2,
+              //"Refferal": "$refferal",
+            },
+          ));
+      if(response != null){
+        if (response.statusCode == 200) {
+          var result = jsonDecode(response.body);
+          return result['walletID'].toString();
+        } else {
+          return '';
+        }
+      }
+      else{
+        return '';
+      }
+    }
+    catch(_){
       return '';
     }
   }

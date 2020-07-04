@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui';
-
-import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
@@ -19,23 +15,20 @@ import 'package:get/get.dart' as _get;
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
-import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/simple_bloc_delegate.dart';
 import 'package:pocketshopping/src/splash_screen.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
+import 'package:pocketshopping/src/ui/shared/verifyAccountWidget.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
-//import 'package:pocketshopping/src/backgrounder/constant.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 
 
 
@@ -70,12 +63,7 @@ Future<dynamic> myBackgroundMessageHandler(Map<String, dynamic> message) async{
 
 }
 
-void printHello() {
-  final DateTime now = DateTime.now();
-  final int isolateId = Isolate.current.hashCode;
-  Utility.localNotifier("PocketShopping", "PocketShopping", "test", "body");
-  debugPrint("[$now] Hello, world! isolate=${isolateId} function='$printHello'");
-}
+
 
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -302,10 +290,8 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
-  bool isNew;
   @override
   void initState() {
-    processInstallationStatus();
     handleDynamicLinks();
     super.initState();
   }
@@ -315,15 +301,13 @@ class AppState extends State<App> {
     return Scaffold(
       body: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
-          if (state is Unauthenticated) {
 
-            if (!isNew) {
-              return Introduction(userRepository: widget._userRepository,linkdata: state.link,);
-            } else {
-              return LoginScreen(userRepository: widget._userRepository,linkdata: state.link,);
-            }
-          }
-          if (state is Authenticated) {
+          if (state is Started) return LoadingScreen();
+          if (state is Uninitialized) return Introduction(userRepository: widget._userRepository,linkdata: state.link,);
+          if (state is Unauthenticated)return LoginScreen(userRepository: widget._userRepository,linkdata: state.link,);
+
+
+         if (state is Authenticated) {
             if (state.user.displayName == 'user')
               return UserScreen(userRepository: widget._userRepository);
             else if (state.user.displayName == 'admin')
@@ -336,26 +320,13 @@ class AppState extends State<App> {
           if (state is DLink) {
             print(state.props[1]);
           }
-          if(state is SetupBusiness){
-            return BSetup(userRepository: widget._userRepository,);
-          }
-          return SplashScreen();
+          if(state is SetupBusiness)return BSetup(userRepository: widget._userRepository,);
+          if (state is VerifyAccount)return VerifyAccountWidget();
+
+          return LoadingScreen();
         },
       ),
     );
-  }
-
-  Future<bool> processInstallationStatus() async{
-    SharedPreferences prefs= await SharedPreferences.getInstance();
-
-    if (prefs.containsKey('uid')) {
-      isNew = true;
-    } else {
-      isNew =  false;
-    }
-    setState(() {});
-
-    return isNew;
   }
 
   Future handleDynamicLinks() async {

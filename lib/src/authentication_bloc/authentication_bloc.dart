@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'authentication_event.dart';
 part 'authentication_state.dart';
@@ -19,7 +20,7 @@ class AuthenticationBloc
         _userRepository = userRepository;
 
   @override
-  AuthenticationState get initialState => Uninitialized();
+  AuthenticationState get initialState => Started();
 
   @override
   Stream<AuthenticationState> mapEventToState(
@@ -35,21 +36,32 @@ class AuthenticationBloc
       yield* _mapSetupToState();
     } else if (event is DeepLink) {
       yield* _mapDeepLinkToState(event);
+    }else if(event is Verify){
+      yield* _mapVerifyAccountToState();
     }
   }
 
   Stream<AuthenticationState> _mapDeepLinkToState(DeepLink uri) async* {
+    SharedPreferences prefs= await SharedPreferences.getInstance();
+    yield Started(link: uri.link);
     try {
+
       final isSignedIn = await _userRepository.isSignedIn();
       if (isSignedIn) {
         final user = await _userRepository.getCurrentUser();
         yield DLink(user, uri.link);
       } else {
-        yield Unauthenticated(link: uri.link);
+        if(prefs.containsKey('uid')) yield Unauthenticated(link: uri.link);
+        else yield Uninitialized(link: uri.link);
       }
     } catch (_) {
-      yield Unauthenticated(link: uri.link);
+      if(prefs.containsKey('uid')) yield Unauthenticated(link: uri.link);
+      else yield Uninitialized(link: uri.link);
     }
+  }
+
+  Stream<AuthenticationState> _mapVerifyAccountToState() async* {
+    yield VerifyAccount();
   }
 
   Stream<AuthenticationState> _mapSetupToState() async* {
@@ -58,16 +70,21 @@ class AuthenticationBloc
   }
 
   Stream<AuthenticationState> _mapAppStartedToState() async* {
+    yield Started();
+    SharedPreferences prefs= await SharedPreferences.getInstance();
     try {
+
       final isSignedIn = await _userRepository.isSignedIn();
       if (isSignedIn) {
         final user = await _userRepository.getCurrentUser();
         yield Authenticated(user);
       } else {
-        yield Unauthenticated();
+        if(prefs.containsKey('uid')) yield Unauthenticated();
+        else yield Uninitialized();
       }
     } catch (_) {
-      yield Unauthenticated();
+      if(prefs.containsKey('uid')) yield Unauthenticated();
+      else yield Uninitialized();
     }
   }
 
@@ -82,11 +99,9 @@ class AuthenticationBloc
 
   Future<Uri> handleDynamicLinks() async {
     //print('i am working');
-    final PendingDynamicLinkData data =
-        await FirebaseDynamicLinks.instance.getInitialLink();
+    final PendingDynamicLinkData data = await FirebaseDynamicLinks.instance.getInitialLink();
     _handleDeepLink(data);
-    FirebaseDynamicLinks.instance.onLink(
-        onSuccess: (PendingDynamicLinkData dynamicLink) async {
+    FirebaseDynamicLinks.instance.onLink(onSuccess: (PendingDynamicLinkData dynamicLink) async {
       // 3a. handle link that has been retrieved
       return _handleDeepLink(dynamicLink);
     }, onError: (OnLinkErrorException e) async {

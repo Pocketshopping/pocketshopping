@@ -7,7 +7,30 @@ abstract class AuthenticationState extends Equatable {
   List<Object> get props => [];
 }
 
-class Uninitialized extends AuthenticationState {}
+class Started extends AuthenticationState {
+  final Uri link;
+
+  const Started({this.link});
+
+  @override
+  List<Object> get props => [link];
+
+  @override
+  String toString() => 'Instance of AuthenticationState<Started>';
+}
+
+
+class Uninitialized extends AuthenticationState {
+  final Uri link;
+
+  const Uninitialized({this.link});
+
+  @override
+  List<Object> get props => [link];
+
+  @override
+  String toString() => 'Instance of AuthenticationState<Uninitialized>';
+}
 
 class Authenticated extends AuthenticationState {
   final FirebaseUser user;
@@ -32,6 +55,9 @@ class Unauthenticated extends AuthenticationState {
   @override
   String toString() => 'Instance of AuthenticationState<Unauthenticated>';
 }
+
+
+class VerifyAccount extends AuthenticationState {}
 
 class SetupBusiness extends AuthenticationState {
   final FirebaseUser user;

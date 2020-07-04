@@ -16,6 +16,10 @@ class Validators {
     return !Validator.number(price);
   }
 
+  static isValidAmount(String price) {
+    return !Validator.number(price);
+  }
+
   static isValidPassword(String password) {
     return _passwordRegExp.hasMatch(password);
   }

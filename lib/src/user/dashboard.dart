@@ -7,12 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
-import 'package:pocketshopping/page/admin/openOrder.dart';
-import 'package:pocketshopping/page/admin/settings.dart';
-import 'package:pocketshopping/page/user/merchant.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/AgentBS.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/vehicleBS.dart';
 import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/manage.dart';
@@ -30,18 +24,11 @@ import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/pos/productList.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
-import 'package:pocketshopping/src/user/agentBusiness.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/widget/branch.dart';
-import 'package:pocketshopping/widget/customers.dart';
-import 'package:pocketshopping/widget/manageOrder.dart';
-import 'package:pocketshopping/widget/staffs.dart';
-import 'package:pocketshopping/widget/statistic.dart';
-import 'package:pocketshopping/widget/unit.dart';
 import 'package:workmanager/workmanager.dart';
 
 class DashBoardScreen extends StatefulWidget {
@@ -371,9 +358,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
                       'Orders',
                       border: PRIMARYCOLOR,
-                      content: ManageOrder(
-                        themeColor: PRIMARYCOLOR,
-                      ),
+                      content: Text('hello'),
                       isMultiMenu: false,
                     ),
                     MenuItem(
@@ -406,9 +391,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       'Statistic',
                       border: PRIMARYCOLOR,
 
-                      content: StatisticBottomPage(
-                        themeColor: PRIMARYCOLOR,
-                      ),
+                      content: Text('hello')
                     ),
                     MenuItem(
                       gridHeight,
@@ -427,9 +410,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
-                      content: UnitBottomPage(
-                        themeColor: PRIMARYCOLOR,
-                      ),
+                      content: Text('hello'),
                     ),
                     MenuItem(
                       gridHeight,
@@ -472,9 +453,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Branch',
                       border: PRIMARYCOLOR,
-                      content: BranchBottomPage(
-                        themeColor: PRIMARYCOLOR,
-                      ),
+                      content: Text('hello'),
                     ),
 
 

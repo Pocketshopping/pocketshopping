@@ -169,6 +169,7 @@ class _RequestScreenState extends State<RequestScreen> {
                       Expanded(
                         child: FlatButton(
                           onPressed: () {
+                            FocusScope.of(context).requestFocus(FocusNode());
                             processResponse(request, 'Y');
                           },
                           child: Text('Accept'),

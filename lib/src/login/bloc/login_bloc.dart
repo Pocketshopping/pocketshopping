@@ -6,6 +6,7 @@ import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/validators.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   UserRepository _userRepository;
@@ -18,7 +19,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   @override
   LoginState get initialState => LoginState.empty();
 
-  @override
+/*  @override
   Stream<Transition<LoginEvent, LoginState>> transformEvents(
     Stream<LoginEvent> events,
     TransitionFunction<LoginEvent, LoginState> transitionFn,
@@ -33,7 +34,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       nonDebounceStream.mergeWith([debounceStream]),
       transitionFn,
     );
-  }
+  }*/
 
   @override
   Stream<LoginState> mapEventToState(LoginEvent event) async* {
@@ -56,21 +57,23 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   Stream<LoginState> _mapPasswordChangedToState(String password) async* {
-    yield state.update(
-      isPasswordValid: Validators.isValidPassword(password),
-    );
+    yield state.update(isPasswordValid: Validators.isValidPassword(password),);
   }
 
   Stream<LoginState> _mapLoginWithCredentialsPressedToState({
     String email,
     String password,
   }) async* {
+    SharedPreferences prefs= await SharedPreferences.getInstance();
     yield LoginState.loading();
+    if(!prefs.containsKey('uid'))prefs.setString('uid', 'loggedInBefore');
     try {
       await _userRepository.signIn(email, password);
       yield LoginState.success();
     } catch (_) {
-      yield LoginState.failure();
+      if(_ == "EMAIL UNVERIFIED")
+      yield LoginState.failure(error: "Email address has not been verified.");
+      else yield LoginState.failure(error: "Login Failure. Ensure you are entering the right details");
     }
   }
 }

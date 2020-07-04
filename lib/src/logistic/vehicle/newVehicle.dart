@@ -111,7 +111,6 @@ class _VehicleFormState extends State<VehicleForm> {
                                       controller: _plateController,
                                       decoration: InputDecoration(
                                           labelText: 'Plate Number',
-                                          hintText: 'Plate Number',
                                           border: InputBorder.none),
                                       keyboardType: TextInputType.text,
                                       autocorrect: false,
@@ -150,7 +149,6 @@ class _VehicleFormState extends State<VehicleForm> {
                                       controller: _modelController,
                                       decoration: InputDecoration(
                                           labelText: 'Automobile Model Number',
-                                          hintText: 'Automobile Model Number',
                                           border: InputBorder.none),
                                       keyboardType: TextInputType.text,
                                       inputFormatters: <TextInputFormatter>[
@@ -221,7 +219,6 @@ class _VehicleFormState extends State<VehicleForm> {
                                       controller: _nameController,
                                       decoration: InputDecoration(
                                           labelText: 'Automobile Name',
-                                          hintText: 'Automobile Name',
                                           border: InputBorder.none),
                                       keyboardType: TextInputType.text,
                                       autocorrect: false,
@@ -390,6 +387,7 @@ class _VehicleFormState extends State<VehicleForm> {
         .then((value) => setState(() {
               trueFalse = value;
             }));
+    return true;
   }
 
   @override

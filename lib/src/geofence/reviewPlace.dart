@@ -5,7 +5,6 @@ import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:pocketshopping/component/dialog.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -147,9 +146,6 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                         ),
                         tooltip: 'Who we are',
                         onPressed: () {
-                          dialog(context, {
-                            'title': 'info',
-                          }).showInfo();
                         },
                       ),
                     )

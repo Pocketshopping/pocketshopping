@@ -1,24 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:badges/badges.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:loadmore/loadmore.dart';
-import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
-import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/admin/product/editProduct.dart';
-import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
-import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
-import 'package:pocketshopping/src/logistic/agentCompany/agentTracker.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
-import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
@@ -29,16 +18,14 @@ import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/agent/myAuto.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:http/http.dart' as http;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:random_string/random_string.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 
 class PosCheckOut extends StatefulWidget {
 

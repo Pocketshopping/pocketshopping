@@ -4,7 +4,6 @@ import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:pocketshopping/component/dialog.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -54,6 +53,9 @@ class SinglePlaceWidget extends StatelessWidget {
                   longitude: cPosition.longitude),
             );
             Get.to(page);
+          }
+          else{
+            Utility.infoDialogMaker('Currently Unavailable',title: '');
           }
         },
         child: Container(
@@ -141,9 +143,8 @@ class SinglePlaceWidget extends StatelessWidget {
                         ),
                         tooltip: 'Who we are',
                         onPressed: () {
-                          dialog(context, {
-                            'title': 'info',
-                          }).showInfo();
+                          if(merchant.bDescription.isNotEmpty)
+                          Utility.infoDialogMaker('${merchant.bDescription}',title: '');
                         },
                       ),
                     )

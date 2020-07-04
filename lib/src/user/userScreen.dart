@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,8 +10,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
+import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/pocketPay/pocket.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
@@ -21,10 +22,10 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:pocketshopping/src/pocketPay/pocket.dart';
-import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
+
 import 'bloc/user.dart';
 
 class UserScreen extends StatefulWidget {
@@ -84,9 +85,13 @@ class _UserScreenState extends State<UserScreen> {
         .then((value) => null);
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
-      if (notification != null) {
-        var payload = jsonDecode(notification.data['data']['payload']);
-        processNotification(payload, notification);
+      try{
+        if (notification != null) {
+          var payload = jsonDecode(notification.data['data']['payload']);
+          processNotification(payload, notification);
+        }
+      }catch(_){
+        print(_.toString());
       }
     });
 
@@ -147,6 +152,21 @@ class _UserScreenState extends State<UserScreen> {
     switch (payload['NotificationType']) {
       case 'WorkRequestResponse':
         await requester();
+        break;
+      case 'PocketTransferResponse':
+        Utility.bottomProgressSuccess(
+          title:payload['title'],
+        body: payload['message'],
+        wallet: payload['data']['wallet'],
+          duration: 5
+        );
+        break;
+
+      case 'CloudDeliveryCancelledResponse':
+        Utility.bottomProgressSuccess(
+            title:'Delivery',
+            body: 'You Delivery has been cancelled',
+        );
         break;
     }
   }

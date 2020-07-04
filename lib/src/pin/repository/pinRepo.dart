@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/pin/repository/pinObj.dart';
 
 class PinRepo {

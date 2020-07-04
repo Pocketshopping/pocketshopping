@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocketshopping/src/ui/constant/appColor.dart';
-import 'package:pocketshopping/src/user/MyOrder/close.dart';
-import 'package:pocketshopping/src/user/MyOrder/open.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/pocketPay/pocketMenu.dart';
 import 'package:pocketshopping/src/pocketPay/history.dart';
+import 'package:pocketshopping/src/pocketPay/pocketMenu.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 
 class PocketPay extends StatefulWidget {
   @override

@@ -26,6 +26,7 @@ class _FavouriteState extends State<Favourite> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
               0.15), // here the desired height
@@ -53,7 +54,7 @@ class _FavouriteState extends State<Favourite> {
                   text: "Favourite",
                 ),
                 Tab(
-                  text: "Reviews",
+                  text: "FAQ",
                 ),
               ],
             ),

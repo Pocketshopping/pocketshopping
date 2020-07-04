@@ -1,34 +1,21 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:badges/badges.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
-import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/admin/product/editProduct.dart';
-import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
-import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
-import 'package:pocketshopping/src/logistic/agentCompany/agentTracker.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
-import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
+import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pos/checkOut.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/agent/myAuto.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:progress_indicators/progress_indicators.dart';
-import 'package:http/http.dart' as http;
-import 'package:pocketshopping/src/pos/checkOut.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 
 class ProductList extends StatefulWidget {
   final Session user;

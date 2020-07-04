@@ -165,13 +165,26 @@ class UserRepo {
         .collection('users')
         .where('wallet', isEqualTo: wallet)
         .getDocuments(source: Source.serverAndCache);
-    if (document.documents.length > 0) if (document.documents[0].data['role'] ==
-        'user')
-      return User.fromEntity(UserEntity.fromSnapshot(document.documents[0]));
+    if (document.documents.length > 0) if (document.documents[0].data['role'] == 'user')
+      return User.fromEntity(UserEntity.fromSnapshot(document.documents.first));
     else
-      return document.documents[0].data['role'];
+      return document.documents.first.data['role'];
     else
       return null;
+  }
+
+  static Future<User> getUserUsingWallet(String wallet) async {
+    try{
+      var document = await Firestore.instance
+          .collection('users')
+          .where('wallet', isEqualTo: wallet)
+          .getDocuments(source: Source.serverAndCache);
+      if (document.documents.length > 0)
+        return User.fromEntity(UserEntity.fromSnapshot(document.documents.first));
+      else
+        return null;
+    }catch(_){}
+    return null;
   }
 
 

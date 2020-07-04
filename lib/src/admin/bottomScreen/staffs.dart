@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pocketshopping/page/admin/addStaff.dart';
-import 'package:pocketshopping/page/admin/manageStaff.dart';
-import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 
 class StaffBottomPage extends StatelessWidget {
   StaffBottomPage({this.themeColor = Colors.black54});
@@ -56,7 +54,7 @@ class StaffBottomPage extends StatelessWidget {
                   color: themeColor.withOpacity(0.8),
                 ),
                 title: 'Add Staff',
-                page: AddStaff(color: themeColor)),
+                page: Container()),
             BsMenuItem(
               height: gridHeight,
               icon: Icon(
@@ -65,7 +63,7 @@ class StaffBottomPage extends StatelessWidget {
                 color: themeColor.withOpacity(0.8),
               ),
               title: 'Manage Staffs',
-              page: ManageStaff(),
+              page: Container(),
             ),
           ]),
         ],

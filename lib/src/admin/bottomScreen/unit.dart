@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
-import 'package:pocketshopping/constants/appColor.dart';
-import 'package:pocketshopping/page/admin/manageProduct.dart';
-import 'package:pocketshopping/page/admin/sourceProduct.dart';
-import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/widget/bottomSheetMenuItem.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 
 class UnitBottomPage extends StatelessWidget {
 

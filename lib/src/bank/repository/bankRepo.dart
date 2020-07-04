@@ -4,8 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/bank/repository/bankCode.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 
 class BankRepo {
   static final databaseReference = Firestore.instance;

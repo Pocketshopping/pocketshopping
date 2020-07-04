@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:pocketshopping/page/admin/finStats.dart';
-import 'package:pocketshopping/page/admin/productStats.dart';
-import 'package:pocketshopping/page/admin/staffStats.dart';
-import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 
 class LogisticStatBottomPage extends StatelessWidget {
   @override
@@ -55,7 +52,7 @@ class LogisticStatBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'General Stats',
-              page: FinStats(),
+              page: Container(),
             ),
             BsMenuItem(
               height: gridHeight,
@@ -65,7 +62,7 @@ class LogisticStatBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Vehicle Stats',
-              page: ProductStats(),
+              page: Container(),
             ),
             BsMenuItem(
               height: gridHeight,
@@ -75,7 +72,7 @@ class LogisticStatBottomPage extends StatelessWidget {
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Agent Stats',
-              page: StaffStats(),
+              page: Container(),
             ),
           ]),
         ],

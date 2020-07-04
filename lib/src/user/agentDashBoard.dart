@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
+import 'dart:ui';
+
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:ant_icons/ant_icons.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
@@ -31,10 +31,8 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:workmanager/workmanager.dart';
-//import 'package:pocketshopping/src/backgrounder/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:ui';
+import 'package:workmanager/workmanager.dart';
 
 
 
@@ -418,6 +416,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                                     ),
                                                     child: FlatButton(
                                                       onPressed: ()  {
+                                                        FocusScope.of(context).requestFocus(FocusNode());
                                                         //sendAndRetrieveMessage()
                                                         //  .then((value) => null)
                                                         //DynamicLinks

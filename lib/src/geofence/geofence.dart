@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/geofence/reviewPlace.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -54,6 +55,7 @@ class _GeoFenceState extends State<GeoFence> {
         setState(() {});
       }
     });*/
+    //OrderRepo.getExpiredRequestBucket('304170436101').listen((event) { });
     Utility.locationAccess();
     super.initState();
   }
@@ -129,112 +131,113 @@ class _GeoFenceState extends State<GeoFence> {
             appBar: PreferredSize(
               preferredSize: Size.fromHeight(
                   MediaQuery.of(context).size.height * 0.3), // here the desired height
-              child: AppBar(
-                elevation: 0.0,
-                centerTitle: true,
-                backgroundColor: Colors.white,
-                leading: IconButton(
-                  icon: const Icon(
-                    Icons.menu,
-                    color: PRIMARYCOLOR,
+              child:  AppBar(
+                  elevation: 0.0,
+                  centerTitle: true,
+                  backgroundColor: Colors.white,
+                  leading: IconButton(
+                    icon: const Icon(
+                      Icons.menu,
+                      color: PRIMARYCOLOR,
+                    ),
+                    onPressed: () {
+                      //print("your menu action here");
+                      Scaffold.of(context).openDrawer();
+                    },
                   ),
-                  onPressed: () {
-                    //print("your menu action here");
-                    Scaffold.of(context).openDrawer();
-                  },
-                ),
-                actions: <Widget>[
-                  IconButton(
-                    icon: _searchIcon,
-                    onPressed: _searchPressed,
-                  ),
-                ],
-                bottom: PreferredSize(
-                    preferredSize: Size.zero,
-                    child: Container(
-                        padding: EdgeInsets.only(left: 10, right: 10),
-                        //margin: EdgeInsets.only(bottom: 20),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Container(
-                              height: height * 0.17,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                children: List<Widget>.generate(
-                                  // psProvider.of(context).value['category'].length,
-                                  state.categories.length,
-                                  (int index) {
-                                    return Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 10),
-                                        child: Column(
-                                          children: [
-                                            FlatButton(
-                                              child: CircleAvatar(
-                                                radius: 30,
-                                                backgroundColor: Colors.grey,
-                                                backgroundImage: NetworkImage(
-                                                    state.categories[index]
-                                                        .categoryURI),
+                  actions: <Widget>[
+                    IconButton(
+                      icon: _searchIcon,
+                      onPressed: _searchPressed,
+                    ),
+                  ],
+                  bottom: PreferredSize(
+                      preferredSize: Size.zero,
+                      child: Container(
+                          padding: EdgeInsets.only(left: 10, right: 10),
+                          //margin: EdgeInsets.only(bottom: 20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Container(
+                                height: height * 0.17,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: List<Widget>.generate(
+                                    // psProvider.of(context).value['category'].length,
+                                    state.categories.length,
+                                        (int index) {
+                                      return Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: Column(
+                                            children: [
+                                              FlatButton(
+                                                child: CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundColor: Colors.grey,
+                                                  backgroundImage: NetworkImage(
+                                                      state.categories[index]
+                                                          .categoryURI),
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _value = index;
+                                                  });
+                                                  BlocProvider.of<GeoFenceBloc>(
+                                                      context)
+                                                      .add(NearByMerchant(
+                                                      category: state
+                                                          .categories[index]
+                                                          .categoryName));
+                                                },
                                               ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _value = index;
-                                                });
-                                                BlocProvider.of<GeoFenceBloc>(
-                                                        context)
-                                                    .add(NearByMerchant(
-                                                        category: state
-                                                            .categories[index]
-                                                            .categoryName));
-                                              },
-                                            ),
-                                            ChoiceChip(
-                                              label: Text(
-                                                state.categories[index]
-                                                    .categoryName,
-                                              ),
-                                              selected: _value == index,
-                                              backgroundColor: Colors.white,
-                                              onSelected: (bool selected) {
-                                                setState(() {
-                                                  _value = index;
-                                                });
-                                                BlocProvider.of<GeoFenceBloc>(
-                                                        context)
-                                                    .add(NearByMerchant(
-                                                        category: state
-                                                            .categories[index]
-                                                            .categoryName));
-                                              },
-                                              selectedColor: PRIMARYCOLOR,
-                                              labelStyle:
-                                                  TextStyle(color: Colors.grey),
-                                            )
-                                          ],
-                                        ));
-                                  },
-                                ).toList(),
+                                              ChoiceChip(
+                                                label: Text(
+                                                  state.categories[index]
+                                                      .categoryName,
+                                                ),
+                                                selected: _value == index,
+                                                backgroundColor: Colors.white,
+                                                onSelected: (bool selected) {
+                                                  setState(() {
+                                                    _value = index;
+                                                  });
+                                                  BlocProvider.of<GeoFenceBloc>(
+                                                      context)
+                                                      .add(NearByMerchant(
+                                                      category: state
+                                                          .categories[index]
+                                                          .categoryName));
+                                                },
+                                                selectedColor: PRIMARYCOLOR,
+                                                labelStyle:
+                                                TextStyle(color: Colors.grey),
+                                              )
+                                            ],
+                                          ));
+                                    },
+                                  ).toList(),
+                                ),
                               ),
-                            ),
-                            TabBar(
-                              labelColor: PRIMARYCOLOR,
-                              tabs: [
-                                const Tab(
-                                  text: "Proximity",
-                                ),
-                                const Tab(
-                                  text: "Reviews",
-                                ),
-                              ],
+                              TabBar(
+                                labelColor: PRIMARYCOLOR,
+                                tabs: [
+                                  const Tab(
+                                    text: "Proximity",
+                                  ),
+                                  const Tab(
+                                    text: "Reviews",
+                                  ),
+                                ],
 
-                            ),
-                          ],
-                        ))),
-                title: _appBarTitle,
-                automaticallyImplyLeading: false,
-              ),
+                              ),
+                            ],
+                          ))),
+                  title: _appBarTitle,
+                  automaticallyImplyLeading: false,
+                ),
+
             ),
             backgroundColor: Colors.white,
             body: TabBarView(
@@ -244,12 +247,46 @@ class _GeoFenceState extends State<GeoFence> {
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: <Widget>[
+
+                  if(state.isFailure)
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        const  SizedBox(height: 10,),
+                        Center(
+                          child: Column(
+                            children: [
+                              Center(
+                                child: Image.asset('assets/images/gpsError.png',
+                                height:MediaQuery.of(context).size.height*0.3,
+                                ),
+                              ),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                               child:  Text('Error Fetching GPS Cordinate ensure your GPS is '
+                                   'enabled and full permission is granted to pocketshopping.',
+                                 style: TextStyle(fontSize: 18,color: Colors.black54),
+                               textAlign: TextAlign.center,),
+                             ),
+                              const SizedBox(height: 10,),
+                              FlatButton.icon(
+                                onPressed: (){
+                                  gBloc.add(NearByMerchant(category: 'Restuarant'));
+                                },
+                                color: PRIMARYCOLOR,
+                                icon: Icon(Icons.refresh,color: Colors.white,),
+                                label: Text('Refresh',style: TextStyle(color: Colors.white),),
+                              ),
+                            ],
+                          )
+                        ),
+                      ]
+                      )
+                  ),
+
                   if (state.isLoading)
                     SliverList(
                         delegate: SliverChildListDelegate([
-                          const  SizedBox(
-                        height: 10,
-                      ),
+                          const  SizedBox(height: 10,),
                       Center(
                         child: JumpingDotsProgressIndicator(
                           fontSize: MediaQuery.of(context).size.height * 0.12,
@@ -356,7 +393,7 @@ class _GeoFenceState extends State<GeoFence> {
                 ],
               ),
             ),
-                 Review(state)
+                 review(state)
             ]
             )
           )
@@ -374,7 +411,7 @@ class _GeoFenceState extends State<GeoFence> {
 //super.dispose();
 //}
 
-Widget Review(dynamic state){
+Widget review(dynamic state){
 
     return Container(
           padding: EdgeInsets.only(right: 10, left: 10),

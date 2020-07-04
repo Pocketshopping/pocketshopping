@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -15,8 +15,9 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
+import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:geocoder/geocoder.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 class Utility {
@@ -260,6 +261,36 @@ class Utility {
     }
     else
       return null;
+  }
+
+  static Future<dynamic> walletTransfer({String to, String from,int amount,int channelId}) async {
+    print({'to:$to from:$from amount:${(amount*1.0)} channelid:$channelId'});
+    final response = await http.post("${WALLETAPI}wallets/transfer/wallet",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "amount":(amount*1.0),
+            "channel": channelId,
+            "from": "$from",
+            "to": "$to",
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      {
+        print(response.statusCode);
+        print(response.body);
+        if (response.statusCode == 200) {return true;}
+        else {return false;}
+      }
+    else
+      return false;
   }
 
 
@@ -794,6 +825,12 @@ class Utility {
     return state;
   }
 
+  static Future<String> getCountryCode(Position position) async {
+    final coordinates = Coordinates(position.latitude, position.longitude);
+    var address = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    return address.first.countryCode;
+  }
+
   static bottomProgressLoader({String title='Loading', String body='...please wait',bool goBack=false}){
     GetBar(
       title: title,
@@ -808,7 +845,7 @@ class Utility {
     });
   }
 
-  static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false}){
+  static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false, String wallet=''}){
     GetBar(
       title: title,
       messageText: Text(body,style: TextStyle(color: Colors.white),),
@@ -818,7 +855,10 @@ class Utility {
     ).show().then((value) {
       if(goBack)
         Get.back();
+      if(wallet.isNotEmpty)
+        WalletRepo.getWallet(wallet).then((value) => WalletBloc.instance.newWallet(value));
     });
+
   }
 
   static bottomProgressFailure({String title='Loading', String body='...please wait',int duration=3}){
@@ -887,13 +927,41 @@ class Utility {
             'body':  'You have a request to attend to click for more information',
             'title': 'Request'
           },
-          'priority': 'HIGH',
+          'priority': 'high',
           'data': <String, dynamic>{
             'click_action': 'FLUTTER_NOTIFICATION_CLICK',
             'id': '1',
             'status': 'done',
             'payload': {
               'NotificationType': 'WorkRequestResponse',
+            }
+          },
+          'to': fcm,
+        }));
+  }
+
+  static Future<void> pushNotifier({String fcm,String body, String title, String notificationType,Map<String,dynamic>data}) async {
+    await _fcm.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),);
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body':  '$body',
+            'title': '$title'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': '$notificationType',
+              'message':'$body',
+              'title':'$title',
+              'data':data,
             }
           },
           'to': fcm,

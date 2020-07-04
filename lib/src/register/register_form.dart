@@ -29,7 +29,7 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
-  final TextEditingController _confirmpasswordController =
+  final TextEditingController _confirmPasswordController =
       TextEditingController();
   RegisterBloc _registerBloc;
 
@@ -38,7 +38,7 @@ class _RegisterFormState extends State<RegisterForm> {
       _passwordController.text.isNotEmpty &&
       _nameController.text.isNotEmpty &&
       _telephoneController.text.isNotEmpty &&
-      _confirmpasswordController.text.isNotEmpty;
+      _confirmPasswordController.text.isNotEmpty;
 
   UserRepository get _userRepository => widget._userRepository;
 
@@ -54,7 +54,7 @@ class _RegisterFormState extends State<RegisterForm> {
     _passwordController.addListener(_onPasswordChanged);
     _nameController.addListener((_onNameChanged));
     _telephoneController.addListener((_onTelephoneChanged));
-    _confirmpasswordController.addListener((_onConfirmPasswordChanged));
+    _confirmPasswordController.addListener((_onConfirmPasswordChanged));
     //print(widget.linkdata.queryParameters['referralID']);
   }
 
@@ -82,22 +82,21 @@ class _RegisterFormState extends State<RegisterForm> {
                     )
                   ],
                 ),
+                duration: Duration(days: 365),
               ),
             );
         }
         if (state.isSuccess) {
-          FirstTimer();
           if (widget.linkdata != null) {
             if (widget.linkdata.queryParameters.containsKey('referralID')) {
-              BlocProvider.of<AuthenticationBloc>(context).add(Setup());
+              BlocProvider.of<AuthenticationBloc>(context).add(Verify());
               Get.back();
             } else {
-              BlocProvider.of<AuthenticationBloc>(context)
-                  .add(DeepLink(widget.linkdata));
+              BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(widget.linkdata));
               Get.back();
             }
           } else {
-            BlocProvider.of<AuthenticationBloc>(context).add(Setup());
+            BlocProvider.of<AuthenticationBloc>(context).add(Verify());
             Get.back();
           }
         }
@@ -293,7 +292,7 @@ class _RegisterFormState extends State<RegisterForm> {
                             padding: EdgeInsets.all(
                                 MediaQuery.of(context).size.width * 0.02),
                             child: TextFormField(
-                              controller: _confirmpasswordController,
+                              controller: _confirmPasswordController,
                               decoration: InputDecoration(
                                   hintText: 'Confirm Password',
                                   border: InputBorder.none),
@@ -365,7 +364,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                   padding: EdgeInsets.all(12),
                                   color: Color.fromRGBO(0, 21, 64, 1),
                                   child: Center(
-                                    child: Text('Sign Up',
+                                    child: Text(state.isSubmitting?'Please wait..':'Sign Up',
                                         style: TextStyle(color: Colors.white)),
                                   ),
                                 )),
@@ -377,6 +376,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                     horizontal: marginLR * 0.08),
                                 child: FlatButton(
                                   onPressed: () {
+                                    FocusScope.of(context).requestFocus(FocusNode());
                                     Get.off(
                                       login.LoginScreen(
                                         userRepository: _userRepository,
@@ -435,7 +435,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
   void _onConfirmPasswordChanged() {
     _registerBloc.add(
-      ConfirmPasswordChanged(confirmpassword: _confirmpasswordController.text),
+      ConfirmPasswordChanged(confirmpassword: _confirmPasswordController.text),
     );
   }
 
@@ -453,10 +453,5 @@ class _RegisterFormState extends State<RegisterForm> {
             : '',
       ),
     );
-  }
-
-  FirstTimer({String uid = 'newUser'}) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('uid', uid);
   }
 }

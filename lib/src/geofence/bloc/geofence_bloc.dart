@@ -47,6 +47,11 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
   Stream<GeoFenceState> _mapUpdateMerchantToState(
       List<Merchant> merchant) async* {
 
+    yield GeoFenceState.loading(
+        category: state.category,
+        currentPosition: state.currentPosition,
+        nearByMerchants: state.nearByMerchants,
+        categories: state.categories);
     yield state.update(nearByMerchants: merchant);
     yield GeoFenceState.success(
         category: state.category,
@@ -63,26 +68,37 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
         currentPosition: state.currentPosition,
         nearByMerchants: state.nearByMerchants,
         categories: state.categories);
-    List<Merchant> data = List();
-    GeoFirePoint center = geo.point(latitude: _position.latitude, longitude: _position.longitude);
-    var collectionReference = Firestore.instance
-        .collection('merchants')
-        .where('businessCategory', isEqualTo: category)
-        .where('businessActive',isEqualTo: true)
-        .limit(10);
-        Stream<List<DocumentSnapshot>> stream = geo
-        .collection(collectionRef: collectionReference)
-        .within(center: center, radius: radius, field: field, strictMode: true);
 
-    _merchantSubscription?.cancel();
-    _merchantSubscription = stream.listen((event) {
-      event.forEach((element) {
-        data.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+    if(_position == null)
+      yield GeoFenceState.failure(
+          category: state.category,
+          categories: state.categories,
+          nearByMerchants: state.nearByMerchants,
+          currentPosition: state.currentPosition);
+
+    else{
+      List<Merchant> data = List();
+      GeoFirePoint center = geo.point(latitude: _position.latitude, longitude: _position.longitude);
+      var collectionReference = Firestore.instance
+          .collection('merchants')
+          .where('businessCategory', isEqualTo: category)
+          .where('businessActive',isEqualTo: true)
+          .limit(10);
+      Stream<List<DocumentSnapshot>> stream = geo
+          .collection(collectionRef: collectionReference)
+          .within(center: center, radius: radius, field: field, strictMode: true);
+
+      _merchantSubscription?.cancel();
+      _merchantSubscription = stream.listen((event) {
+        event.forEach((element) {
+          data.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+        });
+        data.toSet().toList();
+        add(UpdateMerchant(merchant: data));
       });
-      add(UpdateMerchant(merchant: data));
-    });
 
-    yield state.update(category: category);
+      yield state.update(category: category);
+    }
 
     //}
   }
