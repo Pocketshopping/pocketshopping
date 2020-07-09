@@ -1,17 +1,25 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
+import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -19,7 +27,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
-
+import 'package:http/http.dart' as http;
 import 'repository/order.dart';
 
 class TrackerWidget extends StatefulWidget {
@@ -33,6 +41,10 @@ class TrackerWidget extends StatefulWidget {
 }
 
 class _TrackerWidgetState extends State<TrackerWidget> {
+
+  final FirebaseMessaging _fcm = FirebaseMessaging();
+  final _review = TextEditingController();
+  final rating = ValueNotifier<double>(1.0);
 
   @override
   void initState() {
@@ -108,13 +120,81 @@ class _TrackerWidgetState extends State<TrackerWidget> {
                                                 ),
                                               ),
 
+                                              (!order.data.orderConfirmation.isConfirmed && order.data.status == 0 && order.data.isAssigned) ||
+                                                  (order.data.orderMode.mode == 'Pickup' && !order.data.orderConfirmation.isConfirmed && order.data.status == 0)
+                                                  ? Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: psHeadlessCard(
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.grey,
+                                                        //offset: Offset(1.0, 0), //(x,y)
+                                                        blurRadius: 6.0,
+                                                      ),
+                                                    ],
+                                                    child: Container(
+                                                      color:  Colors.green,
+                                                      child: FlatButton.icon(
+                                                        onPressed: () {
+                                                          Get.defaultDialog(
+                                                            title: 'Confirmation',
+                                                            content: const Text(
+                                                                'Confirming this order implies you have recieved your package.'
+                                                                    ' please note this action can not be undone.'),
+                                                            cancel: FlatButton(
+                                                              onPressed: () {
+                                                                Get.back();
+                                                              },
+                                                              child: const Text('No'),
+                                                            ),
+                                                            confirm: FlatButton(
+                                                              onPressed: () {
+                                                                Get.back();
+                                                                confirm(
+                                                                    order.data,
+                                                                    merchant.data,
+                                                                    agent.data,
+                                                                    order.data.docID,
+                                                                    Confirmation(
+                                                                      confirmOTP: order.data
+                                                                          .orderConfirmation
+                                                                          .confirmOTP,
+                                                                      confirmedAt:  DateTime.now(),
+                                                                      isConfirmed: true,
+                                                                    ),
+                                                                    Receipt.fromMap(order.data.receipt.copyWith(psStatus: "success").toMap())
+                                                                );
+                                                                //refreshOrder();
+                                                              },
+                                                              child: const Text('Yes Confirm'),
+                                                            ),
+                                                          );
+                                                        },
+                                                        icon: const Icon(Icons.check,color: Colors.white,),
+                                                        label: const Center(
+                                                          child: const Text(
+                                                            'Confirm Order',
+                                                            style: const TextStyle(color: Colors.white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ))
+                                              )
+                                                  : const SizedBox.shrink(),
+
+                                              if(order.data.status == 0)
                                               Center(
                                                 child:
                                               Loader(
                                                 total: order.data.orderETA,
                                                 start: Utility.setStartCount(order.data.orderCreatedAt, order.data.orderETA),
-                                                message: '${(Utility.setStartCount(order.data.orderCreatedAt, order.data.orderETA) / 60).round()} min to ${order.data.orderMode.mode}',
-                                              ),),
+                                                message: order.data.isAssigned ?
+                                                '${(Utility.setStartCount(order.data.orderCreatedAt, order.data.orderETA) / 60).round()} min to ${order.data.orderMode.mode}':
+                                                'Confirming Order',
+                                                rider: agent.data,
+                                                id: order.data.receipt.collectionID,
+                                              ),
+                                              ),
 
                                               if(order.data.status != 0 && order.data.receipt.psStatus=='fail')
                                                 psCard(
@@ -137,6 +217,186 @@ class _TrackerWidgetState extends State<TrackerWidget> {
                                                             if(order.data.receipt.type == 'CARD' || order.data.receipt.type == 'POCKET')
                                                               Text('Please note. Yor money has been refunded to your pocket',
                                                                 textAlign: TextAlign.start,style: TextStyle(fontSize: 14),),
+                                                          ],
+                                                        )
+                                                    )
+                                                ),
+
+                                              if(review.data != null)
+                                                Container(
+                                                    child: psHeadlessCard(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.grey,
+                                                            //offset: Offset(1.0, 0), //(x,y)
+                                                            blurRadius: 6.0,
+                                                          ),
+                                                        ],
+                                                        child: Column(
+                                                          children: [
+                                                            Center(
+                                                              child: const Text('Your Review'),
+                                                            ),
+                                                            RatingBar(
+                                                              onRatingUpdate: (rate){},
+                                                              initialRating: review.data.rating,
+                                                              minRating: 1,
+                                                              maxRating: 5,
+                                                              itemSize: MediaQuery.of(context).size.width * 0.08,
+                                                              direction: Axis.horizontal,
+                                                              allowHalfRating: true,
+                                                              ignoreGestures: true,
+                                                              itemCount: 5,
+                                                              //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                              itemBuilder: (context, _) => Icon(
+                                                                Icons.star,
+                                                                color: Colors.amber,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 10,
+                                                            ),
+                                                            Center(
+                                                              child: Padding(
+                                                                  padding: EdgeInsets.symmetric(vertical: 10),
+                                                                  child: Text(review.data.text)),
+                                                            ),
+                                                            Align(
+                                                              alignment: Alignment.centerRight,
+                                                              child: Padding(
+                                                                padding: EdgeInsets.symmetric(
+                                                                    vertical: 10, horizontal: 10),
+                                                                child: Text(
+                                                                    '${Utility.presentDate(DateTime.parse((review.data.reviewedAt).toDate().toString()))}'),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        )
+
+                                                    )
+                                                ),
+
+
+                                              if(order.data.orderCustomer.customerReview.isEmpty && order.data.status == 1 && order.data.receipt.psStatus != 'fail')
+                                                Container(
+                                                    child: psHeadlessCard(
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.grey,
+                                                            //offset: Offset(1.0, 0), //(x,y)
+                                                            blurRadius: 6.0,
+                                                          ),
+                                                        ],
+                                                        child: Column(
+                                                          children: [
+                                                            Center(
+                                                              child: Text(
+                                                                'Rate ${merchant.data != null ? merchant.data.bName : ''}',
+                                                                style: TextStyle(fontSize: 16),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 10,
+                                                            ),
+                                                            const Center(
+                                                              child: const Text(
+                                                                'click star to increase rate',
+                                                              ),
+                                                            ),
+                                                            ValueListenableBuilder(
+                                                            valueListenable: rating,
+                                                            builder: (_,double rate,__){
+                                                              return RatingBar(
+                                                                onRatingUpdate: (rate) {
+                                                                rating.value = rate;
+                                                                },
+                                                                initialRating: 1,
+                                                                minRating: 1,
+                                                                maxRating: 5,
+                                                                itemSize: MediaQuery.of(context).size.width * 0.1,
+                                                                direction: Axis.horizontal,
+                                                                allowHalfRating: true,
+                                                                itemCount: 5,
+                                                                itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                itemBuilder: (context, _) => Icon(
+                                                                  Icons.star,
+                                                                  color: Colors.amber,
+                                                                ),
+                                                              );
+                                                            }
+                                                            ),
+
+                                                            TextFormField(
+                                                              controller: _review,
+                                                              decoration: InputDecoration(
+                                                                labelText: 'Your Review',
+                                                                filled: true,
+                                                                fillColor: Colors.grey.withOpacity(0.2),
+                                                                focusedBorder: OutlineInputBorder(
+                                                                  borderSide: BorderSide(
+                                                                      color: Colors.white.withOpacity(0.3)),
+                                                                ),
+                                                                enabledBorder: UnderlineInputBorder(
+                                                                  borderSide: BorderSide(
+                                                                      color: Colors.white.withOpacity(0.3)),
+                                                                ),
+                                                              ),
+                                                              keyboardType: TextInputType.text,
+                                                              autofocus: false,
+                                                              maxLines: 5,
+                                                              maxLength: 120,
+                                                              maxLengthEnforced: true,
+                                                            ),
+                                                            Container(
+                                                              width: MediaQuery.of(context).size.width,
+                                                              child: FlatButton(
+                                                                onPressed: () async{
+                                                                  Utility.bottomProgressLoader(title: "Submitting review",body: "Submitting review to server");
+                                                                  String rid = await ReviewRepo.save(Review(text: _review.text, rating: rating.value, reviewed: merchant.data.mID,
+                                                                      reviewedAt: Timestamp.now(), reviewerId: order.data.customerID, reviewerName: order.data.orderCustomer.customerName),
+                                                                  rating: Rating(
+                                                                    id: merchant.data.mID,
+                                                                    rating: rating.value,
+                                                                    positive: 0,
+                                                                    neutral: 0,
+                                                                    negative: 0
+                                                                  )
+                                                                  );
+                                                                  Get.back();
+
+                                                                  if(rid.isNotEmpty){
+                                                                    var result = await OrderRepo
+                                                                        .review(
+                                                                        order.data.docID,
+                                                                        Customer(
+                                                                          customerName:
+                                                                          order.data.orderCustomer.customerName,
+                                                                          customerTelephone: order.data
+                                                                              .orderCustomer.customerTelephone,
+                                                                          customerReview: rid,
+                                                                        ));
+                                                                    if(result)
+                                                                    Utility.bottomProgressSuccess(title:"Submitting review",body: "Review Submitted successfully. Thank you" );
+                                                                    else
+                                                                      Utility.bottomProgressFailure(title:"Submitting review",body: "Error Encountered." );
+                                                                  }
+                                                                  else{
+                                                                    Utility.bottomProgressFailure(title:"Submitting review",body: "Error Encountered." );
+                                                                  }
+
+                                                                },
+                                                                child: Text(
+                                                                  'Submit',
+                                                                  style: TextStyle(color: Colors.white),
+                                                                ),
+                                                                color: PRIMARYCOLOR,
+                                                              ),
+                                                            ),
+                                                            const Padding(
+                                                              padding:
+                                                              const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                                              child: const Text('Your review is very important to us.'),
+                                                            ),
                                                           ],
                                                         )
                                                     )
@@ -167,64 +427,6 @@ class _TrackerWidgetState extends State<TrackerWidget> {
                                                     )
                                                 ),
 
-                                              (!order.data.orderConfirmation.isConfirmed && order.data.status == 0 && order.data.isAssigned) ||
-                                                  (order.data.orderMode.mode == 'Pickup' && !order.data.orderConfirmation.isConfirmed && order.data.status == 0)
-                                                  ? psHeadlessCard(
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.grey,
-                                                      //offset: Offset(1.0, 0), //(x,y)
-                                                      blurRadius: 6.0,
-                                                    ),
-                                                  ],
-                                                  child: Container(
-                                                    color:  Colors.green,
-                                                    child: FlatButton.icon(
-                                                      onPressed: () {
-                                                        Get.defaultDialog(
-                                                          title: 'Confirmation',
-                                                          content: const Text(
-                                                              'Confirming this order implies you have recieved your package.'
-                                                                  ' please note this action can not be undone.'),
-                                                          cancel: FlatButton(
-                                                            onPressed: () {
-                                                              Get.back();
-                                                            },
-                                                            child: const Text('No'),
-                                                          ),
-                                                          confirm: FlatButton(
-                                                            onPressed: () {
-                                                              Get.back();
-                                                              confirm(
-                                                                  order.data,
-                                                                  merchant.data,
-                                                                  agent.data,
-                                                                  order.data.docID,
-                                                                  Confirmation(
-                                                                    confirmOTP: order.data
-                                                                        .orderConfirmation
-                                                                        .confirmOTP,
-                                                                    confirmedAt:  DateTime.now(),
-                                                                    isConfirmed: true,
-                                                                  ),
-                                                                  Receipt.fromMap(order.data.receipt.copyWith(psStatus: "success").toMap())
-                                                              );
-                                                              //refreshOrder();
-                                                            },
-                                                            child: const Text('Yes Confirm'),
-                                                          ),
-                                                        );
-                                                      },
-                                                      icon: const Icon(Icons.check,color: Colors.white,),
-                                                      label: const Center(
-                                                        child: const Text(
-                                                          'Confirm Order',
-                                                          style: const TextStyle(color: Colors.white),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ))
-                                                  : const SizedBox.shrink(),
                                               psHeadlessCard(
                                                   boxShadow: [
                                                     BoxShadow(
@@ -799,16 +1001,58 @@ class _TrackerWidgetState extends State<TrackerWidget> {
     }
     return isDone;
   }
+
+
+  /*Future<void> confirmNotifier({String fcm,}) async {
+    //print('team meeting');
+    await _fcm.requestNotificationPermissions(
+      const IosNotificationSettings(
+          sound: true, badge: true, alert: true, provisional: false),
+    );
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body': 'Hello. ${merchant.bName} Order(${_order.docID}) has been confirmed by the customer(${widget.user.fname}). Your cut has been transferred to the neccessary channel. Thanks',
+            'title': 'Order Confirmation'
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': 'OrderConfirmationResponse',
+              'orderID': _order.docID,
+              'merchant': merchant.bName,
+              'fcmToken': widget.user.notificationID,
+            }
+          },
+          'to': fcm,
+        })).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+  }*/
+
+
 }
 
 
 
 class Loader extends StatefulWidget{
-  Loader({this.message, this.total,this.start});
+  Loader({this.message, this.total,this.start,this.rider,this.id});
 
   final String message;
   final int total;
   final int start;
+  final User rider;
+  final String id;
 
   @override
   State<StatefulWidget> createState() => _LoaderState();
@@ -818,42 +1062,246 @@ class _LoaderState extends State<Loader> {
 
 
   final _current = ValueNotifier<int>(0);
+  final _total = ValueNotifier<int>(0);
+  final _message = ValueNotifier<String>('');
+  final _resolution = ValueNotifier<bool>(false);
+  final _trackerData = ValueNotifier<Map<String,Timestamp>>({});
   Timer _timer;
+  Stream<Map<String,Timestamp>> _trackerStream;
   @override
   void initState() {
     _current.value = widget.start;
+    _total.value = widget.total;
+    _message.value = widget.message=='Confirming Order'?widget.message:'min to delivery';
     startTimer();
+
+    _trackerStream = TrackerBloc.instance.trackerStream;
+    _trackerStream.listen((dateTime) {
+
+      if(_current.value == 0){
+        _trackerData.value = dateTime;
+        _current.value = Utility.setStartCount(dateTime[widget.id], 600);
+        _total.value = 600;
+        _message.value='min more';
+        _resolution.value = true;
+        startTimer();
+      }
+
+    });
     super.initState();
   }
 
 
+
+
   @override
   Widget build(BuildContext context) {
-    return widget.start>0?ValueListenableBuilder(
+    return ValueListenableBuilder(
+        valueListenable: _total,
+        builder: (_,int total,__){
+      return ValueListenableBuilder(
         valueListenable: _current,
-        builder: (_,int current,__){
-          return Container(
-            //width: MediaQuery.of(context).size.width * 0.3,
-            //height: MediaQuery.of(context).size.height * 0.18,
-              color: Colors.white,
-              child: CircularStepProgressIndicator(
-                totalSteps: widget.total,
-                currentStep: current,
-                stepSize: 10,
-                selectedColor: PRIMARYCOLOR,
-                unselectedColor: Colors.grey[200],
-                padding: 0,
-                width: 150,
-                height: 150,
-                selectedStepSize: 15,
-                child: Center(
-                  child: Text(
-                    '${(current/60).round()} min to delivery ',
-                    textAlign: TextAlign.center,
+        builder: (_, int current, __) {
+          return Column(children: [
+            current > 0 ? Column(
+            children: [
+              Container(
+                //width: MediaQuery.of(context).size.width * 0.3,
+                //height: MediaQuery.of(context).size.height * 0.18,
+                  color: Colors.white,
+                  child: CircularStepProgressIndicator(
+                    totalSteps: total,
+                    currentStep: current,
+                    stepSize: 10,
+                    selectedColor: PRIMARYCOLOR,
+                    unselectedColor: Colors.grey[200],
+                    padding: 0,
+                    width: 150,
+                    height: 150,
+                    selectedStepSize: 15,
+                    child: Center(
+                        child: ValueListenableBuilder(
+                          valueListenable: _message,
+                          builder: (_,String message,__){
+                            return Text(
+                              message == 'Confirming Order'
+                                  ? '$message'
+                                  : '${(current / 60).round()} $message'
+                              ,
+                              textAlign: TextAlign.center,
+                            );
+                          },
+                        )
+                    ),
+                  )
+              ),
+              ValueListenableBuilder(
+                valueListenable: _resolution,
+                builder: (_,bool resolve,__){
+                  return resolve?Column(children: [
+
+                  Center(
+                    child: Text('Tracing Delivery Issue. please wait'),
                   ),
-                ),
-              ));
-        }):const SizedBox.shrink();
+                    const SizedBox(height: 20,),
+                    ]
+                  )
+                      :const SizedBox.shrink();
+                },
+              ),
+            ],
+          ) :
+          Column(
+            children: [
+              Container(
+                  child: psHeadlessCard(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey,
+                          //offset: Offset(1.0, 0), //(x,y)
+                          blurRadius: 6.0,
+                        ),
+                      ],
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          const Center(
+                            child: const Text(
+                              'Have you recieved your package?',
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment
+                                .spaceEvenly,
+                            children: [
+                              FlatButton(
+                                onPressed: () async{
+                                  if(_trackerData.value.containsKey(widget.id)){
+                                    _trackerData.value.remove(widget.id);
+                                    _trackerData.value[widget.id]=Timestamp.now();
+                                    TrackerBloc.instance.newDateTime(_trackerData.value);
+                                  }
+                                  else{
+                                    TrackerBloc.instance.newDateTime({widget.id:Timestamp.now()});
+                                  }
+
+                                  await Utility.pushNotifier(fcm: widget.rider.notificationID,
+                                    title: "Delivery",
+                                    body: "Hello, What is holding you back I have not recieved my package and it already time.",
+                                    notificationType: 'DeliveryConflictResolutionNotifier',
+                                  );
+                                },
+                                child:
+                                const Text('No', style: const TextStyle(
+                                    color: Colors.white)),
+                                color: PRIMARYCOLOR,
+                              ),
+                            ],
+                          )
+                        ],
+                      )
+                  )
+              ),
+            ],
+          ),
+            if(widget.rider != null)
+            psHeadlessCard(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
+                  ),
+                ],
+                child: Column(
+                    children: <Widget>[
+                      Container(
+                          decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  //                   <--- left side
+                                  color: Colors.black12,
+                                  width: 1.0,
+                                ),
+                              ),
+                              color: PRIMARYCOLOR),
+                          padding: EdgeInsets.all(
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
+                          child: const Align(
+                            alignment: Alignment.centerLeft,
+                            child: const Text(
+                              'Rider',
+                              style: const TextStyle(
+                                  color: Colors.white),
+                            ),
+                          )
+                      ),
+                      Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                //                   <--- left side
+                                color: Colors.black12,
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                          padding: EdgeInsets.all(
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${widget.rider.fname}',
+                              style: const TextStyle(
+                                  color: Colors.black, fontSize: 18),
+                            ),
+                          )
+                      ),
+                      Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                //                   <--- left side
+                                color: Colors.black12,
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                          padding: EdgeInsets.all(
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${widget.rider.telephone}',
+                              style: const TextStyle(
+                                  color: Colors.black, fontSize: 18),
+                            ),
+                          )
+                      ),
+                    ]
+                )
+            )
+          ]
+          );
+        }
+        );
+  }
+  );
 
   }
 
