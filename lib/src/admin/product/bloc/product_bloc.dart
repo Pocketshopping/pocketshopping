@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:barcode_scan/barcode_scan.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
@@ -133,6 +134,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         pQRCode: state.barCode,
         pStockCount: int.tryParse(stock),
         pUnit: unit,
+        pGeopoint: GeoPoint(user.merchant.bGeoPoint['geopoint'].latitude,user.merchant.bGeoPoint['geopoint'].longitude),
       );
       yield ProductState.success();
     } catch (_) {

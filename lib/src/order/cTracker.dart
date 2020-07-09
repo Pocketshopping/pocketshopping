@@ -30,17 +30,17 @@ import 'package:step_progress_indicator/step_progress_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'repository/order.dart';
 
-class TrackerWidget extends StatefulWidget {
-  TrackerWidget({this.order, this.user});
+class CustomerTracker extends StatefulWidget {
+  CustomerTracker({this.order, this.user});
 
   final String order;
   final User user;
 
   @override
-  State<StatefulWidget> createState() => _TrackerWidgetState();
+  State<StatefulWidget> createState() => _CustomerTrackerState();
 }
 
-class _TrackerWidgetState extends State<TrackerWidget> {
+class _CustomerTrackerState extends State<CustomerTracker> {
 
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final _review = TextEditingController();
@@ -88,7 +88,7 @@ class _TrackerWidgetState extends State<TrackerWidget> {
             }
             else if(order.hasError){
                 return Center(
-                  child: Text('Error communicating to server check '
+                  child: Text('Error communicating with server check '
                       'your internet connection and try again',textAlign: TextAlign.center,),
                 );
               }
@@ -122,65 +122,62 @@ class _TrackerWidgetState extends State<TrackerWidget> {
 
                                               (!order.data.orderConfirmation.isConfirmed && order.data.status == 0 && order.data.isAssigned) ||
                                                   (order.data.orderMode.mode == 'Pickup' && !order.data.orderConfirmation.isConfirmed && order.data.status == 0)
-                                                  ? Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: psHeadlessCard(
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.grey,
-                                                        //offset: Offset(1.0, 0), //(x,y)
-                                                        blurRadius: 6.0,
-                                                      ),
-                                                    ],
-                                                    child: Container(
-                                                      color:  Colors.green,
-                                                      child: FlatButton.icon(
-                                                        onPressed: () {
-                                                          Get.defaultDialog(
-                                                            title: 'Confirmation',
-                                                            content: const Text(
-                                                                'Confirming this order implies you have recieved your package.'
-                                                                    ' please note this action can not be undone.'),
-                                                            cancel: FlatButton(
-                                                              onPressed: () {
-                                                                Get.back();
-                                                              },
-                                                              child: const Text('No'),
-                                                            ),
-                                                            confirm: FlatButton(
-                                                              onPressed: () {
-                                                                Get.back();
-                                                                confirm(
-                                                                    order.data,
-                                                                    merchant.data,
-                                                                    agent.data,
-                                                                    order.data.docID,
-                                                                    Confirmation(
-                                                                      confirmOTP: order.data
-                                                                          .orderConfirmation
-                                                                          .confirmOTP,
-                                                                      confirmedAt:  DateTime.now(),
-                                                                      isConfirmed: true,
-                                                                    ),
-                                                                    Receipt.fromMap(order.data.receipt.copyWith(psStatus: "success").toMap())
-                                                                );
-                                                                //refreshOrder();
-                                                              },
-                                                              child: const Text('Yes Confirm'),
-                                                            ),
-                                                          );
-                                                        },
-                                                        icon: const Icon(Icons.check,color: Colors.white,),
-                                                        label: const Center(
-                                                          child: const Text(
-                                                            'Confirm Order',
-                                                            style: const TextStyle(color: Colors.white),
+                                                  ?
+                                              psHeadlessCard(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey,
+                                                      //offset: Offset(1.0, 0), //(x,y)
+                                                      blurRadius: 6.0,
+                                                    ),
+                                                  ],
+                                                  child: Container(
+                                                    color: Colors.green,
+                                                    child: FlatButton(
+                                                      onPressed: () {
+                                                        Get.defaultDialog(
+                                                          title: 'Confirmation',
+                                                          content: const Text(
+                                                              'Confirming this order implies you have recieved your package.'
+                                                                  ' please note this action can not be undone.'),
+                                                          cancel: FlatButton(
+                                                            onPressed: () {
+                                                              Get.back();
+                                                            },
+                                                            child: const Text('No'),
                                                           ),
+                                                          confirm: FlatButton(
+                                                            onPressed: () {
+                                                              Get.back();
+                                                              confirm(
+                                                                  order.data,
+                                                                  merchant.data,
+                                                                  agent.data,
+                                                                  order.data.docID,
+                                                                  Confirmation(
+                                                                    confirmOTP: order.data
+                                                                        .orderConfirmation
+                                                                        .confirmOTP,
+                                                                    confirmedAt:  DateTime.now(),
+                                                                    isConfirmed: true,
+                                                                  ),
+                                                                  Receipt.fromMap(order.data.receipt.copyWith(psStatus: "success").toMap())
+                                                              );
+                                                              //refreshOrder();
+                                                            },
+                                                            child: const Text('Yes Confirm'),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: Center(
+                                                        child: Text(
+                                                          'Confirm Order',
+                                                          style: TextStyle(color: Colors.white),
                                                         ),
                                                       ),
-                                                    ))
-                                              )
-                                                  : const SizedBox.shrink(),
+                                                    ),
+                                                  )
+                                              ):Container(),
 
                                               if(order.data.status == 0)
                                               Center(
@@ -194,6 +191,68 @@ class _TrackerWidgetState extends State<TrackerWidget> {
                                                 rider: agent.data,
                                                 id: order.data.receipt.collectionID,
                                               ),
+                                              ),
+                                              if(order.data.resolution.isNotEmpty && order.data.status == 0)
+                                              psHeadlessCard(
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey,
+                                                      //offset: Offset(1.0, 0), //(x,y)
+                                                      blurRadius: 6.0,
+                                                    ),
+                                                  ],
+                                                  child: Column(
+                                                      children: <Widget>[
+                                                        Container(
+                                                            decoration: BoxDecoration(
+                                                                border: Border(
+                                                                  bottom: BorderSide(
+                                                                    //                   <--- left side
+                                                                    color: Colors.black12,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                ),
+                                                                color: PRIMARYCOLOR),
+                                                            padding: EdgeInsets.all(
+                                                                MediaQuery
+                                                                    .of(context)
+                                                                    .size
+                                                                    .width * 0.02),
+                                                            child: const Align(
+                                                              alignment: Alignment.centerLeft,
+                                                              child: const Text(
+                                                                'Rider Says:',
+                                                                style: const TextStyle(
+                                                                    color: Colors.white),
+                                                              ),
+                                                            )
+                                                        ),
+                                                        Container(
+                                                            decoration: BoxDecoration(
+                                                              border: Border(
+                                                                bottom: BorderSide(
+                                                                  //                   <--- left side
+                                                                  color: Colors.black12,
+                                                                  width: 1.0,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            padding: EdgeInsets.all(
+                                                                MediaQuery
+                                                                    .of(context)
+                                                                    .size
+                                                                    .width * 0.02),
+                                                            child: Align(
+                                                              alignment: Alignment.center,
+                                                              child: Text(
+                                                                '${order.data.resolution}',
+                                                                style: const TextStyle(
+                                                                    color: Colors.black, fontSize: 18),
+                                                              ),
+                                                            )
+                                                        ),
+                                                      ]
+                                                  )
                                               ),
 
                                               if(order.data.status != 0 && order.data.receipt.psStatus=='fail')
@@ -738,8 +797,8 @@ class _TrackerWidgetState extends State<TrackerWidget> {
                                                               child: const Center(child:const Text(
                                                                   'Quantity'),
                                                               )),
-                                                          const Expanded(
-                                                              child: const Center(child:const Text(
+                                                           Expanded(
+                                                              child:  Center(child: Text(
                                                                   'Item Price($CURRENCY) '),
                                                               ))
                                                         ],)),
@@ -850,6 +909,36 @@ class _TrackerWidgetState extends State<TrackerWidget> {
                                                             Expanded(
                                                               child: Text(
                                                                 '$CURRENCY${order.data.orderMode.mode != 'Delivery' ? order.data.orderAmount : (order.data.orderAmount + order.data.orderMode.fee)}',
+                                                                style: const TextStyle(
+                                                                    fontWeight: FontWeight.bold),
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )),
+                                                    Container(
+                                                        decoration: BoxDecoration(
+                                                          border: Border(
+                                                            bottom: BorderSide(
+                                                              //                   <--- left side
+                                                              color: Colors.black12,
+                                                              width: 1.0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        padding: EdgeInsets.all(
+                                                            MediaQuery.of(context).size.width * 0.02),
+                                                        child: Row(
+                                                          children: <Widget>[
+                                                            const Expanded(
+                                                              child: const Text(
+                                                                'Payment Method:',
+                                                                style: const TextStyle(
+                                                                    fontWeight: FontWeight.bold),
+                                                              ),
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                '${order.data.receipt.type}',
                                                                 style: const TextStyle(
                                                                     fontWeight: FontWeight.bold),
                                                               ),
@@ -1188,7 +1277,13 @@ class _LoaderState extends State<Loader> {
                                     TrackerBloc.instance.newDateTime(_trackerData.value);
                                   }
                                   else{
-                                    TrackerBloc.instance.newDateTime({widget.id:Timestamp.now()});
+                                    if(_trackerData.value.isEmpty)
+                                      TrackerBloc.instance.newDateTime({widget.id:Timestamp.now()});
+                                    else{
+                                      _trackerData.value[widget.id]=Timestamp.now();
+                                      TrackerBloc.instance.newDateTime(_trackerData.value);
+                                    }
+
                                   }
 
                                   await Utility.pushNotifier(fcm: widget.rider.notificationID,

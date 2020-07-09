@@ -248,8 +248,6 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
 
   Future<void> requestListenerWorker()async{
-    //final prefs = await SharedPreferences.getInstance();
-   // await prefs.setString('rider', currentUser.agent.agentID);
     final int requestWorkerID = 369;
     await AndroidAlarmManager.cancel(requestWorkerID);
     await AndroidAlarmManager.periodic(

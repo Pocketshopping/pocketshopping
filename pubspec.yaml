@@ -73,6 +73,7 @@ dependencies:
   ant_icons: ^1.0.0
   android_alarm_manager: ^0.4.5+11
   flutter_launcher_icons: ^0.7.5
+  google_place: ^0.3.2
 
 
 

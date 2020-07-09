@@ -5,50 +5,50 @@ import 'ReviewEntity.dart';
 
 @immutable
 class Review {
-  final double reviewRating;
-  final String reviewText;
+  final double rating;
+  final String text;
   final Timestamp reviewedAt;
-  final String reviewedMerchant;
-  final String customerId;
-  final String customerName;
+  final String reviewed;
+  final String reviewerId;
+  final String reviewerName;
   final String reviewId;
 
   Review({
-    this.reviewRating,
-    this.reviewText,
+    this.rating,
+    this.text,
     this.reviewedAt,
-    this.reviewedMerchant,
-    this.customerId,
-    this.customerName,
+    this.reviewed,
+    this.reviewerId,
+    this.reviewerName,
     this.reviewId,
   });
 
   Review copyWith({
-    double reviewRating,
-    String reviewText,
+    double rating,
+    String text,
     Timestamp reviewedAt,
-    String reviewedMerchant,
-    String customerId,
-    String customerName,
+    String reviewed,
+    String reviewerId,
+    String reviewerName,
     String reviewId,
   }) {
     return Review(
         reviewedAt: reviewedAt ?? this.reviewedAt,
-        reviewedMerchant: reviewedMerchant ?? this.reviewedMerchant,
-        reviewRating: reviewRating ?? this.reviewRating,
-        customerName: customerName ?? this.customerName,
-        customerId: customerId ?? this.customerId,
-        reviewText: reviewText ?? this.reviewText,
+        reviewed: reviewed ?? this.reviewed,
+        rating: rating ?? this.rating,
+        reviewerName: reviewerName ?? this.reviewerName,
+        reviewerId: reviewerId ?? this.reviewerId,
+        text: text ?? this.text,
         reviewId: reviewId ?? this.reviewId);
   }
 
   @override
   int get hashCode =>
-      reviewText.hashCode ^
-      reviewRating.hashCode ^
-      reviewedMerchant.hashCode ^
-      customerId.hashCode ^
-      customerName.hashCode ^
+      text.hashCode ^
+      rating.hashCode ^
+      reviewed.hashCode ^
+      reviewerId.hashCode ^
+      reviewerName.hashCode ^
       reviewedAt.hashCode ^
       reviewId.hashCode;
 
@@ -57,46 +57,46 @@ class Review {
       identical(this, other) ||
       other is Review &&
           runtimeType == other.runtimeType &&
-          reviewText == other.reviewText &&
+          text == other.text &&
           reviewedAt == other.reviewedAt &&
-          reviewedMerchant == other.reviewedMerchant &&
-          customerName == other.customerName &&
-          customerId == other.customerId &&
+          reviewed == other.reviewed &&
+          reviewerName == other.reviewerName &&
+          reviewerId == other.reviewerId &&
           reviewId == other.reviewId;
 
   Review update({
-    double reviewRating,
-    String reviewText,
+    double rating,
+    String text,
     Timestamp reviewedAt,
-    String reviewedMerchant,
-    String customerId,
-    String customerName,
+    String reviewed,
+    String reviewerId,
+    String reviewerName,
     String reviewId,
   }) {
     return copyWith(
       reviewedAt: reviewedAt,
-      reviewedMerchant: reviewedMerchant,
-      reviewRating: reviewRating,
-      customerName: customerName,
-      customerId: customerId,
-      reviewText: reviewText,
+      reviewed: reviewed,
+      rating: rating,
+      reviewerName: reviewerName,
+      reviewerId: reviewerId,
+      text: text,
       reviewId: reviewId,
     );
   }
 
   @override
   String toString() {
-    return '''Review{orderID: $reviewRating,}''';
+    return '''Review{orderID: $rating,}''';
   }
 
   Map<String, dynamic> toMap() {
     return {
       'reviewedAt': reviewedAt,
-      'reviewedMerchant': reviewedMerchant,
-      'reviewRating': reviewRating,
-      'customerName': customerName,
-      'customerId': customerId,
-      'reviewText': reviewText,
+      'reviewed': reviewed,
+      'rating': rating,
+      'reviewerName': reviewerName,
+      'reviewerId': reviewerId,
+      'text': text,
       'reviewId': reviewId,
     };
   }
@@ -104,11 +104,11 @@ class Review {
   static Review fromEntity(ReviewEntity reviewEntity) {
     return Review(
       reviewedAt: reviewEntity.reviewedAt,
-      reviewedMerchant: reviewEntity.reviewedMerchant,
-      reviewRating: reviewEntity.reviewRating,
-      customerName: reviewEntity.customerName,
-      customerId: reviewEntity.customerId,
-      reviewText: reviewEntity.reviewText,
+      reviewed: reviewEntity.reviewed,
+      rating: reviewEntity.rating,
+      reviewerName: reviewEntity.reviewerName,
+      reviewerId: reviewEntity.reviewerId,
+      text: reviewEntity.text,
       reviewId: reviewEntity.reviewId,
     );
   }

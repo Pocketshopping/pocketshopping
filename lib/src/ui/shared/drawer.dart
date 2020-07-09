@@ -106,7 +106,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           return Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text("PocketBalance: \u20A6 ${wallet.walletBalance}",
+                              Text("PocketBalance: $CURRENCY ${wallet.walletBalance}",
                                   textScaleFactor: 1.3),
                               FlatButton(
                                 onPressed: () {Get.dialog(TopUp(user: widget.user,));},

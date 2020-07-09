@@ -49,7 +49,7 @@ class CustomerCareRepo {
         .collection("customerCare")
         .document(company)
         .snapshots().map((event) {
-      return CustomerCareLine.fromMap(event.data);
+      return event.exists?CustomerCareLine.fromMap(event.data):[];
     });
   }
 

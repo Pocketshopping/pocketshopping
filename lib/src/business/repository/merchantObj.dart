@@ -237,4 +237,9 @@ class Merchant {
 
     );
   }
+
+
+  static List<Merchant> fromListEntity(List<MerchantEntity> merchant) {
+    return merchant.map((e) => Merchant.fromEntity(e)).toList();
+  }
 }

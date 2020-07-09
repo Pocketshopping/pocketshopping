@@ -7,8 +7,11 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
+import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
+import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class ReviewPlaceWidget extends StatefulWidget {
   ReviewPlaceWidget({this.merchant, this.user, this.cPosition});
@@ -22,47 +25,36 @@ class ReviewPlaceWidget extends StatefulWidget {
 }
 
 class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
-  //Position cPosition;
 
+  double dist;
   @override
   void initState() {
+    dist = widget.cPosition.distance(lat: widget.merchant.bGeoPoint['geopoint'].latitude, lng: widget.merchant.bGeoPoint['geopoint'].longitude);
     super.initState();
   }
 
-  place() async {
-    List<Placemark> placemark = await Geolocator().placemarkFromCoordinates(
-        widget.cPosition.geoPoint.latitude, widget.cPosition.geoPoint.longitude,
-        localeIdentifier: 'en');
-    print(placemark[0]);
-  }
-
-  address() async {
-    final coordinates = new geocode.Coordinates(
-        widget.cPosition.geoPoint.latitude,
-        widget.cPosition.geoPoint.longitude);
-    var address =
-    await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
-    print(address.first.addressLine);
-  }
 
   @override
   Widget build(BuildContext context) {
-    double dist = widget.cPosition.distance(
-        lat: widget.merchant.bGeoPoint['geopoint'].latitude,
-        lng: widget.merchant.bGeoPoint['geopoint'].longitude);
+
     //address();
     return Builder(builder: (context) {
       return GestureDetector(
         onTap: () {
-          final page = MerchantUI(
-            merchant: widget.merchant,
-            user: widget.user,
-            distance: dist,
-            initPosition: Position(
-                latitude: widget.cPosition.latitude,
-                longitude: widget.cPosition.longitude),
-          );
-          Get.to(page);
+          if(widget.merchant.bStatus == 1 && Utility.isOperational(widget.merchant.bOpen, widget.merchant.bClose)) {
+            final page = MerchantUI(
+              merchant: widget.merchant,
+              user: widget.user,
+              distance: dist,
+              initPosition: Position(
+                  latitude: widget.cPosition.latitude,
+                  longitude: widget.cPosition.longitude),
+            );
+            Get.to(page);
+          }
+          else{
+            Utility.infoDialogMaker('Currently Unavailable',title: '${widget.merchant.bName}');
+          }
         },
         child: Container(
           decoration: BoxDecoration(
@@ -154,29 +146,83 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
               ),
               Column(
                 children: <Widget>[
-                  Text(
-                    widget.merchant.bName,
+                  Text(widget.merchant.bName,
                     style: TextStyle(
                         color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  RatingBar(
-                    onRatingUpdate: null,
-                    initialRating: 3.5,
-                    minRating: 1,
-                    maxRating: 5,
-                    itemSize: MediaQuery.of(context).size.width * 0.08,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    ignoreGestures: true,
-                    itemCount: 5,
-                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
+
+                  FutureBuilder(
+                    future: ReviewRepo.getRating(widget.merchant.mID),
+                    builder: (context,AsyncSnapshot<Rating>snapshot){
+                      if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
+                      else if(snapshot.hasError)return const SizedBox.shrink();
+                      else {
+                        if(snapshot.hasData){
+                          if(snapshot.data != null){
+                            return RatingBar(
+                              onRatingUpdate: null,
+                              initialRating: snapshot.data.rating,
+                              minRating: 1,
+                              maxRating: 5,
+                              itemSize: MediaQuery.of(context).size.width * 0.05,
+                              direction: Axis.horizontal,
+                              allowHalfRating: true,
+                              ignoreGestures: true,
+                              itemCount: 5,
+                              //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                              itemBuilder: (context, _) => Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                              ),
+                            );
+                          }
+                          else{
+                            return RatingBar(
+                              onRatingUpdate: null,
+                              initialRating: 1,
+                              minRating: 1,
+                              maxRating: 5,
+                              itemSize: MediaQuery.of(context).size.width * 0.05,
+                              direction: Axis.horizontal,
+                              allowHalfRating: true,
+                              ignoreGestures: true,
+                              itemCount: 5,
+                              //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                              itemBuilder: (context, _) => Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                              ),
+                            );
+                          }
+                        }
+                        else{
+                          return RatingBar(
+                            onRatingUpdate: null,
+                            initialRating: 1,
+                            minRating: 1,
+                            maxRating: 5,
+                            itemSize: MediaQuery.of(context).size.width * 0.05,
+                            direction: Axis.horizontal,
+                            allowHalfRating: true,
+                            ignoreGestures: true,
+                            itemCount: 5,
+                            //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                            itemBuilder: (context, _) => Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
+
+                  (widget.merchant.bStatus == 1 && Utility.isOperational(widget.merchant.bOpen, widget.merchant.bClose))?
                   Text(
-                    '${AwayFrom(dist)}',
+                    '${awayFrom(dist)}',
+                    style: TextStyle(fontSize: 12, color: Colors.white),
+                  ):Text(
+                    'Unavailable',
                     style: TextStyle(fontSize: 12, color: Colors.white),
                   ),
                   SizedBox(
@@ -201,7 +247,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
     });
   }
 
-  String AwayFrom(double dist) {
+  String awayFrom(double dist) {
     if (dist > 1)
       return '$dist   km away';
     else

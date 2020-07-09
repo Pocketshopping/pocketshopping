@@ -10,6 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:location/location.dart';
@@ -230,7 +231,6 @@ class Utility {
   }
 
   static int setStartCount(dynamic dtime, int second) {
-    //print(dtime);
     var otime = DateTime.parse((dtime).toDate().toString())
         .add(Duration(seconds: second));
     int diff = otime.difference(DateTime.now()).inSeconds;
@@ -805,6 +805,7 @@ class Utility {
     var generatedAddress='';
     List<String> temp = address.first.addressLine.split(',');
     temp.removeLast();
+    temp.removeLast();
     generatedAddress = temp.reduce((value, element) => value + ',' + element);
     return generatedAddress;
   }
@@ -940,7 +941,7 @@ class Utility {
         }));
   }
 
-  static Future<void> pushNotifier({String fcm,String body, String title, String notificationType,Map<String,dynamic>data}) async {
+  static Future<void> pushNotifier({String fcm,String body, String title, String notificationType="",Map<String,dynamic>data}) async {
     await _fcm.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),);
     await http.post('https://fcm.googleapis.com/fcm/send',
         headers: <String, String>{
@@ -950,7 +951,8 @@ class Utility {
         body: jsonEncode(<String, dynamic>{
           'notification': <String, dynamic>{
             'body':  '$body',
-            'title': '$title'
+            'title': '$title',
+            "icon" : "app_icon",
           },
           'priority': 'high',
           'data': <String, dynamic>{
@@ -966,6 +968,64 @@ class Utility {
           },
           'to': fcm,
         }));
+  }
+
+  static Future<void> pushGroupNotifier({List<String> fcm,String body, String title, String notificationType="",Map<String,dynamic>data}) async {
+    await _fcm.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),);
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notification': <String, dynamic>{
+            'body':  '$body',
+            'title': '$title',
+            "icon" : "app_icon",
+          },
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': '$notificationType',
+              'message':'$body',
+              'title':'$title',
+              'data':data,
+            }
+          },
+          'registration_ids': fcm,
+        }));
+  }
+
+  static double zoomer(int distance){
+    if(distance < 3 )
+      return 15.0;
+    else if(distance > 3 && distance < 10)
+      return 13.0;
+    else if(distance > 10 && distance < 20)
+      return 11.0;
+    else if(distance > 20 && distance < 30)
+      return 10.0;
+    else if(distance > 30)
+      return 9.0;
+    else
+      return 13.0;
+  }
+
+
+  static LatLng computeCentroid(List<LatLng> points) {
+    double latitude = 0;
+    double longitude = 0;
+    int n = points.length;
+
+    points.forEach((point) {
+      latitude += point.latitude;
+      longitude += point.longitude;
+    });
+
+    return new LatLng(latitude/n, longitude/n);
   }
 
 }

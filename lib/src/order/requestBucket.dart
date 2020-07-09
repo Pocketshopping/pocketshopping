@@ -3,6 +3,7 @@ import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/deliveryTracker.dart';
+import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -155,6 +156,11 @@ class _RequestBucketState extends State<RequestBucket> {
                                           alignment: Alignment.centerLeft,
                                           child: Text('Total: $CURRENCY${(snapshots.data[index].orderMode.fee + snapshots.data[index].orderAmount)}',style: TextStyle(fontWeight: FontWeight.bold),),
                                         ),
+                                        const SizedBox(height: 5,),
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text('Payment Method: ${snapshots.data[index].receipt.type}',style: TextStyle(fontWeight: FontWeight.bold),),
+                                        ),
                                         const SizedBox(height: 20,),
                                         (snapshots.data[index].receipt.type == 'CASH')?
                                         Align(
@@ -185,9 +191,12 @@ class _RequestBucketState extends State<RequestBucket> {
                                           snapshots.data[index].potentials.remove(widget.user.agent.agentID);
                                           //print(snapshots.data[index].orderETA);
                                           Utility.bottomProgressLoader(body: 'Declining please wait',title: 'Declining');
-                                          await OrderRepo.removeOnePotential(snapshots.data[index].docID, snapshots.data[index].potentials);
+                                          await OrderRepo.removeOnePotential(snapshots.data[index].docID,
+                                              snapshots.data[index].receipt.collectionID,
+                                              snapshots.data[index].customerDevice,
+                                              snapshots.data[index].potentials);
                                           Get.back();
-                                          Utility.bottomProgressSuccess(body: 'Order Declined',title: '');
+                                          Utility.bottomProgressSuccess(body: 'Order Declined',title: 'Declined');
 
                                         },
                                         child: Text('Decline'),
@@ -215,8 +224,11 @@ class _RequestBucketState extends State<RequestBucket> {
                                           );
                                           Get.back();
                                           if(result){
-                                            Get.off(DeliveryTrackerWidget(order: snapshots.data[index],user: widget.user.user,));
-                                            Utility.bottomProgressSuccess(body: 'Order Accepted',title: '');
+                                            Get.off(RiderTracker(order: snapshots.data[index].docID,user: widget.user.user,));
+                                            Utility.bottomProgressSuccess(body: 'Order Accepted',title: 'Delivery');
+                                            Utility.pushNotifier(title: 'Delivery',
+                                                body: 'Your Order has been accepted and the rider(${widget.user.user.fname}) will deliver your package shortly'
+                                            ,fcm: snapshots.data[index].customerDevice);
                                             WalletRepo.getWallet(widget.user.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
                                           }
                                           else{

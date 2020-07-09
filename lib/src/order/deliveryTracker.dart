@@ -22,7 +22,6 @@ import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -63,7 +62,6 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
   //int reply;
   dynamic delayTime;
   bool rating;
-  OrderGlobalState odState;
   Order _order;
   bool loading;
   Review review;
@@ -82,16 +80,11 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     _validate = false;
     loading = false;
     _order = widget.order;
-    odState = Get.find();
     rating = false;
     _rating = 1.0;
     //print(_order.docID);
     resolution =  'START';
     //reply = isNotEmpty() ? (getItem('eMoreSec')*60) : 0;
-    moreSec = isNotEmpty() ? (getItem('eMoreSec')*60) : _order.orderETA;
-    delayTime = isNotEmpty() ? getItem('eDelayTime') : null;
-    _start = isNotEmpty() ? Utility.setStartCount(getItem('eDelayTime'), (getItem('eMoreSec')*60)) : Utility.setStartCount(_order.orderCreatedAt, _order.orderETA);
-    counter = '${isNotEmpty() ? (Utility.setStartCount(getItem('eDelayTime'), (getItem('eMoreSec')*60)) / 60).round() : (Utility.setStartCount(_order.orderCreatedAt, _order.orderETA) / 60).round()} min to ${_order.orderMode.mode}';
     startTimer();
     MerchantRepo.getMerchant(_order.orderMerchant).then((value) { if(mounted)setState(() {merchant = value;});});
     UserRepo.getOneUsingUID(widget.order.customerID).then((value) { if(mounted)setState(() {customer = value;});});
@@ -146,8 +139,6 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
 
 
 
-  dynamic getItem(String key) => odState.order['e_'+_order.docID][key];
-  bool isNotEmpty() => odState.order.containsKey('e_'+_order.docID);
 
 
   setRate() {
@@ -167,14 +158,6 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
     setRate();
   }
 
-  void globalStateUpdate(String oid,int moreSec ) {
-    odState.adder('e_'+oid, {
-      'eResolution': 'WAIT',
-      'eMoreSec': moreSec,
-      'eDelayTime': Timestamp.now(),
-    });
-    Get.put(odState);
-  }
 
 
 
@@ -1022,8 +1005,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                   Get.back();
                                   var result = cancel(_order.docID,
                                       Receipt.fromMap(_order.receipt.copyWith(psStatus: "fail",
-                                          pRef: '"$reason" order was cancelled by ${widget.user.fname}('
-                                              '${(widget.user.uid == _order.agent)?'Agent':'Logistic'})').toMap()));
+                                          pRef: '"$reason" order was cancelled by ${widget.user.fname}(Logistic)').toMap()));
                                   if(result)
                                     await cancelOrder(customer.notificationID, _order.docID, reason);
 
@@ -1212,7 +1194,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                 respondResolve(
                                     delay, _delay.text, customer.notificationID,
                                     widget.order.docID).then((value) => null);
-                                globalStateUpdate(widget.order.docID, delay);
+
                                 _start = (delay * 60);
                                 moreSec = (delay * 60);
                                 setState(() {});
@@ -1267,7 +1249,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                   ),
                   RatingBar(
                     onRatingUpdate: null,
-                    initialRating: review.reviewRating,
+                    initialRating: review.rating,
                     minRating: 1,
                     maxRating: 5,
                     itemSize: MediaQuery.of(context).size.width * 0.08,
@@ -1287,7 +1269,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                   Center(
                     child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 10),
-                        child: Text(review.reviewText)),
+                        child: Text(review.text)),
                   ),
                   Align(
                     alignment: Alignment.centerRight,
@@ -1377,7 +1359,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                         setState(() {
                           rating = true;
                         });
-                        ReviewRepo.save(Review(reviewText: _review.text, reviewRating: _rating, reviewedMerchant: merchant.mID, reviewedAt: Timestamp.now(), customerId: _order.customerID, customerName: _order.orderCustomer.customerName)).then((value) => OrderRepo
+                        ReviewRepo.save(Review(text: _review.text, rating: _rating, reviewed: merchant.mID, reviewedAt: Timestamp.now(), reviewerId: _order.customerID, reviewerName: _order.orderCustomer.customerName)).then((value) =>
+                            OrderRepo
                             .review(
                             _order.docID,
                             Customer(
@@ -1507,8 +1490,7 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
         },
         body: jsonEncode(<String, dynamic>{
           'notification': <String, dynamic>{
-            'body': 'Your order has been cancelled '
-                'by the agent (reason: $reason}). ${_order.receipt.type != 'CASH'?'Please Note. your money has been refunded to your wallet':''}',
+            'body': 'Your order has been cancelled by the agent (reason: $reason}). ${_order.receipt.type != 'CASH'?'Please Note. your money has been refunded to your wallet':''}',
             'title': 'Order Cancelled'
           },
           'priority': 'high',

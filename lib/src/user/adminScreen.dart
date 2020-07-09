@@ -10,10 +10,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:pocketshopping/src/admin/ping.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
+import 'package:pocketshopping/src/geofence/radius.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
@@ -101,7 +101,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
     processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
-      case 'OrderRequest':
+/*      case 'OrderRequest':
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
@@ -115,7 +115,7 @@ class _AdminScreenState extends State<AdminScreen> {
             uid: currentUser.uid,
           ));
         //Get.dialog(Resolution(payload: payload,));
-        break;
+        break;*/
       case 'NewDeliveryOrderRequest':
         GetBar(titleText: Text('New Delivery',style: TextStyle(color: Colors.white),),
           messageText:Text('You have new Delivery. Check you dashboard for details',style: TextStyle(color: Colors.white),),
@@ -140,11 +140,21 @@ class _AdminScreenState extends State<AdminScreen> {
         break;
 
       case 'CloudDeliveryCancelledResponse':
+        User user = await UserRepo.getOneUsingUID(currentUser.uid);
         Utility.bottomProgressSuccess(
-          title:'Delivery',
-          body: 'You Delivery has been cancelled',
+            title:'Delivery',
+            body: 'Your Delivery has been cancelled',
+            wallet: user.walletId
         );
         break;
+     default:
+         Utility.bottomProgressSuccess(
+              title:payload['title'],
+              body: payload['message'],
+              //wallet: payload['data']['wallet'],
+              duration: 5
+          );
+          break;
     }
   }
 
@@ -216,10 +226,8 @@ class _AdminScreenState extends State<AdminScreen> {
               body: Container(
                   child: Center(
                     child: <Widget>[
-                      state.user.merchant.bCategory == 'Logistic'
-                          ? LogisticDashBoardScreen()
-                          : DashBoardScreen(),
-                      GeoFence(),
+                      state.user.merchant.bCategory == 'Logistic' ? LogisticDashBoardScreen() : DashBoardScreen(),
+                      MyRadius(),//GeoFence(),
                       Favourite(),
                       MyOrders(),
                       PocketPay(),
@@ -395,7 +403,7 @@ class _ResolutionState extends State<Resolution> {
                                           Expanded(
                                             child: Center(
                                               child: Text(
-                                                  '\u20A6 ${payload['Items'][index]['ProductPrice']}'),
+                                                  '$CURRENCY ${payload['Items'][index]['ProductPrice']}'),
                                             ),
                                           ),
                                         ],
@@ -407,7 +415,7 @@ class _ResolutionState extends State<Resolution> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child:
-                                  Text('Amount: \u20A6 ${payload['Amount']}'),
+                                  Text('Amount: $CURRENCY ${payload['Amount']}'),
                             ),
                             const SizedBox(
                               height: 10,

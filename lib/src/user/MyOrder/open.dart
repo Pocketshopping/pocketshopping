@@ -1,15 +1,16 @@
 
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
-import 'package:pocketshopping/src/order/oTracker.dart';
+import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
+import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -28,7 +29,7 @@ class _OpenOrderState extends State<OpenOrder> {
   bool _finish;
   bool loading;
   bool empty;
-  OrderGlobalState odState;
+
 
   void initState() {
     _finish = true;
@@ -44,7 +45,6 @@ class _OpenOrderState extends State<OpenOrder> {
         setState((){ });
 
     });
-    odState = Get.put(OrderGlobalState());
     super.initState();
   }
 
@@ -185,16 +185,21 @@ class SingleOrder extends StatefulWidget {
 class _SingleOrderState extends State<SingleOrder> {
   int _start;
   Timer _timer;
-  OrderGlobalState odState;
+  Stream<Map<String,Timestamp>> _trackerStream;
 
   @override
   void initState() {
     //odState.order.containsKey((title as Order).docID)
-    odState = Get.find();
-    _start = odState.order.containsKey(widget.order.docID)?
-    Utility.setStartCount(odState.order[widget.order.docID]['delayTime'], odState.order[widget.order.docID]['moreSec']):
-    Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
+    _start = Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
     startTimer();
+
+    _trackerStream = TrackerBloc.instance.trackerStream;
+    _trackerStream.listen((dateTime) {
+      if(dateTime.containsKey(widget.order.receipt.collectionID) && _start == 0){
+        _start =Utility.setStartCount(dateTime[widget.order.receipt.collectionID], 600);
+        startTimer();
+      }
+    });
     super.initState();
   }
 
@@ -207,7 +212,7 @@ class _SingleOrderState extends State<SingleOrder> {
           ListTile(
             onTap: () {
               print(widget.order.docID);
-              Get.to(TrackerWidget(
+              Get.to(CustomerTracker(
                 order: widget.order.docID,
                 user: widget.user.user,
               )

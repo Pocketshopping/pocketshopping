@@ -158,7 +158,8 @@ class _EditProductFormState extends State<EditProductForm> {
                                                       await ProductRepo.updateProduct(widget.product.pID,
                                                           {
                                                             'productName':_nameController.text.sentenceCase,
-                                                            'index': ProductRepo.makeIndexList(_nameController.text),
+                                                            'index': ProductRepo.makeIndexList(_nameController.text,widget.product.mID.documentID,
+                                                                widget.product.pCategory,widget.product.pGroup),
                                                           });
                                                     setState(() {
                                                       _nameEnabler=false;

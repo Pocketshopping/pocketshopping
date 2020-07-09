@@ -8,12 +8,14 @@ class MCategory {
   final String categoryURI;
   final int categoryView;
   final String categoryId;
+  final String desc;
 
   MCategory({
     this.categoryName,
     this.categoryURI,
     this.categoryView,
     this.categoryId,
+    this.desc
   });
 
   MCategory copyWith({
@@ -21,12 +23,14 @@ class MCategory {
     String categoryURI,
     int categoryView,
     String categoryId,
+    String desc
   }) {
     return MCategory(
       categoryId: categoryId ?? this.categoryId,
       categoryName: categoryName ?? this.categoryName,
       categoryURI: categoryURI ?? this.categoryURI,
       categoryView: categoryView ?? this.categoryView,
+      desc: desc??this.desc
     );
   }
 
@@ -35,7 +39,8 @@ class MCategory {
       categoryView.hashCode ^
       categoryURI.hashCode ^
       categoryName.hashCode ^
-      categoryId.hashCode;
+      categoryId.hashCode ^
+      desc.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -45,19 +50,22 @@ class MCategory {
           categoryId == other.categoryId &&
           categoryName == other.categoryName &&
           categoryURI == other.categoryURI &&
-          categoryView == other.categoryView;
+          categoryView == other.categoryView &&
+          desc == other.desc;
 
   MCategory update({
     String categoryName,
     String categoryURI,
     int categoryView,
     String categoryId,
+    String desc
   }) {
     return copyWith(
       categoryView: categoryView,
       categoryURI: categoryURI,
       categoryName: categoryName,
       categoryId: categoryId,
+      desc: desc
     );
   }
 
@@ -71,7 +79,8 @@ class MCategory {
       'categoryId': categoryId,
       'categoryName': categoryName,
       'categoryURI': categoryURI,
-      'categoryView': categoryView
+      'categoryView': categoryView,
+      'desc':desc
     };
   }
 
@@ -81,6 +90,7 @@ class MCategory {
       categoryName: mCategoryEntity.categoryName,
       categoryURI: mCategoryEntity.categoryURI,
       categoryView: mCategoryEntity.categoryView,
+      desc: mCategoryEntity.desc,
     );
   }
 }

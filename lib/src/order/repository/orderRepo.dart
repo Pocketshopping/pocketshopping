@@ -26,13 +26,16 @@ class OrderRepo {
     });
   }
 
-  static Future<bool> removeOnePotential(String order, List<String>potentials)async {
+  static Future<bool> removeOnePotential(String order, String collectionID,String cDevice, List<String>potentials)async {
 
     try{
       if(potentials.isEmpty)
      {
        await databaseReference.collection("orders").document(order).updateData({
-         'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.','isAssigned':true,'status':1});
+         'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.','isAssigned':true,'status':1,'receipt.psStatus':'fail'});
+       await Utility.finalizePay(collectionID: collectionID,isSuccessful: false);
+       await Utility.pushNotifier(body: 'Your order has been cancelled(Rider currently unavailable)', title: 'Delivey Cancelled',fcm: cDevice);
+
      }
       else{
         await databaseReference.collection("orders").document(order).updateData({
@@ -189,10 +192,28 @@ class OrderRepo {
     return Order.fromEntity(OrderEntity.fromSnapshot(doc));
   }
 
-  static Future<void> review(String oid, Customer orderCustomer) async {
-    await databaseReference.collection("orders").document(oid).updateData({
-      'orderCustomer': orderCustomer.toMap(),
-    });
+  static Future<bool> review(String oid, Customer orderCustomer) async {
+    try{
+      await databaseReference.collection("orders").document(oid).updateData({
+        'orderCustomer': orderCustomer.toMap(),
+      });
+      return true;
+    }
+    catch(_){
+      return false;
+    }
+  }
+
+  static Future<bool> resolution(String oid, String resolution) async {
+    try{
+      await databaseReference.collection("orders").document(oid).updateData({
+        'resolution': resolution,
+      });
+      return true;
+    }
+    catch(_){
+      return false;
+    }
   }
 
   static Future<void> isComplete(String oid, Confirmation confirmation) async {

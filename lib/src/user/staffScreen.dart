@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:pocketshopping/src/admin/ping.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
@@ -26,7 +26,7 @@ import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-
+import 'package:pocketshopping/src/geofence/radius.dart';
 import 'bloc/user.dart';
 
 class StaffScreen extends StatefulWidget {
@@ -57,21 +57,21 @@ class _StaffScreenState extends State<StaffScreen> {
       position: BottomNavigationBadgePosition.topRight,
       textSize: 8);
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
-    BottomNavigationBarItem(
-      icon: Icon(Icons.check_box_outline_blank),
-      title: Text('Workplace'),
+    const BottomNavigationBarItem(
+      icon: Icon(AntIcons.shop_outline),
+      title: Text('DashBoard'),
     ),
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       icon: Icon(Icons.search),
       title: Text('Places'),
     ),
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       title: Text('Favourite'),
       icon: Icon(Icons.favorite_border),
     ),
-    BottomNavigationBarItem(
+    const BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('My Order(s)'),
+      title: Text('Transations'),
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
@@ -141,7 +141,7 @@ class _StaffScreenState extends State<StaffScreen> {
 
   processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
-      case 'OrderRequest':
+     /* case 'OrderRequest':
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
@@ -162,8 +162,7 @@ class _StaffScreenState extends State<StaffScreen> {
             ndata: notification.data,
             uid: currentUser.uid,
           ));
-        break;
-        break;
+        break;*/
 
       case 'WorkRequestResponse':
         await requester();
@@ -177,9 +176,19 @@ class _StaffScreenState extends State<StaffScreen> {
         break;
 
       case 'CloudDeliveryCancelledResponse':
+        User user = await UserRepo.getOneUsingUID(currentUser.uid);
         Utility.bottomProgressSuccess(
-          title:'Delivery',
-          body: 'You Delivery has been cancelled',
+            title:'Delivery',
+            body: 'Your Delivery has been cancelled',
+            wallet: user.walletId
+        );
+        break;
+      default:
+        Utility.bottomProgressSuccess(
+            title:payload['title'],
+            body: payload['message'],
+            //wallet: payload['data']['wallet'],
+            duration: 5
         );
         break;
     }
@@ -220,7 +229,7 @@ class _StaffScreenState extends State<StaffScreen> {
                   child: Center(
                     child: <Widget>[
                       state.user.merchant.bCategory == 'Logistic' ? AgentDashBoardScreen() : StaffDashBoardScreen(),
-                      GeoFence(),
+                      MyRadius(),//GeoFence(),
                       Favourite(),
                       MyOrders(),
                       PocketPay(),

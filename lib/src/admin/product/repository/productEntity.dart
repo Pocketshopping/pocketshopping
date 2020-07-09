@@ -21,6 +21,7 @@ class ProductEntity extends Equatable {
   final Timestamp pCreatedAt;
   final int status;
   final int availability;
+  final dynamic geoPoint;
 
   const ProductEntity(
       this.pID,
@@ -37,7 +38,8 @@ class ProductEntity extends Equatable {
       this.pUnit,
       this.pCreatedAt,
       this.status,
-      this.availability
+      this.availability,
+      this.geoPoint,
       );
 
   Map<String, Object> toJson() {
@@ -56,7 +58,8 @@ class ProductEntity extends Equatable {
       'pUnit': pUnit,
       'pCreatedAt': pCreatedAt,
       'status':status,
-      'availability':availability
+      'availability':availability,
+      'geoPoint':geoPoint
     };
   }
 
@@ -76,7 +79,8 @@ class ProductEntity extends Equatable {
         pUnit,
         pCreatedAt,
         status,
-        availability
+        availability,
+        geoPoint,
       ];
 
   @override
@@ -100,7 +104,8 @@ class ProductEntity extends Equatable {
       json['pUnit'] as String,
       json['pCreatedAt'] as Timestamp,
       json['status'] as int,
-      json['availability'] as int
+      json['availability'] as int,
+        json['geoPoint'] as dynamic
     );
   }
 
@@ -121,7 +126,8 @@ class ProductEntity extends Equatable {
       snap.data['productUnit'],
       snap.data['productCreatedAt'],
       snap.data['productStatus'],
-      snap.data['productAvailability']
+      snap.data['productAvailability'],
+        snap.data['geoPoint']
     );
   }
 
@@ -139,7 +145,12 @@ class ProductEntity extends Equatable {
       'pQRCode': pQRCode,
       'pUploader': pUploader,
       'pUnit': pUnit,
-      'pCreatedAt': pCreatedAt
+      'pCreatedAt': pCreatedAt,
+      'geoPoint':geoPoint
     };
+  }
+
+  static List<ProductEntity> fromListSnapshot(List<DocumentSnapshot> snap) {
+    return snap.map((e) => ProductEntity.fromSnapshot(e)).toList();
   }
 }

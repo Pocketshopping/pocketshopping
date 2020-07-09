@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_skeleton/flutter_skeleton.dart';
@@ -7,11 +8,13 @@ import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
 import 'package:pocketshopping/src/order/deliveryTracker.dart';
+import 'package:pocketshopping/src/order/lTracker.dart';
+import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -32,7 +35,6 @@ class _ActiveOrderState extends State<ActiveOrder> {
   bool loading;
   bool empty;
   Stream<List<Order>> _orderStream;
-  OrderGlobalState odState;
   bool searchStarted;
 
   void initState() {
@@ -53,7 +55,6 @@ class _ActiveOrderState extends State<ActiveOrder> {
        // }
       }
     });
-    try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
     super.initState();
   }
 
@@ -294,19 +295,28 @@ class _SingleOrderState extends State<SingleOrder> {
   int _start;
   Merchant merchant;
   Timer _timer;
-  OrderGlobalState odState;
+  Stream<Map<String,Timestamp>> _trackerStream;
 
   @override
   void initState() {
-    try {odState = Get.find();}catch(_){odState = Get.put(OrderGlobalState());}
-    _start =isNotEmpty(widget.order.docID)?Utility.setStartCount(getItem("eDelayTime",widget.order.docID), (getItem("eMoreSec",widget.order.docID)*60)) : Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
+
+    _start = Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
     MerchantRepo.getMerchant(widget.order.orderMerchant).then((value) { if(mounted)setState((){merchant=value;});});
     startTimer();
+
+    _trackerStream = TrackerBloc.instance.trackerStream;
+    _trackerStream.listen((dateTime) {
+      if(dateTime.containsKey(widget.order.receipt.collectionID) && _start == 0){
+        _start =Utility.setStartCount(dateTime[widget.order.receipt.collectionID], 600);
+        startTimer();
+      }
+    });
+
+
     super.initState();
   }
 
-  dynamic getItem(String key,String oid) => odState.order['e_'+oid][key];
-  bool isNotEmpty(String oid) => odState.order.containsKey('e_'+oid);
+
 
   @override
   Widget build(BuildContext context) {
@@ -316,10 +326,16 @@ class _SingleOrderState extends State<SingleOrder> {
           SizedBox(height: 10,),
           merchant != null?ListTile(
       onTap: () {
-        Get.to(DeliveryTrackerWidget(
-          order: widget.order,
+        Get.to(
+            widget.user.user.role != 'admin'?
+            RiderTracker(
+          order: widget.order.docID,
           user: widget.user.user,
-        )
+        ):
+            LogisticTracker(
+              order: widget.order.docID,
+              user: widget.user.user,
+            )
         ).then((value) {
           if(value == 'Refresh')
           {

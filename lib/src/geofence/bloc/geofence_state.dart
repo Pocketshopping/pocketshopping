@@ -35,25 +35,28 @@ class GeoFenceState {
       category: 'Restuarant',
       categories: [
         MCategory(
+            categoryName: 'Logistic',
+            categoryURI:
+            'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Ffood-delivery.png?alt=media&token=12f6a851-658c-42af-919c-2a2feda94979',
+            categoryView: 12,
+          desc: ''
+
+        ),
+        MCategory(
             categoryName: 'Restuarant',
             categoryURI:
-                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Frestuarant.jpg?alt=media&token=a4c93ec0-6889-4849-9fdf-74d8da74252f',
-            categoryView: 10),
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Ffork.png?alt=media&token=1774a1cc-6367-49c2-8b3d-efab8b9dc7cc',
+            categoryView: 10,desc: ''),
         MCategory(
             categoryName: 'Store',
             categoryURI:
-                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2FpsCover.png?alt=media&token=690ccf94-1c3a-4263-9e88-f898116d4aa2',
-            categoryView: 9),
-        MCategory(
-            categoryName: 'Bar',
-            categoryURI:
-                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbar.jpeg?alt=media&token=77b0124e-acfe-423a-a006-5ad2e597bd9a',
-            categoryView: 7),
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fstore.png?alt=media&token=04d66f40-42f3-4105-a187-80fbb45b7af1',
+            categoryView: 9,desc: ''),
         MCategory(
             categoryName: 'Bakery&Pastry',
             categoryURI:
-                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbakery.png?alt=media&token=b962f7ca-7572-4a3b-b625-84d9d6c4dc3a',
-            categoryView: 6),
+                'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbread.png?alt=media&token=3d21a0a6-aa7e-4433-880c-bb6e826e08e3',
+            categoryView: 6,desc: ''),
       ],
       nearByMerchants: [],
     );

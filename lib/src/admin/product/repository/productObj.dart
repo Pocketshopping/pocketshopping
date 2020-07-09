@@ -19,6 +19,7 @@ class Product {
   final Timestamp pCreatedAt;
   final int status;
   final int availability;
+  final dynamic geoPoint;
 
   Product(
       {this.pID,
@@ -35,7 +36,8 @@ class Product {
       this.pUnit,
       this.pCreatedAt,
       this.status,
-      this.availability
+      this.availability,
+      this.geoPoint
       });
 
   Product copyWith(
@@ -54,6 +56,7 @@ class Product {
       Timestamp pCreatedAt,
       int status,
       int availability,
+      dynamic geoPoint,
       }) {
     return Product(
         pID: pID ?? this.pID,
@@ -70,7 +73,8 @@ class Product {
         pCreatedAt: pCreatedAt ?? this.pCreatedAt,
         pName: pName ?? this.pName,
         status: status??this.status,
-        availability: availability??this.availability
+        availability: availability??this.availability,
+        geoPoint: geoPoint??this.geoPoint
     );
   }
 
@@ -88,7 +92,7 @@ class Product {
       pQRCode.hashCode ^
       pUploader.hashCode ^
       pUnit.hashCode ^
-      pCreatedAt.hashCode ^ status.hashCode ^ availability.hashCode;
+      pCreatedAt.hashCode ^ status.hashCode ^ availability.hashCode * geoPoint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -109,16 +113,17 @@ class Product {
           pUnit == other.pUnit &&
           pCreatedAt == other.pCreatedAt &&
           status == other.status &&
-          availability == other.availability;
+          availability == other.availability &&
+          geoPoint == other.geoPoint;
 
   @override
   String toString() {
-    return '''Instance of <Product> ''';
+    return '''Instance of Product ''';
   }
 
   ProductEntity toEntity() {
     return ProductEntity(pID, mID, pName, pPrice, pCategory, pDesc, pPhoto,
-        pGroup, pStockCount, pQRCode, pUploader, pUnit, pCreatedAt,status,availability);
+        pGroup, pStockCount, pQRCode, pUploader, pUnit, pCreatedAt,status,availability,geoPoint);
   }
 
   static Product fromEntity(ProductEntity product) {
@@ -137,7 +142,8 @@ class Product {
       pUnit: product.pUnit ?? '',
       pCreatedAt: product.pCreatedAt,
       status: product.status,
-      availability: product.availability
+      availability: product.availability,
+      geoPoint: product.geoPoint
     );
   }
 
@@ -157,6 +163,11 @@ class Product {
     snap.add(product.pCreatedAt);
     snap.add(product.status);
     snap.add(product.availability);
+    snap.add(product.geoPoint);
     return snap;
+  }
+
+  static List<Product> fromListEntity(List<ProductEntity> product) {
+    return product.map((e) => Product.fromEntity(e)).toList();
   }
 }

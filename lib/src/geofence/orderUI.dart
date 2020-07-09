@@ -17,7 +17,7 @@ import 'package:pocketshopping/src/channels/repository/channelObj.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
-import 'package:pocketshopping/src/order/oTracker.dart';
+import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
@@ -34,7 +34,6 @@ import 'package:pocketshopping/src/profile/pinTester.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/deliveryRequest.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -98,7 +97,7 @@ class _OrderUIState extends State<OrderUI> {
   double dETA;
   int dCut;
   //String eta;
-  OrderGlobalState odState;
+
   Channels channel;
   Stream<Wallet> _walletStream;
   Wallet _wallet;
@@ -116,7 +115,6 @@ class _OrderUIState extends State<OrderUI> {
     payerror = "";
     emptyAgent  = false;
     type = 'MotorBike';
-    odState = Get.put(OrderGlobalState());
     dCut = 0;
     dETA = 0.0;
     order = Order(orderMerchant: widget.merchant.mID);
@@ -203,7 +201,7 @@ class _OrderUIState extends State<OrderUI> {
     CloudFunctions.instance
         .getHttpsCallable(
       functionName: "DeliveryCut",
-    ).call({'distance': distance}).then((value) => mounted ? setState(() {dCut = value.data;}) : null);
+    ).call({'distance': distance}).then((value) => mounted ? setState(() {dCut = (value.data +((order.orderItem.fold(0, (previousValue, element) => previousValue + element.count)as int )*50) );}) : null);
     return 1;
   }
 
@@ -245,6 +243,7 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
+              const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -262,6 +261,7 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
+              const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -285,6 +285,7 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
+              const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -302,6 +303,7 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
+              const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -319,6 +321,7 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
+              const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -336,6 +339,7 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
+              const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -344,7 +348,7 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('~ ${((dETA/60).round())+1} minute'),
+                      child: Text('~ ${(((dETA/60).round())+5)<30?30:(((dETA/60).round())+5)} minute'),
                     ),
                   )
                 ],
@@ -539,7 +543,7 @@ class _OrderUIState extends State<OrderUI> {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                              ' ${payload[index].item.pName} @ ${payload[index].item.pPrice}'),
+                              ' ${payload[index].item.pName} @ $CURRENCY${payload[index].item.pPrice}'),
                         ),
                         Expanded(
                           child: Center(
@@ -548,7 +552,7 @@ class _OrderUIState extends State<OrderUI> {
                         ),
                         Expanded(
                           child: Center(
-                            child: Text('${payload[index].total}'),
+                            child: Text('$CURRENCY${payload[index].total}'),
                           ),
                         )
                       ],
@@ -566,7 +570,7 @@ class _OrderUIState extends State<OrderUI> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   Expanded(
-                    child: Text(' ${payload.pName} @ ${payload.pPrice}'),
+                    child: Text(' ${payload.pName} @ $CURRENCY${payload.pPrice}'),
                   ),
                   Expanded(
                     child: Center(
@@ -575,7 +579,7 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('${payload.pPrice * orderCount}'),
+                      child: Text('$CURRENCY${payload.pPrice * orderCount}'),
                     ),
                   )
                 ],
@@ -798,7 +802,7 @@ class _OrderUIState extends State<OrderUI> {
           WalletRepo.getWallet(widget.user.walletId).
           then((value) => WalletBloc.instance.newWallet(value));
 
-          if(method=='Delivery')queryAgent();
+          if(mode=='Delivery')await queryAgent();
         }
       } else {
         //print('Important!!! $reference');
@@ -857,7 +861,7 @@ class _OrderUIState extends State<OrderUI> {
               }));
           WalletRepo.getWallet(widget.user.walletId).
           then((value) => WalletBloc.instance.newWallet(value));
-          if(method=='Delivery')queryAgent();
+          if(mode=='Delivery')await queryAgent();
         }
         break;
       case 'POCKET':
@@ -900,7 +904,8 @@ class _OrderUIState extends State<OrderUI> {
               }));
           WalletRepo.getWallet(widget.user.walletId).
           then((value) => WalletBloc.instance.newWallet(value));
-          if(method=='Delivery')queryAgent();
+
+          if(mode=='Delivery')await queryAgent();
         }
         break;
 
@@ -916,25 +921,12 @@ class _OrderUIState extends State<OrderUI> {
   }
 
   Future<void> queryAgent() async {
-    await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
+    await Utility.pushGroupNotifier(
+      fcm: await nearByAgent(isDevice: true),
+      body: 'New Delivery Request, view request bucket for details',
+      title: 'New Delivery',
+      notificationType: 'NewDeliveryRequestInBucket',
     );
-    await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'notification': <String, dynamic>{
-            'body': 'New Delivery Request, view request bucket for details',
-            'title': 'New Delivery',
-              "icon" : "app_icon",
-          },
-          'priority': 'high',
-          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-          'registration_ids': await nearByAgent(isDevice: true),
-        }));
   }
 
   Future<void> queryMerchant() async {
@@ -1713,6 +1705,7 @@ class _OrderUIState extends State<OrderUI> {
                 child: Center(
                   child: FlatButton(
                     onPressed: ()async {
+
                       order = order.update(
                         orderMode: OrderMode(
                           mode: mode,
@@ -1724,7 +1717,7 @@ class _OrderUIState extends State<OrderUI> {
                           tableNumber: '',
 
                         ),
-                        orderETA: dETA.round(),
+                        orderETA: (dETA.round()+300)<1800?1800:(dETA.round()+300),
                         orderConfirmation: Confirmation(
                           isConfirmed: false,
                           confirmOTP: randomAlphaNumeric(6),
@@ -1738,11 +1731,13 @@ class _OrderUIState extends State<OrderUI> {
                         docID: '',
                         orderLogistic:'',
                       );
+                      if(dCut>250 && dETA > 5){
                       stage = 'CHECKOUT';
                       setState(() {});
+                      }
                     },
                     child: Text(
-                      'Checkout ( $CURRENCY ${order.orderAmount + dCut} )',
+                      (dCut>250 && dETA > 5)?'Checkout ( $CURRENCY ${order.orderAmount + dCut} )':'Please wait...',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -2335,7 +2330,7 @@ class _OrderUIState extends State<OrderUI> {
             setState(() {
               stage = 'ORDERNOW';
             });
-            Get.off(TrackerWidget(
+            Get.off(CustomerTracker(
               order: order.docID,
               user: widget.user,
             ));

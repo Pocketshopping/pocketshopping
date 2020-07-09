@@ -31,6 +31,7 @@ class Order {
   final List<String> potentials;
   final String resolution;
   final List<String> index;
+  final String customerDevice;
 
   Order({
       this.orderItem,
@@ -51,6 +52,7 @@ class Order {
       this.isAssigned,
       this.potentials,
       this.resolution,
+      this.customerDevice,
       this.index
       });
 
@@ -74,7 +76,8 @@ class Order {
       bool isAssigned,
       List<String> potentials,
       String resolution,
-      List<String> index
+      List<String> index,
+      String customerDevice
       }) {
     return Order(
         orderItem: orderItem ?? this.orderItem,
@@ -95,7 +98,8 @@ class Order {
         isAssigned: isAssigned ?? this.isAssigned,
         potentials: potentials??this.potentials,
         resolution: resolution??this.resolution,
-      index: index??this.index
+        customerDevice: customerDevice??this.customerDevice,
+        index: index??this.index
     );
   }
 
@@ -119,7 +123,8 @@ class Order {
       isAssigned.hashCode ^
       potentials.hashCode ^
       resolution.hashCode ^
-      index.hashCode;
+      index.hashCode ^
+      customerDevice.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -143,7 +148,8 @@ class Order {
           orderLogistic == other.orderLogistic &&
           isAssigned == other.isAssigned &&
           resolution == other.resolution &&
-          index == other.index;
+          index == other.index &&
+          customerDevice == other.customerDevice;
 
   Order update(
       {List<OrderItem> orderItem,
@@ -164,7 +170,8 @@ class Order {
       bool isAssigned,
       List<String> potentials,
       String resolution,
-      List<String> index
+      List<String> index,
+      String customerDevice
       }) {
     return copyWith(
       orderItem: orderItem,
@@ -185,7 +192,8 @@ class Order {
       isAssigned: isAssigned,
       potentials: potentials,
       resolution: resolution,
-      index: index
+      index: index,
+      customerDevice: customerDevice
     );
   }
 
@@ -215,7 +223,7 @@ class Order {
       'potentials':potentials??[],
       'resolution':resolution,
       'index': await makeOrderIndex(),
-      'etc':DateTime.now().add(Duration(minutes: 6)),
+      'etc':DateTime.now().add(Duration(minutes: 5)),
       'customerDevice': await FirebaseMessaging().getToken()
     };
   }
@@ -250,7 +258,8 @@ class Order {
         isAssigned:  orderEntity.isAssigned,
         resolution:  orderEntity.resolution,
         potentials: orderEntity.potentials,
-        index: orderEntity.index
+        index: orderEntity.index,
+        customerDevice: orderEntity.customerDevice
         );
   }
 

@@ -10,12 +10,14 @@ class MCategoryEntity extends Equatable {
   final String categoryURI;
   final int categoryView;
   final String categoryId;
+  final String desc;
 
   const MCategoryEntity(
     this.categoryName,
     this.categoryURI,
     this.categoryView,
     this.categoryId,
+      this.desc
   );
 
   Map<String, Object> toJson() {
@@ -23,7 +25,8 @@ class MCategoryEntity extends Equatable {
       'categoryId': categoryId,
       'categoryName': categoryName,
       'categoryURI': categoryURI,
-      'categoryView': categoryView
+      'categoryView': categoryView,
+      'desc':desc
     };
   }
 
@@ -33,11 +36,12 @@ class MCategoryEntity extends Equatable {
         categoryURI,
         categoryView,
         categoryId,
+        desc
       ];
 
   @override
   String toString() {
-    return '''MCategoryEntity {MCategoryID: $categoryId,}''';
+    return '''Instance of MCategoryEntity''';
   }
 
   static MCategoryEntity fromJson(Map<String, Object> json) {
@@ -46,6 +50,7 @@ class MCategoryEntity extends Equatable {
       json['categoryURI'] as String,
       json['categoryView'] as int,
       json['categoryId'] as String,
+      json['desc'] as String,
     );
   }
 
@@ -56,6 +61,7 @@ class MCategoryEntity extends Equatable {
       snap.data['categoryURI'],
       snap.data['categoryView'],
       snap.documentID,
+      snap.data['desc'],
     );
   }
 
@@ -64,7 +70,8 @@ class MCategoryEntity extends Equatable {
       'categoryId': categoryId,
       'categoryName': categoryName,
       'categoryURI': categoryURI,
-      'categoryView': categoryView
+      'categoryView': categoryView,
+      'desc':desc
     };
   }
 }

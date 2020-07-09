@@ -1,6 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const serviceAccount = require('./pocketshopping.json');
+const fetch = require('node-fetch');
 //initialize admin SDK using serciceAcountKey
 admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount)
@@ -34,12 +35,23 @@ const CategoryRuntimeOpts = {
      });
 });
 
+async function finalizePending(collectionID){
+
+  const body = {"collectionID": collectionID, "status": false, };
+await fetch('http://middleware.pocketshopping.com.ng/api/wallets/pay/finalize/', {
+        method: 'post',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+    })
+}
+
  async function fetchAndUpdate(){
   var documents = await admin.firestore()
     .collection('orders')
     .where('isAssigned','==',false)
     .where('status','==',0)
     .where('etc','<', new Date())
+    .limit(500)
     .get();
 
     let batch = admin.firestore().batch();
@@ -61,14 +73,20 @@ const CategoryRuntimeOpts = {
           }),
       }
     };
+
+
+    if(documents.docs.length>0){
     documents.docs.forEach((doc) => {
       const docRef = admin.firestore().collection('orders').doc(doc.id);
-      batch.update(docRef, {'isAssigned':true,'potentials':[],'status':1,'receipt.pRef':'Rider Currently unavailable.'});
+      batch.update(docRef, {'isAssigned':true,'potentials':[],'status':1,'receipt.pRef':'Rider Currently unavailable.','receipt.psStatus':'fail'});
       customers.push(doc.data()['customerDevice']);
+      finalizePending(doc.data()['receipt']['collectionID']).then(res => null);
   })
   await batch.commit();
   if(customers.length>0)
   admin.messaging().sendToDevice(customers, payload);
+}
+
 }
  
 async function getCategories(merchant) {
@@ -148,12 +166,44 @@ exports.DeliveryCut = functions.https.onCall((data, context) => {
   var y2 = 100;
   var c = 300;
   var cut=0;
-  if(distance < 2000)
+  if(distance < 1000)
     cut = 300;
-  else if(distance<500)
-    cut = Math.round((Math.abs(Math.round(distance/1000) - 3)*y1+c));
   else
-    cut = Math.round((Math.abs(Math.round(distance/1000) - 3)*y2+c));
+    cut = Math.round((Math.abs(Math.round(distance/1000) - 3)*y1+c));
+
+    return cut;
+});
+
+
+exports.ErrandDeliveryCut = functions.https.onCall((data, context) => {
+  var distance=data['distance'];
+  var y1 = 50;
+  var bikeBase = 300;
+  var carBase = 600;
+  var vanBase = 5000;
+  var bikeCut=0;
+  var carCut=0;
+  var vanCut=0; 
+  var cut = [];
+
+  if(distance < 1000)
+  {
+    bikeCut = bikeBase;
+    cut.push(bikeCut);
+    carCut = carBase;
+    cut.push(carCut);
+    vanCut = vanBase; 
+    cut.push(vanCut); 
+  }
+  else
+    {
+      bikeCut = Math.round((Math.abs(Math.round(distance/1000))*y1+bikeBase));
+      cut.push(bikeCut);
+      carCut = Math.round((Math.abs(Math.round(distance/1000))*y1+carBase));
+      cut.push(carCut);
+      vanCut = Math.round((Math.abs(Math.round(distance/1000))*y1+vanBase));
+      cut.push(vanCut);
+    }
 
     return cut;
 });

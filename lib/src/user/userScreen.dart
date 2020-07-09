@@ -163,9 +163,19 @@ class _UserScreenState extends State<UserScreen> {
         break;
 
       case 'CloudDeliveryCancelledResponse':
+        User user = await UserRepo.getOneUsingUID(currentUser.uid);
         Utility.bottomProgressSuccess(
             title:'Delivery',
-            body: 'You Delivery has been cancelled',
+            body: 'Your Delivery has been cancelled',
+            wallet: user.walletId
+        );
+        break;
+      default:
+        Utility.bottomProgressSuccess(
+            title:payload['title'],
+            body: payload['message'],
+            //wallet: payload['data']['wallet'],
+            duration: 5
         );
         break;
     }

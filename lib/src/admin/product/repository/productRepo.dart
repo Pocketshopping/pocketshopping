@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:recase/recase.dart';
 
 class ProductRepo {
   final databaseReference = Firestore.instance;
+  static final Geoflutterfire geo = Geoflutterfire();
 
   Future<String> save({
     String mID,
@@ -21,10 +25,12 @@ class ProductRepo {
     String pUploader,
     String pUnit,
     int status=1,
-    int availability=1
+    int availability=1,
+    GeoPoint pGeopoint,
   }) async {
     var bid;
     try{
+      GeoFirePoint productLocation = geo.point(latitude: pGeopoint.latitude, longitude: pGeopoint.longitude);
       bid = await databaseReference.collection("products").add({
       'productMerchant': databaseReference.document('merchants/$mID'),
       'productName': pName.isNotEmpty?pName.sentenceCase:"",
@@ -40,7 +46,8 @@ class ProductRepo {
       'productCreatedAt': DateTime.now(),
       'productStatus':  status,
       'productAvailability':availability,
-      'index': makeIndexList(pName),
+      'productGeoPoint': productLocation.data,
+      'index': await makeIndexList(pName,mID,pCategory,pGroup),
     });
       await saveCategory(pCategory, mID);
       await saveProductStock(bid.documentID, pUploader, pStockCount);
@@ -50,6 +57,8 @@ class ProductRepo {
 
     return bid != null ?bid.documentID:'';
   }
+
+
 
   Future<String> saveCategory(String pCategory, String mid) async {
     String bid = "";
@@ -96,15 +105,15 @@ class ProductRepo {
     return bid;
   }
 
-  static List<String> makeIndexList(String pName) {
-    List<String> indexList = [];
-    var temp = pName.split(' ');
-    for (int i = 0; i < temp.length; i++) {
-      for (int y = 1; y < temp[i].length + 1; y++) {
-        indexList.add(temp[i].substring(0, y).toLowerCase());
-      }
-    }
-    return indexList;
+  static Future<List<String>> makeIndexList(String pName, String mid,String category, String pGroup) async{
+    List<String> temp=[];
+    Merchant merchant = await MerchantRepo.getMerchant(mid);
+    temp.addAll(Utility.makeIndexList(pName));
+    temp.addAll(Utility.makeIndexList(merchant.bName));
+    temp.addAll(Utility.makeIndexList(category));
+    temp.addAll(Utility.makeIndexList(pGroup));
+    return temp;
+
   }
 
   static Future<void> updateProduct(String pID, Map<String, dynamic> data) async {

@@ -70,7 +70,7 @@ class _AdminFinanceState extends State<AdminFinance> {
                             ),
                             Center(
                                 child: Text(
-                                  "\u20A6 ${wallet.merchantBalance}",
+                                  "$CURRENCY ${wallet.merchantBalance}",
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 )),
@@ -107,7 +107,7 @@ class _AdminFinanceState extends State<AdminFinance> {
                             ),
                             Center(
                                 child: Text(
-                                  "\u20A6 ${wallet.deliveryBalance}",
+                                  "$CURRENCY ${wallet.deliveryBalance}",
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 )),

@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
-import 'package:pocketshopping/src/order/tracker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -189,8 +189,8 @@ class _SingleOrderState extends State<SingleOrder> {
           SizedBox(height: 10,),
           ListTile(
             onTap: () {
-              Get.to(OrderTrackerWidget(
-                order: widget.order,
+              Get.to(CustomerTracker(
+                order: widget.order.docID,
                 user: widget.user.user,
               )
               );

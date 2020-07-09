@@ -27,6 +27,8 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
       yield* _mapNearByMerchantToState(event.category);
     } else if (event is FetchNearByMerchant) {
       yield* _mapFetchNearByMerchantToState(event.position, event.category);
+    } else if (event is FetchAllNearByMerchant) {
+      yield* _mapFetchAllNearByMerchantToState(event.position,);
     } else if (event is CategorySelected) {
       yield* _mapCategorySelectedToState(event.selected);
     } else if (event is UpdateMerchant) {
@@ -88,6 +90,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
           .collection(collectionRef: collectionReference)
           .within(center: center, radius: radius, field: field, strictMode: true);
 
+
       _merchantSubscription?.cancel();
       _merchantSubscription = stream.listen((event) {
         event.forEach((element) {
@@ -98,6 +101,47 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
       });
 
       yield state.update(category: category);
+    }
+
+    //}
+  }
+
+  Stream<GeoFenceState> _mapFetchAllNearByMerchantToState(
+      Position _position) async* {
+    yield state.update(currentPosition: _position);
+    yield GeoFenceState.loading(
+        category: 'Restuarant',
+        currentPosition: state.currentPosition,
+        nearByMerchants: state.nearByMerchants,
+        categories: state.categories);
+
+    if(_position == null)
+      yield GeoFenceState.failure(
+          category: state.category,
+          categories: state.categories,
+          nearByMerchants: state.nearByMerchants,
+          currentPosition: state.currentPosition);
+
+    else{
+      List<Merchant> data = List();
+      GeoFirePoint center = geo.point(latitude: _position.latitude, longitude: _position.longitude);
+      var collectionReference = Firestore.instance
+          .collection('merchants')
+          .where('businessActive',isEqualTo: true)
+          .limit(10);
+      Stream<List<DocumentSnapshot>> stream = geo
+          .collection(collectionRef: collectionReference)
+          .within(center: center, radius: radius, field: field, strictMode: true);
+      _merchantSubscription?.cancel();
+      _merchantSubscription = stream.listen((event) {
+        event.forEach((element) {
+          data.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+        });
+        data.toSet().toList();
+        add(UpdateMerchant(merchant: data));
+      });
+
+      yield state.update(category: 'Restuarant');
     }
 
     //}
@@ -115,8 +159,15 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
 
 
       if(state.currentPosition == null){
-        geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation).then((value) =>
-            add(FetchNearByMerchant(position: value, category: category)));
+        geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation).then((value)
+            {
+              if(category != 'All')
+                add(FetchNearByMerchant(position: value, category: category));
+              else
+                add(FetchAllNearByMerchant(position: value));
+            }
+
+        );
       }
 
       _positionSubscription = geolocator
@@ -124,7 +175,10 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
               accuracy: LocationAccuracy.bestForNavigation,
               timeInterval: 60000))
           .listen((position) {
-        add(FetchNearByMerchant(position: position, category: category));
+            if(category != 'All')
+              add(FetchNearByMerchant(position: position, category: category));
+            else
+              add(FetchAllNearByMerchant(position: position));
       });
     } catch (e) {
       yield GeoFenceState.failure(

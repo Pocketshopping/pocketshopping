@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/MyOrder/orderGlobal.dart';
 import 'package:pocketshopping/src/user/MyOrder/orderTimer.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -25,10 +24,7 @@ class ListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    OrderGlobalState odState;
-    try {
-      odState = Get.find();
-    } catch (_) {}
+
 
     //print(odState.order);
     void showMore() {
@@ -134,14 +130,7 @@ class ListItem extends StatelessWidget {
             leading: CircleAvatar(
                 radius: 25.0,
                 backgroundColor: Colors.green,
-                child: odState.order.containsKey((title as Order).docID)
-                    ? OrderTimerWidget(
-                        seconds: odState.order[(title as Order).docID]
-                            ['moreSec'],
-                        datetime: odState.order[(title as Order).docID]
-                            ['delayTime'],
-                      )
-                    : OrderTimerWidget(
+                child:  OrderTimerWidget(
                         seconds: (title as Order).orderETA,
                         datetime: (title as Order).orderCreatedAt,
                       )),
@@ -757,7 +746,7 @@ class ListItem extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.all(10),
                           child: Text(
-                            '\u20A6 ${title.pPrice}',
+                            '$CURRENCY ${title.pPrice}',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),

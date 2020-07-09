@@ -142,7 +142,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                         ),
                                         Center(
                                             child: Text(
-                                          "\u20A6 ${_wallet.merchantBalance}",
+                                          "$CURRENCY ${_wallet.merchantBalance}",
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
                                         )),

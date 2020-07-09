@@ -30,6 +30,7 @@ class OrderEntity extends Equatable {
   final String resolution;
   final List<String> potentials;
   final List<String> index;
+  final String customerDevice;
 
   const OrderEntity(
       this.orderItem,
@@ -51,6 +52,7 @@ class OrderEntity extends Equatable {
       this.resolution,
       this.potentials,
       this.index,
+      this.customerDevice
       );
 
   Map<String, Object> toJson() {
@@ -73,7 +75,8 @@ class OrderEntity extends Equatable {
       'isAssigned':isAssigned,
       'resolution':resolution,
       'potentials':potentials,
-      'index':index
+      'index':index,
+      'customerDevice':customerDevice
     };
   }
 
@@ -97,7 +100,8 @@ class OrderEntity extends Equatable {
         isAssigned,
         resolution,
         potentials,
-        index
+        index,
+        customerDevice
       ];
 
   @override
@@ -125,7 +129,8 @@ class OrderEntity extends Equatable {
         json['isAssigned'] as bool,
         json['resolution'] as String,
         json['potentials'] as List,
-      json['index'] as List,
+        json['index'] as List,
+        json['customerDevice'] as String,
     );
   }
 
@@ -151,6 +156,7 @@ class OrderEntity extends Equatable {
         snap.data['resolution'],
         List.castFrom(snap.data['potentials']),
        List.castFrom(snap.data['index']),
+       snap.data['customerDevice'],
     );
   }
 
@@ -180,7 +186,8 @@ class OrderEntity extends Equatable {
       'isAssigned':agent,
       'resolution':orderLogistic,
       'potentials':potentials,
-      'index':index
+      'index':index,
+      'customerDevice':customerDevice
     };
   }
 }

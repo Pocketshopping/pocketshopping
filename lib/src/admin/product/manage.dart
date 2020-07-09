@@ -192,7 +192,6 @@ class _ManageProductState extends State<ManageProduct> {
                           return ListTile(
                             onTap: (){
                               Get.to(EditProductForm(session: widget.user,product: list[index],)).then((value) {
-                                if (value == 'Refresh')
                                   _refresh();
                               });
                             },
@@ -303,8 +302,7 @@ class _ManageProductState extends State<ManageProduct> {
                     child: FlatButton.icon(
                         onPressed: (){
                           Get.to(admin.AddProduct(session: widget.user,)).then((value) {
-
-                              _refresh();
+                            _refresh();
                           });
                         },
                         icon: Icon(Icons.add,color: Colors.white,),

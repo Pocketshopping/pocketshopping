@@ -31,7 +31,23 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: () {
+      if(merchant.bStatus == 1 && Utility.isOperational(merchant.bOpen, merchant.bClose)) {
+        final page = MerchantUI(
+          merchant: merchant,
+          user: widget.user,
+          distance: getDistance(),
+          initPosition: widget.position,
+        );
+        Get.to(page);
+      }
+      else{
+        Utility.infoDialogMaker('Currently Unavailable',title: '${merchant.bName}');
+      }
+
+    },
+    child: Container(
         decoration: BoxDecoration(
           color: Colors.black,
           boxShadow: [
@@ -51,38 +67,28 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
         ),
         margin: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
 
-                child: merchant!=null?
-                Center(child:
-                GestureDetector(
-                    onTap: () {
-                      final page = MerchantUI(
-                        merchant: merchant,
-                        user: widget.user,
-                        distance: getDistance(),
-                        initPosition: widget.position,
-                      );
-                      Get.to(page);
-                    },
-                    child:
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text('${merchant.bName}',style: TextStyle(color: Colors.white),),
-                    Text('${Utility.presentDate(DateTime.parse(widget.item.visitedAt.toDate().toString()))}',style: TextStyle(color: Colors.white,
-                        fontSize: 12),textAlign: TextAlign.center,)
-                  ],
-                )
-                )
-                )
-                    :Center(
-                  child:JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.1,
-                    color: Colors.white,
-                  ),
-                )
-    );
+        child: merchant!=null?
+        Center(child:
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('${merchant.bName}',style: TextStyle(color: Colors.white),),
+                Text('${Utility.presentDate(DateTime.parse(widget.item.visitedAt.toDate().toString()))}',style: TextStyle(color: Colors.white,
+                    fontSize: 12),textAlign: TextAlign.center,)
+              ],
+            )
+
+        )
+            :Center(
+          child:JumpingDotsProgressIndicator(
+            fontSize: MediaQuery.of(context).size.height * 0.1,
+            color: Colors.white,
+          ),
+        )
+    ),
+  );
 
   double getDistance(){
     var current = GeoFirePoint(widget.position.latitude,widget.position.longitude);

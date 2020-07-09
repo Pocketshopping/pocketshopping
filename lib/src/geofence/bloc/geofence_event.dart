@@ -35,6 +35,18 @@ class FetchNearByMerchant extends GeoFenceEvent {
   String toString() => 'Instance of GeoFenceEvent<FetchNearByMerchant>';
 }
 
+class FetchAllNearByMerchant extends GeoFenceEvent {
+  final Position position;
+
+  const FetchAllNearByMerchant({ @required this.position});
+
+  @override
+  List<Object> get props => [position];
+
+  @override
+  String toString() => 'Instance of GeoFenceEvent<FetchAllNearByMerchant>';
+}
+
 class UpdateMerchant extends GeoFenceEvent {
   final List<Merchant> merchant;
 

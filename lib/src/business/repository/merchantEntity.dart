@@ -184,6 +184,12 @@ class MerchantEntity extends Equatable {
     );
   }
 
+
+  static List<MerchantEntity> fromListSnapshot(List<DocumentSnapshot> snap) {
+    return snap.map((e) => MerchantEntity.fromSnapshot(e)).toList();
+  }
+
+
   Map<String, Object> toDocument() {
     return {
       'bName': bName,

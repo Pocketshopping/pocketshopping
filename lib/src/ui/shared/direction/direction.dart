@@ -44,7 +44,6 @@ class DirectionState extends State<Direction> {
   Set<Polyline> _polylines = Set<Polyline>();
   List<LatLng> polylineCoordinates = [];
   GoogleMapPolyline polylinePoints;
-  String googleAPIKey = 'AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc';
   BitmapDescriptor sourceIcon;
   BitmapDescriptor destinationIcon;
   LocationData currentLocation;
@@ -72,7 +71,7 @@ class DirectionState extends State<Direction> {
     location.changeSettings(
         accuracy: LocationAccuracy.navigation, interval: 1000);
     polylinePoints = GoogleMapPolyline(apiKey: googleAPIKey);
-    routeMode = RouteMode.walking;
+    routeMode = RouteMode.driving;
     locStream = location.onLocationChanged.listen((LocationData cLoc) {
       currentLocation = cLoc;
       updatePinOnMap();
