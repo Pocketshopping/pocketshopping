@@ -1,12 +1,16 @@
 
 import 'dart:async';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
+import 'package:pocketshopping/src/order/cErrandTracker.dart';
 import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
@@ -29,6 +33,7 @@ class _OpenOrderState extends State<OpenOrder> {
   bool _finish;
   bool loading;
   bool empty;
+  Stream<LocalNotification> _notificationsStream;
 
 
   void initState() {
@@ -36,7 +41,6 @@ class _OpenOrderState extends State<OpenOrder> {
     loading =true;
     empty = false;
     OrderRepo.get(null,0, widget.user.user.uid).then((value){
-      //print(value);
       list=value;
       loading =false;
       _finish=value.length == 10?false:true;
@@ -45,6 +49,12 @@ class _OpenOrderState extends State<OpenOrder> {
         setState((){ });
 
     });
+    _notificationsStream = NotificationsBloc.instance.notificationsStream;
+    _notificationsStream.listen((notification) {
+      if(mounted)
+      _refresh();
+    });
+
     super.initState();
   }
 
@@ -189,7 +199,6 @@ class _SingleOrderState extends State<SingleOrder> {
 
   @override
   void initState() {
-    //odState.order.containsKey((title as Order).docID)
     _start = Utility.setStartCount(widget.order.orderCreatedAt, widget.order.orderETA);
     startTimer();
 
@@ -212,10 +221,17 @@ class _SingleOrderState extends State<SingleOrder> {
           ListTile(
             onTap: () {
               print(widget.order.docID);
-              Get.to(CustomerTracker(
-                order: widget.order.docID,
-                user: widget.user.user,
-              )
+              Get.to(
+                  widget.order.orderMode.mode != 'Errand'?
+                  CustomerTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  )
+                      :
+                  CustomerErrandTracker(
+                    user: widget.user.user,
+                    order: widget.order.docID,
+                  )
               ).then((value) {
                 if(value == 'Refresh')
                    {
@@ -224,13 +240,22 @@ class _SingleOrderState extends State<SingleOrder> {
 
               });
             },
-            leading: CircleAvatar(
+            leading: widget.order.orderMode.mode == 'Errand'?
+            CircleAvatar(
+                radius: 25.0,
+                backgroundColor: Colors.grey.withOpacity(0.5),
+                child: Icon(AntIcons.clock_circle_outline,color: Colors.black54,))
+            :CircleAvatar(
                 radius: 25.0,
                 backgroundColor: (_start/60).round()>0?Colors.green:Colors.red,
                 child: Text('${(_start/60).round()}min',style: const TextStyle(color: Colors.white,fontSize: 14),)),
-             title: Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
+             title: widget.order.orderMode.mode != 'Errand'?
+             Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
               style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            ):
+             Text("${'Errand'}",
+               style: const TextStyle(fontWeight: FontWeight.bold),
+             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -238,19 +263,37 @@ class _SingleOrderState extends State<SingleOrder> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text("${widget.order.orderMode.mode}"),
-                    Text("${''}")
+                    Text("${widget.order.orderMode.mode == 'Errand'?'Rider: ${widget.order.orderMode.deliveryMan}':widget.order.orderMode.mode}"),
+                    Text("$CURRENCY${widget.order.orderMode.mode == 'Errand'?widget.order.orderMode.fee:
+                    widget.order.orderMode.mode == 'Delivery'?
+                    (widget.order.orderMode.fee + widget.order.orderAmount):widget.order.orderAmount
+                    }"),
+
                   ],
                 ),
+                if(widget.order.orderMode.mode != 'Errand')
+                  FutureBuilder(
+                    future: MerchantRepo.getMerchant(widget.order.orderMerchant),
+                    builder: (c,AsyncSnapshot<Merchant>merchant){
+                      if(merchant.hasData){
+                        return Text("${merchant.data.bName}") ;
+                      }
+                      else return const SizedBox.shrink();
+                    },
+                  ),
+                Text('${Utility.presentDate(DateTime.parse((widget.order.orderCreatedAt as Timestamp).toDate().toString()))}'),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     (_start/60).round() == 0?
-                    const Expanded(
-                      child: const Text("${'Have you collected your package. click here to take further action'}"),
+                     Expanded (
+                      child: widget.order.orderMode.mode != 'Errand'?
+                      const Text("${'Have you collected your package. click here to take further action'}"):
+                      const Text("") ,
                     ):const SizedBox.shrink()
                   ],
                 ),
+
               ],
             ),
             trailing: const Icon(Icons.keyboard_arrow_right),

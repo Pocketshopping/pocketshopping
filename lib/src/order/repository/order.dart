@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
+import 'package:pocketshopping/src/order/repository/errandObj.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
@@ -32,6 +33,7 @@ class Order {
   final String resolution;
   final List<String> index;
   final String customerDevice;
+  final ErrandObj errand;
 
   Order({
       this.orderItem,
@@ -53,7 +55,8 @@ class Order {
       this.potentials,
       this.resolution,
       this.customerDevice,
-      this.index
+      this.index,
+      this.errand
       });
 
   Order copyWith({
@@ -77,7 +80,8 @@ class Order {
       List<String> potentials,
       String resolution,
       List<String> index,
-      String customerDevice
+      String customerDevice,
+      ErrandObj errand
       }) {
     return Order(
         orderItem: orderItem ?? this.orderItem,
@@ -99,7 +103,8 @@ class Order {
         potentials: potentials??this.potentials,
         resolution: resolution??this.resolution,
         customerDevice: customerDevice??this.customerDevice,
-        index: index??this.index
+        index: index??this.index,
+        errand: errand??this.errand
     );
   }
 
@@ -124,7 +129,8 @@ class Order {
       potentials.hashCode ^
       resolution.hashCode ^
       index.hashCode ^
-      customerDevice.hashCode;
+      customerDevice.hashCode^
+      errand.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -149,7 +155,8 @@ class Order {
           isAssigned == other.isAssigned &&
           resolution == other.resolution &&
           index == other.index &&
-          customerDevice == other.customerDevice;
+          customerDevice == other.customerDevice &&
+          errand == other.errand;
 
   Order update(
       {List<OrderItem> orderItem,
@@ -171,7 +178,8 @@ class Order {
       List<String> potentials,
       String resolution,
       List<String> index,
-      String customerDevice
+      String customerDevice,
+      ErrandObj errand,
       }) {
     return copyWith(
       orderItem: orderItem,
@@ -193,7 +201,8 @@ class Order {
       potentials: potentials,
       resolution: resolution,
       index: index,
-      customerDevice: customerDevice
+      customerDevice: customerDevice,
+      errand: errand
     );
   }
 
@@ -204,38 +213,47 @@ class Order {
 
   Future<Map<String, dynamic>> toMap() async{
     return {
-      'orderItem': OrderItem.toListMap(orderItem)??[],
+      'orderItem': OrderItem != null ? OrderItem.toListMap(orderItem) : [],
       'orderAmount': orderAmount??0,
-      'orderCustomer': orderCustomer.toMap()??{},
+      'orderCustomer': orderCustomer != null ? orderCustomer.toMap() : {},
       'orderMerchant': orderMerchant??'',
       'orderCreatedAt': Timestamp.now(),
-      'orderMode': orderMode.toMap()??{},
-      'orderETA': orderETA??0,
-      'receipt': receipt.toMap()??{},
-      'status': status??0,
-      'orderID': orderID??'',
-      'docID': docID??'',
-      'orderConfirmation': orderConfirmation.toMap()??{},
+      'orderMode': orderMode != null ?orderMode.toMap() : {},
+      'orderETA': orderETA ?? 0,
+      'receipt': receipt != null ? receipt.toMap() : {},
+      'status': status ?? 0,
+      'orderID': orderID ?? '',
+      'docID': docID ?? '',
+      'orderConfirmation': orderConfirmation != null ? orderConfirmation.toMap() : {},
       'customerID': customerID??'',
-      'agent':agent??'',
-      'orderLogistic':orderLogistic??'',
+      'agent':agent ?? '',
+      'orderLogistic':orderLogistic ?? '',
       'isAssigned':isAssigned,
-      'potentials':potentials??[],
-      'resolution':resolution,
+      'potentials':potentials ?? [],
+      'resolution':resolution ?? '',
       'index': await makeOrderIndex(),
-      'etc':DateTime.now().add(Duration(minutes: 5)),
-      'customerDevice': await FirebaseMessaging().getToken()
+      'etc': orderMode.mode == 'Errand'? DateTime.now().add(Duration(minutes: 40)): DateTime.now().add(Duration(minutes: 5)),
+      'customerDevice': await FirebaseMessaging().getToken(),
+      'errand':errand != null ? errand.toMap() : {}
     };
   }
   Future<List<String>> makeOrderIndex()async{
     List<String> temp=[];
-    var merchant = await MerchantRepo.getMerchant(orderMerchant);
-    if(orderMode.deliveryMan != null)
-    temp = Utility.makeIndexList(orderMode.deliveryMan);
-    if(orderCustomer.customerName.isNotEmpty)
-    temp.addAll(Utility.makeIndexList(orderCustomer.customerName));
+    try{
+      if(orderMerchant.isNotEmpty)
+      {
+        var merchant = await MerchantRepo.getMerchant(orderMerchant);
+        temp.addAll(Utility.makeIndexList(merchant.bName));
+      }
+      if(orderMode.deliveryMan != null)
+        temp = Utility.makeIndexList(orderMode.deliveryMan);
 
-    temp.addAll(Utility.makeIndexList(merchant.bName));
+      if(orderCustomer.customerName.isNotEmpty)
+        temp.addAll(Utility.makeIndexList(orderCustomer.customerName));
+
+    }
+    catch(_){}
+
     return temp;
   }
   static Order fromEntity(OrderEntity orderEntity) {
@@ -259,7 +277,8 @@ class Order {
         resolution:  orderEntity.resolution,
         potentials: orderEntity.potentials,
         index: orderEntity.index,
-        customerDevice: orderEntity.customerDevice
+        customerDevice: orderEntity.customerDevice,
+        errand: orderEntity.errand,
         );
   }
 

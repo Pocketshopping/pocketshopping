@@ -64,18 +64,19 @@ class _ErrandState extends State<Errand> {
       radius: 50000,
       strictbounds:true,
     ).then((  value){
-      autocomplete.value = value.predictions;
-      if(selected.value == 2)
-      addressType.value=2;
-      else if (selected.value == 1)
-        addressType.value=1;
-
+      try{
+        if(selected.value == 2)
+          addressType.value=2;
+        else if (selected.value == 1)
+          addressType.value=1;
+        autocomplete.value = value.predictions;
+      }
+      catch(_){}
     });
 
 
 
     Utility.locationAccess();
-
     super.initState();
 
   }
@@ -294,6 +295,7 @@ class _ErrandState extends State<Errand> {
                                                                 radius: 50000,
                                                                 strictbounds:true,
                                                               );
+                                                              if(result != null)
                                                               autocomplete.value = result.predictions;
                                                             }
                                                             else{
@@ -302,6 +304,7 @@ class _ErrandState extends State<Errand> {
                                                                 radius: 50000,
                                                                 strictbounds:true,
                                                               );
+                                                              if(result != null)
                                                               autocomplete.value = result.predictions;
                                                             }
                                                             addressType.value=1;
@@ -377,6 +380,7 @@ class _ErrandState extends State<Errand> {
                                                                 radius: 50000,
                                                                 strictbounds:true,
                                                               );
+                                                              if(result != null)
                                                               autocomplete.value = result.predictions;
                                                             }
                                                             else{
@@ -385,6 +389,7 @@ class _ErrandState extends State<Errand> {
                                                                 radius: 50000,
                                                                 strictbounds:true,
                                                               );
+                                                              if(result != null)
                                                               autocomplete.value = result.predictions;
                                                             }
                                                             addressType.value=2;
@@ -441,7 +446,12 @@ class _ErrandState extends State<Errand> {
                                                         source: sourcePosition.value,
                                                         destination: destinationPosition.value,
                                                         distance: (distance/1000).round(),
-                                                      ));
+                                                        sourceAddress: source.text,
+                                                        destinationAddress: destination.text,
+                                                      )).then((value) {
+                                                        destination.clear();
+                                                        isTyping.value=false;
+                                                      });
                                                     }
                                                     else{
                                                       Utility.infoDialogMaker("Source and Destination cannot be thesame.",title: 'Information');

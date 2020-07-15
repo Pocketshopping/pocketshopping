@@ -1,14 +1,18 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
+import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/order/cErrandTracker.dart';
 import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
 class CloseOrder extends StatefulWidget {
@@ -189,10 +193,17 @@ class _SingleOrderState extends State<SingleOrder> {
           SizedBox(height: 10,),
           ListTile(
             onTap: () {
-              Get.to(CustomerTracker(
-                order: widget.order.docID,
-                user: widget.user.user,
-              )
+              Get.to(
+                widget.order.orderMode.mode != 'Errand'?
+                        CustomerTracker(
+                      order: widget.order.docID,
+                      user: widget.user.user,
+                    )
+                    :
+                    CustomerErrandTracker(
+                      user: widget.user.user,
+                      order: widget.order.docID,
+                    )
               );
             },
             leading:CircleAvatar(
@@ -200,8 +211,12 @@ class _SingleOrderState extends State<SingleOrder> {
                 backgroundColor: Colors.white,
                 child: Center(child: widget.order.receipt.psStatus == 'success'?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),),
             ),
-            title: Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            title: widget.order.orderMode.mode != 'Errand'?
+            Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ):
+            Text("${'Errand'}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle:Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,10 +225,21 @@ class _SingleOrderState extends State<SingleOrder> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text("${widget.order.orderMode.mode}"),
+                    Text("${widget.order.orderMode.mode == 'Errand'?'Rider: ${widget.order.orderMode.deliveryMan}':widget.order.orderMode.mode}"),
                     Text("$CURRENCY${(widget.order.orderAmount+widget.order.orderMode.fee)}")
                   ],
                 ),
+                if(widget.order.orderMode.mode != 'Errand')
+                  FutureBuilder(
+                    future: MerchantRepo.getMerchant(widget.order.orderMerchant),
+                    builder: (c,AsyncSnapshot<Merchant>merchant){
+                      if(merchant.hasData){
+                        return Text("${merchant.data.bName}") ;
+                      }
+                      else return const SizedBox.shrink();
+                    },
+                  ),
+                Text('${Utility.presentDate(DateTime.parse((widget.order.orderCreatedAt as Timestamp).toDate().toString()))}'),
               ],
             ),
             trailing: Icon(Icons.keyboard_arrow_right),

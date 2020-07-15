@@ -154,7 +154,10 @@ Future<void> _createNotificationChannel(String id, String name,
 void callbackDispatcher() {
   Workmanager.executeTask((task, inputData)async{
     if(task == "LocationUpdateTask"){
-      //final prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance();
+      double lat;
+      double lng;
+      double distance;
       try{
         bool enable = await Geolocator().isLocationServiceEnabled();
         final FirebaseMessaging _fcm = FirebaseMessaging();
@@ -167,15 +170,17 @@ void callbackDispatcher() {
               Geoflutterfire geo = Geoflutterfire();
               GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
 
+
+
               await LocRepo.update({
-                'agentParent':inputData['agentParent'],
-                'wallet':inputData['wallet'],
-                'agentID':inputData['agentID'],
+                'agentParent':prefs.getString('agentParent'),
+                'wallet':prefs.getString('wallet'),
+                'agentID':prefs.getString('agentID'),
                 'agentLocation':agentLocation.data,
-                'agentAutomobile':inputData['agentAutomobile'],
-                'agentName':inputData['agentName'],
-                'agentTelephone':inputData['agentTelephone'],
-                'availability':inputData['availability'],
+                'agentAutomobile':prefs.getString('agentAutomobile'),
+                'agentName':prefs.getString('agentName'),
+                'agentTelephone':prefs.getString('agentTelephone'),
+                'availability':prefs.getBool('availability'),
                 'pocket':true,
                 'parent':true,
                 'remitted':true,
@@ -183,11 +188,17 @@ void callbackDispatcher() {
                 'device':fcmToken,
                 'UpdatedAt':Timestamp.now(),
                 'address':await Utility.address(position),
-                'workPlaceWallet':inputData['workPlaceWallet'],
-                'profile':inputData['profile'],
-                'limit':inputData['limit'],
-                'index':Utility.makeIndexList(inputData['agentName']),
+                'workPlaceWallet':prefs.getString('workPlaceWallet'),
+                'profile':prefs.getString('profile'),
+                'limit':prefs.getInt('limit'),
+                'index':Utility.makeIndexList(prefs.getString('agentName')),
+                'autoAssigned':prefs.getBool('autoAssigned'),
+
               });
+
+
+              //prefs.setDouble('riderLat', position.latitude);
+              //prefs.setDouble('riderLng', position.longitude);
             }
           }
           else{

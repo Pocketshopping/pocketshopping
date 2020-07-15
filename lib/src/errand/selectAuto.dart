@@ -1,30 +1,22 @@
 import 'dart:async';
-import 'dart:typed_data';
 
-import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_place/google_place.dart';
+import 'package:location/location.dart' as loc;
+import 'package:pocketshopping/src/errand/bloc/errandBloc.dart';
 import 'package:pocketshopping/src/errand/direction.dart';
-import 'package:pocketshopping/src/errand/map.dart';
+import 'package:pocketshopping/src/errand/preview.dart';
 import 'package:pocketshopping/src/errand/repository/errandRepo.dart';
-import 'package:pocketshopping/src/geofence/package_geofence.dart';
-import 'package:pocketshopping/src/geofence/reviewPlace.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
-import 'package:pocketshopping/src/order/customerMapTracker.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:location/location.dart' as loc;
 
 class SelectAuto extends StatefulWidget {
   final Session user;
@@ -32,7 +24,9 @@ class SelectAuto extends StatefulWidget {
   final LatLng source;
   final LatLng destination;
   final int distance;
-  SelectAuto({this.user,this.position,this.source,this.destination,this.distance});
+  final sourceAddress;
+  final destinationAddress;
+  SelectAuto({this.user,this.position,this.source,this.destination,this.distance,this.sourceAddress,this.destinationAddress});
 
   @override
   State<StatefulWidget> createState() => _SelectAutoState();
@@ -44,15 +38,19 @@ class _SelectAutoState extends State<SelectAuto> {
   Position position;
   final load = ValueNotifier<bool>(false);
   final fee = ValueNotifier<List<int>>([0,0,0]);
+  final agents = ValueNotifier<List<AgentLocUp>>([]);
 
   final destinationPosition = ValueNotifier<LatLng>(null);
   double zoom;
 
   loc.Location location;
   StreamSubscription<loc.LocationData> locStream;
+  StreamSubscription<List<AgentLocUp>> agentStream;
 
   @override
   void dispose() {
+    locStream?.cancel();
+    agentStream?.cancel();
     super.dispose();
   }
 
@@ -64,16 +62,19 @@ class _SelectAutoState extends State<SelectAuto> {
     Future.delayed(Duration(seconds: 1),(){load.value=true;});
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     zoom = Utility.zoomer(widget.distance);
-
-
     Utility.locationAccess();
-
     CloudFunctions.instance
         .getHttpsCallable(
       functionName: "ErrandDeliveryCut",
     ).call({'distance': (widget.distance*1000)}).then((value) {fee.value = List.castFrom(value.data);});
-    super.initState();
 
+    agentStream = ErrandRepo.getNearByErrandRider(Position(latitude: widget.source.latitude,longitude: widget.source.longitude)).listen((event) {
+      agents.value = event;
+      ErrandBloc.instance.newAgentLocList(event);
+    });
+
+
+    super.initState();
   }
 
 
@@ -81,18 +82,11 @@ class _SelectAutoState extends State<SelectAuto> {
   @override
   Widget build(BuildContext context) {
     return  WillPopScope(
-        onWillPop: () async {
-
-            return true;
-
-        },
-        child:
-        Scaffold(
-            body: StreamBuilder<List<AgentLocUp>>(
-              stream: ErrandRepo.getNearByErrandRider(Position(latitude: widget.source.latitude,longitude: widget.source.longitude)),
-              initialData: [],
-              builder: (context, AsyncSnapshot <List<AgentLocUp>> snapshot){
-
+        onWillPop: () async {return true;},
+        child: Scaffold(
+            body: ValueListenableBuilder<List<AgentLocUp>>(
+              valueListenable: agents,
+              builder: (c, List<AgentLocUp> snapshot,cc){
                 return ValueListenableBuilder(
                     valueListenable: fee,
                     builder: (i,List<int> amount,ii){
@@ -135,9 +129,7 @@ class _SelectAutoState extends State<SelectAuto> {
                               ],
                             ),
 
-                            child: snapshot.connectionState != ConnectionState.waiting?
-                                !snapshot.hasError?
-                                    snapshot.data.isNotEmpty?
+                            child:snapshot.isNotEmpty?
                             Column(
                               children: [
                                 Expanded(
@@ -175,10 +167,28 @@ class _SelectAutoState extends State<SelectAuto> {
                                       children: [
 
 
-                                        snapshot.data.any((element) => element.agentAutomobile == 'MotorBike')?
+                                        snapshot.any((element) => element.agentAutomobile == 'MotorBike')?
                                         Padding(
                                           padding: EdgeInsets.symmetric(vertical: 5),
                                           child: ListTile(
+                                            onTap: (){
+                                              if(amount[0] != 0)
+                                              {
+                                                Get.off(Preview(
+                                                  user: currentUser,
+                                                  source: widget.source,
+                                                  destination: widget.destination,
+                                                  distance: widget.distance,
+                                                  fee: amount[0],
+                                                  position: position,
+                                                  type: 0,
+                                                  auto: 'MotorBike',
+                                                  sourceAddress: widget.sourceAddress,
+                                                  destinationAddress: widget.destinationAddress,
+
+                                                ));
+                                              }
+                                            },
                                             leading: CircleAvatar(
                                               child: Image.asset('assets/images/mbike.png'),
                                               backgroundColor: Colors.white,
@@ -186,36 +196,73 @@ class _SelectAutoState extends State<SelectAuto> {
 
                                             title: Text('MotorBike',style: TextStyle(fontSize: 18),),
                                             subtitle: Text('Select this if you want a motorBike.'),
-                                            trailing: Text('$CURRENCY${amount[0]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                            trailing: amount[0] != 0?
+                                            Text('$CURRENCY${amount[0]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),):
+                                            CircularProgressIndicator()
+                                            ,
                                           ),
                                         ):const SizedBox.shrink(),
 
-                                       snapshot.data.any((element) => element.agentAutomobile == 'Car')?
+                                       snapshot.any((element) => element.agentAutomobile == 'Car')?
                                         Padding(
                                           padding: EdgeInsets.symmetric(vertical: 5),
                                           child: ListTile(
+                                            onTap: (){
+                                              if(amount[1] != 0)
+                                                Get.off(Preview(
+                                                  user: currentUser,
+                                                  source: widget.source,
+                                                  destination: widget.destination,
+                                                  distance: widget.distance,
+                                                  fee: amount[1],
+                                                  position: position,
+                                                  type: 1,
+                                                  auto: 'Car',
+                                                  sourceAddress: widget.sourceAddress,
+                                                  destinationAddress: widget.destinationAddress,
+                                                ));
+                                            },
                                             leading: CircleAvatar(
                                               child: Image.asset('assets/images/ecar.png'),
                                               backgroundColor: Colors.white,
                                             ),
                                             title: Text('Car',style: TextStyle(fontSize: 18),),
                                             subtitle: Text('Select this if you want a Car.'),
-                                            trailing: Text('$CURRENCY${amount[1]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                              trailing: amount[1] != 0?
+                                              Text('$CURRENCY${amount[1]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),):
+                                              CircularProgressIndicator()
                                           ),
                                         )
                                             :const SizedBox.shrink(),
 
-                                       snapshot.data.any((element) => element.agentAutomobile == 'Van')?
+                                       snapshot.any((element) => element.agentAutomobile == 'Van')?
                                         Padding(
                                           padding: EdgeInsets.symmetric(vertical: 5),
                                           child: ListTile(
+                                            onTap: (){
+                                              if(amount[2] != 0)
+                                                Get.off(Preview(
+                                                  user: currentUser,
+                                                  source: widget.source,
+                                                  destination: widget.destination,
+                                                  distance: widget.distance,
+                                                  fee: amount[2],
+                                                  position: position,
+                                                  type: 2,
+                                                  auto: 'Van',
+                                                  sourceAddress: widget.sourceAddress,
+                                                  destinationAddress: widget.destinationAddress,
+                                                ));
+                                            },
                                             leading: CircleAvatar(
                                               child: Image.asset('assets/images/evan.png'),
                                               backgroundColor: Colors.white,
                                             ),
                                             title: Text('Van/Truck',style: TextStyle(fontSize: 18),),
                                             subtitle: Text('Select this if you want a Van/Truck.'),
-                                            trailing: Text('$CURRENCY${amount[2]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                              trailing: amount[2] != 0?
+                                              Text('$CURRENCY${amount[2]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),):
+                                              CircularProgressIndicator()
                                           ),
                                         )
                                             :const SizedBox.shrink(),
@@ -225,21 +272,8 @@ class _SelectAutoState extends State<SelectAuto> {
                                 ),
                               ],
                             ):Center(
-                                        child: Text('No Rider within region.')
+                                        child: Text('No available Rider within region.')
                                     )
-
-                                        :
-                                Center(
-                                  child: Text('Error Fetching Rider. Check connection and try again.')
-                                )
-
-                                    :
-                            Center(
-                              child: JumpingDotsProgressIndicator(
-                                fontSize: MediaQuery.of(context).size.height * 0.12,
-                                color: PRIMARYCOLOR,
-                              ),
-                            )
                           ),
                         )
                       ],

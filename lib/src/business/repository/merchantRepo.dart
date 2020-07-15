@@ -179,12 +179,17 @@ class MerchantRepo {
 
   static Future<Merchant> getMerchant(String mid) async {
     Merchant merchant;
-    try{
-      var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache);
-      merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
-      return merchant;
-    }catch(_){
+    if(mid.isEmpty)
       return null;
+
+    else{
+      try{
+        var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache);
+        merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
+        return merchant;
+      }catch(_){
+        return null;
+      }
     }
   }
 

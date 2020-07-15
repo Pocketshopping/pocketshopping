@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
@@ -78,6 +79,14 @@ class LocRepo {
 
       await databaseReference.collection("agentLocationUpdate").document(data['agentID']).setData(data);
     }
+
+    try{
+      int count = await OrderRepo.getUnclaimedDelivery(agent.agentID);
+      if(count>0)
+        Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');
+    }
+    catch(_){}
+
   }
 
   static Future<bool> getLocUpdate(String agentID) async {
@@ -92,6 +101,15 @@ class LocRepo {
       return change;
     }
     catch(_){return !change;}
+
+  }
+
+  static Future<bool> updateAgentCoord(String agentID, dynamic geoFlutterFire ) async {
+    try {
+      await LogisticRepo.updateAgentLoc(agentID, {'UpdatedAt': Timestamp.now(),'agentLocation':geoFlutterFire});
+      return true;
+    }
+    catch(_){return false;}
 
   }
 

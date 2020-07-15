@@ -12,10 +12,14 @@ class OrderRepo {
   static final databaseReference = Firestore.instance;
 
   static Future<String> save(Order order) async {
-    DocumentReference bid;
-    bid = await databaseReference.collection("orders").add(await order.toMap());
-    //await LogisticRepo.makeAgentBusy(order.agent);
-    return bid.documentID;
+    try{
+      DocumentReference bid;
+      bid = await databaseReference.collection("orders").add(await order.toMap());
+      return bid.documentID;
+    }
+    catch(_){
+      return '';
+    }
   }
 
 
@@ -228,6 +232,7 @@ class OrderRepo {
         .collection("orders")
         .where('$whose',isEqualTo: agentID)
         .where('status',isEqualTo: type)
+         .where('isAssigned',isEqualTo: true)
         .orderBy('orderCreatedAt',descending: true)
         .limit(50)
          .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));

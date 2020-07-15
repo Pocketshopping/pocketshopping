@@ -25,14 +25,17 @@ class _MyRadiusState extends State<MyRadius> {
   Session currentUser;
   GeoFenceBloc gBloc;
   final showSearch=ValueNotifier<bool>(false);
+  final left=ValueNotifier<bool>(false);
+  final right=ValueNotifier<bool>(true);
   final search=ValueNotifier<List<MCategory>>([]);
+  final scrollController = ScrollController();
 
   @override
   void initState() {
     currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
     gBloc = GeoFenceBloc();
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-    Utility.locationAccess();
+    //Utility.locationAccess();
     super.initState();
   }
 
@@ -43,6 +46,7 @@ class _MyRadiusState extends State<MyRadius> {
     child: BlocBuilder<GeoFenceBloc, GeoFenceState>(
     builder: (context, state) {
       search.value = state.categories;
+      right.value = state.nearByMerchants.length>2;
       return Scaffold(
           resizeToAvoidBottomPadding : false,
           appBar: PreferredSize(
@@ -83,22 +87,96 @@ class _MyRadiusState extends State<MyRadius> {
                         Expanded(flex: 0,child: Align(alignment: Alignment.centerLeft,child: Padding(padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),child: Text('Places nearest to you.'),),)),
                         if(state.isSuccess)
                         Expanded(
-                          child: state.nearByMerchants.isNotEmpty?ListView.builder(
-                            itemBuilder: (BuildContext context, int index) {
-                              return state.nearByMerchants[index].bCategory != 'Logistic'?Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 5),
-                                  width: MediaQuery.of(context).size.width*0.5,
-                                  child: ReviewPlaceWidget(
-                                    merchant: state.nearByMerchants[index],
-                                    cPosition: GeoFirePoint(
-                                        state.currentPosition.latitude,
-                                        state.currentPosition.longitude),
-                                    user: currentUser.user,
-                                  )
-                              ):const SizedBox.shrink();
-                            },
-                            itemCount: state.nearByMerchants.length,
-                            scrollDirection: Axis.horizontal,
+                          child: state.nearByMerchants.isNotEmpty?Stack(
+                            children: [
+                              NotificationListener(
+                                child: ListView.builder(
+                                  itemBuilder: (BuildContext context, int index) {
+                                    return state.nearByMerchants[index].bCategory != 'Logistic'?Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 5),
+                                        width: MediaQuery.of(context).size.width*0.5,
+                                        child: ReviewPlaceWidget(
+                                          merchant: state.nearByMerchants[index],
+                                          cPosition: GeoFirePoint(
+                                              state.currentPosition.latitude,
+                                              state.currentPosition.longitude),
+                                          user: currentUser.user,
+                                        )
+                                    ):const SizedBox.shrink();
+                                  },
+                                  itemCount: state.nearByMerchants.length,
+                                  scrollDirection: Axis.horizontal,
+                                  controller: scrollController,
+                                ),
+                                onNotification: (t) {
+                                  if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+                                    left.value =true;
+                                    right.value =false;
+                                  }
+                                  else if (scrollController.position.pixels == scrollController.position.minScrollExtent) {
+                                    right.value = true;
+                                    left.value=false;
+                                  }
+                                  else{
+                                    right.value = true;
+                                    left.value=true;
+                                  }
+
+                                  return true;
+                                },
+                              ),
+                              ValueListenableBuilder(
+                                valueListenable: left,
+                                builder: (i,bool showLeft,ii){
+                                  return showLeft?Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: GestureDetector(
+                                        onTap: (){
+                                          scrollController..animateTo(
+                                              scrollController.position.pixels-100.0,
+                                              duration: Duration(milliseconds: 1000),
+                                              curve: Curves.ease);
+                                        },
+                                          child: Card(
+                                            child: CircleAvatar(
+                                              backgroundColor: Colors.white,
+                                              child: Icon(Icons.arrow_back_ios,color: Colors.grey,),
+                                            ),
+                                            shape: CircleBorder(),
+                                            elevation: 18.0,
+                                            clipBehavior: Clip.antiAlias,
+                                          )
+                                      )
+                                  ):const SizedBox.shrink();
+                                },
+                              ),
+
+                              ValueListenableBuilder(
+                                valueListenable: right,
+                                builder: (_,bool showRight,__){
+                                  return showRight?Align(
+                                      alignment: Alignment.centerRight,
+                                      child: GestureDetector(
+                                        onTap: (){
+                                          scrollController..animateTo(
+                                              scrollController.position.pixels+100.0,
+                                              duration: Duration(milliseconds: 1000),
+                                              curve: Curves.ease);
+                                        },
+                                          child: Card(
+                                            child: CircleAvatar(
+                                              backgroundColor: Colors.white,
+                                              child: Icon(Icons.arrow_forward_ios,color: Colors.grey,),
+                                            ),
+                                            shape: CircleBorder(),
+                                            elevation: 18.0,
+                                            clipBehavior: Clip.antiAlias,
+                                          )
+                                      )
+                                  ):const SizedBox.shrink();
+                                },
+                              )
+                            ],
                           ):
                               Center(
                                 child: Image.asset('assets/images/blogo.png'),

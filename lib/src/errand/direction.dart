@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
@@ -10,6 +11,7 @@ import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/shared/direction/package_direction.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:random_string/random_string.dart';
 
 //const double CAMERA_ZOOM = 13;
 const double CAMERA_TILT = 0;
@@ -56,7 +58,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
   double pinPillPosition = -100;
   PinInformation currentlySelectedPin = PinInformation(
       pinPath: '',
-      avatarPath: '',
+      avatarPath: PocketShoppingDefaultAvatar,
       location: '',
       locationName: '',
       labelColor: Colors.grey);
@@ -105,12 +107,14 @@ class ErrandDirectionState extends State<ErrandDirection> {
       }
     }
     if (dist < 1000) {
-      distance = '${dist.round()} meter(s) away';
+      distance = '${dist.round()} meter(s)';
       zoom = Utility.zoomer(dist.round());
+      if(mounted)
       setState(() {});
     } else {
-      distance = '${(dist / 1000).round()} kilometer(s) away';
+      distance = '${(dist / 1000).round()} kilometer(s)';
       zoom = Utility.zoomer((dist / 1000).round());
+      if(mounted)
       setState(() {});
     }
   }
@@ -175,11 +179,9 @@ class ErrandDirectionState extends State<ErrandDirection> {
                 onTap: (LatLng loc) {
                   pinPillPosition = -100;
                 },
-                onMapCreated: (GoogleMapController controller) {
+                onMapCreated: (GoogleMapController controller) async{
                  // controller.setMapStyle(Utility.mapStyles);
                   _controller.complete(controller);
-                  // my map has completed being created;
-                  // i'm ready to show the pins on the map
                   showPinsOnMap();
                 }),
             MapPinPillComponent(
@@ -207,7 +209,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
                 icon: routeMode == RouteMode.driving
                     ? IconButton(
                   icon: Icon(
-                    Icons.drive_eta,
+                    Icons.timeline,
                     color: Colors.black54,
                   ), onPressed: () {  },
                 )
@@ -217,7 +219,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
                     color: Colors.black54,
                   ), onPressed: () {  },
                 ),
-                backgroundColor: Colors.grey,
+                backgroundColor: Colors.white,
               ),
             ],
           ),
@@ -225,14 +227,12 @@ class ErrandDirectionState extends State<ErrandDirection> {
             : Container());
   }
 
-  void showPinsOnMap() {
+  void showPinsOnMap()async {
     // get a LatLng for the source location
     // from the LocationData currentLocation object
-    var pinPosition =
-    LatLng(currentLocation.latitude, currentLocation.longitude);
+    var pinPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
     // get a LatLng out of the LocationData object
-    var destPosition =
-    LatLng(destinationLocation.latitude, destinationLocation.longitude);
+    var destPosition = LatLng(destinationLocation.latitude, destinationLocation.longitude);
 
     sourcePinInfo = PinInformation(
         locationName: widget.sourceName ?? "Source",
@@ -258,8 +258,10 @@ class ErrandDirectionState extends State<ErrandDirection> {
 
     // add the initial source location pin
     _markers.add(Marker(
-        markerId: MarkerId('sourcePin'),
+        markerId: MarkerId('sourcePin${randomAlpha(5)}'),
         position: pinPosition,
+        infoWindow: InfoWindow(title: 'sdssds',snippet: 'ewewew',),
+        visible: true,
         onTap: () {
           if (mounted) {
             setState(() {
@@ -271,7 +273,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
         icon: sourceIcon));
     // destination pin
     _markers.add(Marker(
-        markerId: MarkerId('destPin'),
+        markerId: MarkerId('destPin${randomAlpha(5)}'),
         position: destPosition,
         onTap: () {
           if (mounted) {
@@ -301,7 +303,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
       if (mounted) {
         setState(() {
           _polylines.add(Polyline(
-              width: 5, // set the width of the polylines
+              width: 3, // set the width of the polylines
               polylineId: PolylineId("poly"),
               color: Color.fromARGB(255, 40, 122, 198),
               points: polylineCoordinates));
@@ -325,10 +327,11 @@ class ErrandDirectionState extends State<ErrandDirection> {
       setState(() {
         var pinPosition =
         LatLng(currentLocation.latitude, currentLocation.longitude);
-        _markers.removeWhere((m) => m.markerId.value == 'sourcePin');
+        _markers.removeWhere((m) => m.markerId.value.contains('sourcePin'));
         _markers.add(Marker(
-            markerId: MarkerId('sourcePin'),
+            markerId: MarkerId('sourcePin${randomAlpha(5)}'),
             onTap: () {
+              if(mounted)
               setState(() {
                 currentlySelectedPin = sourcePinInfo;
                 pinPillPosition = 0;
@@ -339,8 +342,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
       });
     }
   }
-}
 
-class Utils {
 
 }
+

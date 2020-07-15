@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,8 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
-import 'package:pocketshopping/src/order/deliveryTracker.dart';
 import 'package:pocketshopping/src/order/lTracker.dart';
+import 'package:pocketshopping/src/order/rErrandTracker.dart';
 import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
@@ -324,14 +325,26 @@ class _SingleOrderState extends State<SingleOrder> {
     return Column(
         children:[
           SizedBox(height: 10,),
+          if(widget.order.orderMode.mode != 'Errand')
           merchant != null?ListTile(
       onTap: () {
         Get.to(
             widget.user.user.role != 'admin'?
+            widget.order.orderMode.mode != 'Errand'?
             RiderTracker(
           order: widget.order.docID,
           user: widget.user.user,
-        ):
+        ):RiderErrandTracker(
+              order: widget.order.docID,
+              user: widget.user.user,
+              isActive: true,
+            )
+                :
+            widget.order.orderMode.mode != 'Errand'?
+            LogisticTracker(
+              order: widget.order.docID,
+              user: widget.user.user,
+            ):
             LogisticTracker(
               order: widget.order.docID,
               user: widget.user.user,
@@ -359,8 +372,12 @@ class _SingleOrderState extends State<SingleOrder> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Expanded(
-                child: Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: widget.order.orderMode.mode != 'Errand'?
+                Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ):
+                Text("${'Errand'}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               Text("$CURRENCY${
@@ -397,6 +414,64 @@ class _SingleOrderState extends State<SingleOrder> {
             alignment: Alignment.center,
           ),
           Divider(),
+
+          if(widget.order.orderMode.mode == 'Errand')
+          ListTile(
+            onTap: () {
+              Get.to(
+                  widget.user.user.role != 'admin'?
+                  widget.order.orderMode.mode != 'Errand'?
+                  RiderTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  ):RiderErrandTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                    isActive: true,
+                  )
+                      :
+                  widget.order.orderMode.mode != 'Errand'?
+                  LogisticTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  ):
+                  LogisticTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  )
+              ).then((value) {
+                if(value == 'Refresh')
+                {
+                  widget.refresh();
+
+                }
+
+              });
+            },
+            leading: CircleAvatar(
+                radius: 25.0,
+                backgroundColor: Colors.grey.withOpacity(0.5),
+                child: Icon(AntIcons.clock_circle_outline,color: Colors.black54,)),
+            title:Text("${'Errand'}", style: const TextStyle(fontWeight: FontWeight.bold),),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    if(widget.user.agent == null)
+                    Text('Rider: ${widget.order.orderMode.deliveryMan}'),
+                    Text("$CURRENCY${widget.order.orderMode.fee}")
+                  ],
+                ),
+                Text('${Utility.presentDate(DateTime.parse((widget.order.orderCreatedAt as Timestamp).toDate().toString()))}'),
+              ],
+            ),
+            trailing: Icon(Icons.keyboard_arrow_right),
+          )
+
+
     ]
     );
   }

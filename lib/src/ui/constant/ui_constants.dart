@@ -44,3 +44,4 @@ const String PocketDefaultWallet="304151834914";
 const int TIMEOUT = 30;
 const String PaystackAPI = 'https://api.paystack.co/';
 const String googleAPIKey = 'AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc';
+const int requestWorkerID = 369;

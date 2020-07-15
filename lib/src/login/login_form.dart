@@ -3,14 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
-import 'package:pocketshopping/src/login/resetPasswordButton.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/validators.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:recase/recase.dart';
 
 class LoginForm extends StatefulWidget {

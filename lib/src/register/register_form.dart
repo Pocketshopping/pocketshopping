@@ -9,7 +9,6 @@ import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterForm extends StatefulWidget {
   final UserRepository _userRepository;

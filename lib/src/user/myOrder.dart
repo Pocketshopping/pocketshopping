@@ -48,10 +48,10 @@ class _OrdersState extends State<MyOrders> {
               labelColor: PRIMARYCOLOR,
               tabs: [
                 Tab(
-                  text: "Open Order",
+                  text: "Active",
                 ),
                 Tab(
-                  text: "Close Order",
+                  text: "Completed",
                 ),
               ],
             ),

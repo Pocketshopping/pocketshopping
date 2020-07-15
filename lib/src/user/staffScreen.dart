@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'package:pocketshopping/src/geofence/geofence.dart';
+import 'package:pocketshopping/src/geofence/radius.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
@@ -26,7 +27,7 @@ import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:pocketshopping/src/geofence/radius.dart';
+
 import 'bloc/user.dart';
 
 class StaffScreen extends StatefulWidget {
@@ -100,6 +101,7 @@ class _StaffScreenState extends State<StaffScreen> {
         }catch(_){}
       }
     });
+    Utility.locationAccess();
     super.initState();
   }
 

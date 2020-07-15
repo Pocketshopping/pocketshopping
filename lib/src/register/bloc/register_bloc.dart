@@ -3,16 +3,13 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:devicelocale/devicelocale.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/validators.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {

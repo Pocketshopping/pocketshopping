@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/deliveryTracker.dart';
+import 'package:pocketshopping/src/order/lTracker.dart';
+import 'package:pocketshopping/src/order/rErrandTracker.dart';
 import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
@@ -202,10 +205,26 @@ class _SingleOrderState extends State<SingleOrder> {
     return Column(
         children:[
           SizedBox(height: 10,),
+          if(widget.order.orderMode.mode != 'Errand')
           merchant != null?ListTile(
             onTap: () {
               Get.to(
+                  widget.user.user.role != 'admin'?
+                  widget.order.orderMode.mode != 'Errand'?
                   RiderTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  ):RiderErrandTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  )
+                      :
+                  widget.order.orderMode.mode != 'Errand'?
+                  LogisticTracker(
+                    order: widget.order.docID,
+                    user: widget.user.user,
+                  ):
+                  LogisticTracker(
                     order: widget.order.docID,
                     user: widget.user.user,
                   )
@@ -277,6 +296,61 @@ class _SingleOrderState extends State<SingleOrder> {
             alignment: Alignment.center,
           ),
           Divider(),
+          if(widget.order.orderMode.mode == 'Errand')
+            ListTile(
+              onTap: () {
+                Get.to(
+                    widget.user.user.role != 'admin'?
+                    widget.order.orderMode.mode != 'Errand'?
+                    RiderTracker(
+                      order: widget.order.docID,
+                      user: widget.user.user,
+                    ):RiderErrandTracker(
+                      order: widget.order.docID,
+                      user: widget.user.user,
+                    )
+                        :
+                    widget.order.orderMode.mode != 'Errand'?
+                    LogisticTracker(
+                      order: widget.order.docID,
+                      user: widget.user.user,
+                    ):
+                    LogisticTracker(
+                      order: widget.order.docID,
+                      user: widget.user.user,
+                    )
+                ).then((value) {
+                  if(value == 'Refresh')
+                  {
+                    widget.refresh();
+
+                  }
+
+                });
+              },
+              leading: CircleAvatar(
+                radius: 25.0,
+                backgroundColor:Colors.white,
+                child: Center(child: widget.order.receipt.psStatus == 'success'?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),),
+              ),
+              title:Text("${'Errand'}", style: const TextStyle(fontWeight: FontWeight.bold),),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      if(widget.user.agent == null)
+                        Text('Rider: ${widget.order.orderMode.deliveryMan}'),
+                      Text("$CURRENCY${widget.order.orderMode.fee}")
+                    ],
+                  ),
+                  Text('${Utility.presentDate(DateTime.parse((widget.order.orderCreatedAt as Timestamp).toDate().toString()))}'),
+                ],
+              ),
+              trailing: Icon(Icons.keyboard_arrow_right),
+            )
         ]
     );
   }

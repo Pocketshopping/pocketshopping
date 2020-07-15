@@ -12,7 +12,6 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
-import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/geofence/radius.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
@@ -95,8 +94,12 @@ class _AdminScreenState extends State<AdminScreen> {
       }
     });
 
+    Utility.stopAllService();
+    Utility.locationAccess();
     super.initState();
   }
+
+
 
 
     processNotification(dynamic payload,dynamic notification)async{

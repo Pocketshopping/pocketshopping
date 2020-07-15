@@ -23,8 +23,7 @@ class Session {
   }
 
   @override
-  int get hashCode =>
-      user.hashCode ^ merchant.hashCode ^ agent.hashCode ^ staff.hashCode;
+  int get hashCode => user.hashCode ^ merchant.hashCode ^ agent.hashCode ^ staff.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -38,6 +37,6 @@ class Session {
 
   @override
   String toString() {
-    return '''Session {user:${user.uid}''';
+    return '''Instance of Session''';
   }
 }

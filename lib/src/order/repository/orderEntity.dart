@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
+import 'package:pocketshopping/src/order/repository/errandObj.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
@@ -31,6 +32,7 @@ class OrderEntity extends Equatable {
   final List<String> potentials;
   final List<String> index;
   final String customerDevice;
+  final ErrandObj errand;
 
   const OrderEntity(
       this.orderItem,
@@ -52,7 +54,8 @@ class OrderEntity extends Equatable {
       this.resolution,
       this.potentials,
       this.index,
-      this.customerDevice
+      this.customerDevice,
+      this.errand
       );
 
   Map<String, Object> toJson() {
@@ -76,7 +79,8 @@ class OrderEntity extends Equatable {
       'resolution':resolution,
       'potentials':potentials,
       'index':index,
-      'customerDevice':customerDevice
+      'customerDevice':customerDevice,
+      'errand':errand
     };
   }
 
@@ -101,7 +105,8 @@ class OrderEntity extends Equatable {
         resolution,
         potentials,
         index,
-        customerDevice
+        customerDevice,
+        errand
       ];
 
   @override
@@ -131,6 +136,7 @@ class OrderEntity extends Equatable {
         json['potentials'] as List,
         json['index'] as List,
         json['customerDevice'] as String,
+      json['errand'] as ErrandObj,
     );
   }
 
@@ -157,6 +163,7 @@ class OrderEntity extends Equatable {
         List.castFrom(snap.data['potentials']),
        List.castFrom(snap.data['index']),
        snap.data['customerDevice'],
+        ErrandObj.fromMap(snap.data['errand'])??null,
     );
   }
 
@@ -187,7 +194,8 @@ class OrderEntity extends Equatable {
       'resolution':orderLogistic,
       'potentials':potentials,
       'index':index,
-      'customerDevice':customerDevice
+      'customerDevice':customerDevice,
+      'errand':errand
     };
   }
 }

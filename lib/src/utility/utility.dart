@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:date_format/date_format.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
@@ -24,6 +26,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 class Utility {
   static var location = Location();
   static final  FirebaseMessaging _fcm = FirebaseMessaging();
+  static const platform = const MethodChannel('fleepage.pocketshopping');
   static String mapStyles = '''[
   {
     "elementType": "geometry",
@@ -1000,10 +1003,9 @@ class Utility {
   }
 
   static double zoomer(int distance){
-    if(distance < 3 )
-      return 15.0;
-    else if(distance > 3 && distance < 10)
-      return 13.0;
+
+    if(distance < 10)
+      return 12.0;
     else if(distance > 10 && distance < 20)
       return 11.0;
     else if(distance > 20 && distance < 30)
@@ -1026,6 +1028,14 @@ class Utility {
     });
 
     return new LatLng(latitude/n, longitude/n);
+  }
+
+  static Future<void> stopAllService()async{
+    try{
+      await AndroidAlarmManager.cancel(requestWorkerID);
+      await Workmanager.cancelAll();
+    }catch(_){}
+
   }
 
 }

@@ -24,7 +24,6 @@ import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:workmanager/workmanager.dart';
 
 import 'bloc/user.dart';
 
@@ -98,9 +97,12 @@ class _UserScreenState extends State<UserScreen> {
     SchedulerBinding.instance.addPostFrameCallback((_) async{
       await requester();
     });
-    Workmanager.cancelAll();
+    Utility.locationAccess();
+    Utility.stopAllService();
     super.initState();
   }
+
+
 
 
   Future<void> requester()async{

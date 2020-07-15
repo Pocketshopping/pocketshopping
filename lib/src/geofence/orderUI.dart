@@ -64,8 +64,6 @@ class OrderUI extends StatefulWidget {
 }
 
 class _OrderUIState extends State<OrderUI> {
-
-  static const platform = const MethodChannel('fleepage.pocketshopping');
   final FirebaseMessaging _fcm = FirebaseMessaging();
 
   int orderCount;
@@ -752,7 +750,7 @@ class _OrderUIState extends State<OrderUI> {
     switch(method){
       case 'CARD':
         reference =Map.from(
-        await platform.invokeMethod('CardPay',
+        await Utility.platform.invokeMethod('CardPay',
             Map.from({
               "card":(details['card'] as String),
               "cvv":(details['cvv'] as String),

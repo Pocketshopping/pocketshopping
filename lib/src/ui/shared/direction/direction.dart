@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geoloc;
+import 'package:get/get.dart';
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -45,6 +46,7 @@ class DirectionState extends State<Direction> {
   List<LatLng> polylineCoordinates = [];
   GoogleMapPolyline polylinePoints;
   BitmapDescriptor sourceIcon;
+  BitmapDescriptor currentIcon;
   BitmapDescriptor destinationIcon;
   LocationData currentLocation;
   LocationData destinationLocation;
@@ -52,12 +54,13 @@ class DirectionState extends State<Direction> {
   double pinPillPosition = -100;
   PinInformation currentlySelectedPin = PinInformation(
       pinPath: '',
-      avatarPath: '',
+      avatarPath: PocketShoppingDefaultAvatar,
       location: '',
       locationName: '',
       labelColor: Colors.grey);
   PinInformation sourcePinInfo;
   PinInformation destinationPinInfo;
+  PinInformation currentPinInfo;
   FirebaseUser currentUser;
   StreamSubscription<LocationData> locStream;
   RouteMode routeMode;
@@ -102,15 +105,21 @@ class DirectionState extends State<Direction> {
     }
     if (dist < 1000) {
       distance = '${dist.round()} meter(s) away';
+      if(mounted)
       setState(() {});
     } else {
       distance = '${(dist / 1000).round()} kilometer(s) away';
+      if(mounted)
       setState(() {});
     }
   }
 
   void setSourceAndDestinationIcons() async {
     sourceIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: 2.5),
+        'assets/images/markerS.png');
+
+    currentIcon =await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2.5),
         'assets/images/driving_pin.png');
 
@@ -155,9 +164,10 @@ class DirectionState extends State<Direction> {
             ? Stack(
                 children: <Widget>[
                   GoogleMap(
-                      myLocationEnabled: true,
+                      myLocationEnabled: false,
                       compassEnabled: true,
                       tiltGesturesEnabled: false,
+                      zoomGesturesEnabled: true,
                       markers: _markers,
                       polylines: _polylines,
                       mapType: MapType.normal,
@@ -166,7 +176,7 @@ class DirectionState extends State<Direction> {
                         pinPillPosition = -100;
                       },
                       onMapCreated: (GoogleMapController controller) {
-                        controller.setMapStyle(Utility.mapStyles);
+                        //controller.setMapStyle(Utility.mapStyles);
                         _controller.complete(controller);
                         // my map has completed being created;
                         // i'm ready to show the pins on the map
@@ -181,75 +191,47 @@ class DirectionState extends State<Direction> {
                 child: CircularProgressIndicator(),
               ), //store btn
 
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
         floatingActionButton: currentLocation != null
             ? Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    FloatingActionButton.extended(
-                      onPressed: () {},
-                      label: Text(
-                        distance,
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                      icon: routeMode == RouteMode.driving
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.drive_eta,
-                                color: Colors.black54,
-                              ), onPressed: () {  },
-                            )
-                          : IconButton(
-                              icon: Icon(
-                                Icons.directions_walk,
-                                color: Colors.black54,
-                              ), onPressed: () {  },
-                            ),
-                      backgroundColor: Colors.grey,
-                    ),
-                    FloatingActionButton(
-                      onPressed: () {
-                        routeMode = routeMode == RouteMode.driving
-                            ? RouteMode.walking
-                            : RouteMode.driving;
-                        setState(() {});
-                        _polylines.clear();
-                        polylineCoordinates.clear();
-                        showPinsOnMap();
-                      },
-                      child: routeMode == RouteMode.driving
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.directions_walk,
-                                color: Colors.black54,
-                              ), onPressed: () {  },
-                            )
-                          : IconButton(
-                              icon: Icon(
-                                Icons.drive_eta,
-                                color: Colors.black54,
-                              ), onPressed: () {  },
-                            ),
-                      backgroundColor: Colors.grey,
-                    )
-                  ],
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              FloatingActionButton.extended(
+                onPressed: () {},
+                label: Text(
+                  distance,
+                  style: TextStyle(color: Colors.black54),
                 ),
-              )
+                icon: routeMode == RouteMode.driving
+                    ? IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.black54,
+                  ), onPressed: () { Get.back(); },
+                )
+                    : IconButton(
+                  icon: Icon(
+                    Icons.directions_walk,
+                    color: Colors.black54,
+                  ), onPressed: () {  },
+                ),
+                backgroundColor: Colors.white,
+              ),
+            ],
+          ),
+        )
             : Container());
   }
 
   void showPinsOnMap() {
-    // get a LatLng for the source location
-    // from the LocationData currentLocation object
-    var pinPosition =
-        LatLng(currentLocation.latitude, currentLocation.longitude);
-    // get a LatLng out of the LocationData object
-    var destPosition =
-        LatLng(destinationLocation.latitude, destinationLocation.longitude);
+    var pinPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
 
-    sourcePinInfo = PinInformation(
+    var sourcePosition = widget.source;
+    var destPosition = LatLng(destinationLocation.latitude, destinationLocation.longitude);
+
+    currentPinInfo = PinInformation(
         locationName: widget.sourceName ?? "You",
         location: widget.sourceAddress ?? "",
         pinPath: "assets/images/driving_pin.png",
@@ -257,6 +239,17 @@ class DirectionState extends State<Direction> {
             ? widget.destPhoto.isNotEmpty
                 ? widget.destPhoto
                 : PocketShoppingDefaultAvatar
+            : PocketShoppingDefaultAvatar,
+        labelColor: Colors.blueAccent);
+
+    sourcePinInfo = PinInformation(
+        locationName: widget.sourceName ?? "Source",
+        location: widget.sourceAddress ?? "",
+        pinPath: "assets/images/markerS.png",
+        avatarPath: widget.destPhoto != null
+            ? widget.destPhoto.isNotEmpty
+            ? widget.destPhoto
+            : PocketShoppingDefaultAvatar
             : PocketShoppingDefaultAvatar,
         labelColor: Colors.blueAccent);
 
@@ -271,10 +264,11 @@ class DirectionState extends State<Direction> {
             : PocketShoppingDefaultCover,
         labelColor: Colors.purple);
 
+
     // add the initial source location pin
     _markers.add(Marker(
         markerId: MarkerId('sourcePin'),
-        position: pinPosition,
+        position: sourcePosition,
         onTap: () {
           if (mounted) {
             setState(() {
@@ -297,18 +291,26 @@ class DirectionState extends State<Direction> {
           }
         },
         icon: destinationIcon));
-    // set the route lines on the map from source to destination
-    // for more info follow this tutorial
+    _markers.add(Marker(
+        markerId: MarkerId('currentPin'),
+        position: pinPosition,
+        onTap: () {
+          if (mounted) {
+            setState(() {
+              currentlySelectedPin = currentPinInfo;
+              pinPillPosition = 0;
+            });
+          }
+        },
+        icon: currentIcon)
+    );
     setPolylines();
   }
 
   void setPolylines() async {
     List<LatLng> result = await polylinePoints.getCoordinatesWithLocation(
-        origin: LatLng(currentLocation.latitude, currentLocation.longitude),
-        destination: LatLng(
-          destinationLocation.latitude,
-          destinationLocation.longitude,
-        ),
+        origin: widget.source,
+        destination: widget.destination,
         mode: routeMode);
 
     if (result.isNotEmpty) {
@@ -319,7 +321,7 @@ class DirectionState extends State<Direction> {
       if (mounted) {
         setState(() {
           _polylines.add(Polyline(
-              width: 5, // set the width of the polylines
+              width: 5,
               polylineId: PolylineId("poly"),
               color: Color.fromARGB(255, 40, 122, 198),
               points: polylineCoordinates));
@@ -327,6 +329,7 @@ class DirectionState extends State<Direction> {
       }
     }
   }
+
 
   void updatePinOnMap() async {
     CameraPosition cPosition = CameraPosition(
@@ -338,14 +341,14 @@ class DirectionState extends State<Direction> {
     if (mounted) {
       final GoogleMapController controller = await _controller.future;
       controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
+
     }
     if (mounted) {
       setState(() {
-        var pinPosition =
-            LatLng(currentLocation.latitude, currentLocation.longitude);
-        _markers.removeWhere((m) => m.markerId.value == 'sourcePin');
+        var pinPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
+        _markers.removeWhere((m) => m.markerId.value == 'currentPin');
         _markers.add(Marker(
-            markerId: MarkerId('sourcePin'),
+            markerId: MarkerId('currentPin'),
             onTap: () {
               setState(() {
                 currentlySelectedPin = sourcePinInfo;
@@ -353,12 +356,21 @@ class DirectionState extends State<Direction> {
               });
             },
             position: pinPosition, // updated position
-            icon: sourceIcon));
+            icon: currentIcon));
+
       });
+  /*    geoloc.Geolocator().distanceBetween(widget.destination.latitude, widget.destination.longitude, currentLocation.latitude, currentLocation.longitude).then((value)
+      {
+        if(value <= 50){
+          if(!Get.isDialogOpen)
+          Utility.infoDialogMaker('You are at the destination');
+        }
+        else if (value > 50 && value <= 100){
+          if(!Get.isDialogOpen)
+          Utility.infoDialogMaker('You are few meter away from the destination');
+        }
+      });*/
     }
+   // await awayFrom(polylineCoordinates);
   }
-}
-
-class Utils {
-
 }

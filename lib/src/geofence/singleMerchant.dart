@@ -729,8 +729,8 @@ class _MerchantUIState extends State<MerchantUI> {
         initPosition: position,
       ),
       isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 

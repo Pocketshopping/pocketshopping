@@ -74,6 +74,10 @@ dependencies:
   android_alarm_manager: ^0.4.5+11
   flutter_launcher_icons: ^0.7.5
   google_place: ^0.3.2
+  flutter_keyboard_visibility: ^3.2.1
+  url_launcher: ^5.5.0
+  expandable_bottom_sheet: ^0.2.1+1
+
 
 
 

@@ -8,6 +8,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:geolocator/geolocator.dart' as geoloc;
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
@@ -61,8 +63,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   final _bucketCount = ValueNotifier<int>(0);
   final _orderCountNotifier = ValueNotifier<int>(0);
   final _remittanceNotifier = ValueNotifier<Map<String,dynamic>>(null);
-  // The background
-  //static SendPort uiSendPort;
+
 
 
   @override
@@ -146,18 +147,21 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     //backgroundWorker();
     if(currentUser.agent == null) ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
 
-    Utility.locationAccess();
+
     LogisticRepo.getOneAgentLocation(currentUser.agent.agentID).then((value){if(value != null) _isAvailableNotifier.value =value.availability;});
     //requestListenerWorker();
 
-    backgroundWorker();
-    setAgentID().then((value) {
+    //backgroundWorker();
+    setAgentLocationDetails().then((value) {
         AndroidAlarmManager.initialize();
         requestListenerWorker();
     });
 
-
+    //initPlatformState();
+    //setAgentLocationDetails().then((value) => null);
     super.initState();
+
+
   }
 
   Future<bool> setAgentLocationDetails() async {
@@ -173,13 +177,68 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     await prefs.setString('profile', currentUser.user.profile??"");
     await prefs.setInt('limit', currentUser.agent.limit??1000);
     await prefs.setBool('autoAssigned', currentUser.agent.autoAssigned!=null?currentUser.agent.autoAssigned.isNotEmpty:false);
-
     return true;
-
   }
 
-  Future<bool> setAgentID() async {
+/*  Future<void> initPlatformState() async {
+    bool isRunning = await BackgroundLocator.isRegisterLocationUpdate();
+    if(!isRunning){
+      await BackgroundLocator.initialize();
+      startLocationService();
+    }
 
+  }*/
+
+/*  static void locCallback(LocationDto locationDto) async {
+    //debugPrint('background: ${locationDto.toString()}');
+    final prefs = await SharedPreferences.getInstance();
+    String currentAgent = prefs.getString('rider');
+    double lat;
+    double lng;
+    double distance;
+    Geoflutterfire geo = Geoflutterfire();
+    try{
+      GeoFirePoint agentLocation = geo.point(latitude: locationDto.latitude, longitude: locationDto.longitude);
+      if(prefs.containsKey('rider')){
+        if(prefs.containsKey('riderLat') && prefs.containsKey('riderLng')){
+          lat = prefs.getDouble('riderLat');
+          lng = prefs.getDouble('riderLng');
+          distance = await geoloc.Geolocator().distanceBetween(lat, lng, locationDto.latitude, locationDto.longitude);
+          if(distance > 50){
+            prefs.setDouble('riderLat', locationDto.latitude);
+            prefs.setDouble('riderLng', locationDto.longitude);
+            LocRepo.updateAgentCoord(currentAgent, agentLocation.data);
+          }
+        }
+        else{
+          prefs.setDouble('riderLat', locationDto.latitude);
+          prefs.setDouble('riderLng', locationDto.longitude);
+          LocRepo.updateAgentCoord(currentAgent, agentLocation.data);
+        }
+      }
+    }catch(_){}
+
+  }*/
+
+ /* void startLocationService(){
+    BackgroundLocator.registerLocationUpdate(
+      locCallback,
+      //optional
+      //androidNotificationCallback: notificationCallback,
+      settings: LocationSettings(
+        //Scroll down to see the different options
+          notificationTitle: "Pocketshopping",
+          notificationMsg: "Currently running",
+          notificationIcon: 'app_icon',
+          wakeLockTime: 20,
+          autoStop: false,
+          interval: 120,
+          accuracy: LocationAccuracy.HIGH,
+      ),
+    );
+  }*/
+
+  Future<bool> setAgentID() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('rider', currentUser.agent.agentID);
     return true;
@@ -187,46 +246,20 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   }
 
   static Future<void> requestCallback() async {
-    /*try {
-      //Workmanager.cancelByTag('DeliveryRequestUpdateTag');
-      Workmanager.registerOneOffTask(
-          "DELIVERYREQUESTUPDATE", "DeliveryRequestUpdateTask",
-          tag: 'DeliveryRequestUpdateTag',
-          inputData: {});
-    }catch(_){}*/
-
     try{
       final prefs = await SharedPreferences.getInstance();
       String currentAgent = prefs.getString('rider');
       int count = await OrderRepo.getUnclaimedDelivery(currentAgent);
       if(count>0)
-        Utility.localNotifier("PocketShopping", "PocketShopping",
-            "Delivery Request", 'There is a Delivery request in request bucket. check it out');
+        Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');
     }catch(_){debugPrint(_);}
-
-
   }
 
-  static Future<void> locationUpdateCallback() async {
-    try {
-      Workmanager.cancelByTag('LocationUpdateTag');
-    }catch(_){}
-
-      Workmanager.registerPeriodicTask(
-          "AGENTLOCATIONUPDATE", "LocationUpdateTask",
-          frequency: Duration(minutes: 15),
-          tag: 'LocationUpdateTag',
-          inputData: {});
-
-  }
-
-
-
-  Future<void> backgroundWorker(){
+/*  Future<void> backgroundWorker(){
     Workmanager.cancelAll();
     Workmanager.registerPeriodicTask(
         "AGENTLOCATIONUPDATE", "LocationUpdateTask",
-        frequency: Duration(minutes: 15),
+        frequency: Duration(minutes: 5),
         tag: 'LocationUpdateTag',
         inputData: {
           'agentID': currentUser.agent.agentID,
@@ -242,18 +275,31 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
           'autoAssigned':currentUser.agent.autoAssigned!=null?currentUser.agent.autoAssigned.isNotEmpty:false
         });
 
+      return Future.value();
+  }*/
 
+  static Future<void> backgroundWorker(){
+    Workmanager.cancelAll();
+    Workmanager.registerPeriodicTask(
+        "AGENTLOCATIONUPDATE", "LocationUpdateTask",
+        frequency: Duration(minutes: 15),
+        tag: 'LocationUpdateTag',
+        inputData: {});
+
+      return Future.value();
   }
-
-
 
   Future<void> requestListenerWorker()async{
-    final int requestWorkerID = 369;
+
     await AndroidAlarmManager.cancel(requestWorkerID);
-    await AndroidAlarmManager.periodic(
-        const Duration(minutes: 2), requestWorkerID, requestCallback,
-        rescheduleOnReboot: true, exact: true,);
+   await AndroidAlarmManager.periodic(const Duration(minutes: 2), requestWorkerID, backgroundWorker, rescheduleOnReboot: true, exact: true,);
   }
+
+
+  /*Future<void> requestListenerWorker()async{
+    await AndroidAlarmManager.cancel(requestWorkerID);
+    await AndroidAlarmManager.periodic(const Duration(minutes: 3), requestWorkerID, requestCallback, rescheduleOnReboot: true, exact: true,);
+  }*/
 
 
 
@@ -351,6 +397,46 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     const SizedBox(height: 20,)
                   ],
                 )),
+                SliverList(
+                    delegate: SliverChildListDelegate(
+                      [
+
+                        Center(
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height*0.3,
+                            width: MediaQuery.of(context).size.width*0.6,
+                            child: GestureDetector(onTap: (){
+                              Get.to(RequestBucket(user: currentUser,)).then((value) => null);
+                            },child: Card(
+                              child: ValueListenableBuilder(
+                                valueListenable: _bucketCount,
+                                builder: (_,count,__){
+                                  return
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text('$count',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(color:PRIMARYCOLOR,fontSize: 30),),
+                                        const Text('Request Bucket',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(color: PRIMARYCOLOR),),
+                                        const Text('click to view',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(color: PRIMARYCOLOR),),
+                                      ],
+
+                                    );
+                                },
+                              ),
+                            )
+                            )
+                          )
+                        ),
+                        const SizedBox(height: 20,)
+                      ],
+                    )),
                 SliverList(
                     delegate: SliverChildListDelegate(
                       [
@@ -586,10 +672,14 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       ],
                     )),
                 SliverGrid.count(crossAxisCount: 3, children: [
+                  ValueListenableBuilder(
+                      valueListenable: _orderNotifier,
+                      builder: (_, orders,__){
+                        return
                   GestureDetector(
                     onTap: (){
                       //print(currentUser.agent.agentID);
-                      Get.to(RequestBucket(user: currentUser,)).then((value) => null);
+                      Get.to(MyDelivery(orders: orders,user: currentUser,)).then((value) => null);
                     },
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
@@ -610,26 +700,23 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           ),
                         ],
                       ),
-                      child: ValueListenableBuilder(
-                        valueListenable: _bucketCount,
-                        builder: (_,count,__){
-                          return
-                            Column(
+                      child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text('$count',
+                              Text('${orders.length}',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color:PRIMARYCOLOR,fontSize: 25),),
-                              const Text('Request Bucket',
+                              const Text('Active Delivery',
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(color: PRIMARYCOLOR),),
                             ],
 
-                          );
-                        },
+                          )
+
                       ),
-                    ),
+                    );
+                      }
                   ),
                   GestureDetector(
                     onTap: (){},

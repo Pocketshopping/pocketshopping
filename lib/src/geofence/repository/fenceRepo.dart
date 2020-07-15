@@ -1,18 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:geocoder/geocoder.dart' as geocode;
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
-import 'package:pocketshopping/src/ui/constant/appColor.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:recase/recase.dart';
 
 class FenceRepo {
   static final databaseReference = Firestore.instance;

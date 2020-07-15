@@ -1,3 +1,4 @@
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:badges/badges.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +15,10 @@ import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:workmanager/workmanager.dart';
 
 class DrawerScreen extends StatefulWidget {
   final UserRepository _userRepository;
@@ -185,7 +188,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
           ListTile(
             leading: const Icon(Icons.close),
             title: const Text("SignOut"),
-            onTap: () {
+            onTap: ()async {
+              await Utility.stopAllService();
               BlocProvider.of<AuthenticationBloc>(context).add(
                 LoggedOut(),
               );
