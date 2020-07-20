@@ -8,13 +8,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:geolocator/geolocator.dart' as geoloc;
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:get/get.dart';
+import 'package:location/location.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/location/bloc/locationBloc.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
@@ -56,6 +57,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   StreamSubscription bucket;
   StreamSubscription todayOrderCount;
   Stream<Wallet> _walletStream;
+  Location location;
 
   final _isAvailableNotifier = ValueNotifier<bool>(true);
   final _walletNotifier = ValueNotifier<Wallet>(null);
@@ -63,6 +65,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   final _bucketCount = ValueNotifier<int>(0);
   final _orderCountNotifier = ValueNotifier<int>(0);
   final _remittanceNotifier = ValueNotifier<Map<String,dynamic>>(null);
+  StreamSubscription<LocationData> locStream;
 
 
 
@@ -142,13 +145,28 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     });
 
     LogisticRepo.getRemittance(currentUser.user.walletId,limit:currentUser.agent.limit).then((value) => _remittanceNotifier.value=value);
-
     todayOrderCount = OrderRepo.agentTodayOrder(currentUser.agent.agent).listen((event) {if(mounted) _orderCountNotifier.value=event;});
-    //backgroundWorker();
+
     if(currentUser.agent == null) ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
+    location = new Location();
+    location.hasPermission().then((value)  {
+      if(value == PermissionStatus.granted){
+        location.serviceEnabled().then((value){
+          if(value){
+
+            location.changeSettings(accuracy: LocationAccuracy.navigation, interval: 1000);
+            locStream = location.onLocationChanged.listen((LocationData cLoc) { LocationBloc.instance.newLocationUpdate(cLoc); });
+          }
+        });
+      }
+    });
 
 
-    LogisticRepo.getOneAgentLocation(currentUser.agent.agentID).then((value){if(value != null) _isAvailableNotifier.value =value.availability;});
+    try {
+      LogisticRepo.getOneAgentLocation(currentUser.agent.agentID).then((value) {
+        if (value != null) _isAvailableNotifier.value = value.availability;
+      });
+    }catch(_){}
     //requestListenerWorker();
 
     //backgroundWorker();
@@ -405,7 +423,15 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           child: SizedBox(
                             height: MediaQuery.of(context).size.height*0.3,
                             width: MediaQuery.of(context).size.width*0.6,
-                            child: GestureDetector(onTap: (){
+                            child: GestureDetector(onTap: ()async{
+                              FlutterRingtonePlayer.playNotification();
+                              await FlutterRingtonePlayer.play(
+                                android: AndroidSounds.notification,
+                                ios: IosSounds.glass,
+                                looping: true, // Android only - API >= 28
+                                volume: 0.1, // Android only - API >= 28
+                                asAlarm: false, // Android only - all APIs
+                              );
                               Get.to(RequestBucket(user: currentUser,)).then((value) => null);
                             },child: Card(
                               child: ValueListenableBuilder(

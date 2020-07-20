@@ -76,7 +76,8 @@ dependencies:
   google_place: ^0.3.2
   flutter_keyboard_visibility: ^3.2.1
   url_launcher: ^5.5.0
-  expandable_bottom_sheet: ^0.2.1+1
+  sliding_up_panel: ^1.0.2
+  flutter_ringtone_player: ^2.0.0
 
 
 

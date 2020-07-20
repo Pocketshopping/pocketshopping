@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
+
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -155,16 +155,13 @@ void callbackDispatcher() {
   Workmanager.executeTask((task, inputData)async{
     if(task == "LocationUpdateTask"){
       final prefs = await SharedPreferences.getInstance();
-      double lat;
-      double lng;
-      double distance;
       try{
         bool enable = await Geolocator().isLocationServiceEnabled();
         final FirebaseMessaging _fcm = FirebaseMessaging();
         GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
         if(enable){
           if(permit == GeolocationStatus.granted){
-            Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high,locationPermissionLevel: GeolocationPermission.locationAlways);
+            Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation,locationPermissionLevel: GeolocationPermission.locationAlways);
             if(position != null){
               String fcmToken = await _fcm.getToken();
               Geoflutterfire geo = Geoflutterfire();
@@ -195,10 +192,6 @@ void callbackDispatcher() {
                 'autoAssigned':prefs.getBool('autoAssigned'),
 
               });
-
-
-              //prefs.setDouble('riderLat', position.latitude);
-              //prefs.setDouble('riderLng', position.longitude);
             }
           }
           else{
@@ -301,9 +294,12 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
+
+
   @override
   void initState() {
     handleDynamicLinks();
+    //location = new Location();
     super.initState();
   }
 

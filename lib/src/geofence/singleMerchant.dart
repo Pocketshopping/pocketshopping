@@ -231,8 +231,8 @@ class _MerchantUIState extends State<MerchantUI> {
 
   @override
   void dispose() {
-    _filter.dispose();
-    geoStream.cancel();
+    _filter?.dispose();
+    geoStream?.cancel();
     super.dispose();
   }
 

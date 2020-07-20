@@ -39,24 +39,27 @@ class GeoFenceState {
             categoryURI:
             'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Ffood-delivery.png?alt=media&token=12f6a851-658c-42af-919c-2a2feda94979',
             categoryView: 12,
-          desc: ''
+            desc: 'Have riders(motorcycle, car, van) run your errand.'
 
         ),
         MCategory(
             categoryName: 'Restuarant',
             categoryURI:
                 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Ffork.png?alt=media&token=1774a1cc-6367-49c2-8b3d-efab8b9dc7cc',
-            categoryView: 10,desc: ''),
+            categoryView: 10,
+            desc: 'Get food delivered  to you from near by restaurant and also try out new restaurant.'),
         MCategory(
             categoryName: 'Store',
             categoryURI:
                 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fstore.png?alt=media&token=04d66f40-42f3-4105-a187-80fbb45b7af1',
-            categoryView: 9,desc: ''),
+            categoryView: 9,
+            desc: 'You can buy anything from our stores and have them delivered to you.'),
         MCategory(
             categoryName: 'Bakery&Pastry',
             categoryURI:
                 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fbread.png?alt=media&token=3d21a0a6-aa7e-4433-880c-bb6e826e08e3',
-            categoryView: 6,desc: ''),
+            categoryView: 6,
+            desc: 'Looking for near by bakery and pastry. check out our list'),
       ],
       nearByMerchants: [],
     );

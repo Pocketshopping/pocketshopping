@@ -84,7 +84,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   Stream<RegisterState> _mapEmailChangedToState(String email) async* {
     bool isEmailValid = Validators.isValidEmail(email);
     if (isEmailValid) {
-      bool isNew = await UserRepo().IsNew(email);
+      bool isNew = await UserRepo().isNew(email);
       yield state.update(
         isEmailValid: Validators.isValidEmail(email),
         isNewUser: isNew,

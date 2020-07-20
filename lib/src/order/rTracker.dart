@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
-import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
-import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
-import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
@@ -28,7 +21,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
-import 'package:http/http.dart' as http;
+
 import 'repository/order.dart';
 
 class RiderTracker extends StatefulWidget {
@@ -560,10 +553,10 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                                           ),
                                                                           destAddress: order.data.orderMode.address,
                                                                           destName: order.data.orderCustomer.customerName,
-                                                                          destPhoto: customer.data.profile,
+                                                                          destContact: customer.data.telephone,
                                                                           sourceName: merchant.data.bName,
                                                                           sourceAddress: merchant.data.bAddress,
-                                                                          sourcePhoto: merchant.data.bPhoto,
+                                                                          sourceContact: merchant.data.bTelephone,
                                                                         )
                                                                     );
                                                                   },
@@ -781,10 +774,10 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                                             ),
                                                                             destAddress: merchant.data.bAddress,
                                                                             destName: merchant.data.bName,
-                                                                            destPhoto:  merchant.data.bPhoto,
+                                                                            destContact:  merchant.data.bTelephone,
                                                                             sourceName: widget.user.fname,
                                                                             sourceAddress: widget.user.defaultAddress,
-                                                                            sourcePhoto: widget.user.profile,
+                                                                            sourceContact: widget.user.telephone,
                                                                           )
 
                                                                       );

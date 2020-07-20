@@ -601,6 +601,7 @@ class _ProductListState extends State<ProductList> {
                   top: 1, right: 1),
               child: IconButton(
                 onPressed: () {
+                  print(widget.user.merchant.bCategory== 'Restuarant' );
                   if(_cartItem.isNotEmpty)
                   Get.bottomSheet(builder: (context){
                     return Container(

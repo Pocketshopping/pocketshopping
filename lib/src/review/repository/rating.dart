@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 
 @immutable
 class Rating {

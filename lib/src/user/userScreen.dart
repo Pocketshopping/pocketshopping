@@ -11,7 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
-import 'package:pocketshopping/src/geofence/geofence.dart';
+import 'package:pocketshopping/src/geofence/radius.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
@@ -210,7 +210,7 @@ class _UserScreenState extends State<UserScreen> {
               body: Container(
                   child: Center(
                     child: <Widget>[
-                      GeoFence(),
+                      MyRadius(),
                       Favourite(),
                       MyOrders(),
                       PocketPay(),

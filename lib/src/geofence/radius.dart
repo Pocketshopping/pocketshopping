@@ -7,10 +7,8 @@ import 'package:pocketshopping/src/category/repository/merchatCategoryObj.dart';
 import 'package:pocketshopping/src/errand/errand.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/geofence/reviewPlace.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -37,6 +35,15 @@ class _MyRadiusState extends State<MyRadius> {
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     //Utility.locationAccess();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    showSearch?.dispose();
+    left?.dispose();
+    right?.dispose();
+    search?.dispose();
+    super.dispose();
   }
 
   @override

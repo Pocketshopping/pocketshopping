@@ -500,7 +500,14 @@ class _AgentFormState extends State<AgentForm> {
                                                                     .isSnackbarOpen)
                                                                   {
                                                                     Get.back();
-                                                                    Utility.requestPusher(agent.notificationID);
+                                                                    Utility.pushNotifier(
+                                                                    fcm: agent.notificationID,
+                                                                    body: 'You have a request to attend to click for more information',
+                                                                    title: 'Request',
+                                                                    notificationType: 'WorkRequestResponse',
+                                                                    data: {}
+                                                                    );
+                                                                    //requestPusher(agent.notificationID);
                                                                     GetBar(
                                                                       title:
                                                                           'Agent',

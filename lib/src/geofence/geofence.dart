@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -11,8 +10,6 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/orderUI.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/geofence/repository/fenceRepo.dart';
-import 'package:pocketshopping/src/geofence/reviewPlace.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -38,7 +35,7 @@ class _GeoFenceState extends State<GeoFence> {
   final category = ValueNotifier<String>('');
   final position = ValueNotifier<Position>(null);
   loc.Location location;
-  StreamSubscription<loc.LocationData> locStream;
+  StreamSubscription<Position> locStream;
 
   @override
   void initState() {
@@ -46,12 +43,13 @@ class _GeoFenceState extends State<GeoFence> {
 
     currentUser = widget.user;
     category.value = widget.category.toLowerCase();
-    location = new loc.Location();
     position.value = widget.position;
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-    location.changeSettings(accuracy: loc.LocationAccuracy.navigation, distanceFilter: 50);
-    locStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
-    position.value = Position(latitude: cLoc.latitude,longitude: cLoc.longitude);
+    locStream = Geolocator().getPositionStream(LocationOptions(
+    accuracy: LocationAccuracy.bestForNavigation,
+    timeInterval: 180000)).listen((Position cLoc)
+    {
+    position.value =cLoc;
     });
     super.initState();
   }

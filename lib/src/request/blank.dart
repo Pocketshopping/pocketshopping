@@ -67,8 +67,11 @@ class _BlankWorkplaceState extends State<BlankWorkplace> {
                   }
                   else if(request.hasError){
                     return Center(
-                      child: Text('Error accessing your workplce. Restart the app and try again, if the problem persist report to your employer for further action.',
-                      textAlign: TextAlign.center,),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Text('Error accessing your workplace. Restart the app and try again, if the problem persist report to your employer for further action.',
+                          textAlign: TextAlign.center,),
+                      )
                     );
                   }
                   else{
@@ -105,9 +108,32 @@ class _BlankWorkplaceState extends State<BlankWorkplace> {
                       );
                     }
                     else
-                      return Center(
-                        child: Text('Error accessing your workplce. Restart the app and try again, if the problem persist report to your employer for further action.'
-                        ,textAlign: TextAlign.center,),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children:[
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Text('Error accessing your workplace. Restart the app and try again, if the problem persist report to your employer for further action.',
+                              textAlign: TextAlign.center,),
+                          ),
+                          FlatButton(
+                            onPressed: ()async{
+                              //Utility.bottomProgressLoader(body: 'Changing account..please wait');
+                              //await RequestRepo.clear(request.data.first.requestID);
+                              //Get.back();
+                              await UserRepository().changeRole('user');
+                              BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
+                            },
+                            color: PRIMARYCOLOR,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
+                              child: Text(
+                                'Click here to continue',style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ]
                       );
                   }
                 },

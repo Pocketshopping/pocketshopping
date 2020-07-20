@@ -189,6 +189,34 @@ class Utility {
   }
 ]''';
 
+  static String directionMapStyles = '''[
+  {
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "color": "#C3C3C3"
+        
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      }
+    ]
+  },
+]''';
+
   static locationAccess() {
     location.hasPermission().then((value) {
       if (value != PermissionStatus.granted) {
@@ -852,7 +880,7 @@ class Utility {
   static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false, String wallet=''}){
     GetBar(
       title: title,
-      messageText: Text(body,style: TextStyle(color: Colors.white),),
+      messageText: Text(body??'',style: TextStyle(color: Colors.white),),
       backgroundColor: PRIMARYCOLOR,
       icon: Icon(Icons.check,color: Colors.white,),
       duration: Duration(seconds: duration),
@@ -915,7 +943,7 @@ class Utility {
     return sum;
   }
 
-  static Future<void> requestPusher(String fcm) async {
+  static Future<void> _requestPusher(String fcm) async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(

@@ -1,4 +1,3 @@
-import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:badges/badges.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/profile/profile.dart';
 import 'package:pocketshopping/src/profile/settings.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
@@ -18,7 +18,6 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:workmanager/workmanager.dart';
 
 class DrawerScreen extends StatefulWidget {
   final UserRepository _userRepository;
@@ -139,7 +138,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
             leading: const Icon(Icons.person),
             title: const Text("Profile"),
             onTap: () {
-              Navigator.pop(context);
+              Get.back();
+              Get.to(Profile(user: widget.user,));
             },
           ),
           ListTile(

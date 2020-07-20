@@ -1,25 +1,16 @@
-import 'dart:typed_data';
-
-import 'package:ant_icons/ant_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_place/google_place.dart';
 import 'package:pocketshopping/src/errand/map.dart';
 import 'package:pocketshopping/src/errand/selectAuto.dart';
-import 'package:pocketshopping/src/geofence/package_geofence.dart';
-import 'package:pocketshopping/src/geofence/reviewPlace.dart';
-import 'package:pocketshopping/src/order/customerMapTracker.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:progress_indicators/progress_indicators.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 
 class Errand extends StatefulWidget {
@@ -50,6 +41,7 @@ class _ErrandState extends State<Errand> {
   final autocomplete = ValueNotifier<List<AutocompletePrediction>>([]);
   var result;// = await googlePlace.autocomplete.get("1600 Amphitheatre");
   final handleOnTap = ValueNotifier<String>('');
+  final slider = new PanelController();
 
   @override
   void initState() {
@@ -59,7 +51,7 @@ class _ErrandState extends State<Errand> {
     Utility.address(position).then((value) => source.text=value);
     sourcePosition.value = LatLng(position.latitude,position.longitude);
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-    googlePlace.autocomplete.get('a',
+    /*googlePlace.autocomplete.get('a',
       location: LatLon(position.latitude,position.longitude),
       radius: 50000,
       strictbounds:true,
@@ -72,7 +64,7 @@ class _ErrandState extends State<Errand> {
         autocomplete.value = value.predictions;
       }
       catch(_){}
-    });
+    });*/
 
 
 
@@ -82,12 +74,28 @@ class _ErrandState extends State<Errand> {
   }
 
   @override
+  void dispose() {
+    /*selected?.dispose();
+    isTyping?.dispose();
+    isTypingDestination?.dispose();
+    isTypingSource?.dispose();
+    showButton?.dispose();
+    addressType?.dispose();
+    sourcePosition?.dispose();
+    destinationPosition?.dispose();
+    source?.dispose();
+    destination?.dispose();
+    autocomplete?.dispose();
+    handleOnTap?.dispose();*/
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return  WillPopScope(
         onWillPop: () async {
       if (isTyping.value){
         isTyping.value=false;
-        //destination.clear();
         return false;
       }
 
@@ -100,7 +108,7 @@ class _ErrandState extends State<Errand> {
                   body: ValueListenableBuilder(
                     valueListenable: isTyping,
                     builder: (_,bool typing,__){
-                      return Column(
+                      return  Column(
                         children: [
 
                           if(!typing)
@@ -115,6 +123,7 @@ class _ErrandState extends State<Errand> {
                                     callBack: (LatLng latLng)async{
                                       isTyping.value = false;
                                       handleOnTap.value='';
+                                      if(latLng != null){
                                       Get.defaultDialog(title: 'Address',
                                         content: ValueListenableBuilder(
                                           valueListenable: handleOnTap,
@@ -185,6 +194,7 @@ class _ErrandState extends State<Errand> {
                                       );
 
                                       handleOnTap.value = await Utility.address(Position(latitude: latLng.latitude,longitude: latLng.longitude ));
+                                      }
 
 
                                       //destination.text

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,17 +6,21 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
+import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/ui/shared/direction/bloc/errandDirectionBloc.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'repository/order.dart';
+
 
 class RiderErrandTracker extends StatefulWidget {
   RiderErrandTracker({this.order, this.user,this.isActive=false});
@@ -32,24 +35,30 @@ class RiderErrandTracker extends StatefulWidget {
 
 class _RiderErrandTrackerState extends State<RiderErrandTracker> {
 
-  GlobalKey<ExpandableBottomSheetState> key = new GlobalKey();
   final scrollController = ScrollController();
+  final slider = new PanelController();
 
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final _review = TextEditingController();
   final rating = ValueNotifier<double>(1.0);
   final expanded = ValueNotifier<bool>(false);
+  Stream<CurrentPathLine> _pathStream;
+  final pathLine = ValueNotifier<CurrentPathLine>(null);
 
   @override
   void initState() {
+    _pathStream = ErrandDirectionBloc.instance.currentPath;
+    _pathStream.listen((result) {
+      pathLine.value  = result;
+    });
     super.initState();
   }
 
-  void expand() => key.currentState.expand();
+  void expand() => slider.open();
 
-  void contract() => key.currentState.contract();
+  void contract() => slider.close();
 
-  ExpansionStatus status() => key.currentState.expansionStatus;
+  bool status() => slider.isPanelOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -105,11 +114,11 @@ class _RiderErrandTrackerState extends State<RiderErrandTracker> {
                     return FutureBuilder(
                       future: ReviewRepo.getOne(order.data.orderCustomer.customerReview),
                       builder: (context, AsyncSnapshot<Review>review){
-                        return order.data.status == 0? ExpandableBottomSheet(
-                          key: key,
-                          onIsContractedCallback: (){expanded.value=false;},
-                          onIsExtendedCallback: (){expanded.value=true;},
-                          background: Container(
+                        return order.data.status == 0? SlidingUpPanel(
+                          controller: slider,
+                          onPanelClosed: (){expanded.value=false;},
+                          onPanelOpened: (){expanded.value=true;},
+                          body: Container(
                             color: Colors.grey.withOpacity(0.2),
                             child: Center(
                               child: Direction(source: LatLng(order.data.errand.source.latitude,order.data.errand.source.longitude),
@@ -118,94 +127,162 @@ class _RiderErrandTrackerState extends State<RiderErrandTracker> {
                                 sourceAddress: order.data.errand.sourceAddress,
                                 destName: 'Destination',
                                 sourceName: 'Source',
-                                destPhoto: PocketShoppingDefaultAvatar,
-                                sourcePhoto: PocketShoppingDefaultAvatar,
-
+                                user: widget.user,
                               ),
-                           // Text('dsds')
                             ),
                           ),
-                          persistentHeader: Container(
-                            height: MediaQuery.of(context).size.height*0.2,
-                            color: Colors.white,
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 0,
-                                  child: Center(
-                                    child: IconButton(
-                                      onPressed: (){
-                                        if(status() == ExpansionStatus.expanded)
-                                          {
-                                            contract();
-                                            expanded.value = false;
-                                          }
-                                        else
-                                          {
-                                            expand();
-                                            expanded.value = true;
-                                          }
-                                      },
-                                      icon: ValueListenableBuilder(
-                                        valueListenable: expanded,
-                                        builder: (_,bool isExpanded,__){
-                                          return !isExpanded?
-                                          Icon(Icons.keyboard_arrow_up):
-                                          Icon(Icons.keyboard_arrow_down);
-                                        },
-                                      ),
-                                    ),
-                                  )
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      Expanded(
-                                        flex:0,
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 15),
-                                          child: Row(
-                                            children: [
-                                              Text('Destination: ${order.data.errand.destinationAddress}'),
-                                            ],
-                                          )
+                          panelBuilder: (ScrollController sc) => ListView(
+                            controller: sc,
+                            children: [
+                              ErrandTracker(user: widget.user,order: order,)
+                            ],
+                          ),
+                          collapsed: Container(
+                                color: Colors.white,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                        flex: 0,
+                                        child: Center(
+                                          child: GestureDetector(
+                                            onTap: (){
+                                              if(status())
+                                              {
+                                                contract();
+                                                expanded.value = false;
+                                              }
+                                              else
+                                              {
+                                                expand();
+                                                expanded.value = true;
+                                              }
+                                            },
+                                            child: ValueListenableBuilder(
+                                              valueListenable: expanded,
+                                              builder: (_,bool isExpanded,__){
+                                                return !isExpanded?
+                                                Icon(Icons.keyboard_arrow_up):
+                                                Icon(Icons.keyboard_arrow_down);
+                                              },
+                                            ),
+                                          ),
                                         )
-                                      ),
-                                      Expanded(
-                                        child:const SizedBox(height: 5,),
-                                      ),
-                                      Expanded(
-                                        flex:0,
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 15),
-                                          child: Row(
+                                    ),
+                                    Expanded(
+                                      child: ValueListenableBuilder(
+                                        valueListenable: pathLine,
+                                        builder: (_,CurrentPathLine path,__){
+                                          return path != null ?Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              Expanded(
-                                                flex:0,
-                                                child: Text('Reciever: ${order.data.errand.destinationName}'),
-                                              ),
-                                              Expanded(
-                                                  flex: 1,
-                                                  child: Align(
-                                                    alignment: Alignment.centerLeft,
+                                              if(path.hasVisitedSource)
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Expanded(
+                                                    flex:2,
+                                                    child: Center(child:Text('Destination: ${order.data.errand.destinationAddress}', textAlign: TextAlign.center,)),
+                                                  ),
+                                                  if(path.hasVisitedDestination)
+                                                  Expanded(
+                                                    flex: 1,
                                                     child: IconButton(
                                                       onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
-                                                      icon: Icon(Icons.call),
+                                                      icon: Icon(Icons.call,size: 40,),
                                                     ),
                                                   )
-                                              )
+
+                                                ],
+                                              ),
+                                              if(!path.hasVisitedSource)
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Expanded(
+                                                    flex:2,
+                                                    child: Center(
+                                                      child:  Text('Source: ${order.data.errand.sourceAddress}', textAlign: TextAlign.center,),
+                                                    ),
+                                                  ),
+                                                  if(path.hasVisitedDestination)
+                                                    Expanded(
+                                                      flex: 1,
+                                                      child: IconButton(
+                                                        onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
+                                                        icon: Icon(Icons.call,size: 40,),
+                                                      ),
+                                                    )
+
+                                                ],
+                                              ),
+
                                             ],
-                                          )
-                                        )
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Divider(),
-                              ],
-                            )
+                                          ):
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Expanded(
+                                                flex:2,
+                                                child: Center(child:Text('Destination: ${order.data.errand.destinationAddress}', textAlign: TextAlign.center,)),
+                                              ),
+                                              if(path != null)
+                                              if(path.hasVisitedDestination)
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: IconButton(
+                                                    onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
+                                                    icon: Icon(Icons.call,size: 40,),
+                                                  ),
+                                                )
+
+                                            ],
+                                          );
+                                        },
+                                      )/*Column(
+                                        children: [
+                                          Expanded(
+                                              child:
+                                          ),
+                                         *//* Expanded(
+                                            flex: 0,
+                                            child:const SizedBox(height: 5,),
+                                          ),
+                                          Expanded(
+                                              child: Padding(
+                                                  padding: EdgeInsets.symmetric(horizontal: 15),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        flex:0,
+                                                        child: Text('Reciever: ${order.data.errand.destinationName}'),
+                                                      ),
+                                                      Expanded(
+                                                          flex: 1,
+                                                          child: Align(
+                                                            alignment: Alignment.centerLeft,
+                                                            child: IconButton(
+                                                              onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
+                                                              icon: Icon(Icons.call),
+                                                            ),
+                                                          )
+                                                      )
+                                                    ],
+                                                  )
+                                              )
+                                          ),*//*
+                                        ],
+                                      ),*/
+                                    ),
+                                  ],
+                                )
                           ),
-                          expandableContent: Container(
+                         /* expandableContent: Container(
                             height: MediaQuery.of(context).size.height*0.6,
                             color: Colors.white,
                             child:  Listener(
@@ -229,7 +306,7 @@ class _RiderErrandTrackerState extends State<RiderErrandTracker> {
                               ],
                             ),
                           ),
-                          )
+                          )*/
                         ):
                         ListView(
                           children: [

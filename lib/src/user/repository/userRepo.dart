@@ -115,6 +115,7 @@ class UserRepo {
       var _agent = await Firestore.instance
           .collection('agent')
           .where('agent', isEqualTo: uid)
+          .where('endDate', isEqualTo: null)
           .getDocuments(source: Source.serverAndCache);
       if (_agent.documents.length > 0)
         agent = Agent.fromSnap(_agent.documents[0]);
@@ -132,13 +133,13 @@ class UserRepo {
     });
   }
 
-  FirstTimer() async {
+  firstTimer() async {
     print('am working over here');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('uid', 'newUser');
   }
 
-  Future<bool> IsNew(String email) async {
+  Future<bool> isNew(String email) async {
     var document = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)

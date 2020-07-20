@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
@@ -57,6 +59,7 @@ class OrderRepo {
     List<String> index,String agentWallet,String collectionId,String logisticWallet})async {
     try{
       Order order = await getOne(orderId);
+      Merchant merchant = await MerchantRepo.getMerchant(order.orderMerchant);
       if(!order.isAssigned) {
         await databaseReference.collection("orders")
             .document(orderId)
@@ -73,6 +76,29 @@ class OrderRepo {
             status: true,
             agent: agentWallet,
             to: logisticWallet);
+        if(order.orderMode.mode == 'Errand'){
+          await setCurrentPathLine(CurrentPathLine(
+              id: agentId,
+              hasVisitedDestination: false,
+              hasVisitedSource: false,
+              source: order.errand.source,
+              destination: order.errand.destination
+          ));
+        }
+        else{
+          await setCurrentPathLine(CurrentPathLine(
+              id: agentId,
+              hasVisitedDestination: false,
+              hasVisitedSource: false,
+              source: GeoPoint(
+                  merchant.bGeoPoint['geopoint']
+                      .latitude,
+                  merchant.bGeoPoint['geopoint']
+                      .longitude
+              ),
+              destination: order.orderMode.coordinate
+          ));
+        }
         return true;
       }
 
@@ -325,6 +351,32 @@ class OrderRepo {
     
   }
 
+  static Future<bool> setCurrentPathLine(CurrentPathLine cpl)async{
+    try{
+      await Firestore.instance.collection('pathLine').document(cpl.id).setData(cpl.toMap());
+      return true;
+    }
+    catch(_){
+      return false;
+    }
+  }
+
+  static Future<CurrentPathLine> getCurrentPathLine(String cpl)async{
+    try{
+     var doc = await Firestore.instance.collection('pathLine').document(cpl).get(source: Source.server);
+      return doc.exists?CurrentPathLine.fromSnap(doc):null;
+    }
+    catch(_){
+      return null;
+    }
+  }
+
+  static Stream<CurrentPathLine> currentPathLineStream(String cpl)async*{
+    try{
+      yield* Firestore.instance.collection('pathLine').document(cpl).snapshots().map((event) => CurrentPathLine.fromSnap(event));
+    }
+    catch(_){}
+  }
 
 
 

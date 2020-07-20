@@ -33,16 +33,13 @@ class SelectAuto extends StatefulWidget {
 }
 
 class _SelectAutoState extends State<SelectAuto> {
-
   Session currentUser;
   Position position;
   final load = ValueNotifier<bool>(false);
   final fee = ValueNotifier<List<int>>([0,0,0]);
   final agents = ValueNotifier<List<AgentLocUp>>([]);
-
   final destinationPosition = ValueNotifier<LatLng>(null);
   double zoom;
-
   loc.Location location;
   StreamSubscription<loc.LocationData> locStream;
   StreamSubscription<List<AgentLocUp>> agentStream;
@@ -51,6 +48,10 @@ class _SelectAutoState extends State<SelectAuto> {
   void dispose() {
     locStream?.cancel();
     agentStream?.cancel();
+    fee?.dispose();
+    load?.dispose();
+    agents?.dispose();
+    destinationPosition?.dispose();
     super.dispose();
   }
 
@@ -62,18 +63,11 @@ class _SelectAutoState extends State<SelectAuto> {
     Future.delayed(Duration(seconds: 1),(){load.value=true;});
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     zoom = Utility.zoomer(widget.distance);
-    Utility.locationAccess();
-    CloudFunctions.instance
-        .getHttpsCallable(
-      functionName: "ErrandDeliveryCut",
-    ).call({'distance': (widget.distance*1000)}).then((value) {fee.value = List.castFrom(value.data);});
-
+    CloudFunctions.instance.getHttpsCallable(functionName: "ErrandDeliveryCut",).call({'distance': (widget.distance*1000)}).then((value) {fee.value = List.castFrom(value.data);});
     agentStream = ErrandRepo.getNearByErrandRider(Position(latitude: widget.source.latitude,longitude: widget.source.longitude)).listen((event) {
       agents.value = event;
       ErrandBloc.instance.newAgentLocList(event);
     });
-
-
     super.initState();
   }
 

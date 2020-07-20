@@ -11,10 +11,11 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
 import 'package:pocketshopping/src/order/lTracker.dart';
-import 'package:pocketshopping/src/order/rErrandTracker.dart';
+import 'file:///C:/dev/others/pocketshopping/lib/src/order/tracker/errand/rErrandTracker.dart';
 import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/order/tracker/delivery/rDeliveryTracker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -331,9 +332,10 @@ class _SingleOrderState extends State<SingleOrder> {
         Get.to(
             widget.user.user.role != 'admin'?
             widget.order.orderMode.mode != 'Errand'?
-            RiderTracker(
+            RiderDeliveryTracker(
           order: widget.order.docID,
           user: widget.user.user,
+          isActive: true,
         ):RiderErrandTracker(
               order: widget.order.docID,
               user: widget.user.user,

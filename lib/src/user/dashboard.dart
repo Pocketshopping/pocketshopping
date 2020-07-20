@@ -446,7 +446,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       content: ManageBusiness(session: currentUser,),
                       refresh: reloadMerchant,
                     ),
-                    MenuItem(
+                    /*MenuItem(
                       gridHeight,
                       Icon(AntIcons.home_outline,
                           size: MediaQuery.of(context).size.width * 0.1,
@@ -454,7 +454,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       'Branch',
                       border: PRIMARYCOLOR,
                       content: Text('hello'),
-                    ),
+                    ),*/
 
 
                     MenuItem(

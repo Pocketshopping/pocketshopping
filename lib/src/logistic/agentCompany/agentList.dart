@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
@@ -633,37 +630,15 @@ class Clearance extends StatelessWidget{
    Future<void> clearanceNotifier(String to,{String title='Cleared',
    String body='Hello. you have been cleared by the admin. you can now proceed with excuting delivery, Thank you',
    String notificationID= 'clearanceConfirmationResponse'}) async {
-     //print('team meeting');
-     await FirebaseMessaging().requestNotificationPermissions(
-       const IosNotificationSettings(
-           sound: true, badge: true, alert: true, provisional: false),
-     );
-     await http.post('https://fcm.googleapis.com/fcm/send',
-         headers: <String, String>{
-           'Content-Type': 'application/json',
-           'Authorization': 'key=$serverToken'
-         },
-         body: jsonEncode(<String, dynamic>{
-           'notification': <String, dynamic>{
-             'body': '$body',
-             'title': '$title'
-           },
-           'priority': 'high',
-           'data': <String, dynamic>{
-             'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-             'id': '1',
-             'status': 'done',
-             'payload': {
-               'NotificationType': '$notificationID',
-             }
-           },
-           'to': to,
-         })).timeout(
-       Duration(seconds: TIMEOUT),
-       onTimeout: () {
-         return null;
-       },
-     );
+
+    await Utility.pushNotifier(
+      body: body,
+      title: title,
+      fcm: to,
+      notificationType: notificationID,
+      data: {},
+
+    );
    }
 }
 

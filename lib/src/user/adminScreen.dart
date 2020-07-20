@@ -80,12 +80,10 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   void initState() {
-    //LocalNotificationService.instance.start();
     userName = '';
     _selectedIndex = 0;
     currentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
     UserRepo().upDate(uid: currentUser.uid, notificationID: 'fcm').then((value) => null);
-    //sendAndRetrieveMessage();
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
       if (notification != null) {
@@ -104,21 +102,6 @@ class _AdminScreenState extends State<AdminScreen> {
 
     processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
-/*      case 'OrderRequest':
-        if (!Get.isDialogOpen)
-          Get.dialog(PingWidget(
-            ndata: notification.data,
-            uid: currentUser.uid,
-          ));
-        break;
-      case 'OrderResolutionResponse':
-        if (!Get.isDialogOpen)
-          Get.dialog(PingWidget(
-            ndata: notification.data,
-            uid: currentUser.uid,
-          ));
-        //Get.dialog(Resolution(payload: payload,));
-        break;*/
       case 'NewDeliveryOrderRequest':
         GetBar(titleText: Text('New Delivery',style: TextStyle(color: Colors.white),),
           messageText:Text('You have new Delivery. Check you dashboard for details',style: TextStyle(color: Colors.white),),
@@ -199,7 +182,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   void dispose() {
-    if (iosSubscription != null) iosSubscription.cancel();
+    iosSubscription?.cancel();
     super.dispose();
   }
 
@@ -218,9 +201,7 @@ class _AdminScreenState extends State<AdminScreen> {
         )..add(LoadUser(currentUser.uid)),
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
-            //setState(() {
             userName = state.user.user.fname;
-            // });
             return state.user.merchant != null ?Scaffold(
               drawer: DrawerScreen(
                 userRepository: widget._userRepository,

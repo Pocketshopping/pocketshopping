@@ -1,32 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:async';
-import 'dart:convert';
 
-import 'package:carousel_pro/carousel_pro.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geocoder/geocoder.dart' as geocode;
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as loc;
-import 'package:pocketshopping/src/business/business.dart';
-import 'package:pocketshopping/src/channels/repository/channelObj.dart';
-import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/errand/bloc/errandBloc.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
-import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/cErrandTracker.dart';
-import 'package:pocketshopping/src/order/cTracker.dart';
-import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
+import 'package:pocketshopping/src/order/repository/errandObj.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
@@ -35,10 +27,7 @@ import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/profile/pinSetter.dart';
 import 'package:pocketshopping/src/profile/pinTester.dart';
-import 'package:pocketshopping/src/statistic/agentStatistic/deliveryRequest.dart';
-import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
@@ -46,40 +35,6 @@ import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:random_string/random_string.dart';
-import 'package:ant_icons/ant_icons.dart';
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_place/google_place.dart';
-import 'package:pocketshopping/src/errand/direction.dart';
-import 'package:pocketshopping/src/errand/map.dart';
-import 'package:pocketshopping/src/errand/repository/errandRepo.dart';
-import 'package:pocketshopping/src/geofence/package_geofence.dart';
-import 'package:pocketshopping/src/geofence/reviewPlace.dart';
-import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
-import 'package:pocketshopping/src/order/customerMapTracker.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
-import 'package:pocketshopping/src/payment/atmCard.dart';
-import 'package:pocketshopping/src/payment/topup.dart';
-import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
-import 'package:pocketshopping/src/profile/pinSetter.dart';
-import 'package:pocketshopping/src/profile/pinTester.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
-import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:progress_indicators/progress_indicators.dart';
-import 'package:location/location.dart' as loc;
-import 'package:pocketshopping/src/errand/bloc/errandBloc.dart';
-import 'package:flutter/services.dart';
-import 'package:pocketshopping/src/order/repository/errandObj.dart';
 
 class Preview extends StatefulWidget {
   final Session user;
@@ -149,6 +104,7 @@ class _PreviewState extends State<Preview> {
 
     _agentStream = ErrandBloc.instance.errandStream;
     _agentStream.listen((result) {
+      if(mounted)
       agents.value  = result;
     });
 
@@ -162,6 +118,21 @@ class _PreviewState extends State<Preview> {
   @override
   void dispose() {
     locStream?.cancel();
+     /*keyboard?.dispose();
+     autoValidate?.dispose();
+     stage?.dispose();
+     fee?.dispose();
+     dName?.dispose();
+     dContact?.dispose();
+     dComment?.dispose();
+      _nameController?.dispose();
+      _contactController?.dispose();
+      _commentController?.dispose();
+     wallet?.dispose();
+     agents?.dispose();
+     singleAgent?.dispose();
+     payStatus?.dispose();
+     payError?.dispose();*/
     super.dispose();
   }
 
@@ -325,6 +296,7 @@ class _PreviewState extends State<Preview> {
                                                             autovalidate: validate,
                                                             maxLength: 11,
                                                             enableSuggestions: true,
+                                                            keyboardType: TextInputType.phone,
                                                             textInputAction: TextInputAction.done,
                                                             onChanged: (value){},
                                                           )
@@ -332,6 +304,12 @@ class _PreviewState extends State<Preview> {
                                                       Padding(
                                                           padding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
                                                           child:  TextFormField(
+                                                            validator: (value) {
+                                                              if (value.isEmpty) {
+                                                                return 'Package description can not be empty';
+                                                              }
+                                                              return null;
+                                                            },
                                                             controller: _commentController,
                                                             decoration: InputDecoration(
                                                               prefixIcon: Icon(Icons.comment),

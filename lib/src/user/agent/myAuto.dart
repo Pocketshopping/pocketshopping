@@ -348,7 +348,14 @@ class _MyAutoState extends State<MyAuto>{
                             );
                             Get.back();
                             if(result) {
-                              Utility.requestPusher(agentAcct.notificationID);
+                              //Utility.requestPusher(agentAcct.notificationID);
+                              Utility.pushNotifier(
+                                  fcm: agentAcct.notificationID,
+                                  body: 'You have a request to attend to click for more information',
+                                  title: 'Request',
+                                  notificationType: 'WorkRequestResponse',
+                                  data: {}
+                              );
                               Utility.bottomProgressSuccess(
                                   title: 'Rider Removed',
                                   body: 'running Clean up..',
@@ -688,7 +695,7 @@ class _MyAutoState extends State<MyAuto>{
                       ).then((value) => null);
                     },
                     color: Colors.greenAccent,
-                    child: const Text('Edit Agent',style: TextStyle(color: Colors.black54),),
+                    child: const Text('Edit Rider',style: TextStyle(color: Colors.black54),),
                   ),
                 )
               )

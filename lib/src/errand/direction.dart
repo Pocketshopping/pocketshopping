@@ -1,15 +1,12 @@
 import 'dart:async';
 
-import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart' as geoloc;
 import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
-import 'package:pocketshopping/src/ui/shared/direction/package_direction.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:random_string/random_string.dart';
 
@@ -55,15 +52,6 @@ class ErrandDirectionState extends State<ErrandDirection> {
   LocationData currentLocation;
   LocationData destinationLocation;
   Location location;
-  double pinPillPosition = -100;
-  PinInformation currentlySelectedPin = PinInformation(
-      pinPath: '',
-      avatarPath: PocketShoppingDefaultAvatar,
-      location: '',
-      locationName: '',
-      labelColor: Colors.grey);
-  PinInformation sourcePinInfo;
-  PinInformation destinationPinInfo;
   FirebaseUser currentUser;
   StreamSubscription<LocationData> locStream;
   RouteMode routeMode;
@@ -77,13 +65,13 @@ class ErrandDirectionState extends State<ErrandDirection> {
     location = new Location();
     distance = '';
     zoom = widget.zoom;
-    location.changeSettings(accuracy: LocationAccuracy.navigation, interval: 1000);
     polylinePoints = GoogleMapPolyline(apiKey: googleAPIKey);
     routeMode = RouteMode.driving;
     //locStream = location.onLocationChanged.listen((LocationData cLoc) {currentLocation = cLoc;updatePinOnMap();if (mounted) setState(() {});});
     setSourceAndDestinationIcons();
     setInitialLocation();
     centroid  = Utility.computeCentroid([widget.source,widget.destination])??widget.destination;
+
     super.initState();
   }
 
@@ -134,7 +122,6 @@ class ErrandDirectionState extends State<ErrandDirection> {
       "latitude": widget.source.latitude,
       "longitude": widget.source.longitude
     });
-    //await location.getLocation();
     destinationLocation = LocationData.fromMap({
       "latitude": widget.destination.latitude,
       "longitude": widget.destination.longitude
@@ -143,9 +130,7 @@ class ErrandDirectionState extends State<ErrandDirection> {
 
   @override
   void dispose() {
-    locStream.cancel();
-    location = null;
-    _controller = null;
+    locStream?.cancel();
     super.dispose();
   }
 
@@ -164,128 +149,82 @@ class ErrandDirectionState extends State<ErrandDirection> {
           bearing: CAMERA_BEARING);
     }
     return Scaffold(
-        backgroundColor: Colors.white,
-        body: currentLocation != null
-            ? Stack(
-          children: <Widget>[
+            backgroundColor: Colors.white,
+            body: currentLocation != null
+                ?
             GoogleMap(
-                myLocationEnabled: true,
-                compassEnabled: true,
-                tiltGesturesEnabled: false,
-                markers: _markers,
-                polylines: _polylines,
-                mapType: MapType.normal,
-                initialCameraPosition: initialCameraPosition,
-                onTap: (LatLng loc) {
-                  pinPillPosition = -100;
-                },
-                onMapCreated: (GoogleMapController controller) async{
-                 // controller.setMapStyle(Utility.mapStyles);
-                  _controller.complete(controller);
-                  showPinsOnMap();
-                }),
-            MapPinPillComponent(
-                pinPillPosition: pinPillPosition,
-                currentlySelectedPin: currentlySelectedPin)
-          ],
-        )
-            : Center(
-          child: CircularProgressIndicator(),
-        ), //store btn
+                    myLocationEnabled: true,
+                    compassEnabled: true,
+                    tiltGesturesEnabled: false,
+                    markers: _markers,
+                    polylines: _polylines,
+                    mapType: MapType.normal,
+                    initialCameraPosition: initialCameraPosition,
+                    onTap: (LatLng loc) {},
+                    onMapCreated: (GoogleMapController controller) async{
+                      // controller.setMapStyle(Utility.mapStyles);
+                      _controller.complete(controller);
+                      showPinsOnMap();
+                    })
 
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
-        floatingActionButton: currentLocation != null
-            ? Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              FloatingActionButton.extended(
-                onPressed: () {},
-                label: Text(
-                  distance,
-                  style: TextStyle(color: Colors.black54),
-                ),
-                icon: routeMode == RouteMode.driving
-                    ? IconButton(
-                  icon: Icon(
-                    Icons.timeline,
-                    color: Colors.black54,
-                  ), onPressed: () {  },
-                )
-                    : IconButton(
-                  icon: Icon(
-                    Icons.directions_walk,
-                    color: Colors.black54,
-                  ), onPressed: () {  },
-                ),
-                backgroundColor: Colors.white,
+                : Center(
+              child: CircularProgressIndicator(),
+            ), //store btn
+
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
+            floatingActionButton: currentLocation != null
+                ? Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FloatingActionButton.extended(
+                    onPressed: () {},
+                    label: Text(
+                      distance,
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                    icon: routeMode == RouteMode.driving
+                        ? IconButton(
+                      icon: Icon(
+                        Icons.timeline,
+                        color: Colors.black54,
+                      ), onPressed: () {  },
+                    )
+                        : IconButton(
+                      icon: Icon(
+                        Icons.directions_walk,
+                        color: Colors.black54,
+                      ), onPressed: () {  },
+                    ),
+                    backgroundColor: Colors.white,
+                  ),
+                ],
               ),
-            ],
-          ),
-        )
-            : Container());
+            )
+                : Container()
+
+    );
   }
 
   void showPinsOnMap()async {
-    // get a LatLng for the source location
-    // from the LocationData currentLocation object
     var pinPosition = LatLng(currentLocation.latitude, currentLocation.longitude);
-    // get a LatLng out of the LocationData object
     var destPosition = LatLng(destinationLocation.latitude, destinationLocation.longitude);
 
-    sourcePinInfo = PinInformation(
-        locationName: widget.sourceName ?? "Source",
-        location: widget.sourceAddress ?? "",
-        pinPath: "assets/images/markerS.png",
-        avatarPath: widget.destPhoto != null
-            ? widget.destPhoto.isNotEmpty
-            ? widget.destPhoto
-            : PocketShoppingDefaultAvatar
-            : PocketShoppingDefaultAvatar,
-        labelColor: Colors.blueAccent);
 
-    destinationPinInfo = PinInformation(
-        locationName: widget.destName ?? "Destination",
-        location: widget.destAddress ?? "",
-        pinPath: "assets/images/markerD.png",
-        avatarPath: widget.destPhoto != null
-            ? widget.destPhoto.isNotEmpty
-            ? widget.destPhoto
-            : PocketShoppingDefaultCover
-            : PocketShoppingDefaultCover,
-        labelColor: Colors.purple);
 
-    // add the initial source location pin
     _markers.add(Marker(
         markerId: MarkerId('sourcePin${randomAlpha(5)}'),
         position: pinPosition,
         infoWindow: InfoWindow(title: 'sdssds',snippet: 'ewewew',),
         visible: true,
-        onTap: () {
-          if (mounted) {
-            setState(() {
-              currentlySelectedPin = sourcePinInfo;
-              pinPillPosition = 0;
-            });
-          }
-        },
+        onTap: () {},
         icon: sourceIcon));
-    // destination pin
     _markers.add(Marker(
         markerId: MarkerId('destPin${randomAlpha(5)}'),
         position: destPosition,
-        onTap: () {
-          if (mounted) {
-            setState(() {
-              currentlySelectedPin = destinationPinInfo;
-              pinPillPosition = 0;
-            });
-          }
-        },
+        onTap: () {},
         icon: destinationIcon));
-    // set the route lines on the map from source to destination
-    // for more info follow this tutorial
     setPolylines();
   }
 
@@ -311,38 +250,6 @@ class ErrandDirectionState extends State<ErrandDirection> {
       }
     }
   }
-
-  void updatePinOnMap() async {
-    CameraPosition cPosition = CameraPosition(
-      zoom: zoom,
-      tilt: CAMERA_TILT,
-      bearing: CAMERA_BEARING,
-      target: LatLng(currentLocation.latitude, currentLocation.longitude),
-    );
-    if (mounted) {
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
-    }
-    if (mounted) {
-      setState(() {
-        var pinPosition =
-        LatLng(currentLocation.latitude, currentLocation.longitude);
-        _markers.removeWhere((m) => m.markerId.value.contains('sourcePin'));
-        _markers.add(Marker(
-            markerId: MarkerId('sourcePin${randomAlpha(5)}'),
-            onTap: () {
-              if(mounted)
-              setState(() {
-                currentlySelectedPin = sourcePinInfo;
-                pinPillPosition = 0;
-              });
-            },
-            position: pinPosition, // updated position
-            icon: sourceIcon));
-      });
-    }
-  }
-
 
 }
 

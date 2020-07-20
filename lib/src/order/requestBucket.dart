@@ -6,6 +6,8 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/deliveryTracker.dart';
 import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/order/tracker/delivery/rDeliveryTracker.dart';
+import 'package:pocketshopping/src/order/tracker/errand/rErrandTracker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -228,7 +230,9 @@ class _RequestBucketState extends State<RequestBucket> {
                                                       );
                                                       Get.back();
                                                       if(result){
-                                                        Get.off(RiderTracker(order: snapshots.data[index].docID,user: widget.user.user,));
+                                                        //if(snapshots.data[index].orderMode.mode != 'Errand')
+                                                          Get.off(RiderDeliveryTracker(order: snapshots.data[index].docID,user: widget.user.user,isActive: true,));
+                                                        //Get.off(RiderTracker(order: snapshots.data[index].docID,user: widget.user.user,));
                                                         Utility.bottomProgressSuccess(body: 'Order Accepted',title: 'Delivery');
                                                         Utility.pushNotifier(title: 'Delivery',
                                                             body: 'Your Order has been accepted and the rider(${widget.user.user.fname}) will deliver your package shortly'
@@ -375,7 +379,7 @@ class _RequestBucketState extends State<RequestBucket> {
                                                       );
                                                       Get.back();
                                                       if(result){
-                                                        Get.off(RiderTracker(order: snapshots.data[index].docID,user: widget.user.user,));
+                                                        Get.off(RiderErrandTracker(order: snapshots.data[index].docID,user: widget.user.user,isActive: true,));
                                                         Utility.bottomProgressSuccess(body: 'Order Accepted',title: 'Delivery');
                                                         if(snapshots.data[index].orderMode.mode != 'Errand')
                                                         {

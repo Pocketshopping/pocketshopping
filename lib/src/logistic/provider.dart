@@ -175,8 +175,8 @@ class LogisticRepo {
   }
 
   static Future<bool> removeAgent(Agent agent,Request request,) async {
-    bool isDeleted = await deleteAgentLocUpdate(agent.agentID);
 
+    bool isDeleted = await deleteAgentLocUpdate(agent.agentID);
     if(isDeleted){
       await RequestRepo.save(request);
       await UserRepo().upDate(uid: agent.agent,role: 'user',bid: 'null');

@@ -72,7 +72,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     } catch (_) {
       if(_ == "EMAIL UNVERIFIED")
       yield LoginState.failure(error: "Email address has not been verified.");
-      else yield LoginState.failure(error: "Login Failure. Ensure you are entering the right details");
+      else yield LoginState.failure(error: "Login Failure. Enter the right details");
     }
   }
 }

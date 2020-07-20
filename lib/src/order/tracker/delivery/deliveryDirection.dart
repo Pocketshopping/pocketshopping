@@ -19,18 +19,18 @@ const double CAMERA_ZOOM = 16;
 const double CAMERA_TILT = 0;
 const double CAMERA_BEARING = 30;
 
-class Direction extends StatefulWidget {
-  Direction(
+class DeliveryDirection extends StatefulWidget {
+  DeliveryDirection(
       {@required this.source,
-      @required this.destination,
-      this.destAddress,
-      this.destName,
-      this.destContact,
-      this.sourceName,
-      this.sourceContact,
-      this.sourceAddress,
-      this.autoType="MotorBike",
-      this.user,
+        @required this.destination,
+        this.destAddress,
+        this.destName,
+        this.destContact,
+        this.sourceName,
+        this.sourceContact,
+        this.sourceAddress,
+        this.autoType="MotorBike",
+        this.user,
       });
 
   final LatLng source;
@@ -45,10 +45,10 @@ class Direction extends StatefulWidget {
   final User user;
 
   @override
-  State<StatefulWidget> createState() => DirectionState();
+  State<StatefulWidget> createState() => _DeliveryDirectionState();
 }
 
-class DirectionState extends State<Direction> {
+class _DeliveryDirectionState extends State<DeliveryDirection> {
   Completer<GoogleMapController> _controller = Completer();
   Set<Marker> _markers = Set<Marker>();
   Set<Polyline> _polylines = Set<Polyline>();
@@ -65,9 +65,10 @@ class DirectionState extends State<Direction> {
   RouteMode routeMode;
   String distance;
   StreamSubscription<CurrentPathLine> pathLineStream;
+  Stream<LocationData> lStream;
+
   final pathLine = ValueNotifier<CurrentPathLine>(null);
   final slider = new PanelController();
-  Stream<LocationData> lStream;
 
   Stream<CurrentPathLine> _pathStream;
 
@@ -75,21 +76,23 @@ class DirectionState extends State<Direction> {
   void initState() {
     Future.delayed(Duration(seconds: 1),(){
       currentUser = widget.user;
-      location = new Location();
       distance = '';
+      location = new Location();
       location.changeSettings(accuracy: LocationAccuracy.navigation, interval: 1000);
       polylinePoints = GoogleMapPolyline(apiKey: googleAPIKey);
       routeMode = RouteMode.driving;
       locStream = location.onLocationChanged.listen((LocationData cLoc) {LocationBloc.instance.newLocationUpdate(cLoc);});
-      setSourceAndDestinationIcons();
-      setInitialLocation();
-
       lStream = LocationBloc.instance.locationStream;
       lStream.listen((LocationData cLoc) {
         currentLocation = cLoc;
         updatePinOnMap();
         if (mounted) setState(() {});
       });
+
+
+
+      setSourceAndDestinationIcons();
+      setInitialLocation();
       pathLineStream = OrderRepo.currentPathLineStream(currentUser.uid).listen((event) {
         if(event != null) {
           pathLine.value = event;
@@ -124,11 +127,11 @@ class DirectionState extends State<Direction> {
     if (dist < 1000) {
       distance = '${dist.round()} meter(s) away';
       if(mounted)
-      setState(() {});
+        setState(() {});
     } else {
       distance = '${(dist / 1000).round()} kilometer(s) away';
       if(mounted)
-      setState(() {});
+        setState(() {});
     }
   }
 
@@ -136,7 +139,7 @@ class DirectionState extends State<Direction> {
     switch(type){
       case 'MotorBike':
         return 'assets/images/delivery.png';
-      break;
+        break;
 
       case 'Car':
         return 'assets/images/deliverycar.png';
@@ -200,37 +203,37 @@ class DirectionState extends State<Direction> {
         valueListenable: pathLine,
         builder: (_,CurrentPathLine path,__){
           return Scaffold(
-        backgroundColor: Colors.white,
-        body: SlidingUpPanel(
-          controller: slider,
-          body: currentLocation != null
-              ?
-          GoogleMap(
-              myLocationEnabled: false,
-              compassEnabled: true,
-              tiltGesturesEnabled: false,
-              zoomGesturesEnabled: true,
-              markers: _markers,
-              polylines: _polylines,
-              mapType: MapType.normal,
-              initialCameraPosition: initialCameraPosition,
-              onTap: (LatLng loc) {},
-              onMapCreated: (GoogleMapController controller) {
-                controller.setMapStyle(Utility.directionMapStyles);
-                _controller.complete(controller);
-                // my map has completed being created;
-                // i'm ready to show the pins on the map
-                showPinsOnMap();
-              })
-              : Center(child: CircularProgressIndicator(),),
-          renderPanelSheet: false,
-         panel: _floatingPanel(path),
-         collapsed: _floatingCollapsed(path),
-          slideDirection: SlideDirection.DOWN,
-        )
+              backgroundColor: Colors.white,
+              body: SlidingUpPanel(
+                controller: slider,
+                body: currentLocation != null
+                    ?
+                GoogleMap(
+                    myLocationEnabled: false,
+                    compassEnabled: true,
+                    tiltGesturesEnabled: false,
+                    zoomGesturesEnabled: true,
+                    markers: _markers,
+                    polylines: _polylines,
+                    mapType: MapType.normal,
+                    initialCameraPosition: initialCameraPosition,
+                    onTap: (LatLng loc) {},
+                    onMapCreated: (GoogleMapController controller) {
+                      controller.setMapStyle(Utility.directionMapStyles);
+                      _controller.complete(controller);
+                      // my map has completed being created;
+                      // i'm ready to show the pins on the map
+                      showPinsOnMap();
+                    })
+                    : Center(child: CircularProgressIndicator(),),
+                renderPanelSheet: false,
+                panel: _floatingPanel(path),
+                collapsed: _floatingCollapsed(path),
+                slideDirection: SlideDirection.DOWN,
+              )
           );
-            }
-        );
+        }
+    );
   }
 
   void showPinsOnMap() {
@@ -238,13 +241,11 @@ class DirectionState extends State<Direction> {
 
     var sourcePosition = widget.source;
     var destPosition = widget.destination;
-
-
     // add the initial source location pin
     _markers.add(Marker(
         markerId: MarkerId('sourcePin'),
         infoWindow: InfoWindow(
-            title: 'Source',
+            title: '${widget.sourceName}',
             snippet: '${widget.sourceAddress}'
 
         ),
@@ -254,7 +255,7 @@ class DirectionState extends State<Direction> {
     _markers.add(Marker(
         markerId: MarkerId('destPin'),
         infoWindow: InfoWindow(
-            title: 'Destination',
+            title: '${widget.destName}(Customer)',
             snippet: '${widget.destAddress}'
 
         ),
@@ -306,6 +307,29 @@ class DirectionState extends State<Direction> {
     }
   }
 
+  void setCurrentToDestinationPolylines() async {
+    List<LatLng> result = await polylinePoints.getCoordinatesWithLocation(
+        origin: LatLng(currentLocation.latitude,currentLocation.longitude),
+        destination: widget.destination,
+        mode: routeMode);
+
+    if (result.isNotEmpty) {
+      result.forEach((LatLng point) {
+        polylineCoordinates.add(point);
+      });
+      //await awayFrom(polylineCoordinates);
+      if (mounted) {
+        setState(() {
+          _polylines.add(Polyline(
+              width: 5,
+              polylineId: PolylineId("poly"),
+              color: Color.fromARGB(255, 40, 122, 198),
+              points: polylineCoordinates));
+        });
+      }
+    }
+  }
+
   void setDestinationPolylines() async {
     List<LatLng> result = await polylinePoints.getCoordinatesWithLocation(
         origin: LatLng(currentLocation.latitude,currentLocation.longitude),
@@ -327,6 +351,7 @@ class DirectionState extends State<Direction> {
         });
       }
     }
+    //setCurrentToDestinationPolylines();
   }
 
 
@@ -350,8 +375,8 @@ class DirectionState extends State<Direction> {
             rotation: currentLocation.heading,
             flat: true,
             infoWindow: InfoWindow(
-              title: 'You',
-              snippet: 'rider'
+                title: 'You',
+                snippet: 'rider'
 
             ),
             markerId: MarkerId('currentPin'),
@@ -385,14 +410,14 @@ class DirectionState extends State<Direction> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Expanded(flex: 0,
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                color: Colors.black54,
-              ), onPressed: () {
-              Get.back();
-            },
-            ),),
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.black54,
+                ), onPressed: () {
+                Get.back();
+              },
+              ),),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -402,16 +427,16 @@ class DirectionState extends State<Direction> {
                     if(!path.hasVisitedSource && !path.hasVisitedDestination)
                       Center(
                         child:
-                          Text('Get package from Source',
-                            style: TextStyle(color: Colors.black54,fontSize: 18,fontWeight: FontWeight.bold),),
+                        Text('Get Order from ${widget.sourceName}',
+                          style: TextStyle(color: Colors.black54,fontSize: 18,fontWeight: FontWeight.bold),),
 
                       ),
 
                   if(path != null)
                     if(path.hasVisitedSource && !path.hasVisitedDestination )
                       Center(
-                        child:
-                          Text('Take package to Destination',
+                          child:
+                          Text('Take order to Customer',
                             style: TextStyle(color: Colors.black54,fontSize: 18,fontWeight: FontWeight.bold),)
 
                       ),
@@ -419,7 +444,7 @@ class DirectionState extends State<Direction> {
                     if(path.hasVisitedSource && path.hasVisitedDestination )
                       Center(
                           child:
-                          Text('You are few meters to the destination. Call The Reciever',
+                          Text('You are few meters to the destination. Call The Customer',
                             style: TextStyle(color: Colors.black54,fontSize: 14,fontWeight: FontWeight.bold),)
 
                       ),
@@ -463,61 +488,61 @@ class DirectionState extends State<Direction> {
               children: [
                 if(path != null)
                   if(!path.hasVisitedSource)
-                   Column(
-                     children: [
-                       Center(
-                           child:
-                           Padding(
-                             padding: EdgeInsets.symmetric(horizontal: 10),
-                             child: Text('Head to the source to collect the package for delivery. If you have already collected the package click the button below to get '
-                                 ' map route to the destination',
-                               style: TextStyle(color: Colors.black54,fontSize: 18),textAlign: TextAlign.center,),
-                           )
+                    Column(
+                      children: [
+                        Center(
+                            child:
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: Text('Head to  ${widget.sourceName} to get the order. If you have already gotten the order click the button below to get '
+                                  ' map route to the customer',
+                                style: TextStyle(color: Colors.black54,fontSize: 18),textAlign: TextAlign.center,),
+                            )
 
-                       ),
-                       Center(
-                         child: FlatButton(
-                           color: PRIMARYCOLOR,
-                           child: Text('Destination route',style: TextStyle(color: Colors.white),),
-                           onPressed: ()async{
+                        ),
+                        Center(
+                          child: FlatButton(
+                            color: PRIMARYCOLOR,
+                            child: Text('Customer route',style: TextStyle(color: Colors.white),),
+                            onPressed: ()async{
                               slider.close();
                               //CurrentPathLine p = path;
-                             //p = p.copyWith(hasVisitedSource: true);
+                              //p = p.copyWith(hasVisitedSource: true);
                               await OrderRepo.setCurrentPathLine(path.copyWith(hasVisitedSource: true));
-                           },
-                         ),
-                       ),
-                     ],
-                   ),
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
 
                 if(path != null)
                   if(path.hasVisitedSource)
-                Column(
-                  children: [
-                    Center(
-                        child:
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text('Take the package to the destination. Call the reciever once you get to the destination. If you have not collected the package click the button below to get '
-                              ' map route to the source',
-                            style: TextStyle(color: Colors.black54,fontSize: 18),textAlign: TextAlign.center,),
-                        )
+                    Column(
+                      children: [
+                        Center(
+                            child:
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: Text('Take the order to the destination. Call the customer once you get to the destination. If you have not collected the package click the button below to get '
+                                  ' map route to ${widget.sourceName}',
+                                style: TextStyle(color: Colors.black54,fontSize: 18),textAlign: TextAlign.center,),
+                            )
 
+                        ),
+                        Center(
+                          child: FlatButton(
+                            color: PRIMARYCOLOR,
+                            child: Text('${widget.sourceName} route',style: TextStyle(color: Colors.white),),
+                            onPressed: ()async{
+                              slider.close();
+                              //CurrentPathLine p = path;
+                              //p = p.copyWith(hasVisitedSource: true);
+                              await OrderRepo.setCurrentPathLine(path.copyWith(hasVisitedSource: false,hasVisitedDestination: false));
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                    Center(
-                      child: FlatButton(
-                        color: PRIMARYCOLOR,
-                        child: Text('Source route',style: TextStyle(color: Colors.white),),
-                        onPressed: ()async{
-                          slider.close();
-                          //CurrentPathLine p = path;
-                          //p = p.copyWith(hasVisitedSource: true);
-                          await OrderRepo.setCurrentPathLine(path.copyWith(hasVisitedSource: false,hasVisitedDestination: false));
-                        },
-                      ),
-                    ),
-                  ],
-                ),
               ],
             )
             ),
@@ -545,7 +570,7 @@ class DirectionState extends State<Direction> {
                         if(!path.hasVisitedSource)
                           Center(
                             child:
-                            Text('Get package from Source',
+                            Text('Get Order from ${widget.sourceName}',
                               style: TextStyle(color: Colors.black54,fontSize: 18,fontWeight: FontWeight.bold),),
 
                           ),
@@ -554,7 +579,7 @@ class DirectionState extends State<Direction> {
                         if(path.hasVisitedSource)
                           Center(
                               child:
-                              Text('Take package to Destination',
+                              Text('Take order to Customer',
                                 style: TextStyle(color: Colors.black54,fontSize: 18,fontWeight: FontWeight.bold),)
 
                           ),

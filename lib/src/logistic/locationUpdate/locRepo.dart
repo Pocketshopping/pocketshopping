@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -81,6 +83,14 @@ class LocRepo {
     }
 
     try{
+      CurrentPathLine cpl = await OrderRepo.getCurrentPathLine(agent.agent);
+      if(cpl != null){
+        CurrentPathLine temp = await cpl.proximityCheck(Position(
+          latitude: data['agentLocation']['geopoint'].latitude,
+          longitude: data['agentLocation']['geopoint'].longitude
+        ));
+        await OrderRepo.setCurrentPathLine(temp);
+      }
       int count = await OrderRepo.getUnclaimedDelivery(agent.agentID);
       if(count>0)
         Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');

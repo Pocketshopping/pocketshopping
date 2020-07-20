@@ -542,10 +542,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                               ),
                                               destAddress: _order.orderMode.address,
                                               destName: _order.orderCustomer.customerName,
-                                              destPhoto: customer.profile,
                                               sourceName: merchant.bName,
                                               sourceAddress: merchant.bAddress,
-                                              sourcePhoto: merchant.bPhoto,
                                             ):
                                                 CustomerMapTracker(
                                                   latLng: LatLng(_order.orderMode.coordinate.latitude,_order.orderMode.coordinate.longitude,),
@@ -764,10 +762,8 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
                                               ),
                                               destAddress: merchant.bAddress,
                                               destName: merchant.bName,
-                                              destPhoto:  merchant.bPhoto,
                                               sourceName: widget.user.fname,
                                               sourceAddress: widget.user.defaultAddress,
-                                              sourcePhoto: widget.user.profile,
                                             ):
                                                 CustomerMapTracker(
                                                   latLng: LatLng(merchant.bGeoPoint['geopoint'].latitude,

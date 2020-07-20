@@ -11,12 +11,10 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/admin/staff/newStaff.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
-import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentTracker.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/agent/myAuto.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -679,46 +677,33 @@ class Manage extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return  FutureBuilder<Agent>(
-    future: LogisticRepo.getOneAgent((data as AgentLocUp).agent),
+    return  FutureBuilder<User>(
+    future: UserRepo.getOneUsingUID((data as Staff).staff),
     initialData: null,
-    builder: (_, AsyncSnapshot<Agent> agent){
-    if(agent.hasData){
+    builder: (_, AsyncSnapshot<User> user){
+    if(user.hasData){
       return ListTile(
         onTap: (){
-          Get.to(MyAuto(agent: agent.data,isAdmin: true,)).then((value) {refresh();});
+          //Get.to(MyAuto(agent: agent.data,isAdmin: true,)).then((value) {refresh();});
         },
         leading: CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey.withOpacity(0.2),
-          backgroundImage: NetworkImage(data.profile.isNotEmpty?data.profile:PocketShoppingDefaultAvatar,
+          backgroundImage: NetworkImage(user.data.profile.isNotEmpty?data.profile:PocketShoppingDefaultAvatar,
           ),
         ),
-        title: Text('${data.agentName}',style: TextStyle(fontSize: 18),),
+        title: Text('${user.data.fname}',style: TextStyle(fontSize: 18),),
         subtitle:Column(
           //mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Row(
 
               children: [
-                Text('${data.autoAssigned?data.agentAutomobile:'Unassign'}',),
-
-                Row(
-                  children: [
-                    Text('Collection Limit:'),
-                    Text('$CURRENCY${Utility.numberFormatter(data.limit)} ')
-
-                  ],
-                )
+                if((data as Staff).startDate == null)
+                  Text('User has not accepted the job.',style: TextStyle(color: Colors.red),),
               ],
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            ),
-            if(!data.autoAssigned)
-              Row(
-                children: [
-                  Text('This agent is not assigned to any automobile.',style: TextStyle(color: Colors.red),)
-                ],
-              )
+            )
           ],
         ),
         trailing:  Icon(Icons.arrow_forward_ios),

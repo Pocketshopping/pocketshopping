@@ -254,6 +254,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
           children: [
             Column(
               children: [
+                if(widget.isRestaurant)
                 Expanded(
                   flex: 0,
                   child: restaurant(),
@@ -277,7 +278,6 @@ class _PosCheckOutState extends State<PosCheckOut> {
                       children: itemMaker(widget.payload),)
                 ),
                 const SizedBox(height: 20,),
-                if(widget.isRestaurant)
                 Expanded(
                   flex: 0,
                   child: Row(

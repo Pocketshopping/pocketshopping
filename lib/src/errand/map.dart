@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -11,7 +10,6 @@ import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:random_string/random_string.dart';
 
 class MapWidget extends StatefulWidget {
   final LatLng latLng;
@@ -24,50 +22,48 @@ class MapWidget extends StatefulWidget {
 }
 
 class _MapWidgetState extends State<MapWidget> {
-
   final _latLngNotifier = ValueNotifier<LatLng>(null);
+  final _markers = ValueNotifier<Set<Marker> >(Set<Marker>());
+  Completer<GoogleMapController> _controller = Completer();
   StreamSubscription<List<AgentLocUp>> agentStream;
   BitmapDescriptor carIcon;
   BitmapDescriptor bikeIcon;
   BitmapDescriptor vanIcon;
   double zoom;
-  final _markers = ValueNotifier<Set<Marker> >(Set<Marker>());
-  Completer<GoogleMapController> _controller = Completer();
+
 
 
   @override
   void initState() {
-      zoom=17.0;
-
-    Future.delayed(Duration(seconds: 2),(){
-      if(mounted)
-      _latLngNotifier.value = widget.latLng;
-    });
-    agentStream = ErrandRepo.getNearByErrandRider(Position(latitude: widget.latLng.latitude,longitude: widget.latLng.longitude)).listen((event) {
-      //agents.value = event;
-      //_markers.value.clear();
-      event.forEach((element) {
-        updatePinOnMap(element);
+   // Future.delayed(Duration(seconds: 1),(){
+      zoom=15.0;
+      Future.delayed(Duration(seconds: 2),(){
+        if(mounted)
+          _latLngNotifier.value = widget.latLng;
       });
-     // _markers.value.addAll(temp);
-      ErrandBloc.instance.newAgentLocList(event);
-    });
-    setIcons();
+      agentStream = ErrandRepo.getNearByErrandRider(Position(latitude: widget.latLng.latitude,longitude: widget.latLng.longitude)).listen((event) {
+        event.forEach((element) {
+          updatePinOnMap(element);
+        });
+        ErrandBloc.instance.newAgentLocList(event);
+      });
+      setIcons();
+   // });
     super.initState();
   }
 
   void setIcons() async {
     carIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2),
-        'assets/images/driving_pin.png');
+        'assets/images/deliverycar.png');
 
     bikeIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2),
-        'assets/images/biking_pin.png');
+        'assets/images/delivery.png');
 
     vanIcon = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(devicePixelRatio: 2),
-        'assets/images/van_pin.png');
+        'assets/images/truck.png');
   }
 
   @override
@@ -90,7 +86,8 @@ class _MapWidgetState extends State<MapWidget> {
               valueListenable: _latLngNotifier,
               builder: (_, latLng,__){
                 if(latLng != null){
-                  return mounted?GoogleMap(
+                  return mounted?
+                  GoogleMap(
                     onMapCreated: (GoogleMapController controller){
                       controller.setMapStyle(Utility.mapStyles);
                       _controller.complete(controller);
@@ -98,14 +95,11 @@ class _MapWidgetState extends State<MapWidget> {
                     },
                     initialCameraPosition: CameraPosition(
                       target:  LatLng(latLng.latitude, latLng.longitude),
-                      zoom: 17,
+                      zoom: zoom,
                     ),
                     zoomGesturesEnabled: true,
                     mapToolbarEnabled: true,
-                    onTap: (latLng){
-                      //print(latLng.toString());
-                      widget.callBack(latLng);
-                    },
+                    onTap: (latLng){widget.callBack(latLng);},
                     myLocationEnabled: true,
                     buildingsEnabled: true,
                     markers: markers,
@@ -131,14 +125,8 @@ class _MapWidgetState extends State<MapWidget> {
     );
   }
 
-  void showPinsOnMap()async {
-
-
-
-  }
-
   void updatePinOnMap(AgentLocUp agent) async {
-    CameraPosition cPosition = CameraPosition(
+    /*CameraPosition cPosition = CameraPosition(
       zoom: zoom,
       tilt: CAMERA_TILT,
       bearing: CAMERA_BEARING,
@@ -147,7 +135,7 @@ class _MapWidgetState extends State<MapWidget> {
     if (mounted) {
       final GoogleMapController controller = await _controller.future;
       controller.animateCamera(CameraUpdate.newCameraPosition(cPosition));
-    }
+    }*/
     if (mounted) {
       setState(() {
         _markers.value.removeWhere((m) => m.markerId.value.contains('${agent.agent}'));

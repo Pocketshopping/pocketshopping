@@ -6,13 +6,10 @@ import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
-import 'package:pocketshopping/src/geofence/geofence.dart';
 import 'package:pocketshopping/src/geofence/radius.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/pocketPay/pocket.dart';
@@ -90,10 +87,8 @@ class _StaffScreenState extends State<StaffScreen> {
     _selectedIndex = 0;
     currentUser = BlocProvider.of<AuthenticationBloc>(context).state.props[0];
     UserRepo().upDate(uid: currentUser.uid, notificationID: 'fcm').then((value) => null);
-    //initConfigure();
     _notificationsStream = NotificationsBloc.instance.notificationsStream;
     _notificationsStream.listen((notification) {
-
       if (notification != null) {
         try {
           var payload = jsonDecode(notification.data['data']['payload']);
@@ -261,7 +256,7 @@ class _StaffScreenState extends State<StaffScreen> {
                     child: Center(
                       child: <Widget>[
                         BlankWorkplace(),
-                        GeoFence(),
+                        MyRadius(),
                         Favourite(),
                         MyOrders(),
                         PocketPay(),
@@ -294,7 +289,7 @@ class _StaffScreenState extends State<StaffScreen> {
     );
   }
 
-  Future<bool> _onWillPop() async {
+/*  Future<bool> _onWillPop() async {
     return (await showDialog(
       context: context,
       builder: (context) => new AlertDialog(
@@ -313,39 +308,5 @@ class _StaffScreenState extends State<StaffScreen> {
         ],
       ),
     ));
-  }
-
-  Future<void> Respond(bool yesNo, String response, String fcm) async {
-    //print('team meeting');
-    await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
-    );
-    await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'notification': <String, dynamic>{
-            'body': yesNo
-                ? 'Your order has been accepted'
-                : 'Your order has been decline',
-            'title': 'Order Confirmation'
-          },
-          'priority': 'high',
-          'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done',
-            'payload': {
-              'NotificationType': 'OrderRequestResponse',
-              'Response': yesNo,
-              'Reason': response,
-              'acceptedBy': userName
-            }
-          },
-          'to': fcm,
-        }));
-  }
+  }*/
 }
