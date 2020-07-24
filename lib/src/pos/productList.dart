@@ -15,6 +15,7 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
 class ProductList extends StatefulWidget {
@@ -39,7 +40,6 @@ class _ProductListState extends State<ProductList> {
   String selectedCategory;
   final _count = ValueNotifier<int>(1);
   List<CartItem> _cartItem;
-  Stream<Wallet> _walletStream;
   final _walletNotifier = ValueNotifier<Wallet>(null);
 
 
@@ -67,8 +67,7 @@ class _ProductListState extends State<ProductList> {
           }
         });
     });
-    _walletStream = WalletBloc.instance.walletStream;
-    _walletStream.listen((wallet) {
+    WalletRepo.getWallet(widget.user.merchant.bWallet).then((wallet) {
       if (mounted) {
         _walletNotifier.value=null;
         _walletNotifier.value = wallet;

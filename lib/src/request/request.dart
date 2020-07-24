@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
@@ -9,6 +10,7 @@ import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
@@ -319,7 +321,7 @@ class _RequestScreenState extends State<RequestScreen> {
 
   }
 
-  processResponse(Request request, String response) {
+  processResponse(Request request, String response)async {
     setState(() {
       isSubmitting = true;
     });
@@ -336,9 +338,16 @@ class _RequestScreenState extends State<RequestScreen> {
       progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
     ).show();
     if (response == 'Y') {
-      LogisticRepo.agentAccept(request.requestInitiatorID, request.requestID,
-              request.requestReceiver)
-          .then((value) {
+      bool result;
+      if(request.requestAction == 'STAFFWORKREQUEST'){
+        result = await StaffRepo.staffAccept(request.requestInitiatorID, request.requestID, request.requestReceiver,);
+      }
+      else if(request.requestAction == 'WORKREQUEST'){
+        result = await LogisticRepo.agentAccept(request.requestInitiatorID, request.requestID, request.requestReceiver);
+      }
+      else{}
+
+      if(result){
         if (Get.isSnackbarOpen) {
           Get.back();
           GetBar(
@@ -378,84 +387,52 @@ class _RequestScreenState extends State<RequestScreen> {
           ).show();
           setState(() {
             _requests.removeWhere(
-                (element) => element.requestAction == 'WORKREQUEST');
+                    (element) => element.requestAction == 'WORKREQUEST');
             isSubmitting = false;
             RequestBloc.instance.newCount(_requests.length);
           });
         }
-      }).catchError((_) {
-        print(_);
-        if (Get.isSnackbarOpen) {
-          Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Error responding, check your connection and try again',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 3),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-          ).show();
-          setState(() {
-            isSubmitting = false;
-          });
-        }
-      });
+      }
+      else{
+        Utility.bottomProgressFailure(title:'Response',
+        body: 'Error responding, check your connection and try again',
+        );
+        setState(() {
+          isSubmitting = false;
+        });
+      }
     } else {
-      LogisticRepo.decline(request.requestInitiatorID, request.requestID)
-          .then((value) {
+
+      bool result;
+      if(request.requestAction == 'STAFFWORKREQUEST'){
+        result = await StaffRepo.staffDecline(request.requestInitiatorID, request.requestID);
+      }
+      else if(request.requestAction == 'WORKREQUEST'){
+        result = await LogisticRepo.decline(request.requestInitiatorID, request.requestID);
+      }
+      else{}
+
+
+      if(result){
         setState(() {
           _requests.removeWhere((element) => element == request);
           RequestBloc.instance.newCount(_requests.length);
         });
         if (Get.isSnackbarOpen) {
           Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Work request has been declined.',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 5),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: PRIMARYCOLOR,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-          ).show();
+          Utility.bottomProgressSuccess(title:'Response',body: 'Work request has been declined.', );
           setState(() {
             _requests.removeWhere((element) => element == request);
             isSubmitting = false;
           });
         }
-      }).catchError((_) {
-        if (Get.isSnackbarOpen) {
-          Get.back();
-          GetBar(
-            title: 'Response',
-            messageText: Text(
-              'Error responding, check your connection and try again',
-              style: TextStyle(color: Colors.white),
-            ),
-            duration: Duration(seconds: 3),
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-          ).show();
-          setState(() {
-            isSubmitting = false;
-          });
-        }
-      });
+      }
+      else{
+        Utility.bottomProgressFailure(title:'Response',body:  'Error responding, check your connection and try again',);
+        setState(() {
+          isSubmitting = false;
+        });
+      }
     }
 
 

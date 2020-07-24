@@ -88,7 +88,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                     String currentAddress = await Utility.address(position);
                     String collectionId = await Utility.initializePosPay(
                       from: payload['customerWallet'],
-                      to: widget.session.user.walletId,
+                      to: widget.session.merchant.bWallet,
                       amount: order.orderAmount.round(),
                       agent: widget.session.user.walletId,
                       channelId: 3
@@ -729,8 +729,8 @@ class _PosCheckOutState extends State<PosCheckOut> {
                   Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
                   String currentAddress = await Utility.address(position);
                   String collectionId= await Utility.initializePosPay(
-                    from: widget.session.user.walletId,
-                    to: widget.session.user.walletId,
+                    from: widget.session.merchant.bWallet,
+                    to: widget.session.merchant.bWallet,
                     amount: order.orderAmount.round(),
                     agent: widget.session.user.walletId,
                   );

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
 import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class StaffForm extends StatefulWidget {
   StaffForm({this.session});
@@ -24,7 +26,6 @@ class StaffForm extends StatefulWidget {
 
 class _StaffFormState extends State<StaffForm> {
   final TextEditingController _staffController = TextEditingController();
-  final TextEditingController _limitController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final FirebaseMessaging _fcm = FirebaseMessaging();
 
@@ -85,7 +86,7 @@ class _StaffFormState extends State<StaffForm> {
                   color: Colors.grey,
                 ),
                 onPressed: () {
-                  if (!isSubmitting) Get.back();
+                  if (!isSubmitting) Get.back(result: 'Done');
                 },
               ),
               title: Text(
@@ -434,6 +435,8 @@ class _StaffFormState extends State<StaffForm> {
                                                         staffID: '',
                                                         staffName: (staff as User).fname,
                                                         staff: (staff as User).uid,
+                                                        parentAllowed: true,
+                                                        staffWorkPlaceWallet: widget.session.merchant.bWallet,
 
 
                                                       ),
@@ -450,6 +453,9 @@ class _StaffFormState extends State<StaffForm> {
                                                         'You are requested to be a staff of ${widget.session.merchant.bName} do you want to accept it.',
                                                         requestCleared: false,
                                                         requestID: '',
+                                                        requestInitiator: widget.session.merchant.bName,
+                                                        //requestInitiatorID: widget.session.merchant.mID,
+                                                        requestCreatedAt: Timestamp.now()
                                                       ),
                                                     )
                                                         .then((value)  {
@@ -483,7 +489,7 @@ class _StaffFormState extends State<StaffForm> {
                                                             color: Colors
                                                                 .white,
                                                           ),
-                                                        ).show();
+                                                        ).show().then((value) => Get.back(result: 'done'));
                                                         _staffController
                                                             .clear();
                                                         setState(
@@ -565,32 +571,13 @@ class _StaffFormState extends State<StaffForm> {
 
 
   Future<void> respond(String fcm) async {
-    //print('team meeting');
-    await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
+    await Utility.pushNotifier(
+      fcm: fcm,
+      body: 'You have a request to attend to click for more information',
+      title: 'Request',
+      notificationType: 'WorkRequestResponse',
+      data: {}
     );
-    await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'notification': <String, dynamic>{
-            'body':  'You have a request to attend to click for more information',
-            'title': 'Request'
-          },
-          'priority': 'high',
-          'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done',
-            'payload': {
-              'NotificationType': 'WorkRequestResponse',
-            }
-          },
-          'to': fcm,
-        }));
   }
 
 

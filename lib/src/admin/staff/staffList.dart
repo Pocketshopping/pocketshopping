@@ -8,6 +8,7 @@ import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:loadmore/loadmore.dart';
+import 'package:pocketshopping/src/admin/staff/manage.dart';
 import 'package:pocketshopping/src/admin/staff/newStaff.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
@@ -287,8 +288,9 @@ class _StaffListState extends State<StaffList> {
                               StaffForm(
                                 session: widget.user,
                               )
-                          ).then((value) {
-                            _refresh();
+                          ).then((value) async{
+                            await _refresh();
+                            print('ssdsdsds');
                           });
                         },
                         icon: Icon(Icons.add,color: Colors.white,),
@@ -332,7 +334,7 @@ class _StaffListState extends State<StaffList> {
         return Clearance(data: data,user: widget.user,refresh: _refresh,);
         break;
       case 3:
-        return Manage (data: data,user: widget.user,refresh: _refresh,);
+        return Manage (data: data,session: widget.user,refresh: _refresh,);
         break;
 
       default:
@@ -670,9 +672,9 @@ class Clearance extends StatelessWidget{
 
 
 class Manage extends StatelessWidget{
-  const Manage({this.data,this.user,this.refresh});
+  const Manage({this.data,this.session,this.refresh});
   final dynamic data;
-  final Session user;
+  final Session session;
   final Function refresh;
 
   @override
@@ -684,7 +686,7 @@ class Manage extends StatelessWidget{
     if(user.hasData){
       return ListTile(
         onTap: (){
-          //Get.to(MyAuto(agent: agent.data,isAdmin: true,)).then((value) {refresh();});
+          Get.to(ManageStaff(session: session,staff: (data as Staff),)).then((value) {refresh();});
         },
         leading: CircleAvatar(
           radius: 25,
@@ -696,10 +698,25 @@ class Manage extends StatelessWidget{
         subtitle:Column(
           //mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            if((data as Staff).startDate != null)
+            if((data as Staff).parentAllowed)
+              Row(
+                children: [
+                  Text('Active')
+                ],
+              ),
+            if((data as Staff).startDate != null)
+            if(!(data as Staff).parentAllowed)
+              Row(
+                children: [
+                  Text('Inactive')
+                ],
+              ),
+            if((data as Staff).startDate == null)
             Row(
 
               children: [
-                if((data as Staff).startDate == null)
+
                   Text('User has not accepted the job.',style: TextStyle(color: Colors.red),),
               ],
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

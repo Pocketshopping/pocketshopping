@@ -116,7 +116,9 @@ class _AdminScreenState extends State<AdminScreen> {
       case 'WorkRequestResponse':
         await requester();
         break;
-
+      case 'WorkRequestCancelResponse':
+        await requester(showNotification: false);
+        break;
       case 'PocketTransferResponse':
         Utility.bottomProgressSuccess(
           title:payload['title'],
@@ -144,38 +146,41 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
-  Future<void> requester()async{
+  Future<void> requester({bool showNotification=true})async{
     var value = await RequestRepo.getAll(currentUser.uid);
     RequestBloc.instance.newCount(value.length);
-    if (value.length > 0)
-      GetBar(
-        title: 'Rquest',
-        messageText: Text(
-          'You have an important request to attend to',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: PRIMARYCOLOR,
-        mainButton: FlatButton(
-          onPressed: () {
-            Get.back();
-            Get.to(RequestScreen(
-              requests: value,
-            ));
-          },
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 1),
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              child: Text(
-                'View',
-                style: TextStyle(color: Colors.white),
+    if(showNotification){
+      if (value.length > 0)
+        GetBar(
+          title: 'Rquest',
+          messageText: Text(
+            'You have an important request to attend to',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: PRIMARYCOLOR,
+          mainButton: FlatButton(
+            onPressed: () {
+              Get.back();
+              Get.to(RequestScreen(
+                requests: value,
+                uid: currentUser.uid,
+              ));
+            },
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 1),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                child: Text(
+                  'View',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ),
-        ),
-      ).show();
+        ).show();
+    }
     Future.value();
   }
 

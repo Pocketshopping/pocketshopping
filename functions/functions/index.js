@@ -35,10 +35,31 @@ const CategoryRuntimeOpts = {
      });
 });
 
+ exports.totalTransactionCount = functions.runWith(CategoryRuntimeOpts).https.onCall((data, context) => {
+     var merchant = data['mID'];
+     var staff = data['sID'];
+     var range = data['range'];
+
+
+
+});
+
+async function TransactCount(range,merchant,staff){
+
+var today = new Date();
+    var todayCount = await admin.firestore()
+                .collection('orders')
+                .where('orderMerchant','==',merchant)
+                .where('orderCreatedAt','>',new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0))
+                .where('status','==',1)
+                .get();
+}
+
+
 async function finalizePending(collectionID){
 
   const body = {"collectionID": collectionID, "status": false, };
-await fetch('http://middleware.pocketshopping.com.ng/api/wallets/pay/finalize/', {
+        await fetch('http://middleware.pocketshopping.com.ng/api/wallets/pay/finalize/', {
         method: 'post',
         body:    JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
@@ -137,7 +158,6 @@ async function getCategories(merchant) {
 
 exports.PickupETA = functions.https.onCall((data, context) => {
   var eta =360;
-
     return eta;
 });
 

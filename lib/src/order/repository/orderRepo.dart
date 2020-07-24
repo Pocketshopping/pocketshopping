@@ -8,6 +8,7 @@ import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class OrderRepo {
@@ -16,8 +17,12 @@ class OrderRepo {
   static Future<String> save(Order order) async {
     try{
       DocumentReference bid;
-      bid = await databaseReference.collection("orders").add(await order.toMap());
+      bid = await databaseReference.collection("orders").add(await order.toMap())
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      if(bid != null)
       return bid.documentID;
+      else
+        return '';
     }
     catch(_){
       return '';
@@ -29,7 +34,8 @@ class OrderRepo {
 
     yield* databaseReference.collection("orders").document(order).snapshots().map((event)  {
       return Order.fromEntity(OrderEntity.fromSnapshot(event));
-    });
+    })
+        .timeout(Duration(seconds: TIMEOUT),onTimeout: (sink){sink.add(null);});
   }
 
   static Future<bool> removeOnePotential(String order, String collectionID,String cDevice, List<String>potentials)async {
@@ -308,7 +314,7 @@ class OrderRepo {
     if (lastDoc == null) {
       document = await Firestore.instance
           .collection('orders')
-          //.orderBy('status',descending: true)
+      //.orderBy('status',descending: true)
           .orderBy('orderCreatedAt',descending: true)
           .where('$whose',isEqualTo: agentID)
           .where('status',isEqualTo: 1)
@@ -317,7 +323,7 @@ class OrderRepo {
     } else {
       document = await Firestore.instance
           .collection('orders')
-          //.orderBy('status',descending: true)
+      //.orderBy('status',descending: true)
           .orderBy('orderCreatedAt',descending: true)
           .where('$whose',isEqualTo: agentID)
           .where('status',isEqualTo: 1)
@@ -331,6 +337,84 @@ class OrderRepo {
     });
     return tmp;
   }
+
+  static Future<List<Order>> fetchStaffOrder(String id, String mid,Order lastDoc,{String whose= 'agent'}) async {
+    try{
+      List<Order> tmp = List();
+      var document;
+
+      if (lastDoc == null) {
+        document = await Firestore.instance
+            .collection('orders')
+            .orderBy('orderCreatedAt',descending: true)
+            .where('$whose',isEqualTo: id)
+            .where('orderMerchant',isEqualTo: mid)
+            .where('status',isEqualTo: 1)
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      } else {
+        document = await Firestore.instance
+            .collection('orders')
+            .orderBy('orderCreatedAt',descending: true)
+            .where('$whose',isEqualTo: id)
+            .where('orderMerchant',isEqualTo: mid)
+            .where('status',isEqualTo: 1)
+            .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      }
+      if(document != null){
+        document.documents.forEach((element) {
+          tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
+        });
+      }
+      return tmp;
+    }
+    catch(_){
+      return [];
+    }
+  }
+
+  static Future<List<Order>> fetchAllTransaction(String mid,Order lastDoc) async {
+    try{
+      List<Order> tmp = List();
+      var document;
+
+      if (lastDoc == null) {
+        document = await Firestore.instance
+            .collection('orders')
+            .orderBy('orderCreatedAt',descending: true)
+            .where('orderMerchant',isEqualTo: mid)
+            .where('status',isEqualTo: 1)
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      } else {
+        document = await Firestore.instance
+            .collection('orders')
+            .orderBy('orderCreatedAt',descending: true)
+            .where('orderMerchant',isEqualTo: mid)
+            .where('status',isEqualTo: 1)
+            .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      }
+      if(document != null){
+        document.documents.forEach((element) {
+          tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
+        });
+      }
+      return tmp;
+    }
+    catch(_){
+      return [];
+    }
+  }
+
+
 
 
   static Future<int> getUnclaimedDelivery(String agentID)async{

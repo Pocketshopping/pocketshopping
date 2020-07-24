@@ -2,6 +2,7 @@ import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class MenuItem extends StatelessWidget {
 
@@ -13,7 +14,8 @@ class MenuItem extends StatelessWidget {
       this.content,
       this.isMultiMenu = true,
       this.bsheet,
-        this.refresh,
+      this.refresh,
+      this.isLocked=false,
       });
 
   final Function bsheet;
@@ -27,6 +29,7 @@ class MenuItem extends StatelessWidget {
   final int openCount;
   final bool isMultiMenu;
   final Function refresh;
+  final bool isLocked;
 
   @override
   Widget build(BuildContext context) {
@@ -39,49 +42,63 @@ class MenuItem extends StatelessWidget {
       //color: Colors.white70,
       height: gHeight,
       child: FlatButton(
-        onPressed: () => {
-          isMultiMenu
-              ? Get.bottomSheet(
-                  builder: (context) => BottomSheetTemplate(
-                        height: MediaQuery.of(context).size.height * 0.4,
-                        child: Container(
-                          child: content != null ? content : Container(),
-                        ),
-                      )
+        onPressed: ()  {
+          if(!isLocked){
+            isMultiMenu
+                ? Get.bottomSheet(
+                builder: (context) => BottomSheetTemplate(
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: Container(
+                    child: content != null ? content : Container(),
+                  ),
                 )
-              : content != null
-                  ? Get.to(content).then((value) { if(refresh != null)refresh();})
-                  : Container(),
+            )
+                : content != null ? Get.to(content).then((value) { if(refresh != null)refresh();}) : Container();
+          }
+          else{
+            Utility.infoDialogMaker('Currently unavailable',title: 'Information');
+          }
         },
         //color: Colors.black12,
         padding: EdgeInsets.all(10.0),
         child: Column(
           // Replace with a Row for horizontal icon + text
           children: <Widget>[
-            isBadged && openCount > 0
-                ? Badge(
+            Stack(
+              children: [
+                isBadged && openCount > 0
+                    ? Badge(
                     badgeColor: badgeType == "text"
                         ? Colors.red
                         : openCount == 1
-                            ? Colors.red
-                            : openCount == 2
-                                ? Colors.grey
-                                : openCount == 3
-                                    ? Colors.green
-                                    : Colors.black54,
+                        ? Colors.red
+                        : openCount == 2
+                        ? Colors.grey
+                        : openCount == 3
+                        ? Colors.green
+                        : Colors.black54,
                     badgeContent: badgeType == 'text'
                         ? Text(
-                            openCount.toString(),
-                            style: TextStyle(color: Colors.white),
-                          )
+                      openCount.toString(),
+                      style: TextStyle(color: Colors.white),
+                    )
                         : FittedBox(
-                            fit: BoxFit.contain,
-                            child: Icon(
-                              openCount == 1 ? Icons.face : Icons.tag_faces,
-                              color: Colors.white,
-                            )),
+                        fit: BoxFit.contain,
+                        child: Icon(
+                          openCount == 1 ? Icons.face : Icons.tag_faces,
+                          color: Colors.white,
+                        )),
                     child: FittedBox(fit: BoxFit.contain, child: icon))
-                : FittedBox(fit: BoxFit.contain, child: icon),
+                    : FittedBox(fit: BoxFit.contain, child: icon),
+
+                if(isLocked)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: FittedBox(fit: BoxFit.contain, child: Icon(Icons.lock,color: Colors.red,)),
+                )
+              ],
+            ),
             Center(
                 child:  Text(
               title,

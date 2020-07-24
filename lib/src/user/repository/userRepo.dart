@@ -119,6 +119,13 @@ class UserRepo {
           .getDocuments(source: Source.serverAndCache);
       if (_agent.documents.length > 0)
         agent = Agent.fromSnap(_agent.documents[0]);
+      var _staff = await Firestore.instance
+          .collection('staffs')
+          .where('staff', isEqualTo: uid)
+          .where('endDate', isEqualTo: null)
+          .getDocuments(source: Source.serverAndCache);
+      if (_staff.documents.length > 0)
+        staff = Staff.fromSnap(_staff.documents[0]);
     }
     return Session(user: user, merchant: merchant, agent: agent, staff: staff);
   }

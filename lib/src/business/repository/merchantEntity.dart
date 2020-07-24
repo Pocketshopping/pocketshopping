@@ -180,7 +180,7 @@ class MerchantEntity extends Equatable {
       snap.data['branchUnique'],
       snap.data['adminUploaded']??false,
       snap.data['businessActive']??true,
-      snap.data['bWallet']??"",
+      snap.data['businessWallet']??"",
     );
   }
 

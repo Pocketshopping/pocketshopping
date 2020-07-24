@@ -91,6 +91,8 @@ class _TopUpState extends State<TopUp> {
               paySuccess()
             ]);
         break;
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -232,8 +234,12 @@ class _TopUpState extends State<TopUp> {
 
 
             if(result != null){
-
+              if(widget.payType == "TOPUP")
               WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+              else if(widget.payType == "TOPUPUNIT" && widget.user.role != 'staff')
+                WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+              else{}
+
               setState(() {
                 paying = false;
                 status = 'SUCCESS';

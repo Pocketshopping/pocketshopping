@@ -101,38 +101,42 @@ class _StaffScreenState extends State<StaffScreen> {
   }
 
 
-  Future<void> requester()async{
+  Future<void> requester({bool showNotification=true})async{
     var value = await RequestRepo.getAll(currentUser.uid);
     RequestBloc.instance.newCount(value.length);
-    if (value.length > 0)
-      GetBar(
-        title: 'Rquest',
-        messageText: Text(
-          'You have an important request to attend to',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: PRIMARYCOLOR,
-        mainButton: FlatButton(
-          onPressed: () {
-            Get.back();
-            Get.to(RequestScreen(
-              requests: value,
-            ));
-          },
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white, width: 1),
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              child: Text(
-                'View',
-                style: TextStyle(color: Colors.white),
+    if(showNotification){
+      if (value.length > 0)
+        GetBar(
+          title: 'Rquest',
+          messageText: Text(
+            'You have an important request to attend to',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: PRIMARYCOLOR,
+          mainButton: FlatButton(
+            onPressed: () {
+              Get.back();
+              Get.to(RequestScreen(
+                requests: value,
+                uid: currentUser.uid,
+              ));
+            },
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 1),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                child: Text(
+                  'View',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ),
-        ),
-      ).show();
+          isDismissible: false,
+        ).show();
+    }
     Future.value();
   }
 
@@ -163,6 +167,23 @@ class _StaffScreenState extends State<StaffScreen> {
 
       case 'WorkRequestResponse':
         await requester();
+        break;
+      case 'RemoveStaffResponse':
+        GetBar(
+          title: payload['title'],
+          messageText: Text(payload['message']??'',style: TextStyle(color: Colors.white),),
+          backgroundColor: PRIMARYCOLOR,
+          icon: Icon(Icons.check,color: Colors.white,),
+          duration: Duration(seconds: 5),
+        ).show().then((value) async{
+          await RequestRepo.clear(payload['data']['requestId']);
+          await UserRepository().changeRole('user');
+          BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
+          Get.back();
+        });
+        break;
+      case 'WorkRequestCancelResponse':
+        await requester(showNotification: false);
         break;
       case 'PocketTransferResponse':
         Utility.bottomProgressSuccess(

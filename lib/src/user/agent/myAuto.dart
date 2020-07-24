@@ -344,18 +344,20 @@ class _MyAutoState extends State<MyAuto>{
                               requestInitiatorID: merchant.mID,
                               requestInitiator: merchant.bName,
                               requestCreatedAt: Timestamp.now()
-                            )
+                            ),
+                              logistic: merchant.bName,
+                              fcm: agentAcct.notificationID,
                             );
                             Get.back();
                             if(result) {
                               //Utility.requestPusher(agentAcct.notificationID);
-                              Utility.pushNotifier(
+                             /* Utility.pushNotifier(
                                   fcm: agentAcct.notificationID,
                                   body: 'You have a request to attend to click for more information',
                                   title: 'Request',
                                   notificationType: 'WorkRequestResponse',
                                   data: {}
-                              );
+                              );*/
                               Utility.bottomProgressSuccess(
                                   title: 'Rider Removed',
                                   body: 'running Clean up..',

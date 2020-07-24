@@ -972,6 +972,30 @@ class Utility {
         }));
   }
 
+  static Future<void> pushMessage({String fcm,String body, String title, String notificationType="",Map<String,dynamic>data}) async {
+    await _fcm.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),);
+    await http.post('https://fcm.googleapis.com/fcm/send',
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverToken'
+        },
+        body: jsonEncode(<String, dynamic>{
+          'priority': 'high',
+          'data': <String, dynamic>{
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'id': '1',
+            'status': 'done',
+            'payload': {
+              'NotificationType': '$notificationType',
+              'message':'$body',
+              'title':'$title',
+              'data':data,
+            }
+          },
+          'to': fcm,
+        }));
+  }
+
   static Future<void> pushNotifier({String fcm,String body, String title, String notificationType="",Map<String,dynamic>data}) async {
     await _fcm.requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true, provisional: false),);
     await http.post('https://fcm.googleapis.com/fcm/send',

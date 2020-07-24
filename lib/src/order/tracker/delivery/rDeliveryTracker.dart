@@ -98,7 +98,7 @@ class _RiderDeliveryTrackerState extends State<RiderDeliveryTracker> {
             automaticallyImplyLeading: false,
           ):PreferredSize(preferredSize: Size.zero,child: const SizedBox.shrink(),),
           backgroundColor: Colors.white,
-          body:StreamBuilder<Order>(
+          body:widget.isActive?StreamBuilder<Order>(
             stream: OrderRepo.getOneSnapshot(widget.order),
             builder: (context,AsyncSnapshot<Order>order){
               if(order.connectionState == ConnectionState.waiting){
@@ -125,7 +125,7 @@ class _RiderDeliveryTrackerState extends State<RiderDeliveryTracker> {
                           return FutureBuilder(
                             future: ReviewRepo.getOne(order.data.orderCustomer.customerReview),
                             builder: (context, AsyncSnapshot<Review>review){
-                              return order.data.status == 0? SlidingUpPanel(
+                              return SlidingUpPanel(
                           controller: slider,
                           onPanelClosed: (){expanded.value=false;},
                           onPanelOpened: (){expanded.value=true;},
@@ -304,23 +304,62 @@ class _RiderDeliveryTrackerState extends State<RiderDeliveryTracker> {
                                 ],
                               )
                           ),
-                        ):
-                        ListView(
-                          children: [
-                            DeliveryTracker(
-                              user: widget.user,
-                              order: order,
-                              merchant: merchant,
-                              review: review,
-                              customer: customer,
-
-                            )
-                          ],
                         );
                       },
                     );
                     }
                   );
+                  },
+                );
+              }
+
+
+            },
+          )
+              :
+          FutureBuilder<Order>(
+            future: OrderRepo.getOne(widget.order),
+            builder: (context,AsyncSnapshot<Order>order){
+              if(order.connectionState == ConnectionState.waiting){
+                return Center(
+                  child: JumpingDotsProgressIndicator(
+                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    color: PRIMARYCOLOR,
+                  ),
+                );
+              }
+              else if(order.hasError){
+                return Center(
+                  child: Text('Error communicating with server check '
+                      'your internet connection and try again',textAlign: TextAlign.center,),
+                );
+              }
+              else{
+                return  FutureBuilder(
+                  future: MerchantRepo.getMerchant(order.data.orderMerchant),
+                  builder: (context, AsyncSnapshot<Merchant>merchant){
+                    return FutureBuilder(
+                        future: UserRepo.getOneUsingUID(order.data.customerID),
+                        builder: (context,AsyncSnapshot<User>customer){
+                          return FutureBuilder(
+                            future: ReviewRepo.getOne(order.data.orderCustomer.customerReview),
+                            builder: (context, AsyncSnapshot<Review>review){
+                              return ListView(
+                                children: [
+                                  DeliveryTracker(
+                                    user: widget.user,
+                                    order: order,
+                                    merchant: merchant,
+                                    review: review,
+                                    customer: customer,
+
+                                  )
+                                ],
+                              );
+                            },
+                          );
+                        }
+                    );
                   },
                 );
               }
@@ -520,7 +559,7 @@ class DeliveryTracker extends StatelessWidget{
                                 child: Column(
                                   children: [
                                     Center(
-                                      child: const Text('Your Review'),
+                                      child: const Text('Review'),
                                     ),
                                     RatingBar(
                                       onRatingUpdate: (rate){},
@@ -562,7 +601,7 @@ class DeliveryTracker extends StatelessWidget{
                         ),
 
 
-                      if(order.data.orderCustomer.customerReview.isEmpty && order.data.status == 1 && order.data.receipt.psStatus != 'fail')
+                      /*if(order.data.orderCustomer.customerReview.isEmpty && order.data.status == 1 && order.data.receipt.psStatus != 'fail')
                         Container(
                             child: psHeadlessCard(
                                 boxShadow: [
@@ -673,7 +712,7 @@ class DeliveryTracker extends StatelessWidget{
                                 )
                             )
                         ),
-
+*/
                       if(merchant.hasData)
                         psHeadlessCard(
                           boxShadow: [
@@ -727,6 +766,7 @@ class DeliveryTracker extends StatelessWidget{
                                       )
                                     ],
                                   )),
+                              if(order.data.orderCustomer.customerTelephone.toString().isNotEmpty)
                               Container(
                                   decoration: BoxDecoration(
                                     border: Border(

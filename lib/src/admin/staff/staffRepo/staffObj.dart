@@ -13,6 +13,7 @@ class Staff {
   final Permission staffPermissions;
   final int staffStatus;
   final String staffWorkPlace;
+  final String staffWorkPlaceWallet;
   final Timestamp startDate;
   final Timestamp endDate;
   final String staffID;
@@ -32,6 +33,7 @@ class Staff {
     this.staffID,
     this.staffName,
     this.parentAllowed,
+    this.staffWorkPlaceWallet
   });
 
   Staff copyWith({
@@ -46,7 +48,8 @@ class Staff {
     Timestamp endDate,
     String staffID,
     String staffName,
-    bool parentAllowed
+    bool parentAllowed,
+    String staffWorkPlaceWallet
   }) {
     return Staff(
       staff: staff ?? this.staff,
@@ -60,7 +63,8 @@ class Staff {
       endDate: endDate ?? this.endDate,
       staffID: staffID ?? this.staffID,
       staffName: staffName ?? this.staffName,
-      parentAllowed: parentAllowed??this.parentAllowed
+      parentAllowed: parentAllowed??this.parentAllowed,
+      staffWorkPlaceWallet: staffWorkPlaceWallet??this.staffWorkPlaceWallet
     );
   }
 
@@ -77,7 +81,8 @@ class Staff {
       endDate.hashCode ^
       staffID.hashCode ^
       staffName.hashCode ^
-      parentAllowed.hashCode;
+      parentAllowed.hashCode ^
+      staffWorkPlaceWallet.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -95,7 +100,8 @@ class Staff {
           endDate == other.endDate &&
           staffID == other.staffID &&
           staffName == other.staffName &&
-          parentAllowed == other.parentAllowed;
+          parentAllowed == other.parentAllowed &&
+          staffWorkPlaceWallet == other.staffWorkPlaceWallet;
 
   Staff update({
     String staff,
@@ -109,7 +115,8 @@ class Staff {
     Timestamp endDate,
     String staffID,
     String staffName,
-    bool parentAllowed
+    bool parentAllowed,
+    String staffWorkPlaceWallet,
   }) {
     return copyWith(
       staff: staff,
@@ -123,7 +130,8 @@ class Staff {
       endDate: endDate,
       staffID: staffID,
       staffName: staffName,
-      parentAllowed: parentAllowed
+      parentAllowed: parentAllowed,
+      staffWorkPlaceWallet: staffWorkPlaceWallet
     );
   }
 
@@ -146,6 +154,7 @@ class Staff {
       'staffID': staffID,
       'staffName': staffName,
       'parentAllowed': parentAllowed,
+      'staffWorkPlaceWallet':staffWorkPlaceWallet,
       'index': Utility.makeIndexList(staffName)
     };
   }
@@ -163,6 +172,7 @@ class Staff {
       endDate: snap.data['endDate'],
       staffName: snap.data['staffName'],
       parentAllowed: snap.data['parentAllowed'],
+      staffWorkPlaceWallet: snap.data['staffWorkPlaceWallet'],
       staffID: snap.documentID,
     );
   }

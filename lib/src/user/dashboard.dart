@@ -261,7 +261,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   ValueListenableBuilder(
                       valueListenable: _isOperationalNotifier,
                       builder: (_,available,__){
-                        print(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose));
                         return GestureDetector(
                           onTap: (){},
                           child: Container(
@@ -312,7 +311,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                 )
                               ],
                             ):Center(
-                              child: Text('Business is Closed for today',style: TextStyle(color: Colors.white),textAlign: TextAlign.center,),
+                              child: Text('Business is Closed for today',style: TextStyle(color: PRIMARYCOLOR),textAlign: TextAlign.center,),
                             ),
                           ),
                         );
