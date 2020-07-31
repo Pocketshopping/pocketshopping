@@ -7,9 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/manage.dart';
+import 'package:pocketshopping/src/admin/staff/managerTransaction.dart';
 import 'package:pocketshopping/src/admin/staff/staffList.dart';
 import 'package:pocketshopping/src/bank/BankWithdraw.dart';
 import 'package:pocketshopping/src/business/business.dart';
@@ -19,10 +21,16 @@ import 'package:pocketshopping/src/customerCare/customerCare.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/repository/order.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/pos/productList.dart';
+import 'package:pocketshopping/src/statistic/merchantStat.dart';
+import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -50,6 +58,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   //Wallet _wallet;
   final _walletNotifier = ValueNotifier<Wallet>(null);
   final _isOperationalNotifier = ValueNotifier<bool>(true);
+  final _orderNotifier = ValueNotifier<List<Order>>([]);
+  StreamSubscription orders;
+  final report = ValueNotifier<Map<String,dynamic>>({});
 
   @override
   void initState() {
@@ -69,6 +80,15 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
     Workmanager.cancelAll();
     _isOperationalNotifier.value=currentUser.merchant.bStatus==1?true:false;
+    orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
+      if(mounted)
+      {
+        _orderNotifier.value=[];
+        _orderNotifier.value=event;
+      }
+      OrderBloc.instance.newOrder(event);
+    });
+    StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
     super.initState();
   }
 
@@ -79,8 +99,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   void dispose() {
     _walletNotifier.dispose();
-    _notificationsStream = null;
-    _walletStream = null;
+    orders?.cancel();
     iosSubscription?.cancel();
     super.dispose();
   }
@@ -182,82 +201,95 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   ],
                 )),
                 SliverGrid.count(crossAxisCount: 3, children: [
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)
+                  ValueListenableBuilder(
+                    valueListenable: report,
+                    builder: (_,Map<String,dynamic> _report,__){
+                      return _report.isNotEmpty?GestureDetector(
+                        onTap: (){
+                          //print(currentUser.agent.agentID);
+                          //Get.to(MyDelivery(orders: orders,user: currentUser,)).then((value) => null);
+                        },
+                        child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('${Utility.numberFormatter(_report['transactionCount'])}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color:PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Transaction(s) Today',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+
+                            )
+
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: Offset(0, 1), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('O',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
-                          const Text('Open Order(s)',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: PRIMARYCOLOR),),
-                          const Text('click to extend screen',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: PRIMARYCOLOR),),
-                        ],
-                      ),
-                    ),
+                      ):const SizedBox.shrink();
+                    },
                   ),
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)
+                  ValueListenableBuilder(
+                    valueListenable: report,
+                    builder: (_,Map<String,dynamic> _report,__){
+                      return _report.isNotEmpty?GestureDetector(
+                        onTap: (){},
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10)
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 7,
+                                offset: Offset(0, 1), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('$CURRENCY${Utility.numberFormatter(_report['total'])}',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                              const Text('Amount Made Today',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: PRIMARYCOLOR),),
+                            ],
+                          ),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: Offset(0, 1), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('$CURRENCY O',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
-                          const Text('Amount Made Today',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: PRIMARYCOLOR),),
-                          const Text('click for more',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: PRIMARYCOLOR,fontSize: 11),),
-                        ],
-                      ),
-                    ),
+                      ):const SizedBox.shrink();
+                    },
                   ),
+                  ValueListenableBuilder(
+                      valueListenable: report,
+                      builder: (_,Map<String,dynamic> _report,__){
+                        return _report.isNotEmpty?
                   ValueListenableBuilder(
                       valueListenable: _isOperationalNotifier,
                       builder: (_,available,__){
@@ -287,8 +319,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text('We are currently '
-                                    '${available?'Available':'Unavailable'}',
+                                Text('${currentUser.merchant.bCategory} is '
+                                    '${available?'open':'closed'}',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: PRIMARYCOLOR),),
                                 FlatButton(
@@ -311,10 +343,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                 )
                               ],
                             ):Center(
-                              child: Text('Business is Closed for today',style: TextStyle(color: PRIMARYCOLOR),textAlign: TextAlign.center,),
+                              child: Text('${currentUser.merchant.bCategory} is Closed for today',style: TextStyle(color: PRIMARYCOLOR),textAlign: TextAlign.center,),
                             ),
                           ),
                         );
+                      }):const SizedBox.shrink();
                       })
              
                 ]),
@@ -349,16 +382,16 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   crossAxisCount: 3,
                   children: [
                     MenuItem(
-                      gridHeight,
-                      Icon(
-                        AntIcons.shop_outline,
-                        size: MediaQuery.of(context).size.width * 0.1,
-                        color: PRIMARYCOLOR.withOpacity(0.8),
-                      ),
-                      'Orders',
-                      border: PRIMARYCOLOR,
-                      content: Text('hello'),
-                      isMultiMenu: false,
+                        gridHeight,
+                        Icon(
+                          AntIcons.shop_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8),
+                        ),
+                        'Transactions',
+                        border: PRIMARYCOLOR,
+                        content: Transactions(user: currentUser,title: 'Transactions',),
+                        isMultiMenu: false,
                     ),
                     MenuItem(
                       gridHeight,
@@ -383,14 +416,16 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       content: ManageProduct(user: currentUser,),
                     ),
                     MenuItem(
-                      gridHeight,
-                      Icon(AntIcons.pie_chart_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Statistic',
-                      border: PRIMARYCOLOR,
+                        gridHeight,
+                        Icon(AntIcons.pie_chart_outline,
+                            size: MediaQuery.of(context).size.width * 0.1,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                        'Report',
+                        border: PRIMARYCOLOR,
 
-                      content: Text('hello')
+                        content: MerchantStatistic(user: currentUser,title: 'Report',),
+                        isMultiMenu: false,
+
                     ),
                     MenuItem(
                       gridHeight,
@@ -403,13 +438,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       content: StaffList(user: currentUser,title: 'Manage Staff(s)',callBckActionType: 3,route: 1,),
                     ),
                     MenuItem(
-                      gridHeight,
-                      Icon(AntIcons.deployment_unit,
-                          size: MediaQuery.of(context).size.width * 0.1,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'PocketUnit',
-                      border: PRIMARYCOLOR,
-                      content: Text('hello'),
+                        gridHeight,
+                        Icon(AntIcons.deployment_unit,
+                            size: MediaQuery.of(context).size.width * 0.1,
+                            color: PRIMARYCOLOR.withOpacity(0.8)),
+                        'PocketUnit',
+                        border: PRIMARYCOLOR,
+                        content: UnitBottomPage(user: currentUser,),
+
                     ),
                     MenuItem(
                       gridHeight,
@@ -454,8 +490,23 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       border: PRIMARYCOLOR,
                       content: Text('hello'),
                     ),*/
-
-
+                    ValueListenableBuilder(
+                        valueListenable: _orderNotifier,
+                        builder: (_, orders,__){
+                          return
+                            MenuItem(
+                              gridHeight,
+                              Icon(AntIcons.shopping_outline,
+                                  size: MediaQuery.of(context).size.width * 0.1,
+                                  color: PRIMARYCOLOR.withOpacity(0.8)),
+                              'Current Deliveries',
+                              border: PRIMARYCOLOR,
+                              isBadged: true,
+                              isMultiMenu: false,
+                              openCount: orders.length,
+                              content: MyDelivery(orders: orders,user: currentUser,),
+                            );
+                        }),
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,

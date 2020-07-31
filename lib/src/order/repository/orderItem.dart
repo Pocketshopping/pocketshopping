@@ -108,4 +108,15 @@ class OrderItem {
     });
     return collection;
   }
+
+  static List<String> toNames(List<OrderItem> items) {
+    List<String> collection = List();
+    items.forEach((element) {
+      collection.add(element.ProductName);
+    });
+
+
+
+    return collection;
+  }
 }

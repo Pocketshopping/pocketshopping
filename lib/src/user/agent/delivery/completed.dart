@@ -208,7 +208,7 @@ class _SingleOrderState extends State<SingleOrder> {
           merchant != null?ListTile(
             onTap: () {
               Get.to(
-                  widget.user.user.role != 'admin'?
+                  widget.user.user.role == 'rider'?
                   widget.order.orderMode.mode != 'Errand'?
                   RiderTracker(
                     order: widget.order.docID,
@@ -299,7 +299,7 @@ class _SingleOrderState extends State<SingleOrder> {
             ListTile(
               onTap: () {
                 Get.to(
-                    widget.user.user.role != 'admin'?
+                    widget.user.user.role == 'rider'?
                     widget.order.orderMode.mode != 'Errand'?
                     RiderTracker(
                       order: widget.order.docID,

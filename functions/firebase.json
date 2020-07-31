@@ -1,1 +1,8 @@
-{}
+{
+    "emulators": {
+      "functions": {
+        "host": "http://localhost/",
+        "port": "5003"
+      }
+    }
+  }

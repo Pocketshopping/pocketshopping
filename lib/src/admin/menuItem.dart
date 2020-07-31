@@ -56,7 +56,7 @@ class MenuItem extends StatelessWidget {
                 : content != null ? Get.to(content).then((value) { if(refresh != null)refresh();}) : Container();
           }
           else{
-            Utility.infoDialogMaker('Currently unavailable',title: 'Information');
+            Utility.infoDialogMaker('Sorry you are not allowed to perform this action. Contact the admin for more information',title: 'Information');
           }
         },
         //color: Colors.black12,

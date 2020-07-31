@@ -27,24 +27,22 @@ import 'package:progress_indicators/progress_indicators.dart';
 
 import 'bloc/user.dart';
 
-class StaffScreen extends StatefulWidget {
+class RiderScreen extends StatefulWidget {
   final UserRepository _userRepository;
 
-  StaffScreen({Key key, @required UserRepository userRepository})
+  RiderScreen({Key key, @required UserRepository userRepository})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
 
   @override
-  _StaffScreenState createState() => new _StaffScreenState();
+  _RiderScreenState createState() => new _RiderScreenState();
 }
 
-class _StaffScreenState extends State<StaffScreen> {
+class _RiderScreenState extends State<RiderScreen> {
   int _selectedIndex;
   FirebaseUser currentUser;
-  final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
-  final TextEditingController _comment = TextEditingController();
   String userName;
   Stream<LocalNotification> _notificationsStream;
 
@@ -57,7 +55,7 @@ class _StaffScreenState extends State<StaffScreen> {
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     const BottomNavigationBarItem(
       icon: Icon(AntIcons.shop_outline),
-      title: Text('DashBoard'),
+      title: Text('WorkPlace'),
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.search),
@@ -142,7 +140,7 @@ class _StaffScreenState extends State<StaffScreen> {
 
   processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
-     /* case 'OrderRequest':
+    /* case 'OrderRequest':
         if (!Get.isDialogOpen)
           Get.dialog(PingWidget(
             ndata: notification.data,
@@ -167,10 +165,8 @@ class _StaffScreenState extends State<StaffScreen> {
 
       case 'WorkRequestResponse':
         await requester();
-        NotificationsBloc.instance.newNotification(null);
         break;
       case 'RemoveStaffResponse':
-        if(!Get.isSnackbarOpen)
         GetBar(
           title: payload['title'],
           messageText: Text(payload['message']??'',style: TextStyle(color: Colors.white),),
@@ -183,33 +179,16 @@ class _StaffScreenState extends State<StaffScreen> {
           BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
           Get.back();
         });
-        NotificationsBloc.instance.newNotification(null);
-        break;
-      case 'StaffStatusNotifier':
-        if(!Get.isSnackbarOpen)
-          GetBar(
-            title: payload['title'],
-            messageText: Text(payload['message']??'',style: TextStyle(color: Colors.white),),
-            backgroundColor: PRIMARYCOLOR,
-            icon: Icon(Icons.check,color: Colors.white,),
-            duration: Duration(seconds: 5),
-          ).show().then((value) async{
-            BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
-            Get.back();
-          });
-        NotificationsBloc.instance.newNotification(null);
         break;
       case 'WorkRequestCancelResponse':
         await requester(showNotification: false);
-        NotificationsBloc.instance.newNotification(null);
         break;
       case 'PocketTransferResponse':
         Utility.bottomProgressSuccess(
-          title:payload['title'],
-          body: payload['message'],
+            title:payload['title'],
+            body: payload['message'],
             wallet: payload['data']['wallet'],
-        duration: 5);
-        NotificationsBloc.instance.newNotification(null);
+            duration: 5);
         break;
 
       case 'CloudDeliveryCancelledResponse':
@@ -219,7 +198,6 @@ class _StaffScreenState extends State<StaffScreen> {
             body: 'Your Delivery has been cancelled',
             wallet: user.walletId
         );
-        NotificationsBloc.instance.newNotification(null);
         break;
       default:
         Utility.bottomProgressSuccess(
@@ -228,7 +206,6 @@ class _StaffScreenState extends State<StaffScreen> {
             //wallet: payload['data']['wallet'],
             duration: 5
         );
-        //NotificationsBloc.instance.newNotification(null);
         break;
     }
   }
@@ -254,39 +231,40 @@ class _StaffScreenState extends State<StaffScreen> {
         )..add(LoadUser(currentUser.uid)),
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
-            //print(state.user.agent.autoType);
+            print(state.user.merchant);
+            print(currentUser.uid);
             //setState(() {
             userName = state.user.user.fname;
             // });
             if(state.user.merchant != null)
-            return Scaffold(
-              drawer: DrawerScreen(
-                userRepository: widget._userRepository,
-                user: state.user.user,
-              ),
-              body: Container(
-                  child: Center(
-                    child: <Widget>[
-                      state.user.merchant.bCategory == 'Logistic' ? AgentDashBoardScreen() : StaffDashBoardScreen(),
-                      MyRadius(),//GeoFence(),
-                      Favourite(),
-                      MyOrders(),
-                      PocketPay(),
-                    ].elementAt(_selectedIndex),
-                  ),
-                  decoration: BoxDecoration(
-                      border: Border(
-                          bottom: BorderSide(
-                              color: Colors.black54.withOpacity(0.2))))),
-              bottomNavigationBar: BottomNavigationBar(
-                items: items,
-                currentIndex: _selectedIndex,
-                selectedItemColor: PRIMARYCOLOR,
-                unselectedItemColor: Colors.black54,
-                showUnselectedLabels: true,
-                onTap: _onItemTapped,
-              ),
-            );
+              return Scaffold(
+                drawer: DrawerScreen(
+                  userRepository: widget._userRepository,
+                  user: state.user.user,
+                ),
+                body: Container(
+                    child: Center(
+                      child: <Widget>[
+                        AgentDashBoardScreen(),
+                        MyRadius(),//GeoFence(),
+                        Favourite(),
+                        MyOrders(),
+                        PocketPay(),
+                      ].elementAt(_selectedIndex),
+                    ),
+                    decoration: BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(
+                                color: Colors.black54.withOpacity(0.2))))),
+                bottomNavigationBar: BottomNavigationBar(
+                  items: items,
+                  currentIndex: _selectedIndex,
+                  selectedItemColor: PRIMARYCOLOR,
+                  unselectedItemColor: Colors.black54,
+                  showUnselectedLabels: true,
+                  onTap: _onItemTapped,
+                ),
+              );
 
             else
               return Scaffold(
@@ -321,9 +299,9 @@ class _StaffScreenState extends State<StaffScreen> {
             return Scaffold(
               body: Center(
                   child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
-                color: PRIMARYCOLOR,
-              )),
+                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    color: PRIMARYCOLOR,
+                  )),
             );
           }
         }),

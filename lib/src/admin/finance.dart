@@ -199,7 +199,7 @@ class _AdminFinanceState extends State<AdminFinance> {
             );
           }
           else{
-            return Center(child: Text('No internet connection.'),);
+            return Center(child: Text(''),);
           }
         },
       ),

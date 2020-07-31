@@ -376,7 +376,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                 child: FlatButton(
                                   onPressed: () {
                                     FocusScope.of(context).requestFocus(FocusNode());
-                                    Get.off(
+                                    Get.to(
                                       login.LoginScreen(
                                         userRepository: _userRepository,
                                         fromSignup: true,
@@ -439,6 +439,7 @@ class _RegisterFormState extends State<RegisterForm> {
   }
 
   void _onFormSubmitted() {
+    FocusScope.of(context).requestFocus(FocusNode());
     _registerBloc.add(
       Submitted(
         email: _emailController.text,

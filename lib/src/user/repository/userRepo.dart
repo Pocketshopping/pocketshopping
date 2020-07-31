@@ -109,7 +109,7 @@ class UserRepo {
     var doc = await Firestore.instance.collection('users').document(uid).get(source: Source.serverAndCache);
     user = User.fromEntity(UserEntity.fromSnapshot(doc));
 
-    if (user.role == 'admin' || user.role == 'staff') {
+    if (user.role == 'admin' || user.role == 'staff' || user.role == 'rider' ) {
       var temp = await user.bid.get(source: Source.serverAndCache);
       merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(temp));
       var _agent = await Firestore.instance

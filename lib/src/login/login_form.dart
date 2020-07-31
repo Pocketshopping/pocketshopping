@@ -94,7 +94,7 @@ class _LoginFormState extends State<LoginForm> {
         }
         if (state.isSuccess) {
           BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
-          if (widget.fromSignup) Get.back();
+          if (widget.fromSignup) {Get.back();Get.back();}
           //Navigator.pop(context);
         }
       },
@@ -322,6 +322,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _onFormSubmitted() {
+    FocusScope.of(context).requestFocus(FocusNode());
     _loginBloc.add(
       LoginWithCredentialsPressed(
         email: _emailController.text,

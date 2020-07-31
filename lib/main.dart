@@ -25,6 +25,7 @@ import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
 import 'package:pocketshopping/src/ui/shared/verifyAccountWidget.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/user/riderScreen.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -321,6 +322,8 @@ class AppState extends State<App> {
               return AdminScreen(userRepository: widget._userRepository);
             else if (state.user.displayName == 'staff')
               return StaffScreen(userRepository: widget._userRepository);
+            else if (state.user.displayName == 'rider')
+              return RiderScreen(userRepository: widget._userRepository);
             else
               return LoginScreen(userRepository: widget._userRepository);
           }

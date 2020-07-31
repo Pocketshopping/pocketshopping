@@ -6,8 +6,10 @@ import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderEntity.dart';
+import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
+
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
@@ -20,7 +22,19 @@ class OrderRepo {
       bid = await databaseReference.collection("orders").add(await order.toMap())
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
       if(bid != null)
-      return bid.documentID;
+      {
+        StatisticRepo.saveTransaction({
+          'oid':bid.documentID,
+          'mid':order.orderMerchant,
+          'sid':order.agent,
+          'insertedAt':Timestamp.now(),
+          'day':DateTime.now().weekday,
+          'items': OrderItem.toNames(order.orderItem),
+          'amount':order.orderAmount
+        });
+
+        return bid.documentID;
+      }
       else
         return '';
     }
@@ -207,11 +221,20 @@ class OrderRepo {
       return [];
   }
 
-  static Future<void> confirm(String oid, Confirmation confirmation,Receipt receipt,String agent,int fee,int distance,int unit) async {
-    await databaseReference.collection("orders").document(oid).updateData({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()});
+  static Future<void> confirm(Order oid, Confirmation confirmation,Receipt receipt,String agent,int fee,int distance,int unit) async {
+    await databaseReference.collection("orders").document(oid.docID).updateData({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()});
     await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: true);
     await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalAmount: fee,totalDistance: distance,totalUnitUsed: unit);
     await LogisticRepo.makeAgentBusy(agent,isBusy: false);
+    StatisticRepo.saveTransaction({
+      'oid':oid.docID,
+      'mid':oid.orderMerchant,
+      'sid':oid.agent,
+      'insertedAt':Timestamp.now(),
+      'day':DateTime.now().weekday,
+      'items': OrderItem.toNames(oid.orderItem),
+      'amount':oid.orderAmount
+    });
     //await LogisticRepo.checkRemittance(agent);
   }
 

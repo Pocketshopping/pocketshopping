@@ -47,25 +47,30 @@ class _MyAutoState extends State<MyAuto>{
     autoMobiles = ['Select'];
 
     if(agent.autoAssigned != 'Unassign')
-    LogisticRepo.getAutomobile(agent.autoAssigned).then((value) => setState((){
+    LogisticRepo.getAutomobile(agent.autoAssigned).then((value)
+        {
+          if(value != null){
+            setState((){
 
-      auto=value;
+              auto=value;
+              _assigned.value=auto.autoName.isNotEmpty
+                  ? auto.autoName + '(${auto.autoPlateNumber})'
+                  : auto.autoType + ' ( ${auto.autoPlateNumber} )';
 
-      _assigned.value=auto.autoName.isNotEmpty
-          ? auto.autoName + '(${auto.autoPlateNumber})'
-          : auto.autoType + ' ( ${auto.autoPlateNumber} )';
+              autoHolder = auto.autoName.isNotEmpty
+                  ? auto.autoName + '(${auto.autoPlateNumber})'
+                  : auto.autoType + ' ( ${auto.autoPlateNumber} )';
 
-      autoHolder = auto.autoName.isNotEmpty
-          ? auto.autoName + '(${auto.autoPlateNumber})'
-          : auto.autoType + ' ( ${auto.autoPlateNumber} )';
+              autoMobiles.add(auto.autoName.isNotEmpty
+                  ? auto.autoName + '(${auto.autoPlateNumber})'
+                  : auto.autoType + ' ( ${auto.autoPlateNumber} )');
 
-      autoMobiles.add(auto.autoName.isNotEmpty
-          ? auto.autoName + '(${auto.autoPlateNumber})'
-          : auto.autoType + ' ( ${auto.autoPlateNumber} )');
+              autoMobiles.add( 'Unassign');
 
-      autoMobiles.add( 'Unassign');
-
-    }));
+            });
+          }
+        }
+    );
     else {
       autoMobiles.add('Unassign');
       autoHolder = 'Unassign';
@@ -73,11 +78,13 @@ class _MyAutoState extends State<MyAuto>{
     }
 
     LogisticRepo.getAllAutomobile(agent.agentWorkPlace, false).then((value) {
-      if(value.isNotEmpty)
-      setState(() {
-        autos = value;
-        autoMobiles.addAll(autos.keys.toList());
-      });
+      if(value != null){
+        if(value.isNotEmpty)
+          setState(() {
+            autos = value;
+            autoMobiles.addAll(autos.keys.toList());
+          });
+      }
     });
 
 
@@ -106,7 +113,7 @@ class _MyAutoState extends State<MyAuto>{
         centerTitle: false,
         elevation: 0.0,
       ),
-      body: autoMobiles.length>1 && agentStatistic != null?
+      body: autoMobiles.length > 1 && agentStatistic != null?
       Container(
         child: Column(
           children: [
@@ -707,11 +714,32 @@ class _MyAutoState extends State<MyAuto>{
           ],
         ),
       ):
-      Center(
-          child: JumpingDotsProgressIndicator(
-            fontSize: MediaQuery.of(context).size.height * 0.12,
-            color: PRIMARYCOLOR,
-          )),
+      FutureBuilder(
+        future: Future.delayed(Duration(seconds: TIMEOUT),(){return true;}),
+        builder: (context,AsyncSnapshot<bool>snapshot){
+          if(snapshot.hasData){
+            if(snapshot.data){
+              return Center(
+                child: Text('No internet connection....')
+              );
+            }
+            else{
+              return Center(
+                  child: JumpingDotsProgressIndicator(
+                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    color: PRIMARYCOLOR,
+                  ));
+            }
+          }
+          else{
+            return Center(
+                child: JumpingDotsProgressIndicator(
+                fontSize: MediaQuery.of(context).size.height * 0.12,
+          color: PRIMARYCOLOR,
+          ));
+          }
+        },
+      )
     );
   }
 }

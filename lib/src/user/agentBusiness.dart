@@ -320,8 +320,9 @@ class _AgentBusinessState extends State<AgentBusiness> {
   }
 
   Future<bool> _loadMore() async {
+    await Future.delayed(Duration(seconds: 0, milliseconds: 2000));
     load();
-    return true;
+    return list.length%10 == 0 ?true:false;
   }
 
   Future<void> _refresh() async {

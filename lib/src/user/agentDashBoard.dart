@@ -873,7 +873,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           Icon(AntIcons.shopping_outline,
                               size: MediaQuery.of(context).size.width * 0.1,
                               color: PRIMARYCOLOR.withOpacity(0.8)),
-                          'Deliveries',
+                          'Current Deliveries',
                           border: PRIMARYCOLOR,
                           isBadged: true,
                           isMultiMenu: false,

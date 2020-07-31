@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/deliveryRequest.dart';
+import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class StatisticRepo {
   static final databaseReference = Firestore.instance;
@@ -84,9 +90,118 @@ class StatisticRepo {
   }
 
   static Future<AgentStatistic> getAgentStatistic(String agent) async {
-    DocumentSnapshot doc;
-    doc = await databaseReference.collection("agentStatistic").document(agent).get(source: Source.serverAndCache);
-    return doc.exists?AgentStatistic.fromSnapshot(doc):null;
+    try{
+      DocumentSnapshot doc;
+      doc = await databaseReference.collection("agentStatistic").document(agent).get(source: Source.serverAndCache)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw HttpException;});
+      return doc.exists?AgentStatistic.fromSnapshot(doc):null;
+    }
+    catch(_){
+      return null;
+    }
   }
+
+  static Future<String> saveTransaction(Map<String,dynamic> data) async {
+    try{
+      DocumentReference bid;
+      bid = await databaseReference.collection("transactions")
+          .add(data).timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      return bid.documentID;
+    }
+    catch(_){
+      return '';
+    }
+  }
+
+
+  static Future<Map<String,dynamic>> getTodayStat(String mid,String sid)async{
+    HttpsCallableResult data;
+    String todayStart = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,0,0,0).toString();
+    String todayEnd = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,23,59,0).toString();
+    try{
+      if(sid.isNotEmpty){
+        data = await CloudFunctions.instance.getHttpsCallable(
+          functionName: "staffOneDayGeneralStat",
+        ).call(
+            {'mID': mid,
+              'sID':sid,
+              'start':todayStart,
+              'end':todayEnd
+            }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
+      }
+      else{
+        data = await CloudFunctions.instance.getHttpsCallable(
+          functionName: "merchantOneDayGeneralStat",
+        ).call(
+            {'mID': mid,
+              'sID':sid,
+              'start':todayStart,
+              'end':todayEnd
+            }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
+      }
+      //print(Map.castFrom(data.data));
+      return Map.castFrom(data.data);
+    }
+    catch(_){
+      return null;
+    }
+  }
+
+  static Future<Map<String,dynamic>> getYesterdayStat(String mid,String sid)async{
+    HttpsCallableResult data;
+    DateTime yesterday = DateTime.now().subtract(Duration(days: 1));
+    String todayStart = DateTime(yesterday.year,yesterday.month,yesterday.day,0,0,0).toString();
+    String todayEnd = DateTime(yesterday.year,yesterday.month,yesterday.day,23,59,0).toString();
+    try{
+      if(sid.isNotEmpty){
+        data = await CloudFunctions.instance.getHttpsCallable(
+          functionName: "staffOneDayGeneralStat",
+        ).call(
+            {'mID': mid,
+              'sID':sid,
+              'start':todayStart,
+              'end':todayEnd
+            }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
+      }
+      else{
+        data = await CloudFunctions.instance.getHttpsCallable(
+          functionName: "merchantOneDayGeneralStat",
+        ).call(
+            {'mID': mid,
+              'sID':sid,
+              'start':todayStart,
+              'end':todayEnd
+            }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
+      }
+
+      return Map.castFrom(data.data);
+    }
+    catch(_){
+      return null;
+    }
+  }
+
+  static Future<Map<String,dynamic>> getThirtyDaysStat(String mid)async{
+    HttpsCallableResult data;
+    DateTime _thirty = DateTime.now().subtract(Duration(days: 29));
+    String thirty = DateTime(_thirty.year,_thirty.month,_thirty.day,0,0,0).toString();
+
+    try{
+
+        data = await CloudFunctions.instance.getHttpsCallable(
+          functionName: "merchantThirtyDaysGeneralStat",
+        ).call(
+            {'mID': mid,
+              'thirty':thirty,
+            }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
+
+       //print(Map.castFrom(data.data));
+      return Map.castFrom(data.data);
+    }
+    catch(_){
+      return null;
+    }
+  }
+
 
 }

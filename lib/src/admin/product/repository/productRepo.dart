@@ -1,3 +1,5 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
@@ -250,7 +252,7 @@ class ProductRepo {
            .where('productCategory',isEqualTo: category)
            .limit(10)
            .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){ Utility.noInternet(); throw Exception;});
      } else {
        document = await Firestore.instance
            .collection('products')
@@ -260,7 +262,7 @@ class ProductRepo {
            .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
            .limit(10)
            .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){ Utility.noInternet(); return null;});
      }
 
      if(document != null){
@@ -288,7 +290,7 @@ class ProductRepo {
            .where('productCategory', isEqualTo: category)
            .limit(10)
            .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); return null;});
      } else {
        //print(lastDoc !=null ?DateTime.parse(lastDoc.pCreatedAt.toDate().toString()):'');
        document = await Firestore.instance
@@ -299,7 +301,7 @@ class ProductRepo {
            .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
            .limit(10)
            .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); return null;});
      }
 
      if(document != null){

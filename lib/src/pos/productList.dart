@@ -45,7 +45,7 @@ class _ProductListState extends State<ProductList> {
 
   void initState() {
     _finish = true;
-    loading =false;
+    loading =true;
     empty = false;
     _cartItem=[];
     category = ['All'];
@@ -53,19 +53,12 @@ class _ProductListState extends State<ProductList> {
     ProductRepo.fetchAllProduct(widget.user.merchant.mID, null).then((value){
       //print(value);
       if(mounted)
-        setState((){
-          list=value;
-          loading =false;
-          if(list.length >= 10)
-            _finish=false;
-          else
-            _finish=true;
-
-          if(list.isEmpty) {
-            empty = true;
-            _finish=true;
-          }
-        });
+      list=value;
+      loading =false;
+      _finish=value.length == 10?false:true;
+      empty = value.isEmpty;
+      if(mounted)
+        setState((){ });
     });
     WalletRepo.getWallet(widget.user.merchant.bWallet).then((wallet) {
       if (mounted) {
@@ -81,91 +74,44 @@ class _ProductListState extends State<ProductList> {
 
   void load() {
     if(list.isNotEmpty)
+      {
+        if(selectedCategory != 'All')
+          ProductRepo.fetchCategoryProduct(widget.user.merchant.mID, list.last,selectedCategory).then((value) {
+            list.addAll(value);
+            _finish = value.length == 10 ? false : true;
+            if(mounted)
+              setState((){ });
+
+          });
+        else
+          ProductRepo.fetchAllProduct(widget.user.merchant.mID, list.last).then((value) {
+            list.addAll(value);
+            _finish = value.length == 10 ? false : true;
+            if(mounted)
+              setState((){ });
+          });
+      }
+    else
+    {
       if(selectedCategory != 'All')
-        ProductRepo.fetchCategoryProduct(widget.user.merchant.mID, list.last,selectedCategory).then((value) {
-          loading=false;
+        ProductRepo.fetchCategoryProduct(widget.user.merchant.mID, null,selectedCategory).then((value) {
+          list=value;
+          _finish = value.length == 10 ? false : true;
+          empty=value.isEmpty;
           if(mounted)
-            if(value.isNotEmpty)
-              setState((){
-                //empty = false;
-                list.addAll(value);
-                if(list.length >= 10)
-                  _finish=false;
-                else
-                  _finish=true;
-              });
-            else
-              setState(() {
-                _finish=true;
-                if(list.isEmpty)
-                  empty=true;
-              });
+            setState((){ });
 
         });
       else
-        ProductRepo.fetchAllProduct(widget.user.merchant.mID, list.last).then((value) {
-          loading=false;
+        ProductRepo.fetchAllProduct(widget.user.merchant.mID, null).then((value) {
+          list=value;
+          _finish = value.length == 10 ? false : true;
+          empty=value.isEmpty;
           if(mounted)
-            if(value.isNotEmpty)
-              setState((){
-                //empty = false;
-                list.addAll(value);
-                if(list.length >= 10)
-                  _finish=false;
-                else
-                  _finish=true;
-              });
-            else
-              setState(() {
-                _finish=true;
-                if(list.isEmpty)
-                  empty=true;
-              });
+            setState((){ });
 
         });
-    else
-    if(selectedCategory != 'All')
-      ProductRepo.fetchCategoryProduct(widget.user.merchant.mID, null,selectedCategory).then((value) {
-        loading=false;
-        if(mounted)
-          if(value.isNotEmpty)
-            setState((){
-              //empty = false;
-              list.addAll(value);
-              if(list.length >= 10)
-                _finish=false;
-              else
-                _finish=true;
-            });
-          else
-            setState(() {
-              _finish=true;
-              if(list.isEmpty)
-                empty=true;
-            });
-
-      });
-    else
-      ProductRepo.fetchAllProduct(widget.user.merchant.mID, null).then((value) {
-        loading=false;
-        if(mounted)
-          if(value.isNotEmpty)
-            setState((){
-              //empty = false;
-              list.addAll(value);
-              if(list.length >= 10)
-                _finish=false;
-              else
-                _finish=true;
-            });
-          else
-            setState(() {
-              _finish=true;
-              if(list.isEmpty)
-                empty=true;
-            });
-
-      });
+    }
   }
 
 
@@ -174,7 +120,10 @@ class _ProductListState extends State<ProductList> {
     return FutureBuilder<HttpsCallableResult>(
       future: CloudFunctions.instance.getHttpsCallable(
         functionName: "FetchMerchantsProductCategory",
-      ).call({'mID': widget.user.merchant.mID}),
+      ).call({'mID': widget.user.merchant.mID}).timeout(Duration(seconds: TIMEOUT),onTimeout: (){
+      Utility.noInternet();
+      throw CloudFunctionsException;
+      }),
       builder: (context,AsyncSnapshot<HttpsCallableResult> data){
         if(data.hasData){
           category.addAll( List.castFrom(data.data.data));
@@ -236,19 +185,12 @@ class _ProductListState extends State<ProductList> {
                             ProductRepo.fetchAllProduct(widget.user.merchant.mID, null).then((value){
                               //print(value);
                               if(mounted)
-                                setState((){
-                                  list=value;
-                                  loading =false;
-                                  if(list.length >= 10)
-                                    _finish=false;
-                                  else
-                                    _finish=true;
-
-                                  if(list.isEmpty) {
-                                    empty = true;
-                                    _finish=true;
-                                  }
-                                });
+                                list=value;
+                              loading =false;
+                              _finish=value.length == 10?false:true;
+                              empty = value.isEmpty;
+                              if(mounted)
+                                setState((){ });
                             });
                           }
                           else{
@@ -282,44 +224,37 @@ class _ProductListState extends State<ProductList> {
                                 if(selectedCategory != 'All')
                                 ProductRepo.fetchCategoryProduct(widget.user.merchant.mID, null,selectedCategory).then((value) {
                                   if(mounted)
-                                    setState((){
-                                      empty = false;
-                                      list=value;
-                                      if(list.length >= 10)
-                                        _finish=false;
-                                    });
+                                    list=value;
+                                  loading =false;
+                                  _finish=value.length == 10?false:true;
+                                  empty = value.isEmpty;
+                                  if(mounted)
+                                    setState((){ });
 
                                 });
 
                                 else
                                   ProductRepo.fetchAllProduct(widget.user.merchant.mID, null).then((value) {
                                     if(mounted)
-                                      setState((){
-                                        empty = false;
-                                        list=value;
-                                        if(list.length >= 10)
-                                          _finish=false;
-                                      });
+                                      list=value;
+                                    loading =false;
+                                    _finish=value.length == 10?false:true;
+                                    empty = value.isEmpty;
+                                    if(mounted)
+                                      setState((){ });
 
                                   });
                               }
                               else{
                                 ProductRepo.searchProduct(widget.user.merchant.mID, null,value.trim()).then((result) {
 
+                                    if(mounted)
+                                      list=result;
+                                  loading =false;
+                                  _finish=result.length == 10?false:true;
+                                  empty = result.isEmpty;
                                   if(mounted)
-                                    setState((){
-                                      if(result.isNotEmpty) {
-                                        list = result;
-                                        if (list.length >= 10)
-                                          _finish = false;
-                                        empty = false;
-                                      }
-                                      else {
-                                        //list.clear();
-                                        empty = true;
-                                      }
-
-                                    });
+                                    setState((){ });
 
 
                                 });
@@ -352,6 +287,7 @@ class _ProductListState extends State<ProductList> {
                             return ListTile(
                               onTap: ()async
                             {
+                              if(_walletNotifier.value != null)
                               if(_walletNotifier.value.pocketUnitBalance >= 100){
                               Get.defaultDialog(
                                   title: 'Quantity',
@@ -468,7 +404,10 @@ class _ProductListState extends State<ProductList> {
                                               'Product already in cart.',
                                               title: '');
                                         else
-                                          _cartItem.add(cartItem);
+                                          {
+                                            _cartItem.add(cartItem);
+                                            _count.value=1;
+                                          }
 
                                         setState(() {});
                                       }
@@ -478,19 +417,30 @@ class _ProductListState extends State<ProductList> {
 
                                   )
                               );
+
                             }
                               else{
                                 bool result = await Utility.confirmDialogMaker('PocketUnit can not be below expected quota ($CURRENCY 100). Do you want to TopUp');
                               if(result){
-                                Get.dialog(TopUp(user: widget.user.user,payType: "TOPUPUNIT",));
+                                Get.dialog(TopUp(user: User(widget.user.merchant.mID,role: 'staff',walletId: widget.user.merchant.bWallet,email: widget.user.user.email),payType: "TOPUPUNIT",)).then((value) {
+                                  WalletRepo.getWallet(widget.user.merchant.bWallet).then((wallet) {
+                                    if (mounted) {
+                                      _walletNotifier.value=null;
+                                      _walletNotifier.value = wallet;
+
+                                    }
+                                  });
+                                });
                               }
 
                               }
+                              else
+                                Utility.infoDialogMaker("Error accessing server.",title: 'Information');
                               },
                               leading: CircleAvatar(
                                 radius: 25,
                                 backgroundColor: Colors.grey.withOpacity(0.2),
-                                child: Image.network(list[index].pPhoto.isNotEmpty?list[index].pPhoto.first:PRODUCTDEFAULT,
+                                backgroundImage: NetworkImage(list[index].pPhoto.isNotEmpty?list[index].pPhoto.first:PRODUCTDEFAULT,
                                 ),
                               ),
                               title: Text('${list[index].pName}',style: TextStyle(fontSize: 18),),
@@ -678,8 +628,9 @@ class _ProductListState extends State<ProductList> {
   }
 
   Future<bool> _loadMore() async {
+    await Future.delayed(Duration(seconds: 0, milliseconds: 2000));
     load();
-    return true;
+    return list.length%10 == 0 ?true:false;
   }
 
   Future<void> _refresh() async {

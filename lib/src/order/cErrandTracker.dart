@@ -780,7 +780,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
 
     Geolocator().distanceBetween(_order.errand.source.latitude, _order.errand.source.longitude,
         _order.errand.destination.latitude, _order.errand.destination.longitude).then((value) {
-      OrderRepo.confirm(oid, confirmation,receipt,agent.uid,
+      OrderRepo.confirm(_order, confirmation,receipt,agent.uid,
           _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
         isDone = false;
       });

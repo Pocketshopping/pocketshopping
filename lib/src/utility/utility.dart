@@ -806,12 +806,12 @@ class Utility {
   }
 
   static String numberFormatter(int number){
-    if(number > 1000)
-      return '${(number/1000)}K';
-    else if(number > 1000000)
-      return '${(number/1000000)}M';
+    if(number > 1000 && number < 1000000)
+      return '${(number/1000).toStringAsFixed(1)}K';
+    else if(number > 1000000 && number < 1000000000)
+      return '${(number/1000000).toStringAsFixed(1)}M';
     else if(number > 1000000000)
-      return '${(number/1000000000)}B';
+      return '${(number/1000000000).toStringAsFixed(1)}B';
     else
       return '$number';
   }
@@ -864,6 +864,7 @@ class Utility {
   }
 
   static bottomProgressLoader({String title='Loading', String body='...please wait',bool goBack=false}){
+    if(!Get.isSnackbarOpen)
     GetBar(
       title: title,
       messageText: Text(body,style: TextStyle(color: Colors.white),),
@@ -878,6 +879,7 @@ class Utility {
   }
 
   static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false, String wallet=''}){
+    if(!Get.isSnackbarOpen)
     GetBar(
       title: title,
       messageText: Text(body??'',style: TextStyle(color: Colors.white),),
@@ -894,6 +896,7 @@ class Utility {
   }
 
   static bottomProgressFailure({String title='Loading', String body='...please wait',int duration=3}){
+    if(!Get.isSnackbarOpen)
     GetBar(
       title: title,
       messageText: Text(body,style: TextStyle(color: Colors.white),),
@@ -903,7 +906,19 @@ class Utility {
     ).show();
   }
 
+  static noInternet(){
+    if(!Get.isSnackbarOpen)
+    GetBar(
+      title: 'Internet',
+      messageText: Text("No internet connection",style: TextStyle(color: Colors.white),),
+      backgroundColor: PRIMARYCOLOR,
+      icon: Icon(Icons.check,color: Colors.white,),
+      duration: Duration(seconds: 5),
+    ).show();
+  }
+
   static infoDialogMaker(String body,{String title='Info',}){
+    if(!Get.isDialogOpen)
     Get.defaultDialog(title:title,
         content: Text(body),
         confirm: FlatButton(
@@ -915,6 +930,7 @@ class Utility {
 
   static Future<bool> confirmDialogMaker(String body,{String title='Confirm',})async{
     bool isConfirmed=false;
+    if(!Get.isDialogOpen)
    await  Get.defaultDialog(title:title,
         content: Text(body),
         cancel: FlatButton(
@@ -1088,6 +1104,33 @@ class Utility {
       await Workmanager.cancelAll();
     }catch(_){}
 
+  }
+  static List<String> rangeOf30Days(){
+    DateTime thirty = DateTime.now().subtract(Duration(days: 29));
+    String start = '${thirty.day}-${thirty.month}-${thirty.year}';
+    List<String> days = [];
+
+    DateTime changing = DateTime.now();
+    String current = '${changing.day}-${changing.month}-${changing.year}';
+
+    while(start != current){
+      days.add(current);
+
+      changing = changing.subtract(Duration(days: 1));
+      current = '${changing.day}-${changing.month}-${changing.year}';
+    }
+
+    days.add(start);
+    return days.reversed.toList();
+
+  }
+
+  static int multiListSum(List<List<dynamic>> data){
+    int sum=0;
+    data.forEach((element) {
+      sum += (element[1] as int);
+    });
+    return sum;
   }
 
 }

@@ -287,4 +287,5 @@ class Order {
     orderEntity.forEach((element) { orders.add(Order.fromEntity(element));});
     return orders;
   }
+
 }

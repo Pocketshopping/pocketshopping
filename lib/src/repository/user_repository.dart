@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pocketshopping/src/user/package_user.dart';
 
 class UserRepository {
   final FirebaseAuth _firebaseAuth;
@@ -19,8 +20,13 @@ class UserRepository {
       );
 
 
+
       if (result.user.isEmailVerified) {
+        User u = await UserRepo.getOneUsingUID(result.user.uid);
         FirebaseUser user = result.user;
+       await upDateUserRole(u.role, user);
+       //user.reload();
+        //print(user.displayName);
         return user;
       }
       throw("EMAIL UNVERIFIED");
@@ -35,16 +41,13 @@ class UserRepository {
 
     FirebaseUser user = result.user;
     await upDateUserRole(role, user);
-
-    try {await user.sendEmailVerification();} catch (e) {
-     // print(e);
-    }
-
+    try {await user.sendEmailVerification();} catch (e) {}
     return user.uid;
   }
 
   Future<FirebaseUser> getCurrentUser() async {
     FirebaseUser user = await _firebaseAuth.currentUser();
+    await user.reload();
     return user;
   }
 

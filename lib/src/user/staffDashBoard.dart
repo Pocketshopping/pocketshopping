@@ -4,11 +4,13 @@ import 'dart:convert';
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/manage.dart';
 import 'package:pocketshopping/src/admin/staff/managerTransaction.dart';
@@ -20,10 +22,16 @@ import 'package:pocketshopping/src/customerCare/customerCare.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/repository/order.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/pos/productList.dart';
+import 'package:pocketshopping/src/statistic/merchantStat.dart';
+import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
+import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -46,6 +54,9 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
   Stream<Wallet> _walletStream;
   Wallet _wallet;
   bool isLocked;
+  final report = ValueNotifier<Map<String,dynamic>>({});
+  final _orderNotifier = ValueNotifier<List<Order>>([]);
+  StreamSubscription orders;
 
   @override
   void initState() {
@@ -62,6 +73,14 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
         setState(() {});
       }
     });
+    orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
+      if(mounted)
+      {
+        _orderNotifier.value=[];
+        _orderNotifier.value=event;
+      }
+      OrderBloc.instance.newOrder(event);
+    });
 /*    _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
@@ -69,8 +88,19 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
         setState(() {});
       }
     });*/
+
+
     ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
     Workmanager.cancelAll();
+
+
+      if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances){
+        StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
+      }
+      else{
+        StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {setState(() {report.value = value;});});
+      }
+
     super.initState();
   }
 
@@ -85,6 +115,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
   @override
   void dispose() {
     iosSubscription?.cancel();
+    orders?.cancel();
     super.dispose();
   }
 
@@ -132,6 +163,12 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                             style: TextStyle(fontSize: 20),
                           ),
                         ),
+                        if(!currentUser.staff.parentAllowed)
+                        const SizedBox(height: 10,),
+                        if(!currentUser.staff.parentAllowed)
+                        Center(
+                          child: Text('Your account has deactivated by ${currentUser.merchant.bName} admin.',style: TextStyle(color: Colors.red),),
+                        ),
                         const SizedBox(height: 10,),
                         if(!currentUser.staff.staffPermissions.managers && currentUser.staff.staffPermissions.sales)
                         Center(
@@ -156,6 +193,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                         )
                       ],
                     )),
+                if(currentUser.staff.parentAllowed)
                 if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances || currentUser.staff.staffPermissions.sales)
                 SliverList(
                     delegate: SliverChildListDelegate(
@@ -243,119 +281,135 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     ),
                   ],
                 )),
+                if(currentUser.staff.parentAllowed)
                 SliverGrid.count(crossAxisCount: 3, children: [
-                  GestureDetector(
-                    onTap: (){
-                      //print(currentUser.agent.agentID);
-                      //Get.to(MyDelivery(orders: orders,user: currentUser,)).then((value) => null);
-                    },
-                    child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(10),
-                              topRight: Radius.circular(10),
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10)
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 2,
-                              blurRadius: 7,
-                              offset: Offset(0, 1), // changes position of shadow
+                  ValueListenableBuilder(
+                    valueListenable: report,
+                    builder: (_,Map<String,dynamic> _report,__){
+                      return _report.isNotEmpty?GestureDetector(
+                        onTap: (){
+                          //print(currentUser.agent.agentID);
+                          //Get.to(MyDelivery(orders: orders,user: currentUser,)).then((value) => null);
+                        },
+                        child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text('${1+1}',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color:PRIMARYCOLOR,fontSize: 25),),
-                            const Text('Transaction(s) Today',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: PRIMARYCOLOR),),
-                          ],
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('${Utility.numberFormatter(_report['transactionCount'])}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color:PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Transaction(s) Today',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
 
-                        )
+                            )
 
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: Offset(0, 1), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('$CURRENCY ${Utility.numberFormatter(0)}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
-                          const Text('Amount Made Today',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: PRIMARYCOLOR),),
-                        ],
-                      ),
-                    ),
+                      ):const SizedBox.shrink();
+                    },
                   ),
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: Offset(0, 1), // changes position of shadow
+                  ValueListenableBuilder(
+                    valueListenable: report,
+                    builder: (_,Map<String,dynamic> _report,__){
+                      return _report.isNotEmpty?GestureDetector(
+                        onTap: (){},
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10)
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 7,
+                                offset: Offset(0, 1), // changes position of shadow
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          if(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose) && currentUser.merchant.bStatus == 1)
-                          Text('${currentUser.merchant.bCategory} is open ',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: PRIMARYCOLOR),),
-                          if(!(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose)) || currentUser.merchant.bStatus != 1)
-                            Text('${currentUser.merchant.bCategory} is closed ',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: PRIMARYCOLOR),),
-                        ],
-                      ),
-                    ),
-                  )
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('$CURRENCY${Utility.numberFormatter(_report['total'])}',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                              const Text('Amount Made Today',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: PRIMARYCOLOR),),
+                            ],
+                          ),
+                        ),
+                      ):const SizedBox.shrink();
+                    },
+                  ),
+                  ValueListenableBuilder(
+                    valueListenable: report,
+                    builder: (_,Map<String,dynamic> _report,__){
+                      return _report.isNotEmpty?GestureDetector(
+                        onTap: (){},
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10),
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10)
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 7,
+                                offset: Offset(0, 1), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose) && currentUser.merchant.bStatus == 1)
+                                Text('${currentUser.merchant.bCategory} is open ',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR),),
+                              if(!(Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose)) || currentUser.merchant.bStatus != 1)
+                                Text('${currentUser.merchant.bCategory} is closed ',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR),),
+                            ],
+                          ),
+                        ),
+                      ):const SizedBox.shrink();
+                    },
+                  ),
 
                 ]),
                 SliverList(
@@ -434,14 +488,15 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                         Icon(AntIcons.pie_chart_outline,
                             size: MediaQuery.of(context).size.width * 0.1,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
-                        'Statistic',
+                        'Report',
                         border: PRIMARYCOLOR,
 
-                        content: Text('hello'),
+                        content: MerchantStatistic(user: currentUser,title: 'Report',),
+                      isMultiMenu: false,
                       isLocked: isLocked
                     ),
                     //if(currentUser.staff.staffPermissions.managers)
-                    MenuItem(
+                    /*MenuItem(
                       gridHeight,
                       Icon(AntIcons.user,
                           size: MediaQuery.of(context).size.width * 0.1,
@@ -450,7 +505,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: StaffList(user: currentUser,title: 'Manage Staff(s)',callBckActionType: 3,route: 1,),
-                    ),
+                    ),*/
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances)
                     MenuItem(
                       gridHeight,
@@ -459,7 +514,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
-                      content: Text('hello'),
+                      content: UnitBottomPage(user: currentUser,),
                       isLocked: isLocked
                     ),
                     /*MenuItem(
@@ -521,6 +576,25 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       content: AgentList(user: currentUser,callBckActionType: 2,title: 'Agent Clearance',),
                       isLocked: isLocked
                     ),
+                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                    ValueListenableBuilder(
+                        valueListenable: _orderNotifier,
+                        builder: (_, orders,__){
+                          return
+                            MenuItem(
+                              gridHeight,
+                              Icon(AntIcons.shopping_outline,
+                                  size: MediaQuery.of(context).size.width * 0.1,
+                                  color: PRIMARYCOLOR.withOpacity(0.8)),
+                              'Current Deliveries',
+                              border: PRIMARYCOLOR,
+                              isBadged: true,
+                              isMultiMenu: false,
+                              openCount: orders.length,
+                              content: MyDelivery(orders: orders,user: currentUser,),
+                              isLocked: isLocked,
+                            );
+                        }),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
                     MenuItem(
                       gridHeight,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
@@ -315,8 +317,12 @@ class LogisticRepo {
   }
 
   static Future<AutoMobile> getAutomobile(String autoID) async {
-    var doc = await databaseReference.collection("automobile").document(autoID).get(source: Source.serverAndCache);
-    return AutoMobile.fromSnap(doc);
+    try{
+      var doc = await databaseReference.collection("automobile").document(autoID).get(source: Source.serverAndCache)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw HttpException;});
+      return AutoMobile.fromSnap(doc);
+    }
+    catch(_){return null;}
   }
 
   static Future<bool> agentAccept(String agentID, String requestID, String uid) async {
@@ -325,8 +331,8 @@ class LogisticRepo {
       var agent = await getOneAgent(agentID);
       var agentAcct = await UserRepo.getOneUsingUID(agent.agent);
       await RequestRepo.clear(requestID);
-      await UserRepo().upDate(role: 'staff', uid: uid, bid: agent.agentWorkPlace);
-      await UserRepository().changeRole('staff');
+      await UserRepo().upDate(role: 'rider', uid: uid, bid: agent.agentWorkPlace);
+      await UserRepository().changeRole('rider');
       await Utility.updateWallet(uid: agentAcct.walletId,cid:agent.workPlaceWallet,type: 5 );
       return true;
     }

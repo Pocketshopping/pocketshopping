@@ -170,6 +170,63 @@ class _ManageStaffState extends State<ManageStaff> {
                                               ),
                                             ],
                                           )),
+                                      if(widget.staff.startDate != null)
+                                      Container(
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                //                   <--- left side
+                                                color: Colors.black12,
+                                                width: 1.0,
+                                              ),
+                                            ),
+                                          ),
+                                          padding: EdgeInsets.all(
+                                              MediaQuery.of(context).size.width *
+                                                  0.02),
+                                          child:Center(
+                                            child: FlatButton(
+                                              onPressed: ()async {
+                                                if(widget.staff.parentAllowed){
+                                                  Utility.bottomProgressLoader(title: 'Deactivating staff');
+                                                  bool result = await StaffRepo.updateStaff(widget.staff.staffID, {'parentAllowed':false});
+                                                  Get.back();
+                                                  if(result){
+                                                    Utility.bottomProgressSuccess(title: 'Staff Deactivated',body: '${widget.staff.staffName} has been deactivated',goBack: true);
+                                                    Utility.pushNotifier(
+                                                      body: 'Your staff account has been deactivated by ${widget.session.merchant.bName} ',
+                                                      title: 'Staff',
+                                                      fcm: '',
+                                                      notificationType: 'StaffStatusNotifier',
+                                                      data: {}
+                                                    );
+                                                  }
+                                                  else{
+                                                    Utility.bottomProgressFailure(title: 'Error',body: 'Error encounterd while deactivating staff');
+                                                    Get.back();
+                                                  }
+                                                }
+                                                else{
+                                                  Utility.bottomProgressLoader(title: 'Activating staff');
+                                                  bool result = await StaffRepo.updateStaff(widget.staff.staffID, {'parentAllowed':true});
+                                                  Get.back();
+                                                  if(result){
+                                                    Utility.bottomProgressSuccess(title: 'Staff Activated',body: '${widget.staff.staffName} has been activated',goBack: true);
+                                                  }
+                                                  else{
+                                                    Utility.bottomProgressFailure(title: 'Error',body: 'Error encounterd while activating staff');
+                                                    Get.back();
+                                                  }
+                                                }
+                                              },
+                                              child: widget.staff.parentAllowed?
+                                              Text('Deactivate Staff',style: TextStyle(color: Colors.white),):
+                                              Text('Activate Staff',style: TextStyle(color: Colors.white),),
+                                              color: widget.staff.parentAllowed?Colors.red:Colors.green,
+                                            )
+                                          )
+
+                                      ),
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(

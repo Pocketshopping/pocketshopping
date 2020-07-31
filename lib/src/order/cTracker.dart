@@ -1065,7 +1065,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
     int unit = (_order.orderMode.fee * 0.1).round();
     Geolocator().distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
         _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude).then((value) {
-      OrderRepo.confirm(oid, confirmation,receipt,agent.uid,
+      OrderRepo.confirm(_order, confirmation,receipt,agent.uid,
           _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
         isDone = false;
       });

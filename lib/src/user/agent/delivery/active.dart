@@ -274,8 +274,9 @@ class _ActiveOrderState extends State<ActiveOrder> {
   }
 
   Future<bool> _loadMore() async {
+    await Future.delayed(Duration(seconds: 0, milliseconds: 2000));
     load();
-    return true;
+    return list.length%10 == 0 ?true:false;
   }
 
   Future<void> _refresh() async {
@@ -330,7 +331,7 @@ class _SingleOrderState extends State<SingleOrder> {
           merchant != null?ListTile(
       onTap: () {
         Get.to(
-            widget.user.user.role != 'admin'?
+            widget.user.user.role == 'rider'?
             widget.order.orderMode.mode != 'Errand'?
             RiderDeliveryTracker(
           order: widget.order.docID,
@@ -421,7 +422,7 @@ class _SingleOrderState extends State<SingleOrder> {
           ListTile(
             onTap: () {
               Get.to(
-                  widget.user.user.role != 'admin'?
+                  widget.user.user.role == 'rider'?
                   widget.order.orderMode.mode != 'Errand'?
                   RiderTracker(
                     order: widget.order.docID,
