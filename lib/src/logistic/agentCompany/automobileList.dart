@@ -268,7 +268,11 @@ class _AutomobileListState extends State<AutomobileList> {
             Expanded(
               flex: 0,
               child: Container(
-                color: PRIMARYCOLOR,
+                padding: EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: PRIMARYCOLOR,
+                  borderRadius: BorderRadius.only(topRight: Radius.circular(15),topLeft: Radius.circular(15)),
+                ),
                 child:Padding(
                   padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
                   child: Center(

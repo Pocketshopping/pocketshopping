@@ -2,6 +2,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart' as login;
 import 'package:pocketshopping/src/register/register.dart';
@@ -9,6 +10,7 @@ import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class RegisterForm extends StatefulWidget {
   final UserRepository _userRepository;
@@ -89,14 +91,15 @@ class _RegisterFormState extends State<RegisterForm> {
           if (widget.linkdata != null) {
             if (widget.linkdata.queryParameters.containsKey('referralID')) {
               BlocProvider.of<AuthenticationBloc>(context).add(Verify());
-              Get.back();
+              Get.off(App(userRepository: widget._userRepository,));
             } else {
               BlocProvider.of<AuthenticationBloc>(context).add(DeepLink(widget.linkdata));
-              Get.back();
+              Get.off(App(userRepository: widget._userRepository,));
+
             }
           } else {
             BlocProvider.of<AuthenticationBloc>(context).add(Verify());
-            Get.back();
+            Get.off(App(userRepository: widget._userRepository,));
           }
         }
         if (state.isFailure) {
@@ -127,9 +130,9 @@ class _RegisterFormState extends State<RegisterForm> {
               //mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Center(
-                    child: psCard(
-                        color: PRIMARYCOLOR,
-                        title: 'SignUp',
+                    child: psHeadlessCard(
+                        //color: PRIMARYCOLOR,
+                        //title: 'SignUp',
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey,
@@ -225,7 +228,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                         CountryCodeChanged(
                                             country: value.dialCode),
                                       );
-                                      print(' Country ${value.dialCode}');
+                                      //print(' Country ${value.dialCode}');
                                     },
                                     initialSelection: 'NG',
                                     favorite: ['+234', 'NG'],
@@ -329,7 +332,44 @@ class _RegisterFormState extends State<RegisterForm> {
                                                   .height *
                                               0.8,
                                           color: Colors.white,
-                                          child: Text('dfdfdf'),
+                                          child: Column(
+                                            children: [
+                                              Expanded(
+                                                flex:0,
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                                  child: Align(
+                                                    alignment: Alignment.centerRight,
+                                                    child: IconButton(
+                                                      onPressed: (){
+                                                        Get.back();
+                                                      },
+                                                      icon: Icon(Icons.close),
+                                                    ),
+                                                  ),
+                                                )
+                                              ),
+                                              Expanded(
+                                                child: WebView(
+
+                                                  initialUrl: 'http://pocketshopping.com.ng/mobile/terms-conditions',
+                                                  javascriptMode: JavascriptMode.disabled,
+                                                  onWebViewCreated: (WebViewController webViewController) {
+                                                    //_controller.complete(webViewController);
+                                                  },
+
+
+                                                  onPageStarted: (String url) {
+                                                    //print('Page started loading: $url');
+                                                  },
+                                                  onPageFinished: (String url) {
+                                                    //print('Page finished loading: $url');
+                                                  },
+                                                  gestureNavigationEnabled: true,
+                                                )
+                                              ),
+                                            ],
+                                          )
                                         );
                                       },
                                       isScrollControlled: true,
@@ -376,7 +416,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                 child: FlatButton(
                                   onPressed: () {
                                     FocusScope.of(context).requestFocus(FocusNode());
-                                    Get.to(
+                                    Get.off(
                                       login.LoginScreen(
                                         userRepository: _userRepository,
                                         fromSignup: true,

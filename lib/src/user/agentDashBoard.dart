@@ -8,7 +8,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:get/get.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
@@ -23,8 +22,12 @@ import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/requestBucket.dart';
+import 'package:pocketshopping/src/payment/topUpPocket.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/payment/totpupScaffold.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/agent/myAuto.dart';
 import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
@@ -66,6 +69,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
   final _orderCountNotifier = ValueNotifier<int>(0);
   final _remittanceNotifier = ValueNotifier<Map<String,dynamic>>(null);
   StreamSubscription<LocationData> locStream;
+
 
 
 
@@ -113,7 +117,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
               break;
           }
           WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-        }}catch(_){}
+        }
+        }catch(_){}
       }
 
     });
@@ -180,6 +185,12 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     super.initState();
 
 
+  }
+
+  void reloadMerchant({bool complete=false}){
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    if(complete)
+      BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
 
   Future<bool> setAgentLocationDetails() async {
@@ -270,7 +281,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
       int count = await OrderRepo.getUnclaimedDelivery(currentAgent);
       if(count>0)
         Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');
-    }catch(_){debugPrint(_);}
+    }catch(_){}
   }
 
 /*  Future<void> backgroundWorker(){
@@ -296,19 +307,25 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
       return Future.value();
   }*/
 
-  static Future<void> backgroundWorker(){
-    Workmanager.cancelAll();
-    Workmanager.registerPeriodicTask(
+  static Future<void> backgroundWorker()async{
+    //await Workmanager.cancelAll();
+    await Workmanager.registerPeriodicTask(
         "AGENTLOCATIONUPDATE", "LocationUpdateTask",
+        constraints: Constraints(
+            networkType: NetworkType.connected,
+            requiresBatteryNotLow: false,
+            requiresCharging: false,
+            requiresDeviceIdle: false,
+            requiresStorageNotLow: false
+        ),
+        existingWorkPolicy: ExistingWorkPolicy.replace,
         frequency: Duration(minutes: 15),
         tag: 'LocationUpdateTag',
         inputData: {});
 
-      return Future.value();
   }
 
   Future<void> requestListenerWorker()async{
-
     await AndroidAlarmManager.cancel(requestWorkerID);
    await AndroidAlarmManager.periodic(const Duration(minutes: 2), requestWorkerID, backgroundWorker, rescheduleOnReboot: true, exact: true,);
   }
@@ -364,6 +381,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     todayOrderCount?.cancel();
     iosSubscription?.cancel();
     bucket?.cancel();
+    locStream?.cancel();
     super.dispose();
   }
 
@@ -377,15 +395,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.1), // here the desired height
           child: AppBar(
-            leading: IconButton(
-              icon: Icon(
-                Icons.menu,
-                color: PRIMARYCOLOR,
-                size: marginLR * 0.08,
-              ),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
+            leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
+              openDrawer: (){Scaffold.of(context).openDrawer();},
             ),
             centerTitle: true,
             elevation: 0.0,
@@ -395,6 +406,9 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
               style: const TextStyle(color: PRIMARYCOLOR),
             ),
             automaticallyImplyLeading: false,
+            actions: [
+              Help(page: 'rider',),
+            ],
           ),
 
         ),
@@ -424,14 +438,15 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                             height: MediaQuery.of(context).size.height*0.3,
                             width: MediaQuery.of(context).size.width*0.6,
                             child: GestureDetector(onTap: ()async{
-                              FlutterRingtonePlayer.playNotification();
+                              /*FlutterRingtonePlayer.playNotification();
                               await FlutterRingtonePlayer.play(
                                 android: AndroidSounds.notification,
                                 ios: IosSounds.glass,
-                                looping: true, // Android only - API >= 28
+                                looping: false, // Android only - API >= 28
                                 volume: 0.1, // Android only - API >= 28
                                 asAlarm: false, // Android only - all APIs
                               );
+                              FlutterRingtonePlayer.stop();*/
                               Get.to(RequestBucket(user: currentUser,)).then((value) => null);
                             },child: Card(
                               child: ValueListenableBuilder(
@@ -527,16 +542,35 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                                                     child: FlatButton(
                                                       onPressed: ()  {
                                                         FocusScope.of(context).requestFocus(FocusNode());
-                                                        //sendAndRetrieveMessage()
-                                                        //  .then((value) => null)
-                                                        //DynamicLinks
-                                                        //  .createLinkWithParams({
-                                                        //'merchant': 'rerereg',
-                                                        //'OTP':
-                                                        //  'randomNumber.toString()',
-                                                        //'route': 'branch'
-                                                        //}).then((value) => print(value))
-                                                        Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",));
+                                                        if(!Get.isDialogOpen)
+                                                          Get.dialog(
+                                                              TopUpScaffold(
+                                                                user: currentUser.user,
+                                                                wallet: _walletNotifier.value,
+                                                                atm: (){
+                                                                  Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",)).then((value) {
+                                                                    Get.back();});
+                                                                },
+                                                                personal: (){
+                                                                  Get.dialog(TopUpPocket(
+                                                                    user: currentUser.user,
+                                                                    topUp: currentUser.user.walletId,
+                                                                    wallet: _walletNotifier.value,
+                                                                    isPersonal: 3,
+                                                                  )).then((value) {
+                                                                    Get.back();});
+                                                                },
+                                                                business: (){},
+                                                                delivery: (){},
+                                                              )
+                                                          ).then((value) {
+                                                            WalletRepo.getWallet(currentUser.user.walletId).then((value) {
+                                                              if (mounted) {
+                                                                _walletNotifier.value = value;
+                                                                setState(() {});
+                                                              }
+                                                            });
+                                                          });
 
                                                       },
                                                       child: const Center(
@@ -744,40 +778,90 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     );
                       }
                   ),
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: Offset(0, 1), // changes position of shadow
+                  FutureBuilder(
+                    future: Utility.riderTodayAmount(currentUser.user.walletId),
+                    builder: (context,AsyncSnapshot<double>amount){
+                      if(amount.connectionState == ConnectionState.waiting){
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      else if(amount.hasError){
+                        //print(amount.error);
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('$CURRENCY ${Utility.numberFormatter(0)}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Amount Made Today',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('$CURRENCY ${Utility.numberFormatter(0)}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
-                         const Text('Amount Made Today',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: PRIMARYCOLOR),),
-                        ],
-                      ),
-                    ),
+                        );
+                      }
+                      else{
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('$CURRENCY ${Utility.numberFormatter(amount.data.round())}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Amount Made Today',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                    },
                   ),
                   ValueListenableBuilder(
                      valueListenable: _isAvailableNotifier,
@@ -879,6 +963,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           isMultiMenu: false,
                           openCount: orders.length,
                           content: MyDelivery(orders: orders,user: currentUser,),
+                          refresh: reloadMerchant,
                         );
                       }),
                     MenuItem(
@@ -893,6 +978,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: SetupBusiness(isAgent: true,agent: User(currentUser.agent.agentWorkPlace,email: currentUser.user.email),),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -905,6 +991,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: AgentBusiness(user: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -917,6 +1004,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: RequestPocketSense(user: currentUser,),
+                      refresh: reloadMerchant,
                     ),
 
                     MenuItem(
@@ -926,7 +1014,10 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
-                      content: UnitBottomPage(),
+                      content: UnitBottomPage(user: currentUser,wallet: currentUser.user.walletId,
+                        sender:currentUser.user,
+                      ),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -938,6 +1029,18 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                       isMultiMenu: false,
                       border: PRIMARYCOLOR,
                       content: MyAuto(agent: currentUser.agent,isAdmin: false,),
+                      refresh: reloadMerchant,
+                    ),
+
+                    MenuItem(
+                      gridHeight,
+                      Icon(Icons.help_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Help',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: HelpWebView(page: 'rider',),
                     ),
 
                   ],

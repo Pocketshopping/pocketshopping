@@ -1410,7 +1410,7 @@ class _LoaderState extends State<Loader> {
                                             }
                                           }
                                           startTimer();
-                                          print(widget.customerToken);
+                                          //print(widget.customerToken);
                                           await Utility.pushNotifier(fcm: widget.customerToken,
                                           title: 'Delivery',
                                           body: _delay.text);

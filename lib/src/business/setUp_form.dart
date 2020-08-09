@@ -6,12 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
+import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:recase/recase.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class BusinessSetupForm extends StatefulWidget {
   BusinessSetupForm({this.data,this.isAgent,this.agent});
@@ -81,7 +84,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
         listener: (context, state) {
       if (state.isSubmitting) {
         if (state.isUploading) {
-          print('uploading ${state.isUploading}');
+          //print('uploading ${state.isUploading}');
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -206,13 +209,13 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   height: 10,
                                 ),
                                 FlatButton(
-                                  onPressed: () {
+                                  onPressed: () async{
                                     if(!widget.isAgent)
                                     BlocProvider.of<AuthenticationBloc>(context)
                                         .add(
                                       AppStarted(),
                                     );
-                                    Get.back();
+                                    Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
                                   },
                                   color: PRIMARYCOLOR,
                                   child: Padding(
@@ -590,7 +593,44 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                                         .height *
                                                     0.8,
                                                 color: Colors.white,
-                                                child: Text('dfdfdf'),
+                                                child: Column(
+                                                  children: [
+                                                    Expanded(
+                                                        flex:0,
+                                                        child: Padding(
+                                                          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                                          child: Align(
+                                                            alignment: Alignment.centerRight,
+                                                            child: IconButton(
+                                                              onPressed: (){
+                                                                Get.back();
+                                                              },
+                                                              icon: Icon(Icons.close),
+                                                            ),
+                                                          ),
+                                                        )
+                                                    ),
+                                                    Expanded(
+                                                        child: WebView(
+
+                                                          initialUrl: 'http://pocketshopping.com.ng/mobile/business/terms-conditions',
+                                                          javascriptMode: JavascriptMode.disabled,
+                                                          onWebViewCreated: (WebViewController webViewController) {
+                                                            //_controller.complete(webViewController);
+                                                          },
+
+
+                                                          onPageStarted: (String url) {
+                                                            print('Page started loading: $url');
+                                                          },
+                                                          onPageFinished: (String url) {
+                                                            print('Page finished loading: $url');
+                                                          },
+                                                          gestureNavigationEnabled: true,
+                                                        )
+                                                    ),
+                                                  ],
+                                                )
                                               );
                                             },
                                             isScrollControlled: true,
@@ -745,14 +785,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                               vertical: marginLR * 0.008,
                                               horizontal: marginLR * 0.08),
                                           child: FlatButton(
-                                            onPressed: () {
-                                              BlocProvider.of<
-                                                          AuthenticationBloc>(
-                                                      context)
-                                                  .add(
-                                                AppStarted(),
-                                              );
-                                              Get.back();
+                                            onPressed: () async{
+                                              BlocProvider.of<AuthenticationBloc>(context).add(AppStarted(),);
+                                              Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
                                             },
                                             color: PRIMARYCOLOR,
                                             child: Center(

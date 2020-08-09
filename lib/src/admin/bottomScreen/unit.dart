@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pocketPay/unitHistory.dart';
+import 'package:pocketshopping/src/pocketPay/unitTransfer.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
 class UnitBottomPage extends StatelessWidget {
   final Session user;
-  UnitBottomPage({this.user});
+  final String wallet;
+  final User sender;
+  UnitBottomPage({this.user,this.wallet,this.sender});
 
   @override
   Widget build(BuildContext context) {
@@ -53,11 +57,10 @@ class UnitBottomPage extends StatelessWidget {
           ),
           Row(
             children: [
-              Expanded(
+              /*Expanded(
                 child: FlatButton(
                   onPressed: (){
-                    Get.dialog(TopUp(user: User(user.merchant.mID,role: 'staff',
-                        walletId: user.merchant.bWallet,email: user.user.email),payType: "TOPUPUNIT",));
+                    Get.dialog(TopUp(user: sender,payType: "TOPUPUNIT",));
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -73,12 +76,16 @@ class UnitBottomPage extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
+              ),*/
               Expanded(
                 child: FlatButton(
                   onPressed: (){
-                    Get.dialog(TopUp(user: User(user.merchant.mID,role: 'staff',
-                        walletId: user.merchant.bWallet,email: user.user.email),payType: "TOPUPUNIT",));
+                    Get.dialog(PocketUnitTransfer(
+                      user: sender,
+                      wallet: wallet,
+                      sender: user.user.walletId,
+                    )
+                    );
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -98,8 +105,7 @@ class UnitBottomPage extends StatelessWidget {
               Expanded(
                 child: FlatButton(
                   onPressed: (){
-                    Get.dialog(TopUp(user: User(user.merchant.mID,role: 'staff',
-                        walletId: user.merchant.bWallet,email: user.user.email),payType: "TOPUPUNIT",));
+                    Get.dialog(UnitHistory(user: user,));
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

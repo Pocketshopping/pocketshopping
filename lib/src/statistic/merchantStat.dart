@@ -4,20 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
-import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/statistic/charts/ItemLineChart.dart';
-
 import 'package:pocketshopping/src/statistic/charts/itemBarChart.dart';
 import 'package:pocketshopping/src/statistic/charts/itemPieChart.dart';
-
+import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/repository/session.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:pocketshopping/src/statistic/repository.dart';
-import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 
 class MerchantStatistic extends StatefulWidget{
   final Session user;
@@ -48,7 +43,6 @@ class _MerchantStatisticState extends State<MerchantStatistic> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return FutureBuilder<List<Staff>>(
         future: StaffRepo.fetchAllMyStaffs(widget.user.merchant.mID),
         builder: (context,AsyncSnapshot<List<Staff>> data){
@@ -439,6 +433,7 @@ class YesterdayStat extends StatelessWidget{
                     child: PercentagePieChart(data: List.castFrom(snapshot.data['mostFiveItems']),when: 'yesterday',)
                   ),*/
                   SizedBox(height: 50,),
+                  if(snapshot.data['mostFiveItems'].isNotEmpty)
                   SizedBox(
                     height: MediaQuery.of(context).size.height*0.5,
                     width: MediaQuery.of(context).size.width*1,
@@ -580,6 +575,7 @@ class ThirtyDaysStat extends StatelessWidget{
                     child: ItemLineChart(Map.castFrom(snapshot.data['growthChart']))
                     ,),
                   SizedBox(height: 50,),
+                  if(snapshot.data['mostFiveItems'].isNotEmpty)
                   SizedBox(
                     height: MediaQuery.of(context).size.height*0.5,
                   width: MediaQuery.of(context).size.width*1,

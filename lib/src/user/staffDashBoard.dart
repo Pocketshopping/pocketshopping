@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -9,28 +8,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/manage.dart';
 import 'package:pocketshopping/src/admin/staff/managerTransaction.dart';
 import 'package:pocketshopping/src/admin/staff/salesTransactions.dart';
-import 'package:pocketshopping/src/admin/staff/staffList.dart';
-import 'package:pocketshopping/src/business/mangeBusiness.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/customerCare/customerCare.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/payment/topUpPocket.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/payment/totpupScaffold.dart';
 import 'package:pocketshopping/src/pos/productList.dart';
+import 'package:pocketshopping/src/statistic/logisticStat.dart';
 import 'package:pocketshopping/src/statistic/merchantStat.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
+import 'package:pocketshopping/src/stockManager/bloc/stockBloc.dart';
+import 'package:pocketshopping/src/stockManager/repository/stock.dart';
+import 'package:pocketshopping/src/stockManager/repository/stockRepo.dart';
+import 'package:pocketshopping/src/stockManager/stocks.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
+import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -56,7 +61,11 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
   bool isLocked;
   final report = ValueNotifier<Map<String,dynamic>>({});
   final _orderNotifier = ValueNotifier<List<Order>>([]);
+  final key = ValueNotifier<String>('');
+  final pWallet = ValueNotifier<Wallet>(null);
+  final _agentNotifier = ValueNotifier<int>(0);
   StreamSubscription orders;
+
 
   @override
   void initState() {
@@ -66,13 +75,15 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
     _notificationsStream.listen((notification) {
       showBottom();
     });
-    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) {WalletBloc.instance.newWallet(value); pWallet.value =value;});
     WalletRepo.getWallet(currentUser.merchant.bWallet).then((value) {
       if (mounted) {
         _wallet = value;
         setState(() {});
       }
     });
+
     orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
       if(mounted)
       {
@@ -96,11 +107,9 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
 
       if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances){
         StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
-      }
-      else{
-        StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {setState(() {report.value = value;});});
-      }
+      } else{StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {setState(() {report.value = value;});});}
 
+    LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {_agentNotifier.value = event;});
     super.initState();
   }
 
@@ -108,8 +117,18 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
     //GetBar(title: 'tdsd',messageText: Text('sdsd'),duration: Duration(seconds: 2),).show();
   }
 
-  void reloadMerchant(){
-    BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
+  void reloadMerchant({bool complete=false}){
+    WalletRepo.getWallet(currentUser.merchant.bWallet).then((value) {
+      if (mounted) {
+        _wallet = value;
+        setState(() {});
+      }
+    });
+    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances){
+      StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
+    } else{StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {setState(() {report.value = value;});});}
+    if(complete)
+      BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
 
   @override
@@ -129,15 +148,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
               0.1), // here the desired height
           child: AppBar(
-            leading: IconButton(
-              icon: Icon(
-                Icons.menu,
-                color: PRIMARYCOLOR,
-                size: marginLR * 0.08,
-              ),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
+            leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
+            openDrawer: (){Scaffold.of(context).openDrawer();},
             ),
             centerTitle: true,
             elevation: 0.0,
@@ -147,7 +159,11 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
               style: TextStyle(color: PRIMARYCOLOR),
             ),
             automaticallyImplyLeading: false,
+            actions: [
+              Help(page: 'staff',),
+            ],
           ),
+
         ),
         body: Container(
             color: Colors.white,
@@ -158,8 +174,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       [
 
                         Center(
-                          child: const Text(
-                            'Staff',
+                          child:  Text(
+                            '${currentUser.staff.staffPermissions.managers?'Manager':'Staff'}',
                             style: TextStyle(fontSize: 20),
                           ),
                         ),
@@ -252,7 +268,36 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                           child: FlatButton(
                                             onPressed: ()  {
                                             //FocusScope.of(context).requestFocus(FocusNode()),
-                                            Get.dialog(TopUp(user: User(currentUser.merchant.mID,role: 'staff',walletId: currentUser.merchant.bWallet,email: currentUser.user.email),payType: "TOPUPUNIT",)).then((value) {
+                                            /*Get.dialog(TopUp(user: User(currentUser.merchant.mID,role: 'staff',walletId: currentUser.merchant.bWallet,email: currentUser.user.email),payType: "TOPUPUNIT",)).then((value) {
+                                              WalletRepo.getWallet(currentUser.merchant.bWallet).then((value) {
+                                                if (mounted) {
+                                                  _wallet = value;
+                                                  setState(() {});
+                                                }
+                                              });
+                                            });*/
+                                            if(!Get.isDialogOpen)
+                                            Get.dialog(
+                                              TopUpScaffold(
+                                                user: currentUser.user,
+                                                wallet: pWallet.value,
+                                                atm: (){
+                                                  Get.dialog(TopUp(user: User(currentUser.merchant.mID,role: 'staff',walletId: currentUser.merchant.bWallet,email: currentUser.user.email),payType: "TOPUPUNIT",)).then((value) {
+                                                    Get.back();});
+                                                },
+                                                personal: (){
+                                                  Get.dialog(TopUpPocket(
+                                                    user: currentUser.user,
+                                                    topUp: currentUser.merchant.bWallet,
+                                                    wallet: pWallet.value,
+                                                    isPersonal: 3,
+                                                  )).then((value) {
+                                                    Get.back();});
+                                                },
+                                                business: (){},
+                                                delivery: (){},
+                                              )
+                                            ).then((value) {
                                               WalletRepo.getWallet(currentUser.merchant.bWallet).then((value) {
                                                 if (mounted) {
                                                   _wallet = value;
@@ -260,6 +305,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                                 }
                                               });
                                             });
+
+
                                             },
                                             child: Center(
                                                 child: Text(
@@ -283,10 +330,11 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                 )),
                 if(currentUser.staff.parentAllowed)
                 SliverGrid.count(crossAxisCount: 3, children: [
+                  if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.sales || currentUser.staff.staffPermissions.finances)
                   ValueListenableBuilder(
                     valueListenable: report,
                     builder: (_,Map<String,dynamic> _report,__){
-                      return _report.isNotEmpty?GestureDetector(
+                      return _report != null? GestureDetector(
                         onTap: (){
                           //print(currentUser.agent.agentID);
                           //Get.to(MyDelivery(orders: orders,user: currentUser,)).then((value) => null);
@@ -310,7 +358,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                 ),
                               ],
                             ),
-                            child: Column(
+                            child: _report.isNotEmpty?Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -322,16 +370,19 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                   style: const TextStyle(color: PRIMARYCOLOR),),
                               ],
 
+                            ):Center(
+                              child: CircularProgressIndicator(),
                             )
 
                         ),
                       ):const SizedBox.shrink();
                     },
                   ),
+                  if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.sales || currentUser.staff.staffPermissions.finances)
                   ValueListenableBuilder(
                     valueListenable: report,
                     builder: (_,Map<String,dynamic> _report,__){
-                      return _report.isNotEmpty?GestureDetector(
+                      return _report!=null?GestureDetector(
                         onTap: (){},
                         child: Container(
                           margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
@@ -352,7 +403,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                               ),
                             ],
                           ),
-                          child: Column(
+                          child: _report.isNotEmpty?Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -363,15 +414,17 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(color: PRIMARYCOLOR),),
                             ],
+                          ):Center(
+                            child: CircularProgressIndicator(),
                           ),
                         ),
-                      ):const SizedBox.shrink();
+                      ):const SizedBox.shrink();;
                     },
                   ),
                   ValueListenableBuilder(
                     valueListenable: report,
                     builder: (_,Map<String,dynamic> _report,__){
-                      return _report.isNotEmpty?GestureDetector(
+                      return GestureDetector(
                         onTap: (){},
                         child: Container(
                           margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
@@ -392,7 +445,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                               ),
                             ],
                           ),
-                          child: Column(
+                          child: _report.isNotEmpty || _report == null ?Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -405,12 +458,149 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: PRIMARYCOLOR),),
                             ],
+                          ):Center(
+                            child: CircularProgressIndicator(),
                           ),
                         ),
-                      ):const SizedBox.shrink();
+                      );
                     },
                   ),
-
+                  if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic || currentUser.staff.staffPermissions.finances)
+                  FutureBuilder(
+                    future: Utility.logisticTodayAmount(currentUser.merchant.bWallet),
+                    builder: (context,AsyncSnapshot<double>amount){
+                      if(amount.connectionState == ConnectionState.waiting){
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      else if(amount.hasError){
+                        //print(amount.error);
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('$CURRENCY ${Utility.numberFormatter(0)}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Amount Made Today(logistic)',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      else{
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('$CURRENCY ${Utility.numberFormatter(amount.data.round())}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Amount Made Today(logistic)',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                  GestureDetector(
+                    onTap: (){},
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                            bottomRight: Radius.circular(10)
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: Offset(0, 1), // changes position of shadow
+                          ),
+                        ],
+                      ),
+                      child: ValueListenableBuilder(
+                        valueListenable: _agentNotifier,
+                        builder: (_,agent,__){
+                          return GestureDetector(
+                              onTap: (){
+                                Get.to(AgentList(user: currentUser,)).then((value) => null);
+                              },
+                              child:
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text('$agent',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
+                                  const Text('Available Agent',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: PRIMARYCOLOR,),),
+                                  const Text('click for details',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: PRIMARYCOLOR,fontSize: 11),),
+                                ],
+                              )
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                 ]),
                 SliverList(
                     delegate: SliverChildListDelegate([
@@ -454,7 +644,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       content: (!currentUser.staff.staffPermissions.managers && currentUser.staff.staffPermissions.sales)?SalesTransactions(user: currentUser,title: 'Transactions',):Transactions(user: currentUser,title: 'Transactions',),
                       isMultiMenu: false,
-                       isLocked: isLocked
+                       isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers)
                     MenuItem(
@@ -468,7 +659,29 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: ProductList(user: currentUser,callBckActionType: 3,route: 1,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
+                    ),
+                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.products)
+                    StreamBuilder(
+                      stream: StockRepo.getOneStream(currentUser.merchant.mID),
+                      builder: (context,AsyncSnapshot<List<Stock>>snapshot){
+                        if(snapshot.hasData){StockBloc.instance.stocks(snapshot.data);}
+                        return MenuItem(
+                            gridHeight,
+                            Icon(Icons.calendar_today,
+                                size: MediaQuery.of(context).size.width * 0.1,
+                                color: PRIMARYCOLOR.withOpacity(0.8)),
+                            'Stock Manager',
+                            border: PRIMARYCOLOR,
+                            isBadged: true,
+                            isMultiMenu: false,
+                            openCount: snapshot.hasData?snapshot.data.length:0,
+                            content: StockManager(user: currentUser,),
+                            isLocked: isLocked,
+                          refresh: reloadMerchant,
+                        );
+                      },
                     ),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.products)
                     MenuItem(
@@ -480,7 +693,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: ManageProduct(user: currentUser,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances)
                     MenuItem(
@@ -493,7 +707,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
 
                         content: MerchantStatistic(user: currentUser,title: 'Report',),
                       isMultiMenu: false,
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     //if(currentUser.staff.staffPermissions.managers)
                     /*MenuItem(
@@ -514,8 +729,12 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
-                      content: UnitBottomPage(user: currentUser,),
-                      isLocked: isLocked
+                      content: UnitBottomPage(user: currentUser,wallet: currentUser.merchant.bWallet,
+                        sender:User(currentUser.merchant.mID,role: 'admin',
+                            walletId: currentUser.merchant.bWallet,email: currentUser.user.email,fname: currentUser.merchant.bName),
+                      ),
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     /*MenuItem(
                       gridHeight,
@@ -574,7 +793,23 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: AgentList(user: currentUser,callBckActionType: 2,title: 'Agent Clearance',),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
+                    ),
+                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.pie_chart_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Logistic Report',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: LogisticStatistic(user: currentUser,title: 'Report',),
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
                     ValueListenableBuilder(
@@ -593,6 +828,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                               openCount: orders.length,
                               content: MyDelivery(orders: orders,user: currentUser,),
                               isLocked: isLocked,
+                              refresh: reloadMerchant,
                             );
                         }),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
@@ -605,7 +841,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: AutomobileList(user: currentUser,title: 'My Automobile',callBckActionType: 1,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
                     MenuItem(
@@ -617,7 +854,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: AgentList(user: currentUser,title: 'Manage Rider(s)',callBckActionType: 3,route: 1,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
                     MenuItem(
@@ -629,7 +867,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: AgentList(user: currentUser,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
                     MenuItem(
@@ -643,7 +882,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: RequestPocketSense(user: currentUser,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
                     ),
                     if(currentUser.staff.staffPermissions.managers)
                     MenuItem(
@@ -655,7 +895,20 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: CustomerCare(session: currentUser,),
-                      isLocked: isLocked
+                      isLocked: isLocked,
+                      refresh: reloadMerchant,
+                    ),
+
+                    MenuItem(
+                      gridHeight,
+                      Icon(Icons.help_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Help',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: HelpWebView(page: 'staff',),
+                      isLocked: isLocked,
                     ),
                    
                   ],

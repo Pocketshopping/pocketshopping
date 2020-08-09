@@ -16,6 +16,17 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+            0.05), // here the desired height
+        child: AppBar(
+          centerTitle: true,
+          elevation: 0.0,
+          backgroundColor: Colors.white,
+          title: Text(''),
+          automaticallyImplyLeading: false,
+        ),
+      ),
       body: Center(
         child: BlocProvider<RegisterBloc>(
           create: (context) => RegisterBloc(userRepository: _userRepository),

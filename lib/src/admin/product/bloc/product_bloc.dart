@@ -138,7 +138,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       );
       yield ProductState.success();
     } catch (_) {
-      print('error $_');
+      //print('error $_');
       yield ProductState.failure(
           isUploading: false,
           croppedImage: state.croppedImage,

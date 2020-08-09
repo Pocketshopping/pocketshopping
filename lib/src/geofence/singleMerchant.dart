@@ -40,10 +40,7 @@ class _MerchantUIState extends State<MerchantUI> {
     Icons.search,
     color: PRIMARYCOLOR,
   );
-  Widget _appBarTitle = new Text(
-    'widget.merchant.bName',
-    style: TextStyle(color: PRIMARYCOLOR),
-  );
+  Widget _appBarTitle;
   ViewModel vmodel;
   String barcode;
   int _value;
@@ -61,6 +58,10 @@ class _MerchantUIState extends State<MerchantUI> {
 
   @override
   void initState() {
+    _appBarTitle = new Text(
+      '${widget.merchant.bName}',
+      style: TextStyle(color: PRIMARYCOLOR),
+    );
     searchMode = false;
     _searchText = "";
     barcode = "";
@@ -71,14 +72,17 @@ class _MerchantUIState extends State<MerchantUI> {
     location = new loc.Location();
     orderCount = 1;
     position = widget.initPosition;
-    CloudFunctions.instance
-        .getHttpsCallable(
-      functionName: "FetchMerchantsProductCategory",
-    )
-        .call({'mID': widget.merchant.mID}).then((value) => setState(() {
-              category = value.data;
-              if (category.isNotEmpty) selectedCategory = category[0];
-            }));
+    try{
+      CloudFunctions.instance
+          .getHttpsCallable(
+        functionName: "FetchMerchantsProductCategory",
+      )
+          .call({'mID': widget.merchant.mID}).then((value) => setState(() {
+        category = value.data;
+        if (category.isNotEmpty) selectedCategory = category[0];
+      }));
+    }
+    catch(_){Get.back();}
     location.changeSettings(
         accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
@@ -167,67 +171,7 @@ class _MerchantUIState extends State<MerchantUI> {
     });
   }
 
-  _SeacrhUsingQRCode() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => BottomSheetTemplate(
-        height: MediaQuery.of(context).size.height * 0.6,
-        opacity: 0.2,
-        child: Center(
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Container(
-                  child: FlatButton(
-                    onPressed: () => {this.scan()},
-                    padding: EdgeInsets.all(10.0),
-                    child: Column(
-                      // Replace with a Row for horizontal icon + text
-                      children: <Widget>[
-                        Center(
-                            child: Text(
-                          "Search Using QRcode/Barcode",
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
-                          textAlign: TextAlign.center,
-                        )),
-                        Container(
-                          height: 10,
-                        ),
-                        FittedBox(
-                            fit: BoxFit.contain,
-                            child: Icon(
-                              Icons.camera,
-                              color: Colors.green,
-                              size: MediaQuery.of(context).size.height * 0.1,
-                            )),
-                        Center(
-                            child: Text(
-                          "Scan QRCode to search for product",
-                          style: TextStyle(color: Colors.black54),
-                          textAlign: TextAlign.center,
-                        )),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Text(
-                  barcode,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      isScrollControlled: true,
-    );
-  }
+
 
   @override
   void dispose() {
@@ -401,7 +345,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                                     animationDuration:
                                                         Duration(seconds: 5),
                                                   ),
-                                            IconButton(
+                                            /*IconButton(
                                               onPressed: (){},
                                               icon: Icon(
                                                 Icons.call,
@@ -414,7 +358,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                                 Icons.place,
                                                 color: PRIMARYCOLOR,
                                               ),
-                                            ),
+                                            ),*/
                                           ],
                                         )
                                       ],

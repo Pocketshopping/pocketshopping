@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/review/repository/ReviewEntity.dart';
 import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 
 class ReviewRepo {
   static final databaseReference = Firestore.instance;
@@ -9,7 +10,8 @@ class ReviewRepo {
   static Future<String> save(Review review,{Rating rating}) async {
     try{
       DocumentReference doc;
-      doc = await databaseReference.collection("reviews").add(review.toMap());
+      doc = await databaseReference.collection("reviews").add(review.toMap())
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       if(rating != null)
       await updateRating(rating);
       return doc.documentID;
@@ -33,10 +35,12 @@ class ReviewRepo {
           negative: Rating.calculate(oldCount: rate.negative,newCount: rating.negative),
         );
 
-        await databaseReference.collection("rating").document(rating.id).updateData(rate.toMap());
+        await databaseReference.collection("rating").document(rating.id).updateData(rate.toMap())
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
       else{
-        await databaseReference.collection("rating").document(rating.id).setData(rating.toMap());
+        await databaseReference.collection("rating").document(rating.id).setData(rating.toMap())
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
 
 
@@ -55,18 +59,32 @@ class ReviewRepo {
       return null;
 
 
-    var doc = await databaseReference.collection("rating").document(rid).get(source: Source.server);
+    var doc = await databaseReference.collection("rating").document(rid).get(source: Source.server)
+        .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     return doc.exists?Rating.fromSnap(doc):null;
   }
 
-  static Future<Review> getOne(String rid) async {
+  static Future<Review> getOne(String rid,{int source=0}) async {
     if(rid == null)
       return null;
     if(rid.isEmpty)
       return null;
-
-
-    var doc = await databaseReference.collection("reviews").document(rid).get(source: Source.serverAndCache);
-    return Review.fromEntity(ReviewEntity.fromSnapshot(doc));
+   try{
+     try{
+       if(source == 1)throw Exception;
+       var doc = await databaseReference.collection("reviews").document(rid).get(source: Source.serverAndCache)
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+       if(!doc.exists)throw Exception;
+       return Review.fromEntity(ReviewEntity.fromSnapshot(doc));
+     }
+     catch(_){
+       var doc = await databaseReference.collection("reviews").document(rid).get(source: Source.serverAndCache)
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+       return Review.fromEntity(ReviewEntity.fromSnapshot(doc));
+     }
+   }
+   catch(_){
+     return null;
+   }
   }
 }

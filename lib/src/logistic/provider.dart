@@ -1,10 +1,12 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
+import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 import 'package:pocketshopping/src/logistic/vehicle/repository/vehicleObj.dart';
+import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
@@ -31,9 +33,7 @@ class LogisticRepo {
         .where('agentParent',isEqualTo: company)
         .where('availability',isEqualTo: true)
         .where('autoAssigned',isEqualTo: true)
-        .snapshots().map((event) {return event.documents.length;
-
-    });
+        .snapshots().map((event) {return event.documents.length;});
 
   }
 
@@ -54,26 +54,63 @@ class LogisticRepo {
 
   }
 
-  static Future<List<AgentLocUp>> fetchMyAgents(String company,AgentLocUp last)async{
-    QuerySnapshot document;
-    if (last == null) {
-      document = await Firestore.instance
-          .collection('agentLocationUpdate')
-          .orderBy('startedAt')
-          .where('agentParent',isEqualTo: company)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    } else {
-      document = await Firestore.instance
-          .collection('agentLocationUpdate')
-          .orderBy('startedAt')
-          .where('agentParent',isEqualTo: company)
-          .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+  static Future<List<Agent>> fetchCompanyAgents(String company,{int source = 0 })async{
+
+    try{
+     try{
+       if(source == 1) throw Exception;
+       QuerySnapshot document;
+       document = await Firestore.instance
+           .collection('agent')
+           .where('hasEnded',isEqualTo: false)
+           .where('agentWorkPlace',isEqualTo: company)
+           .getDocuments(source: Source.serverAndCache)
+           .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+       if(document.documents.isEmpty){throw Exception;}
+       return Agent.fromListSnap(document.documents);
+     }
+     catch(_){
+       QuerySnapshot document;
+       document = await Firestore.instance
+           .collection('agent')
+           .where('hasEnded',isEqualTo: false)
+           .where('agentWorkPlace',isEqualTo: company)
+           .getDocuments(source: Source.serverAndCache)
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw Exception;});
+       return Agent.fromListSnap(document.documents);
+     }
+    }
+    catch(_){
+      return [];
     }
 
-    return AgentLocUp.fromListSnap(document.documents);
+  }
+
+  static Future<List<AgentLocUp>> fetchMyAgents(String company,AgentLocUp last,{int source=0})async{
+
+    try{
+      QuerySnapshot document;
+      if (last == null) {
+        document = await Firestore.instance
+            .collection('agentLocationUpdate')
+            .orderBy('startedAt')
+            .where('agentParent',isEqualTo: company)
+            .limit(10)
+            .getDocuments(source: Source.server);
+      } else {
+        document = await Firestore.instance
+            .collection('agentLocationUpdate')
+            .orderBy('startedAt')
+            .where('agentParent',isEqualTo: company)
+            .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.server);
+      }
+      return AgentLocUp.fromListSnap(document.documents);
+    }
+    catch(_){
+      return [];
+    }
 
   }
 
@@ -85,7 +122,7 @@ class LogisticRepo {
           .orderBy('autoAddedAt',descending: true)
           .where('autoLogistic',isEqualTo: company)
           .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+          .getDocuments(source: Source.server);
     } else {
       document = await Firestore.instance
           .collection('automobile')
@@ -93,7 +130,7 @@ class LogisticRepo {
           .where('autoLogistic',isEqualTo: company)
           .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
           .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+          .getDocuments(source: Source.server);
     }
 
     return AutoMobile.fromListSnap(document.documents);
@@ -110,48 +147,111 @@ class LogisticRepo {
   }
 
   static Future<Map<String,AutoMobile>> searchMyAutomobile(
-      String mID, AutoMobile last, String search) async {
-    QuerySnapshot document;
+      String mID, AutoMobile last, String search,{int source=0}) async {
+   try{
+     QuerySnapshot document;
 
-    if (last == null) {
-      document = await Firestore.instance
-          .collection('automobile')
-          .where('autoLogistic', isEqualTo: mID)
-          .where('index', arrayContains: search.toLowerCase())
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    } else {
-      document = await Firestore.instance
-          .collection('automobile')
-          .where('autoLogistic', isEqualTo: mID)
-          .where('index', arrayContains: search.toLowerCase())
-          .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    }
+     if (last == null) {
+       try{
+         if(source == 1) throw Exception;
+         document = await Firestore.instance
+             .collection('automobile')
+             .where('autoLogistic', isEqualTo: mID)
+             .where('index', arrayContains: search.toLowerCase())
+             .limit(10)
+             .getDocuments(source: Source.cache)
+             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+         if(document.documents.isEmpty){throw Exception;}
+       }
+       catch(_){
+         document = await Firestore.instance
+             .collection('automobile')
+             .where('autoLogistic', isEqualTo: mID)
+             .where('index', arrayContains: search.toLowerCase())
+             .limit(10)
+             .getDocuments(source: Source.serverAndCache)
+             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+       }
+     } else {
+       try{
+         if(source == 1) throw Exception;
+         document = await Firestore.instance
+             .collection('automobile')
+             .where('autoLogistic', isEqualTo: mID)
+             .where('index', arrayContains: search.toLowerCase())
+             .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
+             .limit(10)
+             .getDocuments(source: Source.cache
+         ).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+         if(document.documents.isEmpty){throw Exception;}
+       }
+       catch(_){
+         document = await Firestore.instance
+             .collection('automobile')
+             .where('autoLogistic', isEqualTo: mID)
+             .where('index', arrayContains: search.toLowerCase())
+             .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
+             .limit(10)
+             .getDocuments(source: Source.serverAndCache)
+             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+       }
+     }
 
-    return AutoMobile.fromListSnap(document.documents);
+     return AutoMobile.fromListSnap(document.documents);
+   }
+   catch(_){
+     return {};
+   }
   }
 
   static Future<List<AgentLocUp>> searchMyAgent(
-      String mID, AgentLocUp last, String search) async {
+      String mID, AgentLocUp last, String search,{int source=0}) async {
     QuerySnapshot document;
 
     if (last == null) {
-      document = await Firestore.instance
-          .collection('agentLocationUpdate')
-          .where('agentParent', isEqualTo: mID)
-          .where('index', arrayContains: search.toLowerCase())
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+      try{
+        if(source == 1) throw Exception;
+        document = await Firestore.instance
+            .collection('agentLocationUpdate')
+            .where('agentParent', isEqualTo: mID)
+            .where('index', arrayContains: search.toLowerCase())
+            .limit(10)
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty){throw Exception;}
+      }
+      catch(_){
+        document = await Firestore.instance
+            .collection('agentLocationUpdate')
+            .where('agentParent', isEqualTo: mID)
+            .where('index', arrayContains: search.toLowerCase())
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      }
     } else {
-      document = await Firestore.instance
-          .collection('agentLocationUpdate')
-          .where('agentParent', isEqualTo: mID)
-          .where('index', arrayContains: search.toLowerCase())
-          .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+      try{
+        if(source == 1) throw Exception;
+        document = await Firestore.instance
+            .collection('agentLocationUpdate')
+            .where('agentParent', isEqualTo: mID)
+            .where('index', arrayContains: search.toLowerCase())
+            .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty){throw Exception;}
+      }
+      catch(_){
+        document = await Firestore.instance
+            .collection('agentLocationUpdate')
+            .where('agentParent', isEqualTo: mID)
+            .where('index', arrayContains: search.toLowerCase())
+            .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      }
     }
 
     return AgentLocUp.fromListSnap(document.documents);
@@ -167,40 +267,95 @@ class LogisticRepo {
     return bid.documentID;
   }
 
-  static Future<String> saveAgent(dynamic agent, Request request, AgentStatistic agentStatistic) async {
-    DocumentReference bid;
-    bid = await databaseReference.collection("agent").add(agent.toMap());
-    request = request.update(requestInitiatorID: bid.documentID, requestInitiator: 'agent');
-    await RequestRepo.save(request);
-    await StatisticRepo.updateAgentStatistic(agent.agent);
-    await reAssignAutomobile((agent as Agent).autoAssigned,agent.agent,);
-    return bid.documentID;
+  static Future<bool> updateAgentTrackerLocation(String uid,LocationData point) async {
+    try{
+      await Future.delayed(Duration(seconds: 10));
+      Geoflutterfire geo = Geoflutterfire();
+      GeoFirePoint agentLocation = geo.point(latitude: point.latitude, longitude: point.longitude);
+      Agent agent = await getOneAgentByUid(uid);
+      await databaseReference.collection("agentLocationUpdate").document(agent.agentID).updateData({'agentLocation':agentLocation.data})
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      CurrentPathLine cpl = await OrderRepo.getCurrentPathLine(agent.agent);
+      if(cpl != null){
+        CurrentPathLine temp = await cpl.proximityCheck(Position(latitude: point.latitude,longitude: point.longitude));
+        await OrderRepo.setCurrentPathLine(temp);
+      }
+      return true;
+    }
+    catch(_){
+      return false;
+    }
   }
 
-  static Future<bool> removeAgent(Agent agent,Request request,{String logistic,String fcm}) async {
-
-    bool isDeleted = await deleteAgentLocUpdate(agent.agentID);
-    if(isDeleted){
-      var doc =await RequestRepo.save(request);
-      await UserRepo().upDate(uid: agent.agent,role: 'user',bid: 'null');
-      await reAssignAutomobile(agent.autoAssigned,'Unassign',isAssigned: false);
-      await updateAgent(agent.agentID, {'endDate':Timestamp.now(),'autoAssigned':'Unassign','agentStatus':1});
-      await Utility.pushNotifier(
-          fcm: fcm,
-          body: 'You are no longer a rider of $logistic. Contact $logistic for more information',
-          title: '$logistic',
-          notificationType: 'RemoveStaffResponse',
-          data: {
-            'requestId':doc,
-          }
-      );
+  static Future<bool> saveAgent(Agent agent, Request request, AgentStatistic agentStatistic) async {
+    try{
+      DocumentReference bid;
+      bid = await databaseReference.collection("agent").add(agent.toMap()).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      request = request.update(requestInitiatorID: bid.documentID, requestInitiator: 'agent');
+      await RequestRepo.save(request);
+      await StatisticRepo.updateAgentStatistic(agent.agent);
+      await reAssignAutomobile(agent .autoAssigned,agent.agent,);
+     /* await LocRepo.update({
+        'agentParent':agent.agentWorkPlace,
+        'wallet':agent.agentWallet,
+        'agentID':bid.documentID,
+        'agentLocation':{},
+        'agentAutomobile':agent.autoType,
+        'agentName':'',
+        'agentTelephone':'',
+        'availability':false,
+        'pocket':true,
+        'parent':true,
+        'remitted':true,
+        'busy':false,
+        'accepted':false,
+        'device':'',
+        'UpdatedAt':Timestamp.now(),
+        'address':'',
+        'workPlaceWallet':agent.workPlaceWallet,
+        'profile':'',
+        'limit':agent.limit,
+        'index':[],
+        'autoAssigned':true,
+      });*/
+      return true;
     }
-    return true;
+    catch(_){
+      return false;
+    }
+  }
+
+  static Future<bool> removeAgent(Agent agent,{String logistic,String fcm}) async {
+   try{
+     //Request request,
+     bool isDeleted = await deleteAgentLocUpdate(agent.agentID);
+     if(isDeleted){
+       //var doc =await RequestRepo.save(request);
+       await UserRepo().upDate(uid: agent.agent,role: 'user',bid: 'null');
+       await reAssignAutomobile(agent.autoAssigned,'Unassign',isAssigned: false);
+       await updateAgent(agent.agentID, {'endDate':Timestamp.now(),'autoAssigned':'Unassign','agentStatus':0,'hasEnded':true,'accepted':false});
+       await Utility.updateWallet(uid: agent.agentWallet,cid:agent.workPlaceWallet,type: 2 );
+       await Utility.pushNotifier(
+         fcm: fcm,
+         body: 'You are no longer a rider of $logistic. Contact $logistic for more information',
+         title: '$logistic',
+         notificationType: 'RemoveRiderResponse',
+         /*data: {
+            'requestId':doc,
+          }*/
+       );
+     }
+     return true;
+   }
+   catch(_){
+     return false;
+   }
   }
 
   static Future<bool> deleteAgentLocUpdate(String agentId)async{
     try{
-      await databaseReference.collection('agentLocationUpdate').document(agentId).delete();
+      await databaseReference.collection('agentLocationUpdate').document(agentId).delete()
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){return false;}
@@ -211,7 +366,8 @@ class LogisticRepo {
       await databaseReference.collection("automobile").document(autoID).updateData({
         'autoAssigned':isAssigned,
         'assignedTo':agent,
-      });
+      })
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -221,7 +377,8 @@ class LogisticRepo {
 
   static Future<bool> updateAgent(String agent,Map<String,dynamic> data) async {
     try{
-      await databaseReference.collection("agent").document(agent).updateData(data);
+      await databaseReference.collection("agent").document(agent).updateData(data)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -232,7 +389,8 @@ class LogisticRepo {
 
   static Future<bool> updateAgentLoc(String agent,Map<String,dynamic> data) async {
     try{
-      await databaseReference.collection("agentLocationUpdate").document(agent).updateData(data);
+      await databaseReference.collection("agentLocationUpdate").document(agent).updateData(data)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -243,42 +401,100 @@ class LogisticRepo {
 
 
 
-  static Future<Agent> getOneAgent(String agentID) async {
-    var doc = await databaseReference.collection("agent").document(agentID).get(source: Source.serverAndCache);
-    return Agent.fromSnap(doc);
+  static Future<Agent> getOneAgent(String agentID,{int source=0}) async {
+    try{
+      try{
+        if(source == 1)throw Exception;
+        var doc = await databaseReference.collection("agent").document(agentID).get(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(!doc.exists){throw Exception;}
+        return Agent.fromSnap(doc);
+      }
+      catch(_){
+        var doc = await databaseReference.collection("agent").document(agentID).get(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        return Agent.fromSnap(doc);
+      }
+    }
+    catch(_){
+      return null;
+    }
   }
 
-  static Future<Agent> getOneAgentByUid(String uid) async {
-    var doc = await databaseReference.collection("agent")
-        .where('agent',isEqualTo: uid)
-        .where('endDate',isEqualTo: null)
-        .getDocuments(source: Source.serverAndCache);
-    return doc.documents.isNotEmpty?Agent.fromSnap(doc.documents.first):null;
+  static Future<Agent> getOneAgentByUid(String uid,{int source=0}) async {
+    try{
+      try{
+        if(source == 1)throw Exception;
+        var doc = await databaseReference.collection("agent")
+            .where('agent',isEqualTo: uid)
+            .where('endDate',isEqualTo: null)
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(doc.documents.isEmpty){throw Exception;}
+        return doc.documents.isNotEmpty?Agent.fromSnap(doc.documents.first):null;
+      }
+      catch(_){
+        var doc = await databaseReference.collection("agent")
+            .where('agent',isEqualTo: uid)
+            .where('endDate',isEqualTo: null)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        return doc.documents.isNotEmpty?Agent.fromSnap(doc.documents.first):null;
+      }
+    }
+    catch(_){
+      return null;
+    }
   }
 
   static Future<AgentLocUp> getOneAgentLocation(String agentID) async {
-    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get(source: Source.serverAndCache);
-    return doc.exists?AgentLocUp.fromSnap(doc):null;
+   try{
+     var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get(source: Source.server)
+         .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+     return doc.exists?AgentLocUp.fromSnap(doc):null;
+   }
+   catch(_){
+     return null;
+   }
   }
 
+  static Stream<AgentLocUp> getOneAgentLocationStream(String agentID) async* {
+    yield* databaseReference.collection("agentLocationUpdate").document(agentID).snapshots().map((event) {return AgentLocUp.fromSnap(event);});
+
+  }
+
+
   static Future<AgentLocUp> getOneAgentLocationUsingUid(String uid) async {
-    Agent agent = await getOneAgentByUid(uid);
-    var doc = await databaseReference.collection("agentLocationUpdate").document(agent.agentID).get(source: Source.serverAndCache);
-    return AgentLocUp.fromSnap(doc);
+    try{
+      Agent agent = await getOneAgentByUid(uid);
+      var doc = await databaseReference.collection("agentLocationUpdate")
+          .document(agent.agentID).get(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      return AgentLocUp.fromSnap(doc);
+    }
+    catch(_){
+      return null;
+    }
   }
 
   static Future<bool> makeAgentBusy(String uid,{bool isBusy=true}) async {
-    Agent agent = await getOneAgentByUid(uid);
-    //bool remit = await remittance(agent.agentWallet);
-    if(agent != null)
-    {
-      await updateAgentLoc(agent.agentID,{'busy':isBusy});
-      if(!isBusy) {
-        revalidateAgentAllowance(uid);
+    try{
+      Agent agent = await getOneAgentByUid(uid);
+      //bool remit = await remittance(agent.agentWallet);
+      if(agent != null)
+      {
+        await updateAgentLoc(agent.agentID,{'busy':isBusy})
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        if(!isBusy) {
+          revalidateAgentAllowance(uid);
+        }
+        return isBusy;
       }
-      return isBusy;
+      else{
+        return false;
+      }
     }
-    else{
+    catch(_){
       return false;
     }
   }
@@ -299,13 +515,13 @@ class LogisticRepo {
               await updateAgentLoc(agent.agentID, {
                 'pocket': false,
                 if(remit != null) 'remitted': remit
-              }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){return false;});
+              }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
           }
           else {
             await updateAgentLoc(agent.agentID, {
               'pocket': true,
               if(remit != null) 'remitted': remit
-            }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){return false;});
+            }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
           }
         }
         return true;
@@ -318,8 +534,8 @@ class LogisticRepo {
 
   static Future<AutoMobile> getAutomobile(String autoID) async {
     try{
-      var doc = await databaseReference.collection("automobile").document(autoID).get(source: Source.serverAndCache)
-          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw HttpException;});
+      var doc = await databaseReference.collection("automobile").document(autoID).get(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return AutoMobile.fromSnap(doc);
     }
     catch(_){return null;}
@@ -327,13 +543,36 @@ class LogisticRepo {
 
   static Future<bool> agentAccept(String agentID, String requestID, String uid) async {
     try{
-      await updateAgent(agentID, {'agentStatus': 1, 'startDate': Timestamp.now()});
-      var agent = await getOneAgent(agentID);
+      await updateAgent(agentID, {'agentStatus': 1, 'startDate': Timestamp.now(),'accepted':true});
+      Agent agent = await getOneAgent(agentID);
       var agentAcct = await UserRepo.getOneUsingUID(agent.agent);
       await RequestRepo.clear(requestID);
       await UserRepo().upDate(role: 'rider', uid: uid, bid: agent.agentWorkPlace);
       await UserRepository().changeRole('rider');
       await Utility.updateWallet(uid: agentAcct.walletId,cid:agent.workPlaceWallet,type: 5 );
+      await LocRepo.update({
+        'agentParent':agent.agentWorkPlace,
+        'wallet':agent.agentWallet,
+        'agentID':agent.agentID,
+        'agentLocation':{},
+        'agentAutomobile':agent.autoType,
+        'agentName':agentAcct.fname,
+        'agentTelephone':agentAcct.telephone,
+        'availability':true,
+        'pocket':true,
+        'parent':true,
+        'remitted':true,
+        'busy':false,
+        'accepted':true,
+        'device':agentAcct.notificationID,
+        'UpdatedAt':Timestamp.now(),
+        'address':'',
+        'workPlaceWallet':agent.workPlaceWallet,
+        'profile':agentAcct.profile,
+        'limit':agent.limit,
+        'index':Utility.makeIndexList(agentAcct.fname),
+        'autoAssigned':true,
+      });
       return true;
     }
     catch(_){return false;}
@@ -358,7 +597,7 @@ class LogisticRepo {
         .collection(collectionRef: collectionReference)
         .within(
             center: center,
-            radius: 10,
+            radius: 1,
             field: 'agentLocation',
             strictMode: true);
     var doc = await alu.first;
@@ -373,7 +612,8 @@ class LogisticRepo {
     try{
       Agent agent  = await getOneAgent(agentID);
       AutoMobile auto = await getAutomobile(agent.autoAssigned);
-      await databaseReference.collection('agent').document(agentID).delete();
+      await databaseReference.collection('agent').document(agentID).delete()
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       await reAssignAutomobile(auto.autoID, 'Unassign',isAssigned: false);
       //await updateAgent(agentID,{'agentStatus': 0, 'startDate': Timestamp.now()});
       await RequestRepo.clear(requestID);
@@ -386,65 +626,94 @@ class LogisticRepo {
 
 
   static Future<bool> alreadyAdded(String logistic, String plate) async {
-    var docs = await databaseReference
-        .collection("automobile")
-        .where(
-          'autoPlateNumber',
-          isEqualTo: plate,
-        )
-        .where('autoLogistic', isEqualTo: logistic)
-        .getDocuments(source: Source.serverAndCache);
-    return docs.documents.length > 0 ? true : false;
+    try{
+      var docs = await databaseReference
+          .collection("automobile")
+          .where(
+        'autoPlateNumber',
+        isEqualTo: plate,
+      )
+          .where('autoLogistic', isEqualTo: logistic)
+          .getDocuments(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      return docs.documents.length > 0 ? true : false;
+    }
+    catch(_){
+      return false;
+    }
   }
 
 
 
   static Future<Map<String, AutoMobile>> getType(
       String logistic, String type) async {
-    var docs = await databaseReference
-        .collection("automobile")
-        .where(
-          'autoType',
-          isEqualTo: type,
-        )
-        .where('autoLogistic', isEqualTo: logistic)
-        .getDocuments(source: Source.serverAndCache);
-    return AutoMobile.fromListSnap(docs.documents);
+    try{
+      var docs = await databaseReference
+          .collection("automobile")
+          .where(
+        'autoType',
+        isEqualTo: type,
+      )
+          .where('autoLogistic', isEqualTo: logistic)
+          .getDocuments(source: Source.serverAndCache)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      return AutoMobile.fromListSnap(docs.documents);
+    }
+    catch(_){
+      return {};
+    }
   }
 
   static Future<Map<String, AutoMobile>> getUnassignedType(
       String logistic, String type,{bool isAssigned = false}) async {
-    var docs = await databaseReference
-        .collection("automobile")
-        .where(
-      'autoType',
-      isEqualTo: type,
-    )
-        .where('autoLogistic', isEqualTo: logistic)
-        .where('autoAssigned',isEqualTo: isAssigned)
-        .getDocuments(source: Source.serverAndCache);
-    return AutoMobile.fromListSnap(docs.documents);
+    try{
+      var docs = await databaseReference
+          .collection("automobile")
+          .where(
+        'autoType',
+        isEqualTo: type,
+      )
+          .where('autoLogistic', isEqualTo: logistic)
+          .where('autoAssigned',isEqualTo: isAssigned)
+          .getDocuments(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      return AutoMobile.fromListSnap(docs.documents);
+    }
+    catch(_){
+      return {};
+    }
   }
 
   static Future<Map<String, AutoMobile>> getAllAutomobile(
       String logistic,bool assign) async {
-    var docs = await databaseReference
-        .collection("automobile")
-    .where('autoAssigned',isEqualTo: assign)
-        .where('autoLogistic', isEqualTo: logistic)
-        .getDocuments(source: Source.serverAndCache);
-    return AutoMobile.fromListSnap(docs.documents);
+    try{
+      var docs = await databaseReference
+          .collection("automobile")
+          .where('autoAssigned',isEqualTo: assign)
+          .where('autoLogistic', isEqualTo: logistic)
+          .getDocuments(source: Source.serverAndCache)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      return AutoMobile.fromListSnap(docs.documents);
+    }
+    catch(_){
+      return {};
+    }
   }
 
 
-  static Future<bool> remittance(String wid,{int limit=10000})async{
-    var remit = await Utility.generateRemittance(aid: wid,limit: limit);
-    //print(remit);
-    if(remit['remittance']){
-      return false;
+  static Future<bool> remittance(String wid,{int limit=10000,String key=''})async{
+    try{
+      var remit = await Utility.generateRemittance(aid: wid,limit: limit,key: key);
+      //print(remit);
+      if(remit['remittance']){
+        return false;
+      }
+      else{
+        return true;
+      }
     }
-    else{
-      return true;
+    catch(_){
+      return false;
     }
   }
 

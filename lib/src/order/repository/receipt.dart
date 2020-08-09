@@ -64,7 +64,7 @@ class Receipt {
     if (response.statusCode == 200) {
       return response;
     } else {
-      print(response.body);
+      //print(response.body);
     }
   }
 

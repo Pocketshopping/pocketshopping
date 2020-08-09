@@ -10,7 +10,10 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/pocketPay/tansfer.dart';
+import 'package:pocketshopping/src/pocketPay/ticket.dart';
+import 'package:pocketshopping/src/profile/pinTester.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -35,6 +38,7 @@ class _PocketMenuState extends State<PocketMenu> {
   bool confirm;
   Stream<Wallet> _walletStream;
   final _walletNotifier = ValueNotifier<Wallet>(null);
+  final waiting = ValueNotifier<bool>(false);
 
 
   void initState() {
@@ -59,6 +63,7 @@ class _PocketMenuState extends State<PocketMenu> {
                 break;
               case 'RefreshPocketResponse':
                 WalletRepo.getWallet(widget.user.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+                NotificationsBloc.instance.clearNotification();
                 break;
 
               default:
@@ -154,71 +159,110 @@ class _PocketMenuState extends State<PocketMenu> {
                                             if(_walletNotifier.value.walletBalance >= data['amount']){
                                               Get.defaultDialog(
                                                 title: 'Payment',
-                                                content: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Center(
-                                                      child: Text('Confirm the following pyment request.'),
-                                                    ),
-                                                    const SizedBox(height: 20,),
-                                                    Row(
+                                                content: ValueListenableBuilder(
+                                                  valueListenable: waiting,
+                                                  builder: (_,bool loading,__){
+                                                    return !loading?
+                                                    Column(
+                                                      mainAxisSize: MainAxisSize.min,
                                                       children: [
-                                                        Expanded(
-                                                          child: Text('Merchant'),
+                                                        Center(
+                                                          child: Text('Confirm the following pyment request.'),
                                                         ),
-                                                        Expanded(
-                                                          child: Text('${data['merchant']}'),
+                                                        const SizedBox(height: 20,),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text('Merchant'),
+                                                            ),
+                                                            Expanded(
+                                                              child: Text('${data['merchant']}'),
+                                                            ),
+                                                          ],
                                                         ),
+                                                        const SizedBox(height: 5,),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text('Amount'),
+                                                            ),
+                                                            Expanded(
+                                                              child: Text('$CURRENCY${data['amount']}'),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        const SizedBox(height: 5,),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text('you are about to pay $CURRENCY${data['amount']} to ${data['merchant']}. Press Yes to continue'),
+                                                            ),
+                                                          ],
+                                                        ),
+
                                                       ],
-                                                    ),
-                                                    const SizedBox(height: 5,),
-                                                    Row(
+                                                    ):Column(
+                                                      mainAxisSize: MainAxisSize.min,
                                                       children: [
-                                                        Expanded(
-                                                          child: Text('Amount'),
-                                                        ),
-                                                        Expanded(
-                                                          child: Text('$CURRENCY${data['amount']}'),
-                                                        ),
+                                                        Center(
+                                                          child: CircularProgressIndicator()
+                                                        )
                                                       ],
-                                                    ),
-                                                    const SizedBox(height: 5,),
-                                                    Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: Text('you are about to pay $CURRENCY${data['amount']} to ${data['merchant']}. Press Yes to continue'),
-                                                        ),
-                                                      ],
-                                                    ),
-
-                                                  ],
-                                                ),
-                                                cancel: FlatButton(
-                                                  onPressed: (){ Get.back();},
-                                                  child: Text("No",style: TextStyle(color: Colors.grey[400]),),
-                                                ),
-                                                confirm: FlatButton(
-                                                  onPressed: ()async{
-
-                                                    Get.back();
-                                                    setState(() {
-                                                      paying =true;
-                                                      confirm = false;
-                                                    });
-                                                    _start=60;
-                                                    startTimer();
-
-                                                    paymentNotifier(
-                                                      device: data['fcm'],
-                                                      paymentId: data['paymentid'],
-                                                      customer: widget.user.user.uid,
-                                                      name: widget.user.user.fname,
-                                                      cWallet: widget.user.user.walletId,
-                                                    ).then((value) => null);
-
+                                                    );
                                                   },
-                                                  child: Text("Yes"),
                                                 ),
+                                                cancel: ValueListenableBuilder(
+                                                  valueListenable: waiting,
+                                                  builder: (_,bool loading,__){
+                                                    return !loading?FlatButton(
+                                                      onPressed: (){ Get.back();},
+                                                      child: Text("No",style: TextStyle(color: Colors.grey[400]),),
+                                                    ):const SizedBox.shrink();
+                                                  },
+                                                ),
+                                                confirm: ValueListenableBuilder(
+                                                  valueListenable: waiting,
+                                                  builder: (_,bool loading,__){
+                                                    return !loading?
+                                                    FlatButton(
+                                                      onPressed: ()async{
+                                                        waiting.value = true;
+                                                        bool isSet = await PinRepo.isSet(widget.user.user.walletId);
+                                                        //Get.back();
+                                                        if(isSet){
+                                                          Get.dialog(PinTester(wallet: widget.user.user.walletId,callBackAction: ()async{
+
+
+                                                            await paymentNotifier(
+                                                                device: data['fcm'],
+                                                                paymentId: data['paymentid'],
+                                                                customer: widget.user.user.uid,
+                                                                name: widget.user.user.fname,
+                                                                cWallet: widget.user.user.walletId,
+                                                            );
+                                                            Get.back();
+                                                            waiting.value = false;
+                                                            _start=60;
+                                                            startTimer();
+                                                            setState(() {
+                                                              paying =true;
+                                                              confirm = false;
+                                                            });
+                                                          },));
+                                                        }
+                                                        else{
+                                                          Utility.infoDialogMaker('You can not use this service without setting up Pocket PIN.'
+                                                              ' click on settings on the side menu for setting up Pocket PIN',title: 'PocketPay');
+                                                        }
+
+
+
+
+                                                      },
+                                                      child: Text("Yes"),
+                                                    ): const SizedBox.shrink();
+                                                  },
+                                                )
                                               );
                                             }
                                             else{
@@ -391,37 +435,42 @@ class _PocketMenuState extends State<PocketMenu> {
                           )
                       ),
                       Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
-                            child: Container(
-                              height: MediaQuery.of(context).size.height*0.2,
-                              width: MediaQuery.of(context).size.width*0.2,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(10),
-                                    topRight: Radius.circular(10),
-                                    bottomLeft: Radius.circular(10),
-                                    bottomRight: Radius.circular(10)
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: 2,
-                                    blurRadius: 7,
-                                    offset: Offset(0, 1), // changes position of shadow
+                          child: GestureDetector(
+                            onTap: (){
+                              Get.dialog(TicketWidget(user: widget.user,));
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+                              child: Container(
+                                height: MediaQuery.of(context).size.height*0.2,
+                                width: MediaQuery.of(context).size.width*0.2,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(10),
+                                      topRight: Radius.circular(10),
+                                      bottomLeft: Radius.circular(10),
+                                      bottomRight: Radius.circular(10)
                                   ),
-                                ],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 2,
+                                      blurRadius: 7,
+                                      offset: Offset(0, 1), // changes position of shadow
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.info_outline,size: 50,color: PRIMARYCOLOR,),
+                                    Text('Support')
+                                  ],
+                                ),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.info_outline,size: 50,color: PRIMARYCOLOR,),
-                                  Text('Issues')
-                                ],
-                              ),
-                            ),
+                            )
                           )
                       ),
                     ],
@@ -498,7 +547,7 @@ class _PocketMenuState extends State<PocketMenu> {
 
 
   Future<void> paymentNotifier({String device,String customer,String name,String paymentId,String cWallet }) async {
-    print('${cWallet}');
+    //print('${cWallet}');
     await _fcm.requestNotificationPermissions(
       const IosNotificationSettings(
           sound: true, badge: true, alert: true, provisional: false),

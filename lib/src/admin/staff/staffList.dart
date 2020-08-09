@@ -44,7 +44,7 @@ class _StaffListState extends State<StaffList> {
     _finish = true;
     loading =true;
     empty = false;
-    StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null).then((value){
+    StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null,source: 1).then((value){
       //print(value);
       if(mounted)
         setState((){
@@ -67,7 +67,7 @@ class _StaffListState extends State<StaffList> {
   void load() {
 
     if(list.isNotEmpty)
-     StaffRepo.fetchMyStaffs(widget.user.merchant.mID, list.last).then((value) {
+     StaffRepo.fetchMyStaffs(widget.user.merchant.mID, list.last,source: 1).then((value) {
         if(mounted)
           if(value.isNotEmpty)
             setState((){
@@ -85,7 +85,7 @@ class _StaffListState extends State<StaffList> {
 
       });
     else
-     StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null).then((value) {
+     StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null,source: 1).then((value) {
         if(mounted)
           if(value.isNotEmpty)
             setState((){
@@ -151,7 +151,7 @@ class _StaffListState extends State<StaffList> {
                       onChanged: (value) {
                         if(value.isEmpty){
 
-                         StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null).then((value) {
+                         StaffRepo.fetchMyStaffs(widget.user.merchant.mID, null,source: 1).then((value) {
                             if(mounted)
                               setState((){
                                 empty = false;
@@ -163,7 +163,7 @@ class _StaffListState extends State<StaffList> {
                           });
                         }
                         else{
-                          StaffRepo.searchMyStaffs(widget.user.merchant.mID, null,value.trim()).then((result) {
+                          StaffRepo.searchMyStaffs(widget.user.merchant.mID, null,value.trim(),source: 1).then((result) {
 
                             if(mounted)
                               setState((){
@@ -277,7 +277,11 @@ class _StaffListState extends State<StaffList> {
             Expanded(
               flex: 0,
               child: Container(
-                color: PRIMARYCOLOR,
+                decoration: BoxDecoration(
+                  color: PRIMARYCOLOR,
+                  borderRadius: BorderRadius.only(topRight: Radius.circular(15),topLeft: Radius.circular(15)),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 10),
                 child:Padding(
                     padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
                     child: Center(
@@ -692,7 +696,7 @@ class Manage extends StatelessWidget{
         leading: CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey.withOpacity(0.2),
-          backgroundImage: NetworkImage(user.data.profile.isNotEmpty?data.profile:PocketShoppingDefaultAvatar,
+          backgroundImage: NetworkImage(user.data.profile.isNotEmpty?user.data.profile:PocketShoppingDefaultAvatar,
           ),
         ),
         title: Text('${user.data.fname}',style: TextStyle(fontSize: 18),),

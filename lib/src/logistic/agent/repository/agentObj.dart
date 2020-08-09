@@ -17,6 +17,7 @@ class Agent {
   final String agentWallet;
   final int limit;
   final String name;
+  final bool accepted;
 
   Agent(
       {this.agent,
@@ -32,7 +33,8 @@ class Agent {
       this.workPlaceWallet,
       this.agentWallet,
       this.limit,
-        this.name
+      this.name,
+      this.accepted
 
       });
 
@@ -50,7 +52,8 @@ class Agent {
       String workPlaceWallet,
       String agentWallet,
       int limit,
-      String name
+      String name,
+      bool accepted,
       }) {
     return Agent(
         agent: agent ?? this.agent,
@@ -66,7 +69,8 @@ class Agent {
         workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
         agentWallet: agentWallet??this.agentWallet,
         limit: limit??this.limit,
-        name: name ?? this.name
+        name: name ?? this.name,
+        accepted: accepted ?? this.accepted,
     );
   }
 
@@ -85,7 +89,8 @@ class Agent {
       workPlaceWallet.hashCode ^
       agentWallet.hashCode ^
       limit.hashCode ^
-      name.hashCode;
+      name.hashCode ^
+      accepted.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -105,7 +110,8 @@ class Agent {
           workPlaceWallet == other.workPlaceWallet &&
           agentWallet == other.agentWallet &&
           limit == other.limit &&
-          name == other.name;
+          name == other.name &&
+          accepted==other.accepted;
 
   Agent update(
       {String agent,
@@ -121,7 +127,8 @@ class Agent {
       String workPlaceWallet,
       String agentWallet,
       int limit,
-      String name
+      String name,
+      bool accepted
       }) {
     return copyWith(
         agent: agent,
@@ -137,7 +144,8 @@ class Agent {
         workPlaceWallet: workPlaceWallet,
         agentWallet: agentWallet,
         limit: limit,
-       name: name
+       name: name,
+      accepted: accepted
     );
   }
 
@@ -161,7 +169,9 @@ class Agent {
       'workPlaceWallet':workPlaceWallet,
       'agentWallet':agentWallet,
       'limit':limit,
-      'name':name
+      'name':name,
+      'hasEnded':false,
+      'accepted':accepted
     };
   }
 
@@ -181,6 +191,15 @@ class Agent {
       agentWallet: snap.data['agentWallet'],
       limit: snap.data['limit']??10000,
       name: snap.data['name'],
+      accepted: snap.data['accepted'],
     );
+  }
+
+  static List<Agent> fromListSnap(List<DocumentSnapshot> snap) {
+    List<Agent> collection = List();
+    snap.forEach((element) {
+      collection.add(Agent.fromSnap(element));
+    });
+    return collection;
   }
 }

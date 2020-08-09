@@ -32,7 +32,7 @@ class _PinTesterState extends State<PinTester> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.black54.withOpacity(0.3),
+        backgroundColor: Colors.black54.withOpacity(0.4),
         body: Container(
             height: MediaQuery.of(context).size.height,
             padding: EdgeInsets.symmetric(horizontal: 15),
@@ -52,12 +52,12 @@ class _PinTesterState extends State<PinTester> {
                               children: [
                                 Expanded(
 
-                                    child: Container(child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),child: Text('Pocket PIN'),))
+                                    child: Container(child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),child: Text('4 Digit Pocket PIN'),))
                                 ),
                                 Expanded(
                                   flex: 0,
                                   child: IconButton(
-                                    onPressed: (){Get.back();},
+                                    onPressed: (){Get.back(result: 'closed');},
                                     icon: Icon(Icons.close,color: PRIMARYCOLOR),
                                     color: PRIMARYCOLOR,
                                   ),
@@ -91,7 +91,7 @@ class _PinTesterState extends State<PinTester> {
                                   },
                                   controller: pin,
                                   decoration: InputDecoration(
-                                    hintText: 'Enter PIN to Proceed',
+                                    hintText: 'Enter 4-Digit PIN to Proceed',
                                     hintStyle: TextStyle(fontSize: 18,letterSpacing: 1),
                                     filled: true,
                                     fillColor: Colors.grey.withOpacity(0.2),
@@ -106,6 +106,7 @@ class _PinTesterState extends State<PinTester> {
                                   ),
                                   autofocus: false,
                                   textInputAction: TextInputAction.done,
+                                  enabled: false,
                                   obscureText:true,
                                   keyboardType: TextInputType.number,
                                   inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
@@ -115,12 +116,15 @@ class _PinTesterState extends State<PinTester> {
                                   maxLengthEnforced: true,
                                   style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
+                                  onTap: (){
+                                    print('tapped');
+                                  },
                                 )
                               ],
                             ),
                           ),
                           Container(color:Colors.grey.withOpacity(0.2), height:20,),
-                          Container(
+                          /*Container(
                             color:PRIMARYCOLOR,
                             child: Row(
                               children: [
@@ -152,7 +156,8 @@ class _PinTesterState extends State<PinTester> {
                                 ),
                               ],
                             ),
-                          ),
+                          ),*/
+
                         ],
                       ):Padding(
                         padding: EdgeInsets.symmetric(vertical: 10),
@@ -164,7 +169,186 @@ class _PinTesterState extends State<PinTester> {
                         )
                       )
                   ),
-                )
+                ),
+                Container(height:20,),
+                if(!isChecking)
+                Container(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '1';
+                                    },
+                                    child:  Center(
+                                      child: Text('1',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '2';
+                                    },
+                                    child:  Center(
+                                      child: Text('2',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '3';
+                                    },
+                                    child:  Center(
+                                      child: Text('3',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20,),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '4';
+                                    },
+                                    child:  Center(
+                                      child: Text('4',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '5';
+                                    },
+                                    child:  Center(
+                                      child: Text('5',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '6';
+                                    },
+                                    child:  Center(
+                                      child: Text('6',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20,),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '7';
+                                    },
+                                    child:  Center(
+                                      child: Text('7',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '8';
+                                    },
+                                    child:  Center(
+                                      child: Text('8',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                    onTap: (){
+                                      pin.text = pin.text + '9';
+                                    },
+                                    child:  Center(
+                                      child: Text('9',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                    )
+                                )
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20,),
+                        Row(
+                          children: [
+                            Expanded(
+                                child:GestureDetector(
+                                  onTap: (){
+                                    pin.text = pin.text + '0';
+                                  },
+                                  child:  Center(
+                                    child: Text('0',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                  )
+                                )
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20,),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: GestureDetector(
+                                  onTap: (){
+                                    if(pin.text.length>0)
+                                      pin.text = pin.text.substring(0,(pin.text.length-1));
+                                  },
+                                  child: Center(
+                                    child: Text('Del',style: TextStyle(color: Colors.white,fontSize: 40),),
+                                  ),
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                  onTap: (){
+                                    pin.text = '';
+                                  },
+                                  child: Center(
+                                    child: Text('Clear',style: TextStyle(color: Colors.white,fontSize: 40),),
+                                  ),
+                                )
+                            ),
+                            Expanded(
+                                child: GestureDetector(
+                                  onTap: ()async{
+                                    if(_formKey.currentState.validate()){
+                                      setState(() {isChecking = true;});
+                                      bool pinTest = await PinRepo.fetchPin(pin.text, widget.wallet);
+                                      if(!pinTest){
+                                        setState(() {isChecking = false;isWrong=true;});
+                                      }
+                                      else{
+                                        if(widget.callBackAction != null)
+                                        {
+                                          setState(() {isChecking = false;isWrong=true;});
+                                          Get.back();
+                                          widget.callBackAction();
+                                        }
+                                        else
+                                          Get.back();
+                                      }
+                                    }
+                                  },
+                                  child: Center(
+                                    child: Text('Ok',style: TextStyle(color: Colors.white,fontSize: 40),),
+                                  )
+                                )
+                            ),
+                          ],
+                        )
+                      ],
+                    )
+                ),
               ],
             )
 

@@ -8,7 +8,7 @@ class ErrandRepo {
   static final databaseReference = Firestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   static final Geoflutterfire geo = Geoflutterfire();
-  static final double radius = 10;
+  static final double radius = 2;
   static final String field = 'agentLocation';
 
 

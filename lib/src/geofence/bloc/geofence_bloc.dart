@@ -64,7 +64,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
 
   Stream<GeoFenceState> _mapFetchNearByMerchantToState(
       Position _position, String category) async* {
-    yield state.update(currentPosition: _position);
+    if(_position != null){yield state.update(currentPosition: _position);}
     yield GeoFenceState.loading(
         category: category,
         currentPosition: state.currentPosition,

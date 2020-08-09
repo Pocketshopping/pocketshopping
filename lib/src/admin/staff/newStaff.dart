@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -7,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffPermission.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
@@ -123,62 +121,6 @@ class _StaffFormState extends State<StaffForm> {
                                         height: 10,
                                       ),
                                       Container(
-                                          decoration: BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(
-                                                //                   <--- left side
-                                                color: Colors.black12,
-                                                width: 1.0,
-                                              ),
-                                            ),
-                                          ),
-                                          padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
-                                                  0.02),
-                                          child: Column(
-                                            children: [
-                                              Center(
-                                                child: CircleAvatar(
-                                                  backgroundColor: Colors.white,
-                                                  radius: 50,
-                                                  backgroundImage: staff != null
-                                                      ? staff.runtimeType != String
-                                                      ? staff.profile.isNotEmpty
-                                                      ? NetworkImage(
-                                                      staff.profile)
-                                                      : NetworkImage(
-                                                      PocketShoppingDefaultAvatar)
-                                                      : NetworkImage(
-                                                      PocketShoppingDefaultAvatar)
-                                                      : NetworkImage(
-                                                      PocketShoppingDefaultAvatar),
-                                                ),
-                                              ),
-                                              Center(
-                                                child: Text(
-                                                    '${staff != null ? staff.runtimeType != String ? staff.fname : 'Staff' : 'Staff'}'),
-                                              ),
-                                              SizedBox(
-                                                height: 20,
-                                              ),
-                                              staff != null
-                                                  ? staff.runtimeType == String
-                                                  ? Center(
-                                                  child: Text(
-                                                    'This user can not be a staff, because the account is registered as ${staff=='admin'?' a business owner':' a staff'}',
-                                                    style: TextStyle(
-                                                        color: Colors.red),textAlign: TextAlign.center,
-                                                  ))
-                                                  : Container()
-                                                  : _staffController.text.isNotEmpty?Center(
-                                                  child: Text(
-                                                    'No Staff with this ID',
-                                                    style: TextStyle(
-                                                        color: Colors.red),
-                                                  )):const SizedBox.shrink(),
-                                            ],
-                                          )),
-                                      Container(
                                         decoration: BoxDecoration(
                                           border: Border(
                                             bottom: BorderSide(
@@ -194,33 +136,22 @@ class _StaffFormState extends State<StaffForm> {
                                         child: TextFormField(
                                           controller: _staffController,
                                           decoration: InputDecoration(
-                                              labelText: 'Staff ID',
-                                              hintText: 'Staff ID',
+                                              labelText: 'Enter User ID',
+                                              hintText: 'Enter User ID',
                                               border: InputBorder.none),
-                                          keyboardType: TextInputType.text,
-                                          autocorrect: false,
+                                          keyboardType: TextInputType.number,
                                           autovalidate: autoValidate,
+                                          maxLength: 10,
+                                          inputFormatters: <TextInputFormatter>[ WhitelistingTextInputFormatter.digitsOnly],
                                           validator: (value) {
                                             if (value.isEmpty) {
-                                              return 'Staff ID can not be empty';
-                                            } else if (staff == null) {
-                                              return 'No Staff with this ID';
-                                            } else if (staff.runtimeType ==
-                                                String) {
-                                              return 'This user can not be a Staff, because the account is registered as $staff';
+                                              return 'User ID can not be empty';
+                                            } else if (value.length < 10) {
+                                              return 'Enter a valid User ID';
                                             }
                                             return null;
                                           },
-                                          onChanged: (value) {
-                                            if (value.length > 6) {
-                                              UserRepo()
-                                                  .getOneUsingWallet(value)
-                                                  .then((value) => setState(() {
-                                                staff = value;
-                                                //autoValidate=true;
-                                              }));
-                                            }
-                                          },
+                                          onChanged: (value) {},
                                         ),
                                       ),
                                     Container(
@@ -389,153 +320,91 @@ class _StaffFormState extends State<StaffForm> {
                                                   vertical: marginLR * 0.008,
                                                   horizontal: marginLR * 0.08),
                                               child: RaisedButton(
-                                                onPressed: !isSubmitting
-                                                    ? () {
-                                                  if (_formKey.currentState
-                                                      .validate() && (sales || finances || logistic || products || managers)) {
-                                                    setState(() {
-                                                      isSubmitting = true;
-                                                    });
-                                                    GetBar(
-                                                      title: 'Staff',
-                                                      messageText: Text(
-                                                        'Adding new Staff please wait',
-                                                        style: TextStyle(
-                                                            color:
-                                                            Colors.white),
-                                                      ),
-                                                      duration:
-                                                      Duration(days: 365),
-                                                      snackPosition:
-                                                      SnackPosition
-                                                          .BOTTOM,
-                                                      backgroundColor:
-                                                      PRIMARYCOLOR,
-                                                      showProgressIndicator:
-                                                      true,
-                                                      progressIndicatorValueColor:
-                                                      AlwaysStoppedAnimation<
-                                                          Color>(
-                                                          Colors.white),
-                                                    ).show();
-                                                    StaffRepo.save(
-                                                      Staff(
-                                                        staffPermissions: Permission(
-                                                          managers: managers,
-                                                          sales: sales,
-                                                          finances: finances,
-                                                          logistic: logistic,
-                                                          products: products
-                                                        ),
-                                                        staffBehaviour: '',
-                                                        staffWorkPlace: widget.session.merchant.mID,
-                                                        staffJobTitle: 'Staff',
-                                                        staffStatus: 1,
-                                                        endDate: null,
-                                                        staffID: '',
-                                                        staffName: (staff as User).fname,
-                                                        staff: (staff as User).uid,
-                                                        parentAllowed: true,
-                                                        staffWorkPlaceWallet: widget.session.merchant.bWallet,
+                                                onPressed: !isSubmitting ? () async{
+                                                  if (_formKey.currentState.validate() && (sales || finances || logistic || products || managers)) {
+                                                    setState(() {isSubmitting = true;});
+                                                    Utility.bottomProgressLoader(title: 'Staff',body: 'Adding new Staff please wait');
+                                                    User staff = await UserRepo.getUserUsingWallet(_staffController.text);
+
+                                                    if(staff != null){
+                                                      if(staff.role == 'user'){
+                                                        bool result = await StaffRepo.save(
+                                                          Staff(
+                                                            staffPermissions: Permission(
+                                                                managers: managers,
+                                                                sales: sales,
+                                                                finances: finances,
+                                                                logistic: logistic,
+                                                                products: products
+                                                            ),
+                                                            staffBehaviour: '',
+                                                            staffWorkPlace: widget.session.merchant.mID,
+                                                            staffJobTitle: 'Staff',
+                                                            staffStatus: 1,
+                                                            endDate: null,
+                                                            staffID: '',
+                                                            staffName: staff.fname,
+                                                            staff: staff.uid,
+                                                            parentAllowed: true,
+                                                            staffWorkPlaceWallet: widget.session.merchant.bWallet,
+                                                          ),
+                                                          Request(
+                                                              requestTitle:
+                                                              'Work Request',
+                                                              requestReceiver:
+                                                              staff.uid,
+                                                              requestClearedAt:
+                                                              null,
+                                                              requestAction:
+                                                              'STAFFWORKREQUEST',
+                                                              requestBody:
+                                                              'You are requested to be a staff of ${widget.session.merchant.bName} do you want to accept it.',
+                                                              requestCleared: false,
+                                                              requestID: '',
+                                                              requestInitiator: widget.session.merchant.bName,
+                                                              //requestInitiatorID: widget.session.merchant.mID,
+                                                              requestCreatedAt: Timestamp.now()
+                                                          ),
+                                                        );
+                                                        if(result){
+                                                          _staffController.clear();
+                                                          setState(() {autoValidate = false;});
+                                                          Get.back();
+                                                          await respond(staff.notificationID);
+                                                          setState(() {isSubmitting = false;});
+                                                          Utility.bottomProgressSuccess(title: 'staff',body: 'Work request has been sent to ${staff.fname} once confirmed ${staff.fname} will be activated as a staff.',goBack: true);
+
+                                                        }
+                                                        else{
+                                                          Get.back();
+                                                          Utility.bottomProgressFailure(title: 'staff',body: 'Error adding ${staff.fname}, check your connection and try again');
+                                                          setState(() {isSubmitting = false;});
+                                                        }
+                                                      }
+                                                      else if(staff.role == 'rider'){
+                                                        Get.back();
+                                                        Utility.bottomProgressFailure(title: 'Rider',body: 'Sorry. ${staff.fname} is a rider of another organization.',duration: 5);
+                                                        setState(() {isSubmitting = false;});
+                                                      }
+                                                      else if(staff.role == 'staff'){
+                                                        Get.back();
+                                                        Utility.bottomProgressFailure(title: 'staff',body: 'Sorry. ${staff.fname} is a staff of another organization.',duration: 5);
+                                                        setState(() {isSubmitting = false;});
+                                                      }
+                                                      else{
+                                                        Get.back();
+                                                        Utility.bottomProgressFailure(title: 'Owner',body: 'Sorry. ${staff.fname} is  a business owner. Can not be added as a staff',duration: 5);
+                                                        setState(() {isSubmitting = false;});
+                                                      }
+                                                    }
+                                                    else{
+                                                      Get.back();
+                                                      Utility.bottomProgressFailure(title: 'Invalid User',body: 'The ID you entered is not a valid user ID check the ID and try again.',duration: 5);
+                                                      setState(() {isSubmitting = false;});
+                                                    }
 
 
-                                                      ),
-                                                      Request(
-                                                        requestTitle:
-                                                        'Work Request',
-                                                        requestReceiver:
-                                                        staff.uid,
-                                                        requestClearedAt:
-                                                        null,
-                                                        requestAction:
-                                                        'STAFFWORKREQUEST',
-                                                        requestBody:
-                                                        'You are requested to be a staff of ${widget.session.merchant.bName} do you want to accept it.',
-                                                        requestCleared: false,
-                                                        requestID: '',
-                                                        requestInitiator: widget.session.merchant.bName,
-                                                        //requestInitiatorID: widget.session.merchant.mID,
-                                                        requestCreatedAt: Timestamp.now()
-                                                      ),
-                                                    )
-                                                        .then((value)  {
-                                                      if (Get
-                                                          .isSnackbarOpen)
-                                                      {
-                                                        Get.back();
-                                                        respond(staff.notificationID);
-                                                        GetBar(
-                                                          title:
-                                                          'staff',
-                                                          messageText:
-                                                          Text(
-                                                            'Work request has been sent to the staff once confirmed the staff will be activated.',
-                                                            style: TextStyle(
-                                                                color:
-                                                                Colors.white),
-                                                          ),
-                                                          duration: Duration(
-                                                              seconds:
-                                                              5),
-                                                          snackPosition:
-                                                          SnackPosition
-                                                              .BOTTOM,
-                                                          backgroundColor:
-                                                          PRIMARYCOLOR,
-                                                          icon:
-                                                          Icon(
-                                                            Icons
-                                                                .check,
-                                                            color: Colors
-                                                                .white,
-                                                          ),
-                                                        ).show().then((value) => Get.back(result: 'done'));
-                                                        _staffController
-                                                            .clear();
-                                                        setState(
-                                                                () {
-                                                              autoValidate =
-                                                              false;
-                                                              staff =
-                                                              null;
-                                                            });
-                                                      }
-                                                      setState(() {
-                                                        isSubmitting =
-                                                        false;
-                                                      });
-                                                    })
-                                                        .catchError((_) {
-                                                      if (Get
-                                                          .isSnackbarOpen) {
-                                                        Get.back();
-                                                        GetBar(
-                                                          title: 'staff',
-                                                          messageText: Text(
-                                                            'Error adding Staff, check your connection and try again',
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white),
-                                                          ),
-                                                          duration: Duration(
-                                                              seconds: 3),
-                                                          snackPosition:
-                                                          SnackPosition
-                                                              .BOTTOM,
-                                                          backgroundColor:
-                                                          Colors.red,
-                                                          icon: Icon(
-                                                            Icons.check,
-                                                            color:
-                                                            Colors.white,
-                                                          ),
-                                                        ).show();
-                                                        setState(() {
-                                                          isSubmitting =
-                                                          false;
-                                                        });
-                                                      }
-                                                    });
+
                                                   } else {
                                                     setState(() {
                                                       autoValidate = true;

@@ -5,6 +5,7 @@ import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/server/server.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
@@ -14,11 +15,15 @@ class LocRepo {
   static final databaseReference = Firestore.instance;
 
   static Future<void> update(Map<String,dynamic> data) async {
-    var fav = await getLocUpdate(data['agentID']);
-    Wallet wallet = await WalletRepo.getWallet(data['wallet']);
-    Agent agent = await LogisticRepo.getOneAgent(data['agentID']);
-    var remitted = await LogisticRepo.remittance(data['wallet'],limit:agent.limit);
-    Merchant company = await MerchantRepo.getMerchant(data['agentParent']);
+    try{
+      //print(data);
+      Map<String,dynamic> server = await ServerRepo.get();
+      var fav = await getLocUpdate(data['agentID']);
+      Wallet wallet = await WalletRepo.getWallet(data['wallet'],key: server['key']);
+      Agent agent = await LogisticRepo.getOneAgent(data['agentID']);
+      var remitted = await LogisticRepo.remittance(data['wallet'],limit:agent.limit,key: server['key']);
+      Merchant company = await MerchantRepo.getMerchant(data['agentParent']);
+
     if(fav)
     {
 
@@ -97,6 +102,8 @@ class LocRepo {
     }
     catch(_){}
 
+    }
+    catch(_){}
   }
 
   static Future<bool> getLocUpdate(String agentID) async {

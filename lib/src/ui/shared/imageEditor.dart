@@ -50,7 +50,7 @@ class Editor extends StatelessWidget{
             child: Crop(
               key: cropKey,
               image: FileImage(imageFile),
-              aspectRatio: 4.0 / 3.0,
+              aspectRatio: 4.0 / 4.5,
             ),
           ),
         )

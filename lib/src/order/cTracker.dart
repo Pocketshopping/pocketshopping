@@ -1089,42 +1089,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
   }
 
 
-  /*Future<void> confirmNotifier({String fcm,}) async {
-    //print('team meeting');
-    await _fcm.requestNotificationPermissions(
-      const IosNotificationSettings(
-          sound: true, badge: true, alert: true, provisional: false),
-    );
-    await http.post('https://fcm.googleapis.com/fcm/send',
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverToken'
-        },
-        body: jsonEncode(<String, dynamic>{
-          'notification': <String, dynamic>{
-            'body': 'Hello. ${merchant.bName} Order(${_order.docID}) has been confirmed by the customer(${widget.user.fname}). Your cut has been transferred to the neccessary channel. Thanks',
-            'title': 'Order Confirmation'
-          },
-          'priority': 'high',
-          'data': <String, dynamic>{
-            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            'id': '1',
-            'status': 'done',
-            'payload': {
-              'NotificationType': 'OrderConfirmationResponse',
-              'orderID': _order.docID,
-              'merchant': merchant.bName,
-              'fcmToken': widget.user.notificationID,
-            }
-          },
-          'to': fcm,
-        })).timeout(
-      Duration(seconds: TIMEOUT),
-      onTimeout: () {
-        return null;
-      },
-    );
-  }*/
+
 
 
 }

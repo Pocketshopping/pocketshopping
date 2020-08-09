@@ -207,13 +207,13 @@ return {'transactionCount':count,'mostFiveItems':sliced,'weekDaysCount':weekDays
 }
 
 
-async function finalizePending(collectionID){
+async function finalizePending(collectionID,key){
 
   const body = {"collectionID": collectionID, "status": false, };
         await fetch('http://middleware.pocketshopping.com.ng/api/wallets/pay/finalize/', {
         method: 'post',
         body:    JSON.stringify(body),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ApiKey':key},
     })
 }
 
@@ -224,6 +224,11 @@ async function finalizePending(collectionID){
     .where('status','==',0)
     .where('etc','<', new Date())
     .limit(500)
+    .get();
+
+    var key = await admin.firestore()
+    .collection('server')
+    .doc('wallet')
     .get();
 
     let batch = admin.firestore().batch();
@@ -252,7 +257,7 @@ async function finalizePending(collectionID){
       const docRef = admin.firestore().collection('orders').doc(doc.id);
       batch.update(docRef, {'isAssigned':true,'potentials':[],'status':1,'receipt.pRef':'Rider Currently unavailable.','receipt.psStatus':'fail'});
       customers.push(doc.data()['customerDevice']);
-      finalizePending(doc.data()['receipt']['collectionID']).then(res => null);
+      finalizePending(doc.data()['receipt']['collectionID'],key.data()['key']).then(res => null);
   })
   await batch.commit();
   if(customers.length>0)

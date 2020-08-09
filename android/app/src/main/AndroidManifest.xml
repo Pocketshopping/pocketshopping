@@ -19,12 +19,13 @@
     <application
         android:name=".Application"
         android:label="pocketshopping"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/launcher_icon">
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc"/>
         <meta-data
             android:name="co.paystack.android.PublicKey"
-            android:value="pk_test_78f1f0d36abc662437755f96525a64b35cec0a6c"/>
+            android:value="pk_live_d1d8c4fa3bf14f6a42add563823e47db7b30129f"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id"/>

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 
 
 
@@ -53,7 +54,7 @@ class CustomerCareRepo {
     });
   }
 
-  static Future<List<CustomerCareLine>> fetchCustomerCareLine(String company) async {
+  static Future<List<CustomerCareLine>> fetchCustomerCareLine(String company,{int source=0}) async {
 
     if(company == null)
       return null;
@@ -61,18 +62,43 @@ class CustomerCareRepo {
       return null;
 
 
-    List<CustomerCareLine> temp=[];
-   var data =  await databaseReference
-        .collection("customerCare")
-        .document(company).get(source: Source.serverAndCache);
-   temp.addAll(CustomerCareLine.fromMap(data.data));
+    try{
+      try{
+        if(source == 1) throw Exception;
+        List<CustomerCareLine> temp=[];
+        var data =  await databaseReference
+            .collection("customerCare")
+            .document(company).get(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(!data.exists){throw Exception;}
+        temp.addAll(CustomerCareLine.fromMap(data.data));
 
-   if(temp.length<4)
-     return temp;
-   else{
-    temp.shuffle();
-    return temp.sublist(0,3);
-   }
+        if(temp.length<4)
+          return temp;
+        else{
+          temp.shuffle();
+          return temp.sublist(0,3);
+        }
+      }
+      catch(_){
+        List<CustomerCareLine> temp=[];
+        var data =  await databaseReference
+            .collection("customerCare")
+            .document(company).get(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        temp.addAll(CustomerCareLine.fromMap(data.data));
+
+        if(temp.length<4)
+          return temp;
+        else{
+          temp.shuffle();
+          return temp.sublist(0,3);
+        }
+      }
+    }
+    catch(_){
+      return [];
+    }
 
   }
 

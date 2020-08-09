@@ -20,6 +20,18 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+            0.1), // here the desired height
+        child: AppBar(
+          centerTitle: true,
+          elevation: 0.0,
+          backgroundColor: Colors.white,
+          title: Text(''),
+          automaticallyImplyLeading: false,
+        ),
+      ),
+      backgroundColor: Colors.white,
       body: BlocProvider<LoginBloc>(
         create: (context) => LoginBloc(userRepository: _userRepository),
         child: LoginForm(

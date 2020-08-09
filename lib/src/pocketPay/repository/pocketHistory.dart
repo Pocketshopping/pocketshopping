@@ -1,12 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
 
 
 @immutable
-class PocketDebitHistory {
+class PocketHistory {
   final String paymentTypeDesc;
   final String channelType;
-  final String createdDate;
+  final int channelId;
+  final DateTime createdDate;
   final String from;
   final String to;
   final double amount;
@@ -14,7 +14,7 @@ class PocketDebitHistory {
   final String collectionID;
 
 
-  PocketDebitHistory(
+  PocketHistory(
       {this.paymentTypeDesc,
         this.channelType,
         this.createdDate,
@@ -22,20 +22,22 @@ class PocketDebitHistory {
         this.to,
         this.amount,
         this.status,
-        this.collectionID
+        this.collectionID,
+        this.channelId
       });
 
-  PocketDebitHistory copyWith({
+  PocketHistory copyWith({
     String paymentTypeDesc,
     String channelType,
-    String createdDate,
+    DateTime createdDate,
     String from,
     String to,
     double amount,
     String status,
-    String collectionID
+    String collectionID,
+    int channelId
   }) {
-    return PocketDebitHistory(
+    return PocketHistory(
       paymentTypeDesc: paymentTypeDesc ?? this.paymentTypeDesc,
       channelType: channelType ?? this.channelType,
       from: from ?? this.from,
@@ -43,7 +45,8 @@ class PocketDebitHistory {
       amount: amount ?? this.amount,
       createdDate: createdDate ?? this.createdDate,
       status: status ?? this.status,
-      collectionID: collectionID ?? this.collectionID
+      collectionID: collectionID ?? this.collectionID,
+      channelId: channelId ?? this.channelId
     );
   }
 
@@ -56,12 +59,13 @@ class PocketDebitHistory {
       to.hashCode ^
       amount.hashCode ^
       status.hashCode ^
-      collectionID.hashCode;
+      collectionID.hashCode ^
+      channelId.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is PocketDebitHistory &&
+          other is PocketHistory &&
               runtimeType == other.runtimeType &&
               paymentTypeDesc == other.paymentTypeDesc &&
               channelType == other.channelType &&
@@ -70,17 +74,19 @@ class PocketDebitHistory {
               to == other.to &&
               amount == other.amount &&
               status == other.status &&
-              collectionID == other.collectionID;
+              collectionID == other.collectionID &&
+              channelId == other.channelId;
 
-  PocketDebitHistory update({
+  PocketHistory update({
     String paymentTypeDesc,
     String channelType,
-    String createdDate,
+    DateTime createdDate,
     String from,
     String to,
     double amount,
     String status,
-    String collectionID
+    String collectionID,
+    int channelId
   }) {
     return copyWith(
       paymentTypeDesc: paymentTypeDesc,
@@ -90,34 +96,37 @@ class PocketDebitHistory {
       amount: amount,
       createdDate: createdDate,
       status: status,
-      collectionID: collectionID
+      collectionID: collectionID,
+      channelId: channelId
     );
   }
 
   @override
   String toString() {
-    return '''Instance of PocketDebitHistory''';
+    return '''Instance of PocketHistory''';
   }
 
 
-  static PocketDebitHistory fromMap(Map<String,dynamic> snap) {
-    return PocketDebitHistory(
+  static PocketHistory fromMap(Map<String,dynamic> snap) {
+    return PocketHistory(
         paymentTypeDesc: snap['paymentType']['paymentTypeDesc'],
         channelType: snap['channel']['channelType'],
+        channelId: snap['channel']['channelId'],
         from: snap['from'],
         to: snap['to'],
-        createdDate: snap['createdDate'],
+        createdDate: DateTime.parse(snap['createdDate']),
         status: snap['status']['type'],
         amount: snap['amount'],
         collectionID: snap['collectionID'],
+
     );
   }
 
 
-  static List<PocketDebitHistory> fromListMap(List<Map<String,dynamic>> snap) {
-    List<PocketDebitHistory> collection = List();
+  static List<PocketHistory> fromListMap(List<Map<String,dynamic>> snap) {
+    List<PocketHistory> collection = List();
     snap.forEach((element) {
-      collection.add(PocketDebitHistory.fromMap(element));
+      collection.add(PocketHistory.fromMap(element));
     });
     return collection;
   }

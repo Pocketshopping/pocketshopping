@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
 import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
+import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -28,10 +31,12 @@ class _RequestScreenState extends State<RequestScreen> {
   bool isLoading;
   List<Request> _requests;
   bool workRequestAccepted;
+  bool accepted;
 
   @override
   void initState() {
     isSubmitting = false;
+    accepted = false;
     _requests = widget.requests;
     isLoading = _requests.isEmpty;
     if(_requests.isEmpty)
@@ -50,11 +55,11 @@ class _RequestScreenState extends State<RequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
     return WillPopScope(
         onWillPop: () async {
-          if (isSubmitting)
+          if (isSubmitting) {
             return false;
+          }
           else {
             return true;
           }
@@ -277,7 +282,7 @@ class _RequestScreenState extends State<RequestScreen> {
                             Get.back();
                             await UserRepository().changeRole('user');
                             BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
-                            Get.back();
+                            Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
                           },
                           child: Text('Okay'),
                         ),
@@ -322,9 +327,9 @@ class _RequestScreenState extends State<RequestScreen> {
   }
 
   processResponse(Request request, String response)async {
-    setState(() {
+    /*setState(() {
       isSubmitting = true;
-    });
+    });*/
     GetBar(
       title: 'Response',
       messageText: Text(
@@ -338,6 +343,7 @@ class _RequestScreenState extends State<RequestScreen> {
       progressIndicatorValueColor: AlwaysStoppedAnimation<Color>(Colors.white),
     ).show();
     if (response == 'Y') {
+      NotificationsBloc.instance.newNotification(null);
       bool result;
       if(request.requestAction == 'STAFFWORKREQUEST'){
         result = await StaffRepo.staffAccept(request.requestInitiatorID, request.requestID, request.requestReceiver,);
@@ -348,7 +354,15 @@ class _RequestScreenState extends State<RequestScreen> {
       else{}
 
       if(result){
-        if (Get.isSnackbarOpen) {
+        setState(() {
+          _requests.removeWhere((element) => element.requestAction == 'WORKREQUEST');
+          isSubmitting = false;
+          RequestBloc.instance.newCount(_requests.length);
+        });
+        Get.back();
+        BlocProvider.of<AuthenticationBloc>(context).add(AppStarted(),);
+        Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
+        /*if (Get.isSnackbarOpen) {
           Get.back();
           GetBar(
             title: 'Response',
@@ -363,7 +377,7 @@ class _RequestScreenState extends State<RequestScreen> {
               Icons.check,
               color: Colors.white,
             ),
-            mainButton: FlatButton(
+            *//*mainButton: FlatButton(
               onPressed: () {
                 Get.back();
                 BlocProvider.of<AuthenticationBloc>(context).add(
@@ -383,15 +397,15 @@ class _RequestScreenState extends State<RequestScreen> {
                   ),
                 ),
               ),
-            ),
-          ).show();
-          setState(() {
-            _requests.removeWhere(
-                    (element) => element.requestAction == 'WORKREQUEST');
-            isSubmitting = false;
-            RequestBloc.instance.newCount(_requests.length);
+            ),*//*
+
+          ).show().then((value)async {
+            //Get.back();
+            BlocProvider.of<AuthenticationBloc>(context).add(AppStarted(),);
+            Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
           });
-        }
+
+        }*/
       }
       else{
         Utility.bottomProgressFailure(title:'Response',

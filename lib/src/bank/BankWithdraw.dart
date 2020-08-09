@@ -4,8 +4,8 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/bank/repository/bankRepo.dart';
 import 'package:pocketshopping/src/profile/pinTester.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
+import 'package:pocketshopping/withdrawal/repository/WithdrawalRepo.dart';
 
 class BankWithdraw extends StatefulWidget {
   final Wallet wallet;
@@ -59,7 +59,7 @@ class _BankWithdrawState extends State<BankWithdraw> {
                                 Expanded(
                                   flex: 0,
                                   child: IconButton(
-                                    onPressed: (){Get.back();},
+                                    onPressed: (){Get.back(result: 'closed');},
                                     icon: Icon(Icons.close,color: PRIMARYCOLOR),
                                     color: PRIMARYCOLOR,
                                   ),
@@ -72,10 +72,24 @@ class _BankWithdrawState extends State<BankWithdraw> {
                           child: Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                              child: Text('You are about to perform a withdrawal transaction with the following details',
+                              child: Text('You are about to perform a withdrawal transaction with the following details.',
                                 style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
                             )
                           ),
+
+
+                          ),
+                          Container(color: Colors.grey.withOpacity(0.2),
+                            child: Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                  child: Text(' ${(widget.wallet.merchantBalance+widget.wallet.deliveryBalance)<=5000?'Note. for a withdrawal below $CURRENCY 5000 a '
+                                      ' service charge of $CURRENCY 10 will be debited.':''}',
+                                    style: TextStyle(color: Colors.red),textAlign: TextAlign.center,),
+                                )
+                            ),
+
+
                           ),
                           Container(child: const Divider(thickness: 0.5,),color: Colors.grey.withOpacity(0.2),),
                           Container(color: Colors.grey.withOpacity(0.2),
@@ -153,7 +167,7 @@ class _BankWithdrawState extends State<BankWithdraw> {
                                       });
                                     Get.dialog(PinTester(wallet: widget.walletID,callBackAction: ()async{
 
-                                      bool result = await Utility.withdrawFunds(wid: widget.walletID);
+                                      bool result = await WithdrawalRepo.withdrawFunds(wid: widget.walletID);
 
                                       if(result != null){
                                         if(result){
@@ -173,7 +187,10 @@ class _BankWithdrawState extends State<BankWithdraw> {
                                         });
                                       }
 
-                                    })).then((value){});
+                                    })).then((value){
+                                      if(value == 'closed')
+                                        Get.back();
+                                    });
                                     },
                                     child: Center(
                                       child: Text('Yes Proceed',style: TextStyle(color: PRIMARYCOLOR),),

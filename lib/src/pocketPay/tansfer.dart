@@ -242,9 +242,9 @@ class _PocketTransferState extends State<PocketTransfer> {
                                           enabled: true,
                                           autovalidate: autoValidate,
                                           textInputAction: TextInputAction.done,
-                                          maxLength: 12,
+                                          maxLength: 10,
                                           onChanged: (value)async {
-                                            if(value.length == 12){
+                                            if(value.length == 10){
                                               isDone.value =false;
                                               recipient.value = await UserRepo.getUserUsingWallet(pocketID.text.trim());
                                               isDone.value =true;

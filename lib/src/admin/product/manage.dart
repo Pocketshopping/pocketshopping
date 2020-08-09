@@ -7,6 +7,7 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart' as admin;
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/admin/product/editProduct.dart';
+import 'package:pocketshopping/src/admin/product/restocker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -56,7 +57,7 @@ class _ManageProductState extends State<ManageProduct> {
       if(mounted)
         if(value.isNotEmpty)
         setState((){
-
+          loading = false;
           list.addAll(value);
           if(list.length >= 10)
             _finish=false;
@@ -65,6 +66,7 @@ class _ManageProductState extends State<ManageProduct> {
         });
         else
           setState(() {
+            loading = false;
             _finish=true;
           });
 
@@ -74,6 +76,7 @@ class _ManageProductState extends State<ManageProduct> {
         if(mounted)
           if(value.isNotEmpty)
           setState((){
+            loading = false;
             list.addAll(value);
             if(list.length >= 10)
               _finish=false;
@@ -81,11 +84,13 @@ class _ManageProductState extends State<ManageProduct> {
               _finish=true;
           });else
             setState(() {
+              loading = false;
               _finish=true;
               empty=true;
             });
 
       });
+
   }
 
 
@@ -191,7 +196,12 @@ class _ManageProductState extends State<ManageProduct> {
                         itemBuilder: (BuildContext context, int index) {
                           return ListTile(
                             onTap: (){
-                              Get.to(EditProductForm(session: widget.user,product: list[index],)).then((value) {
+                              if(widget.user.merchant.adminUploaded)
+                                Get.to(EditProductForm(session: widget.user,product: list[index],)).then((value) {
+                                  _refresh();
+                                });
+                                else
+                              Get.to(ReStock(session: widget.user,product: list[index],)).then((value) {
                                   _refresh();
                               });
                             },
@@ -216,14 +226,43 @@ class _ManageProductState extends State<ManageProduct> {
                                     Text('$CURRENCY${list[index].pPrice}'),
                                   ],
                                 ),
-                                Row(
-                                  children: [
-                                    Text('${list[index].pDesc}',style: TextStyle(fontSize: 16),)
-                                  ],
-                                )
+                                if(list[index].isManaging)
+                                  if(list[index].pStockCount>0 && list[index].pStockCount < 10)
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: Text('The ${widget.user.merchant.bCategory} is running out of ${list[index].pName}',style: TextStyle(fontSize: 16,color: Colors.orangeAccent),)
+                                        )
+                                      ],
+                                    )
+                                  else if(list[index].pStockCount <= 0)
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: Text(' ${list[index].pName} is out of stock',style: TextStyle(fontSize: 16,color: Colors.red),)
+                                        ),
+                                      ],
+                                    )
                               ],
                             ),
-                            trailing:  Icon(Icons.arrow_forward_ios),
+                            trailing:  Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if(list[index].isManaging)
+                                 if(list[index].pStockCount >= 10)
+                                  Text('${list[index].pStockCount}',
+                                    style: TextStyle(fontSize: 30,color: Colors.green),)
+                                   else if(list[index].pStockCount>0 && list[index].pStockCount < 10)
+                                    Text('${list[index].pStockCount}',
+                                      style: TextStyle(fontSize: 30,color: Colors.orangeAccent),)
+                                  else if(list[index].pStockCount <= 0)
+                                    Text('${list[index].pStockCount}',
+                                      style: TextStyle(fontSize: 30,color: Colors.red),),
+                                if(list[index].isManaging)
+                                Text('Qty'),
+                              ],
+                            )
                           );
                         },
                         itemCount: count,
@@ -294,7 +333,11 @@ class _ManageProductState extends State<ManageProduct> {
             Expanded(
               flex: 0,
               child: Container(
-                color: PRIMARYCOLOR,
+                decoration: BoxDecoration(
+                  color: PRIMARYCOLOR,
+                  borderRadius: BorderRadius.only(topRight: Radius.circular(15),topLeft: Radius.circular(15)),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 10),
                 child: FlatButton(
                   onPressed: (){},
                   color: PRIMARYCOLOR,
@@ -325,6 +368,7 @@ class _ManageProductState extends State<ManageProduct> {
   Future<void> _refresh() async {
     setState(() {
       list.clear();
+      loading = true;
     });
     load();
   }

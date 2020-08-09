@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_place/google_place.dart';
+import 'package:location/location.dart' as loc;
 import 'package:pocketshopping/src/errand/map.dart';
 import 'package:pocketshopping/src/errand/selectAuto.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -10,6 +13,7 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 
@@ -42,15 +46,30 @@ class _ErrandState extends State<Errand> {
   var result;// = await googlePlace.autocomplete.get("1600 Amphitheatre");
   final handleOnTap = ValueNotifier<String>('');
   final slider = new PanelController();
+  loc.Location location;
+  StreamSubscription<loc.LocationData> geoStream;
 
   @override
   void initState() {
+    location = new loc.Location();
     googlePlace = GooglePlace(googleAPIKey);
     currentUser = widget.user;
+
     position = widget.position;
-    Utility.address(position).then((value) => source.text=value);
-    sourcePosition.value = LatLng(position.latitude,position.longitude);
-    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+
+    if(position != null){
+      Utility.address(position).then((value) => source.text=value);
+      sourcePosition.value = LatLng(position.latitude,position.longitude);
+    }
+
+    location.changeSettings(accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
+    geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
+      position = Position(latitude: cLoc.latitude,longitude: cLoc.longitude);
+      if (mounted) setState(() {});
+      Utility.address(position).then((value) => source.text=value);
+      sourcePosition.value = LatLng(position.latitude,position.longitude);
+    });
+
     /*googlePlace.autocomplete.get('a',
       location: LatLon(position.latitude,position.longitude),
       radius: 50000,
@@ -67,7 +86,7 @@ class _ErrandState extends State<Errand> {
     });*/
 
 
-
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     Utility.locationAccess();
     super.initState();
 
@@ -75,6 +94,7 @@ class _ErrandState extends State<Errand> {
 
   @override
   void dispose() {
+    geoStream?.cancel();
     /*selected?.dispose();
     isTyping?.dispose();
     isTypingDestination?.dispose();
@@ -105,7 +125,7 @@ class _ErrandState extends State<Errand> {
     },
     child:
     Scaffold(
-                  body: ValueListenableBuilder(
+                  body: position != null ? ValueListenableBuilder(
                     valueListenable: isTyping,
                     builder: (_,bool typing,__){
                       return  Column(
@@ -534,11 +554,10 @@ class _ErrandState extends State<Errand> {
                                       child: Column(
                                         children: [
                                           Padding(
-                                            padding: EdgeInsets.symmetric(vertical: 10),
+                                            padding: EdgeInsets.symmetric(vertical: 20),
                                             child: ListTile(
                                               leading: Icon(Icons.place),
-                                              title: Text('Pick a location'),
-                                              subtitle: Text('you can select a destination by clicking the destination point on the google map.'),
+                                              subtitle: Text('you can also select a destination by clicking the destination point on the google map.'),
                                             ),
                                           ),
                                           /*Padding(
@@ -559,7 +578,11 @@ class _ErrandState extends State<Errand> {
                         ],
                       );
                     },
-                  )
+                  ):Center(
+                      child: JumpingDotsProgressIndicator(
+                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        color: PRIMARYCOLOR,
+                      ))
               )
 
     );

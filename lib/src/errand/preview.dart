@@ -14,7 +14,6 @@ import 'package:pocketshopping/src/errand/bloc/errandBloc.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
-import 'package:pocketshopping/src/order/cErrandTracker.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/errandObj.dart';
@@ -22,6 +21,7 @@ import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
+import 'package:pocketshopping/src/order/tracker/customer/ceTracker.dart';
 import 'package:pocketshopping/src/payment/atmCard.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
@@ -515,11 +515,6 @@ class _PreviewState extends State<Preview> {
                                                                   icon: Icon(Icons.arrow_forward_ios),
                                                                 ),
                                                               ):const SizedBox.shrink(),
-
-                                                              const Divider(
-                                                                height: 2,
-                                                                color: Colors.grey,
-                                                              ),
                                                               const SizedBox(
                                                                 height: 5,
                                                               ),
@@ -754,7 +749,7 @@ class _PreviewState extends State<Preview> {
                   "cvv":(details['cvv'] as String),
                   "month":int.parse(temp[0]),
                   "year":int.parse(temp[1]),
-                  "amount":fee.value,
+                  "amount": fee.value + Utility.onePointFive(fee.value),
                   "email":(details['email'] as String),
 
                 }))
@@ -798,7 +793,7 @@ class _PreviewState extends State<Preview> {
                   //Utility.bottomProgressSuccess(body: 'Request has been sent to Rider',title: 'Request Sent');
                   Utility.pushNotifier(fcm: singleAgent.value.device,body: 'You have a new Errand request. check request bucket for details',title: 'Errand Request',
                       notificationType: 'ErrandRequest',data: {});
-                  Get.off(CustomerErrandTracker(user: currentUser.user,order: value,isNew: true,));
+                  Get.off(CustomerErrandTrackerWidget(user: currentUser.user,order: value,isActive: true,));
                 }
                 else{
                   payStatus.value = 2;
@@ -854,7 +849,7 @@ class _PreviewState extends State<Preview> {
               //Utility.bottomProgressSuccess(body: 'Request has been sent to Rider',title: 'Request Sent');
               Utility.pushNotifier(fcm: singleAgent.value.device,body: 'You have a new Errand request. check request bucket for details',title: 'Errand Request',
                   notificationType: 'ErrandRequest',data: {});
-              Get.off(CustomerErrandTracker(user: currentUser.user,order: value,isNew: true,));
+              Get.off(CustomerErrandTrackerWidget(user: currentUser.user,order: value,isActive: true,));
             }
             else{
               payStatus.value = 2;
@@ -899,7 +894,7 @@ class _PreviewState extends State<Preview> {
               //Utility.bottomProgressSuccess(body: 'Request has been sent to Rider',title: 'Request Sent');
               Utility.pushNotifier(fcm: singleAgent.value.device,body: 'You have a new Errand request. check request bucket for details',title: 'Errand Request',
                   notificationType: 'ErrandRequest',data: {});
-              Get.off(CustomerErrandTracker(user: currentUser.user,order: value,isNew: true,));
+              Get.off(CustomerErrandTrackerWidget(user: currentUser.user,order: value,isActive: true,));
 
             }
             else{

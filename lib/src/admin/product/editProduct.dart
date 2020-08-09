@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,10 +10,13 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/stockManager/repository/stock.dart';
+import 'package:pocketshopping/src/stockManager/repository/stockRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/imageEditor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
+import 'package:progress_indicators/progress_indicators.dart';
 import 'package:recase/recase.dart';
 
 class EditProductForm extends StatefulWidget {
@@ -33,7 +37,12 @@ class _EditProductFormState extends State<EditProductForm> {
   final TextEditingController _unitController = TextEditingController();
   final TextEditingController _stockController = TextEditingController(text: '1');
   final TextEditingController _categoryController = TextEditingController();
-  Session CurrentUser;
+  final _nameFocus = FocusNode();
+  final _priceFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
+  final _unitFocus = FocusNode();
+  final _categoryFocus = FocusNode();
+  Session currentUser;
   //ProductBloc _productBloc;
   bool _nameEnabler;
   bool _priceEnabler;
@@ -66,6 +75,7 @@ class _EditProductFormState extends State<EditProductForm> {
     _unitController.text = widget.product.pUnit;
     _descriptionController.text = widget.product.pDesc;
     //print(widget.session.merchant.bName);
+    _nameController.addListener(() { print('enabled');});
     super.initState();
   }
 
@@ -147,6 +157,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                   autovalidate: true,
                                                   enabled: _nameEnabler,
                                                   autofocus: _nameEnabler,
+                                                  focusNode: _nameFocus,
                                                 ),
                                               ),
                                               !working?
@@ -154,13 +165,14 @@ class _EditProductFormState extends State<EditProductForm> {
                                                 flex: 0,
                                                 child: _nameEnabler?FlatButton(
                                                   onPressed: ()async{
+                                                    FocusScope.of(context).requestFocus(FocusNode());
                                                     if(_nameController.text.isNotEmpty){
                                                       await ProductRepo.updateProduct(widget.product.pID,
                                                           {
                                                             'productName':_nameController.text.sentenceCase,
-                                                            'index': ProductRepo.makeIndexList(_nameController.text,widget.product.mID.documentID,
-                                                                widget.product.pCategory,widget.product.pGroup),
+                                                            'index': await ProductRepo.makeIndexList(_nameController.text,widget.product.mID.documentID, widget.product.pCategory,widget.product.pGroup),
                                                           });
+
                                                     setState(() {
                                                       _nameEnabler=false;
                                                     });
@@ -174,7 +186,10 @@ class _EditProductFormState extends State<EditProductForm> {
 
                                                       setState(() {
                                                         _nameEnabler=true;
+
                                                       });
+                                                      await Future.delayed(Duration(seconds: 1));
+                                                      FocusScope.of(context).requestFocus(_nameFocus);
 
                                                   },
                                                   child: Text('Edit'),
@@ -209,6 +224,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                     autocorrect: false,
                                                     autovalidate: true,
                                                     enabled: _priceEnabler,
+                                                    focusNode: _priceFocus,
                                                     inputFormatters: <TextInputFormatter>[
                                                       //WhitelistingTextInputFormatter.digitsOnly
                                                     ],
@@ -219,6 +235,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                     flex: 0,
                                                     child: _priceEnabler?FlatButton(
                                                       onPressed: ()async{
+                                                        FocusScope.of(context).requestFocus(FocusNode());
                                                         if(_priceController.text.isNotEmpty){
                                                           await ProductRepo.updateProduct(widget.product.pID,
                                                               {
@@ -233,10 +250,12 @@ class _EditProductFormState extends State<EditProductForm> {
                                                       child: Text('Save',style: TextStyle(color: Colors.white),),
                                                     ):
                                                     FlatButton(
-                                                      onPressed: (){
+                                                      onPressed: ()async{
                                                         setState(() {
                                                           _priceEnabler=true;
                                                         });
+                                                        await Future.delayed(Duration(seconds: 1));
+                                                        FocusScope.of(context).requestFocus(_nameFocus);
                                                       },
                                                       child: Text('Edit'),
                                                     )
@@ -272,7 +291,8 @@ class _EditProductFormState extends State<EditProductForm> {
                                             textInputAction: TextInputAction.done,
                                             keyboardType: TextInputType.text,
                                             autocorrect: true,
-                                            enabled: _categoryEnabler
+                                            enabled: _categoryEnabler,
+                                            focusNode: _categoryFocus
                                           ),
                                           suggestionsCallback: (pattern) async {
                                             List<String> data = List();
@@ -318,6 +338,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                 flex: 0,
                                                 child: _categoryEnabler?FlatButton(
                                                   onPressed: ()async{
+                                                    FocusScope.of(context).requestFocus(FocusNode());
                                                     if(_categoryController.text.isNotEmpty){
                                                       await ProductRepo.updateProduct(widget.product.pID,
                                                           {
@@ -332,10 +353,12 @@ class _EditProductFormState extends State<EditProductForm> {
                                                   child: Text('Save',style: TextStyle(color: Colors.white),),
                                                 ):
                                                 FlatButton(
-                                                  onPressed: (){
+                                                  onPressed: ()async{
                                                     setState(() {
                                                       _categoryEnabler=true;
                                                     });
+                                                    await Future.delayed(Duration(seconds: 1));
+                                                    FocusScope.of(context).requestFocus(_nameFocus);
                                                   },
                                                   child: Text('Edit'),
                                                 )
@@ -370,6 +393,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                     autovalidate: false,
                                                     enabled: _descriptionEnabler,
                                                     maxLines: 3,
+                                                    focusNode: _descriptionFocus,
                                                   ),
                                                 ),
                                                 !working?
@@ -377,6 +401,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                     flex: 0,
                                                     child: _descriptionEnabler?FlatButton(
                                                       onPressed: ()async{
+                                                        FocusScope.of(context).requestFocus(FocusNode());
                                                         if(_descriptionController.text.isNotEmpty){
                                                           await ProductRepo.updateProduct(widget.product.pID,
                                                               {
@@ -391,10 +416,12 @@ class _EditProductFormState extends State<EditProductForm> {
                                                       child: Text('Save',style: TextStyle(color: Colors.white),),
                                                     ):
                                                     FlatButton(
-                                                      onPressed: (){
+                                                      onPressed: ()async{
                                                         setState(() {
                                                           _descriptionEnabler=true;
                                                         });
+                                                        await Future.delayed(Duration(seconds: 1));
+                                                        FocusScope.of(context).requestFocus(_nameFocus);
                                                       },
                                                       child: Text('Edit'),
                                                     )
@@ -402,7 +429,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                               ],
                                             )
                                         ),
-                                        Container(
+                                       /* Container(
                                           decoration: BoxDecoration(
                                             border: Border(
                                               bottom: BorderSide(
@@ -461,7 +488,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                 ):Container(),
                                               ],
                                             )
-                                        ),
+                                        ),*/
                                         Container(
                                             decoration: BoxDecoration(
                                               border: Border(
@@ -491,7 +518,8 @@ class _EditProductFormState extends State<EditProductForm> {
                                             textInputAction: TextInputAction.done,
                                             keyboardType: TextInputType.text,
                                             autocorrect: true,
-                                            enabled: _unitEnabler
+                                            enabled: _unitEnabler,
+                                            focusNode: _unitFocus
                                           ),
                                           suggestionsCallback: (pattern) async {
                                             List<String> data = List();
@@ -533,6 +561,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                               flex: 0,
                                               child: _unitEnabler?FlatButton(
                                                 onPressed: ()async{
+                                                  FocusScope.of(context).requestFocus(FocusNode());
                                                   if(_unitController.text.isNotEmpty){
                                                     await ProductRepo.updateProduct(widget.product.pID,
                                                         {
@@ -547,10 +576,12 @@ class _EditProductFormState extends State<EditProductForm> {
                                                 child: Text('Save',style: TextStyle(color: Colors.white),),
                                               ):
                                               FlatButton(
-                                                onPressed: (){
+                                                onPressed: ()async{
                                                   setState(() {
                                                     _unitEnabler=true;
                                                   });
+                                                  await Future.delayed(Duration(seconds: 1));
+                                                  FocusScope.of(context).requestFocus(_nameFocus);
                                                 },
                                                 child: Text('Edit'),
                                               )

@@ -20,6 +20,7 @@ class Product {
   final int status;
   final int availability;
   final dynamic geoPoint;
+  final bool isManaging;
 
   Product(
       {this.pID,
@@ -37,7 +38,8 @@ class Product {
       this.pCreatedAt,
       this.status,
       this.availability,
-      this.geoPoint
+      this.geoPoint,
+      this.isManaging
       });
 
   Product copyWith(
@@ -57,6 +59,7 @@ class Product {
       int status,
       int availability,
       dynamic geoPoint,
+      bool isManaging,
       }) {
     return Product(
         pID: pID ?? this.pID,
@@ -74,7 +77,8 @@ class Product {
         pName: pName ?? this.pName,
         status: status??this.status,
         availability: availability??this.availability,
-        geoPoint: geoPoint??this.geoPoint
+        geoPoint: geoPoint??this.geoPoint,
+      isManaging: isManaging??this.isManaging,
     );
   }
 
@@ -92,7 +96,11 @@ class Product {
       pQRCode.hashCode ^
       pUploader.hashCode ^
       pUnit.hashCode ^
-      pCreatedAt.hashCode ^ status.hashCode ^ availability.hashCode * geoPoint.hashCode;
+      pCreatedAt.hashCode ^
+      status.hashCode ^
+      availability.hashCode ^
+      geoPoint.hashCode ^
+      isManaging.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -114,7 +122,7 @@ class Product {
           pCreatedAt == other.pCreatedAt &&
           status == other.status &&
           availability == other.availability &&
-          geoPoint == other.geoPoint;
+          geoPoint == other.geoPoint && isManaging == other.isManaging;
 
   @override
   String toString() {
@@ -123,7 +131,7 @@ class Product {
 
   ProductEntity toEntity() {
     return ProductEntity(pID, mID, pName, pPrice, pCategory, pDesc, pPhoto,
-        pGroup, pStockCount, pQRCode, pUploader, pUnit, pCreatedAt,status,availability,geoPoint);
+        pGroup, pStockCount, pQRCode, pUploader, pUnit, pCreatedAt,status,availability,geoPoint,isManaging);
   }
 
   static Product fromEntity(ProductEntity product) {
@@ -143,7 +151,8 @@ class Product {
       pCreatedAt: product.pCreatedAt,
       status: product.status,
       availability: product.availability,
-      geoPoint: product.geoPoint
+      geoPoint: product.geoPoint,
+      isManaging: product.isManaging
     );
   }
 
@@ -164,6 +173,7 @@ class Product {
     snap.add(product.status);
     snap.add(product.availability);
     snap.add(product.geoPoint);
+    snap.add(product.isManaging);
     return snap;
   }
 

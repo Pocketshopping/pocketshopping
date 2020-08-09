@@ -37,6 +37,7 @@ class _TopUpState extends State<TopUp> {
   Timer _timer;
 
 
+
   @override
   void initState() {
     isNumer =true;
@@ -248,7 +249,7 @@ class _TopUpState extends State<TopUp> {
 
             }
             else{
-              print(reference['reference']);
+              //print(reference['reference']);
               setState(() {
                 paying = false;
                 status = 'ERROR';
@@ -345,7 +346,7 @@ class _TopUpState extends State<TopUp> {
                 child: Column(
                   children: <Widget>[
                     Text(
-                      widget.payType=='TOPUP'?'Your pocket has been credited':'Your pocket has been credit with ${_amount.text} Unit(s)',
+                      widget.payType=='TOPUP'?'Your pocket has been credited':'Your pocket has been credited with ${_amount.text} Unit(s)',
                       style: TextStyle(
                           fontSize:
                           MediaQuery.of(context).size.height * 0.04),

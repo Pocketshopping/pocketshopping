@@ -59,10 +59,10 @@ class _CounterState extends State<Counter> {
           return ValueListenableBuilder(
               valueListenable: _current,
               builder: (_, int current, __) {
-                return  Padding(
+                return  current > 0 ?Padding(
                   padding: EdgeInsets.only(right: 10),
                   child: Text('${(current/60).round()}min',style: TextStyle(color: Colors.black54,fontWeight: FontWeight.bold,fontSize: 20),)
-                );
+                ): const Icon(Icons.query_builder);
               }
           );
         }

@@ -27,7 +27,7 @@ class _ProductFormState extends State<ProductForm> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _unitController = TextEditingController();
-  final TextEditingController _stockController = TextEditingController(text: '1');
+  //final TextEditingController _stockController = TextEditingController(text: '1');
   final TextEditingController _categoryController = TextEditingController();
   Session currentUser;
   ProductBloc _productBloc;
@@ -58,7 +58,7 @@ class _ProductFormState extends State<ProductForm> {
     return BlocListener<ProductBloc, ProductState>(listener: (context, state) {
       if (state.isSubmitting) {
         if (state.isUploading) {
-          print('uploading ${state.isUploading}');
+          //print('uploading ${state.isUploading}');
           Scaffold.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
@@ -82,7 +82,7 @@ class _ProductFormState extends State<ProductForm> {
                           fit: BoxFit.cover,
                         ),
                         Text(
-                          "Loading",
+                          "Working...please wait",
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ],
@@ -116,7 +116,7 @@ class _ProductFormState extends State<ProductForm> {
                           fit: BoxFit.cover,
                         ),
                         Text(
-                          "Loading",
+                          "Working...please wait",
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ],
@@ -134,7 +134,7 @@ class _ProductFormState extends State<ProductForm> {
         _descriptionController.clear();
         _categoryController.clear();
         _priceController.clear();
-        _stockController.text = '1';
+        //_stockController.text = '1';
         Scaffold.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -424,7 +424,7 @@ class _ProductFormState extends State<ProductForm> {
                                     maxLines: 3,
                                   ),
                                 ),
-                                Container(
+                                /*Container(
                                   decoration: BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
@@ -448,7 +448,7 @@ class _ProductFormState extends State<ProductForm> {
                                       WhitelistingTextInputFormatter.digitsOnly
                                     ],
                                   ),
-                                ),
+                                ),*/
                                 Container(
                                     decoration: BoxDecoration(
                                       border: Border(
@@ -769,7 +769,7 @@ class _ProductFormState extends State<ProductForm> {
         price: double.tryParse(_priceController.text),
         category: _categoryController.text,
         description: _descriptionController.text,
-        stock: _stockController.text,
+        stock: '1',//_stockController.text,
         unit: _unitController.text,
         user: widget.session,
       ),

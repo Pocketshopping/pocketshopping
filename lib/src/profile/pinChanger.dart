@@ -20,6 +20,11 @@ class _PinChangerState extends State<PinChanger> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pin = TextEditingController();
   final oldPin = TextEditingController();
+  final cPin = TextEditingController();
+  final first = FocusNode();
+  final second = FocusNode();
+  final third = FocusNode();
+  final stage = ValueNotifier<int>(0);
 
   void initState() {
     super.initState();
@@ -35,11 +40,9 @@ class _PinChangerState extends State<PinChanger> {
         body: Container(
             height: MediaQuery.of(context).size.height,
             padding: EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: ListView(
               children: [
+                const SizedBox(height: 20,),
                 Container(
                   color: Colors.white,
                   child: Center(
@@ -51,7 +54,7 @@ class _PinChangerState extends State<PinChanger> {
                               children: [
                                 Expanded(
 
-                                    child: Container(child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),child: Text('Pocket PIN'),))
+                                    child: Container(child: Padding(padding: EdgeInsets.symmetric(horizontal: 10),child: Text('Change 4-Digit Pocket PIN'),))
                                 ),
                                 Expanded(
                                   flex: 0,
@@ -75,6 +78,9 @@ class _PinChangerState extends State<PinChanger> {
                                     }
                                     return null;
                                   },
+                                  focusNode: first,
+                                  showCursor: true,
+                                  readOnly: true,
                                   controller: oldPin,
                                   decoration: InputDecoration(
                                     hintText: 'Old PIN',
@@ -89,7 +95,7 @@ class _PinChangerState extends State<PinChanger> {
                                     ),
                                     errorBorder: InputBorder.none,
                                   ),
-                                  autofocus: false,
+                                  autofocus: true,
                                   textInputAction: TextInputAction.done,
                                   obscureText:true,
                                   keyboardType: TextInputType.number,
@@ -100,6 +106,9 @@ class _PinChangerState extends State<PinChanger> {
                                   maxLengthEnforced: true,
                                   style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
+                                  onTap: (){
+                                   stage.value = 0;
+                                  },
                                 ),
                                 TextFormField(
                                   validator: (value) {
@@ -108,6 +117,9 @@ class _PinChangerState extends State<PinChanger> {
                                     }
                                     return null;
                                   },
+                                  focusNode: second,
+                                  showCursor: true,
+                                  readOnly: true,
                                   controller: pin,
                                   decoration: InputDecoration(
                                     hintText: 'New PIN',
@@ -133,6 +145,9 @@ class _PinChangerState extends State<PinChanger> {
                                   maxLengthEnforced: true,
                                   style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
+                                  onTap: (){
+                                    stage.value = 1;
+                                  },
                                 ),
                                 TextFormField(
                                   validator: (value) {
@@ -141,7 +156,10 @@ class _PinChangerState extends State<PinChanger> {
                                     }
                                     return null;
                                   },
-                                  controller: null,
+                                  focusNode: third,
+                                  showCursor: true,
+                                  readOnly: true,
+                                  controller: cPin,
                                   decoration: InputDecoration(
                                     hintText: 'Confirm PIN',
                                     hintStyle: TextStyle(fontSize: 18,letterSpacing: 1),
@@ -166,11 +184,14 @@ class _PinChangerState extends State<PinChanger> {
                                   maxLength: 4,
                                   maxLengthEnforced: true,
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
+                                  onTap: (){
+                                    stage.value = 2;
+                                  },
                                 ),
                               ],
                             ),
                           ),
-                          Container(color:Colors.grey.withOpacity(0.2), height:20,),
+                          /*Container(color:Colors.grey.withOpacity(0.2), height:20,),
                           Container(
                             color:PRIMARYCOLOR,
                             child: Row(
@@ -203,10 +224,331 @@ class _PinChangerState extends State<PinChanger> {
                                 ),
                               ],
                             ),
-                          ),
+                          ),*/
+
                         ],
                       )
                   ),
+                ),
+                Container(height:20,),
+                ValueListenableBuilder(
+                  valueListenable: stage,
+                  builder: (_,int _stage,__){
+                    return Container(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                            {
+                                              oldPin.text = oldPin.text + '1';
+                                            }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '1';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '1';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('1',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '2';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '2';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '2';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('2',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '3';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '3';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '3';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('3',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20,),
+                            Row(
+                              children: [
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '4';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '4';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '4';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('4',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '5';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '5';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '5';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('5',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '6';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '6';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '6';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('6',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20,),
+                            Row(
+                              children: [
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '7';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '7';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '7';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('7',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '8';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '8';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '8';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('8',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '9';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '9';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '9';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('9',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20,),
+                            Row(
+                              children: [
+                                Expanded(
+                                    child:GestureDetector(
+                                        onTap: (){
+                                          if(_stage == 0)
+                                          {
+                                            oldPin.text = oldPin.text + '0';
+                                          }
+                                          else if(_stage == 1)
+                                          {
+                                            pin.text = pin.text + '0';
+                                          }
+                                          else{
+                                            cPin.text = cPin.text + '0';
+                                          }
+                                        },
+                                        child:  Center(
+                                          child: Text('0',style: TextStyle(color: Colors.white,fontSize: 40,fontWeight: FontWeight.bold),),
+                                        )
+                                    )
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20,),
+                            Row(
+                              children: [
+                                Expanded(
+                                    child: GestureDetector(
+                                      onTap: (){
+
+                                        if(_stage == 0)
+                                        {
+                                          if(oldPin.text.length>0)
+                                            oldPin.text = oldPin.text.substring(0,(oldPin.text.length-1));
+                                        }
+                                        else if(_stage == 1)
+                                        {
+                                          if(pin.text.length>0)
+                                            pin.text = pin.text.substring(0,(pin.text.length-1));
+                                        }
+                                        else{
+                                          if(cPin.text.length>0)
+                                            cPin.text = cPin.text.substring(0,(cPin.text.length-1));
+                                        }
+                                      },
+                                      child: Center(
+                                        child: Text('Del',style: TextStyle(color: Colors.white,fontSize: 40),),
+                                      ),
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                      onTap: (){
+                                        if(_stage == 0)
+                                        {
+                                            oldPin.text = '';
+                                        }
+                                        else if(_stage == 1){
+                                          pin.text = '';
+                                        }
+                                        else
+                                        {
+                                          cPin.text = '';
+                                        }
+
+                                      },
+                                      child: Center(
+                                        child: Text('Clear',style: TextStyle(color: Colors.white,fontSize: 40),),
+                                      ),
+                                    )
+                                ),
+                                Expanded(
+                                    child: GestureDetector(
+                                        onTap: ()async{
+
+                                          if(_stage == 0){
+                                            stage.value = 1;
+                                            FocusScope.of(context).requestFocus(second);
+                                          }
+                                          else if(_stage == 1){
+                                            stage.value = 2;
+                                            FocusScope.of(context).requestFocus(third);
+                                          }
+                                          else{
+                                            FocusScope.of(context).requestFocus(FocusNode());
+                                            if(_formKey.currentState.validate()){
+                                              Get.back();
+                                              Utility.bottomProgressLoader(title: 'Pocket Pin',body: 'Changing Pocket PIN...please wait');
+                                              bool pinTest = await PinRepo.fetchPin(oldPin.text, widget.user.walletId);
+                                              if(pinTest){
+                                                bool result = await PinRepo.save(Pin(pin: pin.text), widget.user.walletId);
+                                                Get.back();
+                                                if(result)
+                                                  Utility.bottomProgressSuccess(title: 'Pocket Pin',body: '4-Digit Pocket PIN Changed');
+                                                else
+                                                  Utility.bottomProgressFailure(title: 'Pocket Pin',body: 'Error Changing 4-Digit PIN...Try again');
+                                              }
+                                              else{
+                                                Get.back();
+                                                Utility.infoDialogMaker('Incorrect old PIN. Enter correct 4-Digit PIN and try again',title: '');
+                                              }
+                                            }
+                                          }
+
+                                        },
+                                        child: Center(
+                                          child: Text(_stage > 1?'Ok':'Next',style: TextStyle(color: Colors.white,fontSize: 40),),
+                                        )
+                                    )
+                                ),
+                              ],
+                            )
+                          ],
+                        )
+                    );
+                  },
                 )
               ],
             )

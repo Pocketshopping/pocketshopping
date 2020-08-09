@@ -27,7 +27,7 @@ class _TimerState extends State<OrderTimerWidget> {
 
   @override
   void initState() {
-    print(setStartCount().toString());
+    //print(setStartCount().toString());
     colorsState = (setStartCount() / 60).round() > 0 ? 'green' : 'red';
     _start = setStartCount();
     counter = '${(setStartCount() / 60).round()}';

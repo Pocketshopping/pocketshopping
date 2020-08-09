@@ -378,7 +378,6 @@ class ErrandTracker extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Column(
       children: [
         Align(
@@ -982,10 +981,9 @@ class ErrandTracker extends StatelessWidget{
       //refreshOrder();
       //confirmNotifier().then((value) => null);
       GetBar(
-        title: 'Order Confirmed',
+        title: 'Errand Confirmed',
         messageText: const Text(
-          'Take your time to rate this user your rating will help us '
-              ' improve our service',
+          'Errand has been confirmed',
           style: const TextStyle(color: Colors.white),
         ),
         duration: const Duration(seconds: 10),

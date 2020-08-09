@@ -1,16 +1,23 @@
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/admin/product/bloc/categoryBloc.dart';
+import 'package:pocketshopping/src/admin/product/bloc/refreshBloc.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/geofence/bloc/geofenceRefreshBloc.dart';
+import 'package:pocketshopping/src/stockManager/repository/stock.dart';
+import 'package:pocketshopping/src/stockManager/repository/stockRepo.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:recase/recase.dart';
 
+//cleared
 class ProductRepo {
   final databaseReference = Firestore.instance;
   static final Geoflutterfire geo = Geoflutterfire();
@@ -23,7 +30,7 @@ class ProductRepo {
     String pDesc,
     List<String> pPhoto,
     String pGroup,
-    int pStockCount,
+    int pStockCount=1,
     String pQRCode,
     String pUploader,
     String pUnit,
@@ -49,13 +56,25 @@ class ProductRepo {
       'productCreatedAt': DateTime.now(),
       'productStatus':  status,
       'productAvailability':availability,
+      'isManaging':pStockCount > 1?true:false,
       'productGeoPoint': productLocation.data,
       'index': await makeIndexList(pName,mID,pCategory,pGroup),
     }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
 
       if(bid != null){
         await saveCategory(pCategory, mID);
-        await saveProductStock(bid.documentID, pUploader, pStockCount);
+        //await saveProductStock(bid.documentID, pUploader, pStockCount);
+        await StockRepo.save(Stock(
+          productID: bid.documentID,
+          company: mID,
+          stockCount: pStockCount,
+          lastRestockCount: pStockCount,
+          restockedBy: pUploader,
+          frequency: 0,
+          product: pName,
+          restockedAt: Timestamp.now(),
+          isManaging: pStockCount > 1?true:false,
+        ));
       }
     }catch(_){
 
@@ -97,7 +116,7 @@ class ProductRepo {
     return pCategory;
   }*/
 
-  Future<String> saveProductStock(
+  /*Future<String> saveProductStock(
     String pid,
     String pUploader,
     int pStockCount,
@@ -110,6 +129,7 @@ class ProductRepo {
         'restockCount': pStockCount,
         'oldStockCount': 0,
         'StockCount': pStockCount,
+        'isManaging': false,
         'restockedAt': DateTime.now(),
       }).then((value) => bid = value.documentID.toString())
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
@@ -119,7 +139,7 @@ class ProductRepo {
     catch(_){
       return '';
     }
-  }
+  }*/
 
   static Future<List<String>> makeIndexList(String pName, String mid,String category, String pGroup) async{
     List<String> temp=[];
@@ -135,7 +155,7 @@ class ProductRepo {
   static Future<bool> updateProduct(String pID, Map<String, dynamic> data) async {
     try {
       await Firestore.instance.collection('products').document(pID).updateData(data)
-          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return false;});
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       Get.snackbar('Update',
           'Product updated',duration: Duration(seconds: 3),
           backgroundColor: PRIMARYCOLOR,
@@ -149,7 +169,7 @@ class ProductRepo {
   static Future<bool> deleteProduct(String pID) async {
     try {
       await Firestore.instance.collection('products').document(pID).delete()
-          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return false;});
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }catch(_){return false;}
   }
@@ -158,7 +178,7 @@ class ProductRepo {
   Future<Map<String, dynamic>> getOne(String pID) async {
     try{
       var document = await Firestore.instance.collection('products')
-          .document(pID).get(source: Source.serverAndCache)
+          .document(pID).get(source: Source.server)
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
       if(document != null)
         return document.data;
@@ -178,53 +198,142 @@ class ProductRepo {
         .snapshots()
         .map((element) {
       return element.documents.length;
-    }).timeout(Duration(seconds: TIMEOUT),onTimeout: (sink){sink.add(0);});
+    });
   }
 
-  Future<List<String>> getCategory(String pCategory) async {
+  Future<List<String>> getCategory(String pCategory,{int source=0}) async {
     try{
-      List<String> suggestion = List();
-      var document = await Firestore.instance
-          .collection('productsCategory')
-          .where('productCategory', isGreaterThanOrEqualTo: pCategory)
-          .where('productCategory', isLessThan: pCategory + 'z')
-          .getDocuments(source: Source.serverAndCache)
-          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      try{
+        if(source == 1)
+          throw Exception;
+        List<String> suggestion = List();
+        var document = await Firestore.instance
+            .collection('productsCategory')
+            .where('productCategory', isGreaterThanOrEqualTo: pCategory)
+            .where('productCategory', isLessThan: pCategory + 'z')
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty)
+          throw Exception;
+        if(document != null){
+          document.documents.forEach((element) {
+            suggestion.add(element.documentID);
+          });
+        }
 
-      if(document != null){
-        document.documents.forEach((element) {
-          suggestion.add(element.documentID);
-        });
+        return suggestion;
       }
+      catch(_){
+        List<String> suggestion = List();
+        var document = await Firestore.instance
+            .collection('productsCategory')
+            .where('productCategory', isGreaterThanOrEqualTo: pCategory)
+            .where('productCategory', isLessThan: pCategory + 'z')
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
 
-      return suggestion;
+        if(document != null){
+          document.documents.forEach((element) {
+            suggestion.add(element.documentID);
+          });
+        }
+
+        return suggestion;
+      }
     }
     catch(_){return [];}
   }
 
-  static Future<List<Product>> fetchAllProduct(String mID, dynamic lastDoc) async {
+  static Future<List<String>> runFetchCategory(String mid,{int source=0})async{
+    List<String> category = [];
+    try{
+
+      try{
+        if(source == 1) throw Exception;
+        List<String> data = await CategoryBloc.instance.getLastCategories();
+        if(data.isEmpty) throw Exception;
+        else category = data;
+      }
+      catch(_){
+        HttpsCallableResult data = await CloudFunctions.instance.getHttpsCallable(
+          functionName: "FetchMerchantsProductCategory",
+        ).call({'mID': mid}).timeout(Duration(seconds: TIMEOUT),onTimeout: (){
+          Utility.noInternet();
+          throw CloudFunctionsException;
+        });
+        category = List.castFrom(data.data);
+        CategoryBloc.instance.addNewCategory(category);
+
+      }
+
+      return category;
+    }
+    catch(_){
+      return [];
+    }
+  }
+
+  static Future<List<Product>> fetchAllProduct(String mID, dynamic lastDoc,{int source=0}) async {
+    source = await ProductRefreshBloc.instance.getLastRefresh();
+    //print(await ProductRefreshBloc.instance.getLastRefresh());
   try{
     var mRef = Firestore.instance.document('merchants/$mID');
     List<Product> tmp = List();
     var document;
 
     if (lastDoc == null) {
-      document = await Firestore.instance
-          .collection('products')
-          .orderBy('productCreatedAt', descending: true)
-          .where('productMerchant', isEqualTo: mRef)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache)
-          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      try{
+        if(source == 1) throw Exception;
+        document = await Firestore.instance
+            .collection('products')
+            .orderBy('productCreatedAt', descending: true)
+            .where('productMerchant', isEqualTo: mRef)
+            .limit(10)
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty)
+          throw Exception;
+       // print('product cahce');
+      }
+      catch(_){
+        document = await Firestore.instance
+            .collection('products')
+            .orderBy('productCreatedAt', descending: true)
+            .where('productMerchant', isEqualTo: mRef)
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+        //print('product web');
+      }
     } else {
-      document = await Firestore.instance
-          .collection('products')
-          .orderBy('productCreatedAt', descending: true)
-          .where('productMerchant', isEqualTo: mRef)
-          .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache)
-          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+      try{
+        if(source == 1)
+          throw Exception;
+        document = await Firestore.instance
+            .collection('products')
+            .orderBy('productCreatedAt', descending: true)
+            .where('productMerchant', isEqualTo: mRef)
+            .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty)
+          throw Exception;
+        //print('product cahce');
+      }
+      catch(_){
+        document = await Firestore.instance
+            .collection('products')
+            .orderBy('productCreatedAt', descending: true)
+            .where('productMerchant', isEqualTo: mRef)
+            .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+        //print('product web');
+      }
     }
 
     if(document != null){
@@ -232,12 +341,16 @@ class ProductRepo {
         tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
       });
     }
+
     return tmp;
   }
-  catch(_){return [];}
+  catch(_){
+    ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+    return [];}
   }
 
-  static Future<List<Product>> fetchCategoryProduct(String mID, dynamic lastDoc,String category) async {
+  static Future<List<Product>> fetchCategoryProduct(String mID, dynamic lastDoc,String category,{int source=0}) async {
+    source = await ProductRefreshBloc.instance.getLastRefresh();
    try{
      var mRef = Firestore.instance.document('merchants/$mID');
      List<Product> tmp = List();
@@ -245,24 +358,65 @@ class ProductRepo {
 
 
      if (lastDoc == null) {
-       document = await Firestore.instance
-           .collection('products')
-           .orderBy('productCreatedAt', descending: true)
-           .where('productMerchant', isEqualTo: mRef)
-           .where('productCategory',isEqualTo: category)
-           .limit(10)
-           .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){ Utility.noInternet(); throw Exception;});
+       try{
+         if(source == 1)
+           throw Exception;
+
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory',isEqualTo: category)
+             .limit(10)
+             .getDocuments(source: Source.cache)
+             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){ throw Exception;});
+         if(document.documents.isEmpty)
+           throw Exception;
+         //print('pos cahce');
+       }
+       catch(_){
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory',isEqualTo: category)
+             .limit(10)
+             .getDocuments(source: Source.serverAndCache)
+             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){ Utility.noInternet(); throw Exception;});
+         ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+         //print('pos web');
+       }
      } else {
-       document = await Firestore.instance
-           .collection('products')
-           .orderBy('productCreatedAt', descending: true)
-           .where('productMerchant', isEqualTo: mRef)
-           .where('productCategory',isEqualTo: category)
-           .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
-           .limit(10)
-           .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){ Utility.noInternet(); return null;});
+       try{
+         if(source == 1)
+           throw Exception;
+
+         //print('pos cahce');
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory',isEqualTo: category)
+             .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+             .limit(10)
+             .getDocuments(source: Source.cache)
+             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){  throw Exception;});
+         if(document.documents.isEmpty)
+           throw Exception;
+       }
+       catch(_){
+        // print('pos web');
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory',isEqualTo: category)
+             .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+             .limit(10)
+             .getDocuments(source: Source.serverAndCache)
+             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){ Utility.noInternet(); throw Exception;});
+         ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+       }
      }
 
      if(document != null){
@@ -270,79 +424,158 @@ class ProductRepo {
          tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
        });
      }
-     return tmp;
-   }
-   catch(_){return [];}
-  }
 
-  Future<List<Product>> fetchProduct(
-      String mID, dynamic lastDoc, String category) async {
-   try{
-     var mRef = Firestore.instance.document('merchants/$mID');
-     List<Product> tmp = List();
-     var document;
-
-     if (lastDoc == null) {
-       document = await Firestore.instance
-           .collection('products')
-           .orderBy('productCreatedAt', descending: true)
-           .where('productMerchant', isEqualTo: mRef)
-           .where('productCategory', isEqualTo: category)
-           .limit(10)
-           .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); return null;});
-     } else {
-       //print(lastDoc !=null ?DateTime.parse(lastDoc.pCreatedAt.toDate().toString()):'');
-       document = await Firestore.instance
-           .collection('products')
-           .orderBy('productCreatedAt', descending: true)
-           .where('productMerchant', isEqualTo: mRef)
-           .where('productCategory', isEqualTo: category)
-           .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
-           .limit(10)
-           .getDocuments(source: Source.serverAndCache)
-           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); return null;});
-     }
-
-     if(document != null){
-       document.documents.forEach((element) {
-         tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
-       });
-     }
      return tmp;
    }
    catch(_){
+     ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+     return [];}
+  }
+
+  Future<List<Product>> fetchProduct(
+      String mID, dynamic lastDoc, String category,{int source=0}) async {
+    source = await GeofenceRefreshBloc.instance.getLastRefresh();
+   try{
+     var mRef = Firestore.instance.document('merchants/$mID');
+     List<Product> tmp = List();
+     var document;
+
+     if (lastDoc == null) {
+
+       try{
+         if(source == 1)
+           throw Exception;
+
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory', isEqualTo: category)
+             .limit(10)
+             .getDocuments(source: Source.cache)
+             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){ throw Exception;});
+         if(document.documents.isEmpty)
+           throw Exception;
+       }
+       catch(_){
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory', isEqualTo: category)
+             .limit(10)
+             .getDocuments(source: Source.serverAndCache)
+             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw Exception;});
+         GeofenceRefreshBloc.instance.addNextRefresh(DateTime.now());
+       }
+
+     } else {
+       //print(lastDoc !=null ?DateTime.parse(lastDoc.pCreatedAt.toDate().toString()):'');
+       try{
+         if(source == 1)
+           throw Exception;
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory', isEqualTo: category)
+             .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+             .limit(10)
+             .getDocuments(source: Source.cache)
+             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){return null;});
+         if(document.documents.isEmpty)
+           throw Exception;
+       }
+       catch(_){
+         document = await Firestore.instance
+             .collection('products')
+             .orderBy('productCreatedAt', descending: true)
+             .where('productMerchant', isEqualTo: mRef)
+             .where('productCategory', isEqualTo: category)
+             .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+             .limit(10)
+             .getDocuments(source: Source.serverAndCache)
+             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); return null;});
+         GeofenceRefreshBloc.instance.addNextRefresh(DateTime.now());
+       }
+     }
+
+     if(document != null){
+       document.documents.forEach((element) {
+         tmp.add(Product.fromEntity(ProductEntity.fromSnapshot(element)));
+       });
+     }
+
+     return tmp;
+   }
+   catch(_){
+     GeofenceRefreshBloc.instance.addNextRefresh(DateTime.now());
      return [];
    }
   }
 
  static Future<List<Product>> searchProduct(
-      String mID, dynamic lastDoc, String search) async {
+      String mID, dynamic lastDoc, String search,{int source=0}) async {
     try{
       var mRef = Firestore.instance.document('merchants/$mID');
       List<Product> tmp = List();
-      var document;
+      QuerySnapshot document;
 
       if (lastDoc == null) {
-        document = await Firestore.instance
-            .collection('products')
-            .where('productMerchant', isEqualTo: mRef)
-            .where('index', arrayContains: search.toLowerCase())
-            .limit(10)
-            .getDocuments(source: Source.serverAndCache)
-            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+        try{
+          if(source == 1)
+            throw Exception;
+          document = await Firestore.instance
+              .collection('products')
+              .where('productMerchant', isEqualTo: mRef)
+              .where('index', arrayContains: search.toLowerCase())
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty)
+            throw Exception;
+          //print('search cahce');
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('products')
+              .where('productMerchant', isEqualTo: mRef)
+              .where('index', arrayContains: search.toLowerCase())
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+          //print('search web');
+        }
       } else {
-        print(lastDoc != null
+        /*print(lastDoc != null
             ? DateTime.parse(lastDoc.pCreatedAt.toDate().toString())
-            : '');
-        document = await Firestore.instance
-            .collection('products')
-            .where('productMerchant', isEqualTo: mRef)
-            .where('index', arrayContains: search.toLowerCase())
-            .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
-            .limit(10)
-            .getDocuments(source: Source.serverAndCache)
-            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+            : '');*/
+        try{
+          if(source == 1)
+            throw Exception;
+          document = await Firestore.instance
+              .collection('products')
+              .where('productMerchant', isEqualTo: mRef)
+              .where('index', arrayContains: search.toLowerCase())
+              .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty)
+            throw Exception;
+          //print('search cahce');
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('products')
+              .where('productMerchant', isEqualTo: mRef)
+              .where('index', arrayContains: search.toLowerCase())
+              .startAfter([DateTime.parse(lastDoc.pCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+          //print('search web');
+        }
       }
 
       if(document != null){

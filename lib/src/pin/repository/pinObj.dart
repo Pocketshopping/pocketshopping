@@ -40,7 +40,7 @@ class Pin {
   static hash(String pin){
     var bytes1 = utf8.encode(pin);         // data being hashed
     var hashedPin = sha256.convert(bytes1);
-    print(hashedPin);
+    //print(hashedPin);
     return hashedPin.toString();
 
   }

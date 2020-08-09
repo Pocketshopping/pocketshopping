@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pocketshopping/src/pocketPay/history.dart';
 import 'package:pocketshopping/src/pocketPay/pocketMenu.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
 class PocketPay extends StatefulWidget {
@@ -28,15 +30,8 @@ class _PocketPayState extends State<PocketPay> {
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
               0.15), // here the desired height
           child: AppBar(
-            leading: IconButton(
-              icon: Icon(
-                Icons.menu,
-                color: PRIMARYCOLOR,
-              ),
-              onPressed: () {
-                //print("your menu action here");
-                Scaffold.of(context).openDrawer();
-              },
+            leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
+              openDrawer: (){Scaffold.of(context).openDrawer();},
             ),
             backgroundColor: Colors.white,
             elevation: 0,
@@ -56,12 +51,15 @@ class _PocketPayState extends State<PocketPay> {
               ],
             ),
             automaticallyImplyLeading: false,
+            actions: [
+              Help(page: 'pocketpay',),
+            ],
           ),
         ),
         body: TabBarView(
           children: [
             PocketMenu(user: currentUser),
-            PocketHistory(user: currentUser),
+            PocketHistoryWidget(user: currentUser),
           ],
         ),
       ),

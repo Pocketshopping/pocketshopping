@@ -12,12 +12,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart' as loc;
+import 'package:pocketshopping/src/admin/product/product.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelObj.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
-import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/customer.dart';
@@ -26,6 +26,7 @@ import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/orderMode.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
+import 'package:pocketshopping/src/order/tracker/customer/cdTracker.dart';
 import 'package:pocketshopping/src/payment/atmCard.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
@@ -756,9 +757,8 @@ class _OrderUIState extends State<OrderUI> {
               "cvv":(details['cvv'] as String),
               "month":int.parse(temp[0]),
               "year":int.parse(temp[1]),
-              "amount":mode == 'Delivery'?((dCut + order.orderAmount).round()):order.orderAmount,
+              "amount":((dCut + order.orderAmount).round() + Utility.onePointFive((dCut + order.orderAmount).round())),
               "email":(details['email'] as String),
-
             }))
     );
     if (reference.isNotEmpty) {
@@ -1301,8 +1301,17 @@ class _OrderUIState extends State<OrderUI> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        orderCount += 1;
-                        setState(() {});
+                        setState(() {
+                          if((widget.payload as Product).isManaging)
+                            {
+                              if((widget.payload as Product).pStockCount > orderCount)
+                                orderCount += 1;
+                            }
+                            else
+                              {
+                                orderCount += 1;
+                              }
+                        });
                       },
                       child: Container(
                         margin:
@@ -1495,11 +1504,22 @@ class _OrderUIState extends State<OrderUI> {
                                         ),
                                         GestureDetector(
                                           onTap: () {
-                                            widget.payload[index].count += 1;
-                                            widget.payload[index].total =
-                                                widget.payload[index].count *
-                                                    widget.payload[index].item
-                                                        .pPrice;
+                                            if((widget.payload[index].item as Product).isManaging){
+                                              if((widget.payload[index].item as Product).pStockCount > widget.payload[index].count ){
+                                                widget.payload[index].count += 1;
+                                                widget.payload[index].total =
+                                                    widget.payload[index].count *
+                                                        widget.payload[index].item
+                                                            .pPrice;
+                                              }
+                                            }
+                                            else{
+                                              widget.payload[index].count += 1;
+                                              widget.payload[index].total =
+                                                  widget.payload[index].count *
+                                                      widget.payload[index].item
+                                                          .pPrice;
+                                            }
                                             setState(() {});
                                           },
                                           child: Container(
@@ -1778,8 +1798,7 @@ class _OrderUIState extends State<OrderUI> {
               ),
             ],
           ),
-          dist > 100
-              ? Column(
+           Column(
                   children: <Widget>[
                     Container(
                       margin: EdgeInsets.only(bottom: 20),
@@ -2102,6 +2121,44 @@ class _OrderUIState extends State<OrderUI> {
                           customerID: widget.user.uid,
                           orderETA: pickupETA(),
                         );
+                        deliveryETA(0, 'Pickup', 0.0, 0, 0.0);
+                        setState(() {});
+                      },
+                      leading: CircleAvatar(
+                        child: Image.asset('assets/images/pickup.jpg'),
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                      ),
+                      title: Text(
+                        'PickUp',
+                        style: TextStyle(
+                            fontSize:
+                            MediaQuery.of(context).size.height * 0.03),
+                      ),
+                      subtitle: !widget.merchant.adminUploaded?Text('Unavailable',style: TextStyle(color: Colors.red),)
+                          :
+                      Text('Unavailable',style: TextStyle(color: Colors.red),),
+                      trailing: IconButton(
+                        icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
+                      ),
+                      enabled: false,
+                    )
+                    /*ListTile(
+                      onTap: () {
+                        stage = 'OVERVIEW';
+                        mode = 'Pickup';
+                        order = order.update(
+                          orderMode: OrderMode(
+                            mode: mode,
+                          ),
+                          orderCustomer: Customer(
+                            customerName: widget.user.fname,
+                            customerReview: '',
+                            customerTelephone: _contact.text,
+                          ),
+                          customerID: widget.user.uid,
+                          orderETA: pickupETA(),
+                        );
                         deliveryETA(0, 'Pickup', 0.0, 0, 120.0);
                         setState(() {});
                       },
@@ -2123,14 +2180,14 @@ class _OrderUIState extends State<OrderUI> {
                         icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                       enabled:!widget.merchant.adminUploaded ,
-                    ),
+                    )*/,
                     Divider(
                       height: 2,
                       color: Colors.grey,
                     ),
                   ],
                 )
-              : 'Restuarant' == widget.merchant.bCategory
+              /*: 'Restuarant' == widget.merchant.bCategory
                   ? Column(
                       children: <Widget>[
                         Container(
@@ -2273,8 +2330,8 @@ class _OrderUIState extends State<OrderUI> {
                           color: Colors.grey,
                         ),
                       ],
-                    )
-                  : ListTile(
+                    )*/
+                  /*: ListTile(
                       onTap: () {
                         stage = 'OVERVIEW';
                         mode = 'Pickup';
@@ -2311,7 +2368,7 @@ class _OrderUIState extends State<OrderUI> {
                         icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                     enabled: !widget.merchant.adminUploaded,
-                    ),
+                    )*/,
         ],
       ),
     );
@@ -2328,7 +2385,7 @@ class _OrderUIState extends State<OrderUI> {
             setState(() {
               stage = 'ORDERNOW';
             });
-            Get.off(CustomerTracker(
+            Get.off(CustomerDeliveryTrackerWidget(
               order: order.docID,
               user: widget.user,
             ));

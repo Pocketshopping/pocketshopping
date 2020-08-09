@@ -18,7 +18,7 @@ class CreateAccountButton extends StatelessWidget {
         'Create an Account',
       ),
       onPressed: () {
-        Get.to(RegisterScreen(userRepository: _userRepository));
+        Get.off(RegisterScreen(userRepository: _userRepository));
       },
     );
   }

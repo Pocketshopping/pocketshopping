@@ -8,10 +8,15 @@ import 'package:pocketshopping/src/errand/errand.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/geofence/reviewPlace.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
+import 'package:pocketshopping/src/ui/shared/tour.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class MyRadius extends StatefulWidget {
   @override
@@ -27,6 +32,9 @@ class _MyRadiusState extends State<MyRadius> {
   final right=ValueNotifier<bool>(true);
   final search=ValueNotifier<List<MCategory>>([]);
   final scrollController = ScrollController();
+/*  GlobalKey _radiusOne = GlobalKey();
+  GlobalKey __radiusTwo = GlobalKey();
+  GlobalKey _radiusThree = GlobalKey();*/
 
   @override
   void initState() {
@@ -35,6 +43,22 @@ class _MyRadiusState extends State<MyRadius> {
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     //Utility.locationAccess();
     super.initState();
+
+    SharedPreferences.getInstance().then((value) {
+      bool newUser =true;
+      if(value.containsKey('isNewUser')){newUser = value.getBool('isNewUser');}
+        if(newUser){
+          WidgetsBinding.instance.addPostFrameCallback((_) => Get.dialog(Tour(name: currentUser.user.fname,),));
+          value.setBool('isNewUser', false);
+        }
+
+    });
+
+
+
+
+
+
   }
 
   @override
@@ -60,16 +84,61 @@ class _MyRadiusState extends State<MyRadius> {
             preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
                 0.08), // here the desired height
             child: AppBar(
-              leading: IconButton(
-                icon: Icon(
-                  Icons.menu,
-                  color: PRIMARYCOLOR,
+              leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
+                openDrawer: (){Scaffold.of(context).openDrawer();},
+              ),/*Showcase.withWidget(
+                key: _radiusOne,
+                //title: 'Menu.',
+                width: MediaQuery.of(context).size.width*0.9,
+                height:  MediaQuery.of(context).size.height*0.6,
+                disableAnimation: true,
+
+                container: Container(
+                  width:  MediaQuery.of(context).size.width*0.9,
+                  //height: MediaQuery.of(context).size.height*0.6,
+                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                  color: Colors.black.withOpacity(0.4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Menu",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
+                      const SizedBox(height: 10,),
+                      Text("Click to here see menu options such as",style: TextStyle(color: Colors.white),),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                        child: Text("View profile",style: TextStyle(color: Colors.white,fontSize:18),),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          color: Colors.blueAccent,
+                          child: Text("Setup business",style: TextStyle(color: Colors.white,fontSize:18,wordSpacing: 2),),
+                        )
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                        child: Text("etc.",style: TextStyle(color: Colors.white,fontSize:18,wordSpacing: 2),),
+                      ),
+                      const SizedBox(height: 10,),
+                      FlatButton(
+                        onPressed: (){
+                          ShowCaseWidget.of(context).startShowCase([__radiusTwo,_radiusThree]);
+                        },
+                        child: Center(
+                          child: Text('Next',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
+                        ),
+                      )
+                    ],
+                  )
                 ),
-                onPressed: () {
-                  //print("your menu action here");
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
+                //description: 'Click here to see menu options',
+                shapeBorder: CircleBorder(),
+                child: BonusDrawerIcon(wallet: currentUser.user.walletId,
+                  openDrawer: (){Scaffold.of(context).openDrawer();},
+                ),
+
+              ),*/
               backgroundColor: Colors.white,
               elevation: 0,
               title: Text(
@@ -77,6 +146,51 @@ class _MyRadiusState extends State<MyRadius> {
                 style: TextStyle(color: Colors.black),
               ),
               automaticallyImplyLeading: false,
+              actions: [
+                Help(page: 'user',),
+              ],
+                /*Showcase.withWidget(
+                  key: __radiusTwo,
+                  //title: 'Menu.',
+                  width: MediaQuery.of(context).size.width*0.9,
+                  height:  MediaQuery.of(context).size.height*0.6,
+                  disableAnimation: true,
+
+                  container: Container(
+                      width:  MediaQuery.of(context).size.width*0.9,
+                      //height: MediaQuery.of(context).size.height*0.6,
+                      padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                      color: Colors.black.withOpacity(0.4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Tour",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
+                          const SizedBox(height: 10,),
+                          Text("Click to here take a tour and learn how to use pocketshopping effectively",style: TextStyle(color: Colors.white),),
+                          const SizedBox(height: 10,),
+                          FlatButton(
+                            onPressed: (){
+                              ShowCaseWidget.of(context).startShowCase([_radiusThree]);
+                            },
+                            child: Center(
+                              child: Text('Next',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
+                            ),
+                          )
+                        ],
+                      )
+                  ),
+                  //description: 'Click here to see menu options',
+                  shapeBorder: CircleBorder(),
+                  child: IconButton(
+                    onPressed: (){
+                      //ShowCaseWidget.of(context).startShowCase([_one,]);
+                    },
+                    color: PRIMARYCOLOR,
+                    icon: Icon(Icons.help_outline),
+                  ),
+
+                ),*/
+
             ),
           ),
           body: Column(
@@ -280,12 +394,38 @@ class _MyRadiusState extends State<MyRadius> {
                                       if(!show)
                                         Expanded(
                                           flex:0,
-                                          child: Padding(
-                                            //padding: EdgeInsets.symmetric(horizontal: 5,vertical: 5),
-                                              padding: EdgeInsets.only(left: 0,top: 20),
-                                              child: IconButton(icon: Icon(AntIcons.search_outline,color: PRIMARYCOLOR,),
-                                                onPressed: (){showSearch.value=true;},)
-                                          ),
+                                          child: IconButton(icon: Icon(AntIcons.search_outline,color: PRIMARYCOLOR,),
+                                            onPressed: (){showSearch.value=true;},),/*Showcase.withWidget(
+                                            key: _radiusThree,
+                                            //title: 'Menu.',
+                                            width: MediaQuery.of(context).size.width*0.9,
+                                            height:  MediaQuery.of(context).size.height*0.6,
+                                            disableAnimation: true,
+                                            container: Container(
+                                                width:  MediaQuery.of(context).size.width*0.9,
+                                                //height: MediaQuery.of(context).size.height*0.6,
+                                                padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                                color: Colors.black.withOpacity(0.4),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text("Search",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
+                                                    const SizedBox(height: 10,),
+                                                    Text("Click to here search for more categories of merchant, pockectshopping has more than what you are seeing.",style: TextStyle(color: Colors.white),),
+                                                    const SizedBox(height: 10,),
+                                                    Center(
+                                                      child: Text('Done',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30,color: Colors.white),),
+                                                    ),
+                                                  ],
+                                                )
+                                            ),
+                                            //description: 'Click here to see menu options',
+                                            shapeBorder: CircleBorder(),
+                                            child: IconButton(icon: Icon(AntIcons.search_outline,color: PRIMARYCOLOR,),
+                                              onPressed: (){showSearch.value=true;},),
+                                            disposeOnTap: true,
+
+                                          ),*/
                                         ),
                                       if(show)
                                         Expanded(
@@ -324,7 +464,7 @@ class _MyRadiusState extends State<MyRadius> {
                                   leading: CircleAvatar(
                                     radius: 25,
                                     backgroundColor: Colors.white,
-                                    child: Image.network(items[index].categoryURI,width: 30,height: 30,),
+                                    child: Image.network(items[index].categoryURI.isNotEmpty?items[index].categoryURI:PocketShoppingLogo,width: 30,height: 30,),
                                   ),
                                   title: Text('${items[index].categoryName == 'Logistic'?'Riders':items[index].categoryName}',style: TextStyle(fontSize: 18),),
                                   subtitle: Text('${items[index].desc}'),

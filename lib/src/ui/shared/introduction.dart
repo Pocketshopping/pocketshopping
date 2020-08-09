@@ -24,82 +24,118 @@ class _IntroductionState extends State<Introduction> {
     //SchedulerBinding.instance.addPostFrameCallback((_) {});
     final first = PageViewModel(
       titleWidget: Text(
-        "Welcome to PocketShopping",
-        style: TextStyle(color: PRIMARYCOLOR),
+        "Your shopping companion",
+        style: TextStyle(color: PRIMARYCOLOR,fontSize: 20),
       ),
       bodyWidget: Text(
-        "Pocketshopping is a location based ordering app which can be used to make purchase "
-        "accross diffrent merchant such as resturant, malls, stores, Bars etc."
-        " Pockectshopping supports home delivery and in-place purchase. what this"
-        " means is that with pocketshopping you can buy items from merchant around your"
-        " location and have them delivered to you, you can equally use pocketshopping as to place"
-        " order in restuanrants,bars etc. use it in place of menu.",
+        "Fleepage LLC",
         style: TextStyle(color: PRIMARYCOLOR),
       ),
       image: Center(
         child: Image.asset(
           'assets/images/blogo.png',
-          height: MediaQuery.of(context).size.height * 0.4,
+          //height: MediaQuery.of(context).size.height * 0.4,
         ),
       ),
       decoration: PageDecoration(
         pageColor: Colors.white,
-      ),
-      footer: Text(
-        "Fleepage LLC",
-        style: TextStyle(color: Colors.white),
+        bodyFlex: 0
       ),
     );
     final second = PageViewModel(
         titleWidget: Text(
-          "Locate places around you",
-          style: TextStyle(color: PRIMARYCOLOR),
+          "Shopping",
+          style: TextStyle(color: PRIMARYCOLOR,fontSize: 20),
         ),
         bodyWidget: Text(
-          "Get directions to Restuarant, Bars, Malls etc. within "
-          "a defined radius. Pocketshopping also delivers realtime update on merchant closer to you",
+          " You can use pocketshopping to order for items and have them delivered to you. "
+          " On pocketshopping we have restaurant, stores, pharmacies etc.",
           style: TextStyle(color: PRIMARYCOLOR),
         ),
         image: Center(
           child: Image.asset(
-            'assets/images/locator.gif',
-            height: MediaQuery.of(context).size.height * 0.5,
+            'assets/images/shopping.png',
+            //height: MediaQuery.of(context).size.height * 0.5,
           ),
         ),
         decoration: PageDecoration(
           pageColor: Colors.white,
+          bodyFlex: 1,
+          imageFlex: 2
         ));
     final third = PageViewModel(
         titleWidget: Text(
-          "Use As Menu",
-          style: TextStyle(color: PRIMARYCOLOR),
+          "Errand",
+          style: TextStyle(color: PRIMARYCOLOR,fontSize: 20),
         ),
         bodyWidget: Text(
-          "You can use pocketshopping as menu in restuarant for placing "
-          " order",
+          "You can have riders on pocketshopping excute an errand. This feature is suitable for business owners as well as user who have needs for riders(Motorcycle, car and mini-van)",
           style: TextStyle(color: PRIMARYCOLOR),
         ),
         image: Center(
           child: Image.asset(
-            'assets/images/menu.gif',
-            height: MediaQuery.of(context).size.height * 0.4,
+            'assets/images/erranIntro.png',
+            //height: MediaQuery.of(context).size.height * 0.4,
           ),
         ),
         decoration: PageDecoration(
           pageColor: Colors.white,
+            bodyFlex: 1,
+            imageFlex: 2
         ));
-    List<PageViewModel> pages = [first, second, third];
+    final fourth = PageViewModel(
+        titleWidget: Text(
+          "Business",
+          style: TextStyle(color: PRIMARYCOLOR,fontSize: 20),
+        ),
+        bodyWidget: Text(
+          "With our in-built PoS (Point of sale), Stock Manager, Staff Manager, mobile/web reporting tool, logistic Manager etc. "
+              "Business has been made easy and fascinating to manage.",
+          style: TextStyle(color: PRIMARYCOLOR),
+        ),
+        image: Center(
+          child: Image.asset(
+            'assets/images/business.png',
+            //height: MediaQuery.of(context).size.height * 0.4,
+          ),
+        ),
+        decoration: PageDecoration(
+            pageColor: Colors.white,
+            bodyFlex: 1,
+            imageFlex: 2
+        ));
+    final fifth = PageViewModel(
+        titleWidget: Text(
+          "Pocketpay",
+          style: TextStyle(color: PRIMARYCOLOR,fontSize: 20),
+        ),
+        bodyWidget: Text(
+          "With our in-built Scan-to-Pay functionality paying for goods has been made much more simple and rewarding.",
+          style: TextStyle(color: PRIMARYCOLOR),
+        ),
+        image: Center(
+          child: Image.asset(
+            'assets/images/payment.png',
+            //height: MediaQuery.of(context).size.height * 0.4,
+          ),
+        ),
+        decoration: PageDecoration(
+            pageColor: Colors.white,
+            bodyFlex: 1,
+            imageFlex: 2
+        ));
+    List<PageViewModel> pages = [first, second, third, fourth,fifth];
     return Scaffold(body: Builder(builder: (context) {
       return IntroductionScreen(
         pages: pages,
         onDone: () {
-          Get.to(RegisterScreen(
+          Get.off(RegisterScreen(
             userRepository: widget._userRepository,
             linkdata: widget.linkdata,
           ));
         },
         onSkip: () {
-          Get.to(RegisterScreen(
+          Get.off(RegisterScreen(
             userRepository: widget._userRepository,
             linkdata: widget.linkdata,
           ));

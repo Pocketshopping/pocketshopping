@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/logistic/vehicle/repository/vehicleObj.dart';
-import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/agentStatistic.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
@@ -341,7 +339,7 @@ class _MyAutoState extends State<MyAuto>{
                             Merchant merchant =await MerchantRepo.getMerchant(agent.agentWorkPlace);
                             bool result = await LogisticRepo.removeAgent(
                             agent,
-                            Request(
+                            /*Request(
                               requestCleared: false,
                               requestClearedAt: null,
                               requestReceiver: agent.agent,
@@ -351,7 +349,7 @@ class _MyAutoState extends State<MyAuto>{
                               requestInitiatorID: merchant.mID,
                               requestInitiator: merchant.bName,
                               requestCreatedAt: Timestamp.now()
-                            ),
+                            ),*/
                               logistic: merchant.bName,
                               fcm: agentAcct.notificationID,
                             );

@@ -236,7 +236,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 ),
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Card Holder',
+                  labelText: 'Card Holder (Optional)',
                 ),
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,

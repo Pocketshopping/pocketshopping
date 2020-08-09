@@ -86,7 +86,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           .getPositionStream(LocationOptions(
               accuracy: LocationAccuracy.bestForNavigation, timeInterval: 1000))
           .listen((position) {
-        print(position);
+        //print(position);
         add(CaptureUpdated(position));
       });
     } catch (e) {
@@ -168,7 +168,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
           delivery: state.delivery,
           code: state.code,
           category: state.category);
-      print(_);
+      //print(_);
     }
 
     //yield BusinessState.loading(false);

@@ -87,14 +87,14 @@ class _MerchantMapState extends State<MerchantMap> {
                 }
               },
             ),
-            floatingActionButton: widget.source != null
+           /* floatingActionButton: widget.source != null
                 ? FloatingActionButton.extended(
                     backgroundColor: PRIMARYCOLOR,
                     onPressed: _getDirection,
                     label: Text('Direction'),
                     icon: Icon(Icons.directions),
                   )
-                : Container(),
+                : Container(),*/
           )
         : Container(
             color: Color.fromRGBO(239, 238, 236, 1),

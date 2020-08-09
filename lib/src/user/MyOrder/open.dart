@@ -10,10 +10,10 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
-import 'package:pocketshopping/src/order/cErrandTracker.dart';
-import 'package:pocketshopping/src/order/cTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/order/tracker/customer/cdTracker.dart';
+import 'package:pocketshopping/src/order/tracker/customer/ceTracker.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -64,6 +64,7 @@ class _OpenOrderState extends State<OpenOrder> {
       OrderRepo.get(list.last,0, widget.user.user.uid).then((value) {
         list.addAll(value);
         _finish = value.length == 10 ? false : true;
+        loading =false;
         if(mounted)
           setState((){ });
 
@@ -73,6 +74,7 @@ class _OpenOrderState extends State<OpenOrder> {
         list=value;
         _finish = value.length == 10 ? false : true;
         empty=value.isEmpty?true:false;
+        loading = false;
         if(mounted)
           setState((){ });
 
@@ -146,7 +148,7 @@ class _OpenOrderState extends State<OpenOrder> {
                             child: const Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: const Text(
-                                "No Completed Order",
+                                "No Open Order",
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -178,6 +180,7 @@ class _OpenOrderState extends State<OpenOrder> {
   Future<void> _refresh() async {
     setState(() {
       list.clear();
+      loading=true;
     });
     load();
   }
@@ -220,24 +223,23 @@ class _SingleOrderState extends State<SingleOrder> {
           const SizedBox(height: 10,),
           ListTile(
             onTap: () {
-              print(widget.order.docID);
+              //print(widget.order.docID);
               Get.to(
                   widget.order.orderMode.mode != 'Errand'?
-                  CustomerTracker(
+                  CustomerDeliveryTrackerWidget(
                     order: widget.order.docID,
                     user: widget.user.user,
+                    isActive: true,
+
                   )
                       :
-                  CustomerErrandTracker(
+                  CustomerErrandTrackerWidget(
                     user: widget.user.user,
                     order: widget.order.docID,
+                    isActive: true,
                   )
               ).then((value) {
-                if(value == 'Refresh')
-                   {
-                     widget.refresh();
-                   }
-
+                widget.refresh();
               });
             },
             leading: widget.order.orderMode.mode == 'Errand'?

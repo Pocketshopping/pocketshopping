@@ -22,6 +22,7 @@ class ProductEntity extends Equatable {
   final int status;
   final int availability;
   final dynamic geoPoint;
+  final bool isManaging;
 
   const ProductEntity(
       this.pID,
@@ -40,6 +41,7 @@ class ProductEntity extends Equatable {
       this.status,
       this.availability,
       this.geoPoint,
+      this.isManaging
       );
 
   Map<String, Object> toJson() {
@@ -59,7 +61,8 @@ class ProductEntity extends Equatable {
       'pCreatedAt': pCreatedAt,
       'status':status,
       'availability':availability,
-      'geoPoint':geoPoint
+      'geoPoint':geoPoint,
+      'isManaging':isManaging
     };
   }
 
@@ -81,6 +84,7 @@ class ProductEntity extends Equatable {
         status,
         availability,
         geoPoint,
+        isManaging
       ];
 
   @override
@@ -105,7 +109,8 @@ class ProductEntity extends Equatable {
       json['pCreatedAt'] as Timestamp,
       json['status'] as int,
       json['availability'] as int,
-        json['geoPoint'] as dynamic
+      json['geoPoint'] as dynamic,
+        json['isManaging'] as bool
     );
   }
 
@@ -127,7 +132,9 @@ class ProductEntity extends Equatable {
       snap.data['productCreatedAt'],
       snap.data['productStatus'],
       snap.data['productAvailability'],
-        snap.data['geoPoint']
+      snap.data['geoPoint'],
+      snap.data['isManaging']??false
+
     );
   }
 
@@ -146,7 +153,8 @@ class ProductEntity extends Equatable {
       'pUploader': pUploader,
       'pUnit': pUnit,
       'pCreatedAt': pCreatedAt,
-      'geoPoint':geoPoint
+      'geoPoint':geoPoint,
+      'isManaging':isManaging
     };
   }
 

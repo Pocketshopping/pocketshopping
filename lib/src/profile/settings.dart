@@ -5,8 +5,9 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/Bank/BankSetter.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/profile/pinChanger.dart';
+import 'package:pocketshopping/src/profile/pinResetter.dart';
 import 'package:pocketshopping/src/profile/pinSetter.dart';
-import 'package:pocketshopping/src/profile/pinTester.dart';
+import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
@@ -21,9 +22,14 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
 
+  final key = ValueNotifier<String>('');
+  Stream<Map<String,dynamic>> _serverStream;
   bool isPinSet;
   void initState() {
-
+    _serverStream = ServerBloc.instance.serverStream;
+    _serverStream.listen((event) {
+      key.value = event['key'];
+    });
     super.initState();
   }
 
@@ -129,7 +135,7 @@ class _SettingsState extends State<Settings> {
                                         ListTile(
                                           onTap:(){
                                             Get.back();
-                                            Get.dialog(PinTester(wallet: widget.user.walletId,));
+                                            Get.dialog(PinResetter(user: widget.user,));
                                           },
                                           title: Text('Reset Pocket PIN'),
                                           subtitle: Text('Click to reset pocket PIN'),

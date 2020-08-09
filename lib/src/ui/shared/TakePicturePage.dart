@@ -15,6 +15,8 @@ class TakePicturePage extends StatefulWidget {
 class _TakePicturePageState extends State<TakePicturePage> {
   CameraController _cameraController;
   Future<void> _initializeCameraControllerFuture;
+  bool isFirst;
+
 
   @override
   void dispose() {
@@ -34,12 +36,15 @@ class _TakePicturePageState extends State<TakePicturePage> {
 
       Navigator.pop(context, path);
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
+
+
   @override
   void initState() {
+    isFirst = true;
     _cameraController = CameraController(
       widget.camera,
       ResolutionPreset.high,
@@ -73,14 +78,58 @@ class _TakePicturePageState extends State<TakePicturePage> {
               padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).size.height * 0.04),
               child: FloatingActionButton(
+                heroTag: "capture",
                 onPressed: () {
                   _takePicture(context);
                 },
                 backgroundColor:
                     widget.fabColor != null ? widget.fabColor : Colors.black54,
-                tooltip: 'Increment',
+                tooltip: 'capture',
                 child: Icon(
-                  Icons.camera_alt,
+                  Icons.camera,
+                  size: MediaQuery.of(context).size.height * 0.05,
+                ),
+              ),
+            )),
+        Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: EdgeInsets.only( bottom: MediaQuery.of(context).size.height * 0.04,left: MediaQuery.of(context).size.height * 0.04),
+              child: FloatingActionButton(
+                heroTag: "rotate",
+                onPressed: () async{
+                  final cameras = await availableCameras();
+                  //print(cameras);
+                  if(cameras.length > 1){
+                    if(isFirst){
+
+                      final camera = cameras.last;
+                      _cameraController = CameraController(
+                        camera,
+                        ResolutionPreset.high,
+                        enableAudio: false,
+                      );
+                      _initializeCameraControllerFuture = _cameraController.initialize();
+                      isFirst = false;
+                    }
+                    else{
+                      final camera = cameras.first;
+                      _cameraController = CameraController(
+                        camera,
+                        ResolutionPreset.high,
+                        enableAudio: false,
+                      );
+                      _initializeCameraControllerFuture = _cameraController.initialize();
+                      isFirst=true;
+                    }
+
+                    setState(() {});
+                  }
+                },
+                backgroundColor: Colors.black54.withOpacity(0.4),
+                tooltip: 'change',
+                child: Icon(
+                  Icons.camera_front,
                   size: MediaQuery.of(context).size.height * 0.05,
                 ),
               ),

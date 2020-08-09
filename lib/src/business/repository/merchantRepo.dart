@@ -9,10 +9,12 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:recase/recase.dart';
 
+//cleared
 class MerchantRepo {
   static final databaseReference = Firestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
@@ -85,14 +87,15 @@ class MerchantRepo {
         if(!adminUploaded) {
           await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
           await channelMaker(bid.documentID, uid);
-          await CustomerCareRepo.saveCustomerCare(bid.documentID, [
-            CustomerCareLine(number: bTelephone,name:bName.headerCase ),
-            if(bTelephone.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
+          await CustomerCareRepo.saveCustomerCare(bid.documentID, [CustomerCareLine(number: bTelephone,name:bName.headerCase ),
+            if(bTelephone2.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
           ]);
           await Utility.updateWallet(uid: user.user.walletId,cid: user.user.walletId,type: 3);
         }
 
-    }catch(_){print(_);}
+    }catch(_){
+      //print(_);
+    }
 
 
     return bid.documentID;
@@ -125,7 +128,7 @@ class MerchantRepo {
     var document = await Firestore.instance
         .collection('merchantsOTP')
         .document(mid)
-        .get(source: Source.serverAndCache);
+        .get(source: Source.server);
 
     if (document.exists) {
       if (getDifference(document.data['createdAt']) > 60)
@@ -149,23 +152,33 @@ class MerchantRepo {
     var now = DateTime.now();
     Duration difference =
         now.difference(DateTime.parse(created.toDate().toString()));
-    print(difference.inMinutes.toString());
+    //print(difference.inMinutes.toString());
     return difference.inMinutes;
   }
 
   Future<bool> branchNameUnique(String mid, String branchName) async {
-    var document = await Firestore.instance
-        .collection('merchants')
-        .where('businessParent',
-            isEqualTo: databaseReference.document('merchants/' + mid))
-        .where('isBranch', isEqualTo: true)
-        .where('branchUnique', isEqualTo: branchName)
-        .getDocuments(source: Source.serverAndCache);
+    try{
+      var document = await Firestore.instance
+          .collection('merchants')
+          .where('businessParent',
+          isEqualTo: databaseReference.document('merchants/' + mid))
+          .where('isBranch', isEqualTo: true)
+          .where('branchUnique', isEqualTo: branchName)
+          .getDocuments(source: Source.server).timeout(
+        Duration(seconds: TIMEOUT),
+        onTimeout: () {
+          throw Exception;
+        },
+      );
 
-    if (document.documents.length > 0)
-      return false;
-    else
+      if (document.documents.length > 0)
+        return false;
+      else
+        return true;
+    }
+    catch(_){
       return true;
+    }
   }
 
   Future<Map<String, dynamic>> getOne(String uid) async {
@@ -177,84 +190,192 @@ class MerchantRepo {
     return document.documents[0].data;
   }
 
-  static Future<Merchant> getMerchant(String mid) async {
+  static Future<Merchant> getMerchant(String mid,{int source=0}) async {
     Merchant merchant;
     if(mid.isEmpty)
       return null;
 
     else{
       try{
-        var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache);
-        merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
-        return merchant;
+        try{
+          if(source == 1) throw Exception;
+          var value = await Firestore.instance.document('merchants/$mid').get(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(!value.exists){throw Exception;}
+
+          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
+          return merchant;
+        }
+        catch(_){
+          var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
+          return merchant;
+        }
       }catch(_){
         return null;
       }
     }
   }
 
-  static Future<List<Merchant>> getMyBusiness(String uid, Merchant lastDoc,) async {
-    var uRef = Firestore.instance.document('users/$uid');
-    List<Merchant> tmp = List();
-    var document;
+  static Future<Merchant> getMerchantByWallet(String mid,{int source=0})async{
+    Merchant merchant;
+    if(mid.isEmpty)
+      return null;
 
-    if (lastDoc == null) {
-      document = await Firestore.instance
-          .collection('merchants')
-          .orderBy('businessCreatedAt', descending: true)
-          .where('businessCreator', isEqualTo: uRef)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    } else {
-      document = await Firestore.instance
-          .collection('merchants')
-          .orderBy('businessCreatedAt', descending: true)
-          .where('businessCreator', isEqualTo: uRef)
-          .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+    else{
+      try{
+        try{
+          if(source == 1) throw Exception;
+          var value = await Firestore.instance.collection('merchants').where('businessWallet',isEqualTo:mid )
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(value.documents.isEmpty){throw Exception;}
+          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value.documents.last));
+          return merchant;
+        }
+        catch(_){
+          var value = await Firestore.instance.collection('merchants').where('businessWallet',isEqualTo:mid )
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value.documents.last));
+          return merchant;
+        }
+      }catch(_){
+        return null;
+      }
     }
-    document.documents.forEach((element) {
-      tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
-    });
+  }
 
-    return tmp;
+  static Future<List<Merchant>> getMyBusiness(String uid, Merchant lastDoc,{int source=0}) async {
+
+    try{
+      var uRef = Firestore.instance.document('users/$uid');
+      List<Merchant> tmp = List();
+      var document;
+
+      if (lastDoc == null) {
+        try{
+          if(source == 1) throw Exception;
+          document = await Firestore.instance
+              .collection('merchants')
+              .orderBy('businessCreatedAt', descending: true)
+              .where('businessCreator', isEqualTo: uRef)
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty){throw Exception;}
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('merchants')
+              .orderBy('businessCreatedAt', descending: true)
+              .where('businessCreator', isEqualTo: uRef)
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      } else {
+        try{
+          if(source == 1) throw Exception;
+          document = await Firestore.instance
+              .collection('merchants')
+              .orderBy('businessCreatedAt', descending: true)
+              .where('businessCreator', isEqualTo: uRef)
+              .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty){throw Exception;}
+
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('merchants')
+              .orderBy('businessCreatedAt', descending: true)
+              .where('businessCreator', isEqualTo: uRef)
+              .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      }
+      document.documents.forEach((element) {
+        tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+      });
+
+      return tmp;
+    }
+    catch(_){return [];}
 
   }
 
 
-  static Future<List<Merchant>> searchMyBusiness(String uid, Merchant lastDoc,String key) async {
-    var uRef = Firestore.instance.document('users/$uid');
-    List<Merchant> tmp = List();
-    var document;
+  static Future<List<Merchant>> searchMyBusiness(String uid, Merchant lastDoc,String key,{int source}) async {
+    try{
+      var uRef = Firestore.instance.document('users/$uid');
+      List<Merchant> tmp = List();
+      var document;
 
-    if (lastDoc == null) {
-      document = await Firestore.instance
-          .collection('merchants')
-          .where('businessCreator', isEqualTo: uRef)
-          .where('index',arrayContains: key)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    } else {
-      document = await Firestore.instance
-          .collection('merchants')
-          .where('businessCreator', isEqualTo: uRef)
-          .where('index',arrayContains: key)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+      if (lastDoc == null) {
+        try{
+          if(source == 1) throw Exception;
+          document = await Firestore.instance
+              .collection('merchants')
+              .where('businessCreator', isEqualTo: uRef)
+              .where('index',arrayContains: key)
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty){throw Exception;}
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('merchants')
+              .where('businessCreator', isEqualTo: uRef)
+              .where('index',arrayContains: key)
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      } else {
+        try{
+          if(source == 1) throw Exception;
+          document = await Firestore.instance
+              .collection('merchants')
+              .where('businessCreator', isEqualTo: uRef)
+              .where('index',arrayContains: key)
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty){throw Exception;}
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('merchants')
+              .where('businessCreator', isEqualTo: uRef)
+              .where('index',arrayContains: key)
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      }
+      document.documents.forEach((element) {
+        tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
+      });
+
+      return tmp;
     }
-    document.documents.forEach((element) {
-      tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
-    });
-
-    return tmp;
+    catch(_){
+      return [];
+    }
 
   }
 
   static String getMerchantName(String mid) {
     String merchant = "";
     getMerchant(mid).then((value) => merchant = value.bName);
-    print(merchant);
+    //print(merchant);
     return merchant;
     //
   }

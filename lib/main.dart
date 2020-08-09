@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -12,14 +14,23 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' as _get;
+import 'package:get/get.dart';
+import 'package:pocketshopping/src/admin/product/bloc/categoryBloc.dart';
+import 'package:pocketshopping/src/admin/product/bloc/refreshBloc.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
+import 'package:pocketshopping/src/connectivity/bloc/connectivityBloc.dart';
+import 'package:pocketshopping/src/geofence/bloc/geofenceRefreshBloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
+import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
+import 'package:pocketshopping/src/server/server.dart';
 import 'package:pocketshopping/src/simple_bloc_delegate.dart';
 import 'package:pocketshopping/src/splash_screen.dart';
+import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/businessSetup.dart';
 import 'package:pocketshopping/src/ui/shared/introduction.dart';
 import 'package:pocketshopping/src/ui/shared/splashScreen.dart';
@@ -30,6 +41,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
+
 
 
 
@@ -54,7 +66,7 @@ class ReceivedNotification {
 Future<dynamic> myBackgroundMessageHandler(Map<String, dynamic> message) async{
   if (message.containsKey('data')) {
     final dynamic data = message['data'];
-    debugPrint('movieTitle: wwerwe');
+    //debugPrint('movieTitle: wwerwe');
   }
   if (message.containsKey('notification')) {
     final dynamic notification = message['notification'];
@@ -155,8 +167,8 @@ Future<void> _createNotificationChannel(String id, String name,
 void callbackDispatcher() {
   Workmanager.executeTask((task, inputData)async{
     if(task == "LocationUpdateTask"){
-      final prefs = await SharedPreferences.getInstance();
       try{
+        final prefs = await SharedPreferences.getInstance();
         bool enable = await Geolocator().isLocationServiceEnabled();
         final FirebaseMessaging _fcm = FirebaseMessaging();
         GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
@@ -167,9 +179,6 @@ void callbackDispatcher() {
               String fcmToken = await _fcm.getToken();
               Geoflutterfire geo = Geoflutterfire();
               GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
-
-
-
               await LocRepo.update({
                 'agentParent':prefs.getString('agentParent'),
                 'wallet':prefs.getString('wallet'),
@@ -191,7 +200,6 @@ void callbackDispatcher() {
                 'limit':prefs.getInt('limit'),
                 'index':Utility.makeIndexList(prefs.getString('agentName')),
                 'autoAssigned':prefs.getBool('autoAssigned'),
-
               });
             }
           }
@@ -202,9 +210,10 @@ void callbackDispatcher() {
         else{
           Utility.localNotifier("PocketShopping", "PocketShopping", 'Location', 'Enable Location');
         }
-      }catch(_){debugPrint(_);}
+      }catch(_){//debugPrint(_);
+      }
     }
-    else if(task  == 'DeliveryRequestUpdateTask'){
+    /*else if(task  == 'DeliveryRequestUpdateTask'){
      try{
        final prefs = await SharedPreferences.getInstance();
        String currentAgent = prefs.getString('rider');
@@ -213,7 +222,7 @@ void callbackDispatcher() {
          Utility.localNotifier("PocketShopping", "PocketShopping",
              "Delivery Request", 'New Delivery request. view dashboard to accept');
      }catch(_){debugPrint(_);}
-    }
+    }*/
     return true;
   });
 }
@@ -230,9 +239,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
+  //Stream<Map<String,dynamic>> _serverStream;
   @override
   void initState() {
     initConfigure();
+    //Firestore.instance.settings(cacheSizeBytes: 200000,persistenceEnabled: true);
+    //Stream<Map<String,dynamic>> _serverStream;
+    //_serverStream = ServerBloc.instance.serverStream
     super.initState();
   }
   @override
@@ -297,45 +310,183 @@ class App extends StatefulWidget {
 class AppState extends State<App> {
 
 
+  StreamSubscription<ConnectivityResult> subscription;
   @override
   void initState() {
     handleDynamicLinks();
-    //location = new Location();
+    (Connectivity().checkConnectivity()).then((value) => ConnectivityBloc.instance.newStatus(value));
+    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+     ConnectivityBloc.instance.newStatus(result);
+
+     //Get.snackbar('network', '${result.index}');
+    });
+    SessionBloc.instance.addSession(widget._userRepository);
+    ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
+    GeofenceRefreshBloc.instance.addNextRefresh(DateTime.now());
+    CategoryBloc.instance.addNewCategory([]);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-        builder: (context, state) {
+      backgroundColor: Colors.white,
+      body: FutureBuilder(
+        future: ServerRepo.get(),
+        builder: (context,AsyncSnapshot<Map<String,dynamic>>snapshot){
+          if(snapshot.connectionState == ConnectionState.waiting){
+            return FutureBuilder<bool>(
+              future: Future.delayed(Duration(seconds: 15)),
+              initialData: false,
+              builder: (context,AsyncSnapshot<bool> result){
+                if(result.connectionState == ConnectionState.waiting){
+                  return LoadingScreen();
+                }
+                else{
+                  if(result.hasError){
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Center(child: Image.asset('assets/images/blogo.png'),),
+                        Center(child:
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
+                        )
+                        ),
+                        Center(
+                          child: FlatButton(
+                            onPressed: (){
+                              setState(() {});
+                            },
+                            color: PRIMARYCOLOR,
+                            child: Text('Retry',style: TextStyle(color: Colors.white),),
+                          ),
+                        )
+                      ],
+                    );
+                  }
+                  else{
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Center(child: Image.asset('assets/images/blogo.png'),),
+                        Center(child:
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
+                        )
+                        ),
+                        Center(
+                          child: FlatButton(
+                            onPressed: (){
+                              setState(() {});
+                            },
+                            color: PRIMARYCOLOR,
+                            child: Text('Retry',style: TextStyle(color: Colors.white),),
+                          ),
+                        )
+                      ],
+                    );
+                  }
+                }
+              },
+            );
+          }
+          else if(snapshot.hasError){
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(child: Image.asset('assets/images/blogo.png'),),
+                Center(child:
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
+                )
+                ),
+                Center(
+                  child: FlatButton(
+                    onPressed: (){
+                      setState(() {});
+                    },
+                    color: PRIMARYCOLOR,
+                    child: Text('Retry',style: TextStyle(color: Colors.white),),
+                  ),
+                )
+              ],
+            );
+          }
+          else{
+            if((snapshot.data['key']as String).isNotEmpty){
+              ServerBloc.instance.addServer(snapshot.data);
+              return BlocBuilder<AuthenticationBloc, AuthenticationState>(
+              builder: (context, state) {
 
           if (state is Started) return LoadingScreen();
           if (state is Uninitialized) return Introduction(userRepository: widget._userRepository,linkdata: state.link,);
           if (state is Unauthenticated)return LoginScreen(userRepository: widget._userRepository,linkdata: state.link,);
 
 
-         if (state is Authenticated) {
-            if (state.user.displayName == 'user')
-              return UserScreen(userRepository: widget._userRepository);
-            else if (state.user.displayName == 'admin')
-              return AdminScreen(userRepository: widget._userRepository);
-            else if (state.user.displayName == 'staff')
-              return StaffScreen(userRepository: widget._userRepository);
-            else if (state.user.displayName == 'rider')
-              return RiderScreen(userRepository: widget._userRepository);
-            else
-              return LoginScreen(userRepository: widget._userRepository);
+          if (state is Authenticated) {
+          if (state.user.displayName == 'user')
+          return UserScreen(userRepository: widget._userRepository);
+          else if (state.user.displayName == 'admin')
+          return AdminScreen(userRepository: widget._userRepository);
+          else if (state.user.displayName == 'staff')
+          return StaffScreen(userRepository: widget._userRepository);
+          else if (state.user.displayName == 'rider')
+          return RiderScreen(userRepository: widget._userRepository);
+          else
+          return LoginScreen(userRepository: widget._userRepository);
           }
           if (state is DLink) {
-            print(state.props[1]);
+          //print(state.props[1]);
           }
           if(state is SetupBusiness)return BSetup(userRepository: widget._userRepository,);
           if (state is VerifyAccount)return VerifyAccountWidget();
 
           return LoadingScreen();
+          },
+          );
+          }
+            else{
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Center(child: Image.asset('assets/images/blogo.png'),),
+                  Center(child:
+
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text('Error communicating to server. Ensure you have internet connection',style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
+                    )
+
+                    ,),
+                  Center(
+                    child: FlatButton(
+                      onPressed: (){
+                        setState(() {});
+                      },
+                      color: PRIMARYCOLOR,
+                      child: Text('Retry',style: TextStyle(color: Colors.white),),
+                    ),
+                  )
+                ],
+              );
+            }
+          }
         },
-      ),
+      )
     );
   }
 

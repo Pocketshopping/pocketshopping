@@ -63,7 +63,7 @@ class _UserScreenState extends State<UserScreen> {
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('Order'),
+      title: Text('History'),
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
@@ -90,7 +90,7 @@ class _UserScreenState extends State<UserScreen> {
           processNotification(payload, notification);
         }
       }catch(_){
-        print(_.toString());
+        //print(_.toString());
       }
     });
 
@@ -110,6 +110,7 @@ class _UserScreenState extends State<UserScreen> {
     RequestBloc.instance.newCount(value.length);
     if(showNotification){
       if (value.length > 0)
+        if(!Get.isSnackbarOpen)
         GetBar(
           title: 'Rquest',
           messageText: Text(
@@ -160,7 +161,7 @@ class _UserScreenState extends State<UserScreen> {
       case 'WorkRequestResponse':
         await requester();
         break;
-      case 'RemoveStaffResponse':
+      /*case 'RemoveStaffResponse':
         GetBar(
           title: payload['title'],
           messageText: Text(payload['message']??'',style: TextStyle(color: Colors.white),),
@@ -172,10 +173,11 @@ class _UserScreenState extends State<UserScreen> {
           await UserRepository().changeRole('user');
           BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
           Get.back();
-        });
+        });*/
         break;
-      case 'WorkRequestCancelResponse':
+      /*case 'WorkRequestCancelResponse':
         await requester(showNotification: false);
+        NotificationsBloc.instance.newNotification(null);*/
         break;
       case 'PocketTransferResponse':
         Utility.bottomProgressSuccess(
@@ -184,6 +186,7 @@ class _UserScreenState extends State<UserScreen> {
         wallet: payload['data']['wallet'],
           duration: 5
         );
+        NotificationsBloc.instance.newNotification(null);
         break;
 
       case 'CloudDeliveryCancelledResponse':
@@ -193,14 +196,19 @@ class _UserScreenState extends State<UserScreen> {
             body: 'Your Delivery has been cancelled',
             wallet: user.walletId
         );
+        NotificationsBloc.instance.newNotification(null);
         break;
       default:
-        Utility.bottomProgressSuccess(
-            title:payload['title'],
-            body: payload['message'],
-            //wallet: payload['data']['wallet'],
-            duration: 5
-        );
+        if(payload['message'] != null){
+          if(payload['message'].toString().isNotEmpty){
+            Utility.bottomProgressSuccess(
+                title:payload['title'],
+                body: payload['message'],
+                //wallet: payload['data']['wallet'],
+                duration: 5
+            );
+          }
+        }
         break;
     }
   }
@@ -241,7 +249,26 @@ class _UserScreenState extends State<UserScreen> {
                   decoration: BoxDecoration(
                       border: Border(
                           bottom: BorderSide(
-                              color: Colors.black54.withOpacity(0.2))))),
+                              color: Colors.black54.withOpacity(0.2))))),/*ShowCaseWidget(
+                builder: Builder(
+                  builder: (context){
+                    return Container(
+                        child: Center(
+                          child: <Widget>[
+                            MyRadius(),
+                            Favourite(),
+                            MyOrders(),
+                            PocketPay(),
+                          ].elementAt(_selectedIndex),
+                        ),
+                        decoration: BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(
+                                    color: Colors.black54.withOpacity(0.2)))));
+                  },
+                ),
+
+              ),*/
               bottomNavigationBar: BottomNavigationBar(
                 items: items,
                 currentIndex: _selectedIndex,

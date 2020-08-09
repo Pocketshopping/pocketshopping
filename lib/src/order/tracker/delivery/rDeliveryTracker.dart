@@ -17,7 +17,6 @@ import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/order/tracker/delivery/counter.dart';
 import 'package:pocketshopping/src/order/tracker/delivery/deliveryDirection.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
-import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/direction/bloc/errandDirectionBloc.dart';

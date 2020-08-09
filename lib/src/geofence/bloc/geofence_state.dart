@@ -46,8 +46,14 @@ class GeoFenceState {
             categoryName: 'Restuarant',
             categoryURI:
                 'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Ffork.png?alt=media&token=1774a1cc-6367-49c2-8b3d-efab8b9dc7cc',
-            categoryView: 10,
+            categoryView: 11,
             desc: 'Get food delivered  to you from near by restaurant and also try out new restaurant.'),
+        MCategory(
+            categoryName: 'Pharmacy',
+            categoryURI:
+            'https://firebasestorage.googleapis.com/v0/b/pocketshopping-a57c2.appspot.com/o/MerchantCover%2Fmedicine.png?alt=media&token=ae6f01cd-9bae-419e-9960-2f47a7ca9180',
+            categoryView: 10,
+            desc: 'Order for drugs from a nearby pharmacy.'),
         MCategory(
             categoryName: 'Store',
             categoryURI:

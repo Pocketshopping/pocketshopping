@@ -7,6 +7,7 @@ import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/location/bloc/locationBloc.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
@@ -83,10 +84,11 @@ class _DeliveryDirectionState extends State<DeliveryDirection> {
       routeMode = RouteMode.driving;
       locStream = location.onLocationChanged.listen((LocationData cLoc) {LocationBloc.instance.newLocationUpdate(cLoc);});
       lStream = LocationBloc.instance.locationStream;
-      lStream.listen((LocationData cLoc) {
+      lStream.listen((LocationData cLoc) async{
         currentLocation = cLoc;
         updatePinOnMap();
         if (mounted) setState(() {});
+        await LogisticRepo.updateAgentTrackerLocation(widget.user.uid,cLoc);
       });
 
 

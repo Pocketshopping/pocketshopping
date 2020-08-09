@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/business/business.dart' as biz;
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 
@@ -71,11 +73,12 @@ class BSetup extends StatelessWidget {
                             padding: EdgeInsets.symmetric(
                                 vertical: 5, horizontal: 10),
                             child: RaisedButton(
-                              onPressed: () {
+                              onPressed: () async{
                                 BlocProvider.of<AuthenticationBloc>(context)
                                     .add(
                                   AppStarted(),
                                 );
+                                Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
                                 //Get.back();
                               },
                               child: Container(

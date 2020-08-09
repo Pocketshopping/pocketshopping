@@ -2,10 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
+import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/bloc/user.dart';
@@ -93,6 +95,7 @@ class _BlankWorkplaceState extends State<BlankWorkplace> {
                                   Get.back();
                                   await UserRepository().changeRole('user');
                                   BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
+                                  Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
                                 },
                                 color: PRIMARYCOLOR,
                                 child: Padding(
@@ -124,6 +127,7 @@ class _BlankWorkplaceState extends State<BlankWorkplace> {
                               //Get.back();
                               await UserRepository().changeRole('user');
                               BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
+                              Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
                             },
                             color: PRIMARYCOLOR,
                             child: Padding(

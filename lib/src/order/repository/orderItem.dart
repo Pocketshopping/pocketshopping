@@ -114,9 +114,16 @@ class OrderItem {
     items.forEach((element) {
       collection.add(element.ProductName);
     });
-
-
-
     return collection;
   }
+
+  static List<String> toIds(List<OrderItem> items) {
+    List<String> collection = List();
+    items.forEach((element) {
+      collection.add(element.ProductId);
+    });
+    return collection;
+  }
+
+
 }

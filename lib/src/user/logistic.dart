@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
-import 'package:pocketshopping/src/admin/bottomScreen/logisticComponent/logisticReport.dart';
 import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/bank/BankWithdraw.dart';
@@ -22,9 +21,14 @@ import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/payment/topUpPocket.dart';
 import 'package:pocketshopping/src/payment/topup.dart';
+import 'package:pocketshopping/src/payment/totpupScaffold.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
+import 'package:pocketshopping/src/statistic/logisticStat.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/agent/myDeliveries.dart';
 import 'package:pocketshopping/src/user/agent/requestPocketSense.dart';
 import 'package:pocketshopping/src/user/agentBusiness.dart';
@@ -33,6 +37,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
+import 'package:pocketshopping/withdrawal/withdrawalWidget.dart';
 
 class LogisticDashBoardScreen extends StatefulWidget {
   LogisticDashBoardScreen();
@@ -55,6 +60,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
   final _orderNotifier = ValueNotifier<List<Order>>([]);
   StreamSubscription orders;
 
+
   @override
   void initState() {
     currentUser = BlocProvider.of<UserBloc>(context).state.props[0];
@@ -64,15 +70,15 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     });
 
     _isOperationalNotifier.value=currentUser.merchant.bStatus==1?true:false;
-
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
-      /*if (mounted) {
+      if (mounted) {
         _wallet = wallet;
         setState(() {});
-      }*/
+      }
     });
+
 
     orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
       if(mounted)
@@ -85,7 +91,6 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
 
 
     LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {
-
       _agentNotifier.value = event;
     });
 
@@ -108,10 +113,11 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     super.dispose();
   }
 
-  void reloadMerchant(){
-    BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
+  void reloadMerchant({bool complete=false}){
+    WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    if(complete)
+      BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
-
   @override
   Widget build(BuildContext context) {
     double marginLR = MediaQuery.of(context).size.width;
@@ -122,28 +128,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
               0.1), // here the desired height
           child: AppBar(
-            leading: IconButton(
-              icon: Icon(
-                Icons.menu,
-                color: PRIMARYCOLOR,
-                size: marginLR * 0.08,
-              ),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
+            leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
+              openDrawer: (){Scaffold.of(context).openDrawer();},
             ),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(
-                  Icons.notification_important,
-                  color: PRIMARYCOLOR,
-                  size: marginLR * 0.08,
-                ),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
-            ],
             centerTitle: true,
             elevation: 0.0,
             backgroundColor: Colors.white,
@@ -152,6 +139,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
               style: TextStyle(color: PRIMARYCOLOR),
             ),
             automaticallyImplyLeading: false,
+            actions: [
+              Help(page: 'logistic',),
+            ],
           ),
         ),
         body: Container(
@@ -169,7 +159,55 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       //margin:  MediaQuery.of(context).size.height*0.05,
                       margin: EdgeInsets.only(
                           left: marginLR * 0.01, right: marginLR * 0.01),
-                      child: AdminFinance(topUp: (){Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",));},
+                      child: AdminFinance(topUp: (){
+
+                        Get.dialog(
+                            TopUpScaffold(
+                              user: currentUser.user,
+                              wallet: _wallet,
+                              atm: (){
+                                Get.dialog(TopUp(user: currentUser.user,payType: "TOPUPUNIT",))
+                                    .then((value) {
+                                  Get.back();});
+                              },
+                              personal: (){
+                                Get.dialog(TopUpPocket(
+                                  user: currentUser.user,
+                                  topUp: currentUser.user.walletId,
+                                  wallet: _wallet,
+                                  isPersonal: 3,
+                                )).then((value) {
+                                  Get.back();});
+                              },
+                              business: (){
+                                Get.dialog(TopUpPocket(
+                                  user: currentUser.user,
+                                  topUp: currentUser.user.walletId,
+                                  wallet: _wallet,
+                                  isPersonal: 1,
+                                )).then((value) {
+                                  Get.back();});
+                              },
+                              delivery: (){
+                                Get.dialog(TopUpPocket(
+                                  user: currentUser.user,
+                                  topUp: currentUser.user.walletId,
+                                  wallet: _wallet,
+                                  isPersonal: 2,
+                                )).then((value) {
+                                  Get.back();});
+                              },
+                            )
+                        ).then((value) {
+                          WalletRepo.getWallet(currentUser.merchant.bWallet).then((value) {
+                            if (mounted) {
+                              _wallet = value;
+                              setState(() {});
+                            }
+                          });
+                        });
+                        },
+
                       withdraw: (Wallet wallet)async{
                         double total = wallet.merchantBalance + wallet.deliveryBalance;
                         bool canWithdraw = wallet.accountNumber.isNotEmpty;
@@ -250,7 +288,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text('${agent}',
+                                  Text('$agent',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
                                   const Text('Available Agent',
@@ -266,43 +304,90 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: (){},
-                    child: Container(
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: Offset(0, 1), // changes position of shadow
+                  FutureBuilder(
+                    future: Utility.logisticTodayAmount(currentUser.user.walletId),
+                    builder: (context,AsyncSnapshot<double>amount){
+                      if(amount.connectionState == ConnectionState.waiting){
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      else if(amount.hasError){
+                        //print(amount.error);
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('$CURRENCY ${Utility.numberFormatter(0)}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Amount Made Today(logistic)',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text('$CURRENCY O',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: PRIMARYCOLOR,fontSize: 18),),
-                          const Text('Amount Made Today',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color:PRIMARYCOLOR, ),),
-                          const Text('click for more',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color:PRIMARYCOLOR,fontSize: 11),),
-                        ],
-                      ),
-                    ),
+                        );
+                      }
+                      else{
+                        return GestureDetector(
+                          onTap: (){},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 7,
+                                  offset: Offset(0, 1), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text('$CURRENCY ${Utility.numberFormatter(amount.data.round())}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: PRIMARYCOLOR,fontSize: 25),),
+                                const Text('Amount Made Today(logistic)',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                    },
                   ),
                   ValueListenableBuilder(
                       valueListenable: _isOperationalNotifier,
@@ -409,6 +494,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                               isMultiMenu: false,
                               openCount: orders.length,
                               content: MyDelivery(orders: orders,user: currentUser,),
+                              refresh: reloadMerchant,
                             );
                         }),
                     MenuItem(
@@ -422,15 +508,20 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: AgentList(user: currentUser,callBckActionType: 2,title: 'Rider Clearance',),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pie_chart_outline,
                           size: MediaQuery.of(context).size.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Report',
+                      'Logistic Report',
                       border: PRIMARYCOLOR,
-                      content: LogisticReportBottomPage(session: currentUser,),
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: LogisticStatistic(user: currentUser,title: 'Report',),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -440,7 +531,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       'Withdrawal(s)',
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
-                      content: AgentList(user: currentUser,title: 'Manage Agent(s)',callBckActionType: 3,route: 1,),
+                      content: WithdrawalWidget(user: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -451,6 +543,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: AutomobileList(user: currentUser,title: 'My Automobile',callBckActionType: 1,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -461,6 +554,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: AgentList(user: currentUser,title: 'Manage Rider(s)',callBckActionType: 3,route: 1,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -471,6 +565,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: AgentList(user: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -483,6 +578,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: SetupBusiness(isAgent: true,agent: User(currentUser.merchant.mID,email: currentUser.user.email),),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -495,6 +591,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: AgentBusiness(user: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -507,7 +604,9 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       isMultiMenu: false,
                       openCount: 3,
                       content: RequestPocketSense(user: currentUser,),
-                    ),MenuItem(
+                      refresh: reloadMerchant,
+                    ),
+                    MenuItem(
                       gridHeight,
                       Icon(AntIcons.customer_service_outline,
                           size: MediaQuery.of(context).size.width * 0.1,
@@ -516,6 +615,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
                       content: CustomerCare(session: currentUser,),
+                      refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
@@ -527,6 +627,17 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       isMultiMenu: false,
                       content: ManageBusiness(session: currentUser,),
                       refresh: reloadMerchant,
+                    ),
+
+                    MenuItem(
+                      gridHeight,
+                      Icon(Icons.help_outline,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Help',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: HelpWebView(page: 'logistic',),
                     ),
                   ],
                 ),

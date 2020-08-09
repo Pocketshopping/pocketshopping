@@ -2,37 +2,51 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
-import 'package:pocketshopping/src/order/repository/order.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
+import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/pocketPay/repository/pocketHistory.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:recase/recase.dart';
 
-class PocketHistory extends StatefulWidget {
+
+class PocketHistoryWidget extends StatefulWidget {
   final Session user;
-  PocketHistory({this.user});
+  PocketHistoryWidget({this.user});
   @override
   _PocketHistoryState createState() => new _PocketHistoryState();
 }
 
-class _PocketHistoryState extends State<PocketHistory> {
+class _PocketHistoryState extends State<PocketHistoryWidget> {
   int get count => list.length;
 
-  List<Order> list = [];
+  List<PocketHistory> list = [];
   bool _finish;
   bool loading;
   bool empty;
+  List<bool> isSelected;
+  DateTime from;
+  DateTime to;
+  DateTime thirtyDays;
+  int page;
 
   void initState() {
+    page = 1;
+    isSelected = [true, false];
+    thirtyDays = DateTime.now().subtract(Duration(days: 30));
+    from = DateTime(thirtyDays.year,thirtyDays.month,thirtyDays.day,00,00,00);
+    to = DateTime.now();
     _finish = true;
     loading =true;
     empty = false;
-    OrderRepo.getCompleted(null, widget.user.user.uid).then((value){
-      //print(value);
+    Utility.pocketHistory(pocket: widget.user.user.walletId,
+        pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit').then((value){
       list=value;
       loading =false;
-      _finish=value.length == 10?false:true;
+      _finish=value.length == 20?false:true;
       empty = value.isEmpty;
       if(mounted)
         setState((){ });
@@ -41,24 +55,17 @@ class _PocketHistoryState extends State<PocketHistory> {
   }
 
   void load() {
+    page += 1;
+    Utility.pocketHistory(pocket: widget.user.user.walletId,
+        pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit').then((value){
+      list.addAll(value);
+      loading =false;
+      _finish=value.length == 20?false:true;
+      empty = value.isEmpty;
+      if(mounted)
+        setState((){ });
+    });
 
-    if(list.isNotEmpty)
-      OrderRepo.getCompleted(list.last, widget.user.user.uid).then((value) {
-        list.addAll(value);
-        _finish = value.length == 10 ? false : true;
-        if(mounted)
-          setState((){ });
-
-      });
-    else
-      OrderRepo.getCompleted(null, widget.user.user.uid).then((value) {
-        list=value;
-        _finish = value.length == 10 ? false : true;
-        empty=value.isEmpty?true:false;
-        if(mounted)
-          setState((){ });
-
-      });
   }
 
 
@@ -66,6 +73,198 @@ class _PocketHistoryState extends State<PocketHistory> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+              0.15), // here the desired height
+          child: AppBar(
+            elevation: 0.0,
+            backgroundColor: Colors.white,
+            centerTitle: true,
+            bottom: PreferredSize(
+            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+              0.2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                  child: ToggleButtons(
+                    borderColor: Colors.blue.withOpacity(0.5),
+                    fillColor: Colors.blue,
+                    borderWidth: 1,
+                    selectedBorderColor: Colors.blue,
+                    selectedColor: Colors.white,
+                    borderRadius: BorderRadius.circular(0),
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          'Credit',
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          'Debit',
+                        ),
+                      ),
+                    ],
+                    onPressed: (int index) async {
+                      for (int i = 0; i < isSelected.length; i++) {
+                        isSelected[i] = i == index;
+                      }
+                      loading =true;
+                      setState(() {});
+                      var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
+                          pNumber: page,from: from.toString(),to: to.toString(),type: index == 0 ?'credit':'debit');
+                      list=result;
+                      loading =false;
+                      _finish=result.length == 20?false:true;
+                      empty = result.isEmpty;
+                      setState(() {});
+                    },
+                    isSelected: isSelected,
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width*0.35,
+                        minWidth: MediaQuery.of(context).size.width*0.35),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                        child: FlatButton.icon(
+                            onPressed: (){
+                              Get.dialog(
+                                  Scaffold(
+                                    backgroundColor: Colors.black.withOpacity(0.4),
+                                    body: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          color: Colors.white,
+                                          margin: EdgeInsets.symmetric(horizontal: 5),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                height: 200,
+                                                child: CupertinoDatePicker(
+                                                  mode: CupertinoDatePickerMode.date,
+                                                  initialDateTime: to,
+                                                  onDateTimeChanged: (DateTime newDateTime) {
+                                                    to = newDateTime;
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: FlatButton(
+                                                onPressed: ()async{
+                                                  Get.back();
+                                                  loading =true;
+                                                  setState(() {});
+                                                  var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
+                                                      pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit');
+                                                  list=result;
+                                                  loading =false;
+                                                  _finish=result.length == 20?false:true;
+                                                  empty = result.isEmpty;
+                                                  setState(() {});
+                                                },
+                                                color: PRIMARYCOLOR,
+                                                child: Text('Ok',style: TextStyle(color: Colors.white),),
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  )
+                              );
+                            },
+                            icon: Icon(Icons.calendar_today),
+                            label: Text('${to.day} ${Utility.getMonth(to)}, ${to.year}'))
+                    ),
+                    Expanded(
+                        child: FlatButton.icon(
+                            onPressed: (){
+                              Get.dialog(
+                                  Scaffold(
+                                    backgroundColor: Colors.black.withOpacity(0.4),
+                                    body: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          color: Colors.white,
+                                          margin: EdgeInsets.symmetric(horizontal: 5),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                height: 200,
+                                                child: CupertinoDatePicker(
+                                                  mode: CupertinoDatePickerMode.date,
+                                                  initialDateTime: from,
+                                                  onDateTimeChanged: (DateTime newDateTime) {
+                                                    // Do something
+                                                    from = newDateTime;
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: FlatButton(
+                                                onPressed: ()async{
+                                                  Get.back();
+                                                  loading =true;
+                                                  setState(() {});
+                                                  var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
+                                                      pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit');
+                                                  list=result;
+                                                  loading =false;
+                                                  _finish=result.length == 20?false:true;
+                                                  empty = result.isEmpty;
+                                                  setState(() {});
+                                                },
+                                                color: PRIMARYCOLOR,
+                                                child: Text('Ok',style: TextStyle(color: Colors.white),),
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  )
+                              );
+                            },
+                            icon: Icon(Icons.calendar_today),
+                            label: Text('${from.day} ${Utility.getMonth(from)}, ${from.year}'))
+                    ),
+                  ],
+                )
+              ],
+            ),
+            ),
+            automaticallyImplyLeading: false,
+          ),
+        ),
         body: Column(
           children: [
             Expanded(
@@ -79,7 +278,7 @@ class _PocketHistoryState extends State<PocketHistory> {
                       onLoadMore: _loadMore,
                       child: ListView.builder(
                         itemBuilder: (BuildContext context, int index) {
-                          return SingleOrder(order: list[index],user: widget.user,);
+                          return list[index].amount>0?SingleHistory(history: list[index],user: widget.user,isCredit: isSelected[0],):const SizedBox.shrink();
                         },
                         itemCount: count,
                       ),
@@ -111,16 +310,6 @@ class _PocketHistoryState extends State<PocketHistory> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
-                      Center(
-                        child: Text(
-                          'Empty',
-                          style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
@@ -128,7 +317,7 @@ class _PocketHistoryState extends State<PocketHistory> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 10),
                               child: Text(
-                                "No Completed Order",
+                                "No History",
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -158,26 +347,23 @@ class _PocketHistoryState extends State<PocketHistory> {
   }
 
   Future<void> _refresh() async {
-    setState(() {list.clear();});
-    load();
+    loading =true;
+    setState(() {});
+    var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
+        pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit');
+    list=result;
+    loading =false;
+    _finish=result.length == 20?false:true;
+    empty = result.isEmpty;
+    setState(() {});
   }
 }
 
-class SingleOrder extends StatefulWidget {
-  final Order order;
+class SingleHistory extends StatelessWidget {
+  final PocketHistory history;
   final Session user;
-  SingleOrder({this.order,this.user});
-  @override
-  _SingleOrderState createState() => new _SingleOrderState();
-}
-
-class _SingleOrderState extends State<SingleOrder> {
-
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  final bool isCredit;
+  SingleHistory({this.history,this.user,this.isCredit});
 
   @override
   Widget build(BuildContext context) {
@@ -193,25 +379,117 @@ class _SingleOrderState extends State<SingleOrder> {
             leading:CircleAvatar(
               radius: 30.0,
               backgroundColor: Colors.white,
-              child: Center(child: widget.order.receipt.psStatus == 'success'?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),),
+              child: Center(child: history.status == 'success'?Icon(Icons.check,color: Colors.green,):Icon(Icons.close,color: Colors.red,),),
             ),
-            title: Text("${widget.order.orderItem[0].ProductName} ${widget.order.orderItem.length > 1 ? '+${widget.order.orderItem.length - 1} more' : ''}",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            title: isCredit?history.channelId == 3?
+            Text("You recieved $CURRENCY${history.amount.round()} for business transaction", style: TextStyle(fontWeight: FontWeight.bold),)
+            :
+            history.channelId == 4?
+            Text("You recieved a ${history.channelType.sentenceCase} of $CURRENCY${history.amount.round()}", style: TextStyle(fontWeight: FontWeight.bold),)
+            :
+            Text("${history.channelType.sentenceCase} $CURRENCY${history.amount.round()}", style: TextStyle(fontWeight: FontWeight.bold),)
+            :history.channelId == 3?
+            Text("You paid $CURRENCY${history.amount.round()} for business transaction", style: TextStyle(fontWeight: FontWeight.bold),)
+                :
+            history.channelId == 4?
+            Text("You made a ${history.channelType.sentenceCase} of $CURRENCY${history.amount.round()}", style: TextStyle(fontWeight: FontWeight.bold),)
+                :
+            Text("${history.channelType.sentenceCase} $CURRENCY${history.amount.round()}", style: TextStyle(fontWeight: FontWeight.bold),),
             subtitle:Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
+                if(isCredit)
+                  if(history.channelId == 3)
+                    FutureBuilder(
+                      future:MerchantRepo.getMerchantByWallet(history.from),
+                      builder: (c,AsyncSnapshot<Merchant> merchant){
+                        return merchant.hasData && user.merchant != null?
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5),
+                              child: Text("From: ${user.merchant.bName}"),
+                            )
+
+                          ],
+                        ):const SizedBox.shrink();
+                      },
+                    )
+                    else
+                      FutureBuilder(
+                        future:UserRepo.getUserUsingWallet(history.from) ,
+                        builder: (c,AsyncSnapshot<User> user){
+                          return user.hasData && user.data != null?
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.symmetric(vertical: 5),
+                                child: Text("From: ${user.data.fname}"),
+                              )
+
+                            ],
+                          ):const SizedBox.shrink();
+                        },
+                      ),
+                if(!isCredit)
+                  if(history.channelId == 3)
+                    FutureBuilder(
+                      future:MerchantRepo.getMerchantByWallet(history.to),
+                      builder: (c,AsyncSnapshot<Merchant> merchant){
+                        return merchant.hasData && user.merchant != null?
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5),
+                              child: Text("${user.merchant.bName}"),
+                            )
+
+                          ],
+                        ):const SizedBox.shrink();
+                      },
+                    )
+                  else
+                    FutureBuilder(
+                      future:UserRepo.getUserUsingWallet(history.to) ,
+                      builder: (c,AsyncSnapshot<User> user){
+                        return user.hasData && user.data != null?
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5),
+                              child: Text("To: ${user.data.fname}"),
+                            )
+
+                          ],
+                        ):const SizedBox.shrink();
+                      },
+                    ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text("${widget.order.orderMode.mode}"),
-                    Text("$CURRENCY${(widget.order.orderAmount+widget.order.orderMode.fee)}")
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      child: Text("${Utility.presentDate(history.createdDate)}"),
+                    )
+
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      child: Text("${history.paymentTypeDesc.sentenceCase}"),
+                    )
                   ],
                 ),
               ],
             ),
-            trailing: Icon(Icons.keyboard_arrow_right),
           ),
           Divider(),
         ]

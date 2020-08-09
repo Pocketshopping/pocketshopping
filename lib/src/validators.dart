@@ -37,7 +37,7 @@ class Validators {
   }
 
   static isValidTelephone(String telephone, {String ccode}) {
-    print('validator ccode $ccode');
+    //print('validator ccode $ccode');
     String code = ccode ?? '+234';
     if (code.toString() == '+234') {
       if (telephone.length < 11)

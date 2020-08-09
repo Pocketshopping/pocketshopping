@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
+import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/validators.dart';
@@ -161,12 +162,12 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     } catch (_) {yield RegisterState.failure(code: state.code);}
   }
 
-  Future<String> makeWallet(
-      String name, String email, String telephone, String refferal,String password) async {
+  Future<String> makeWallet(String name, String email, String telephone, String refferal,String password) async {
     try{
       final response = await http.post("${WALLETAPI}Users/register",
           headers: {
             'Content-Type': 'application/json',
+            'ApiKey':await ServerBloc.instance.getServerKey(),
           },
           body: jsonEncode(
             <String, dynamic>{

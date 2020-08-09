@@ -37,6 +37,7 @@ class _GeoFenceState extends State<GeoFence> {
   loc.Location location;
   StreamSubscription<Position> locStream;
 
+
   @override
   void initState() {
 
@@ -51,6 +52,7 @@ class _GeoFenceState extends State<GeoFence> {
     {
     position.value =cLoc;
     });
+
     super.initState();
   }
 
@@ -131,7 +133,8 @@ class _GeoFenceState extends State<GeoFence> {
                   ],
                 )
 
-              )
+              ),
+
           ),
         ),
         body: TabBarView(
@@ -283,7 +286,7 @@ class _GeoFenceState extends State<GeoFence> {
                               return ListView.builder(
                                 itemBuilder: (BuildContext context, int index) {
                                   return Container(
-                                      padding: EdgeInsets.symmetric(vertical: 10),
+                                      padding: EdgeInsets.symmetric(vertical: 5),
                                       //width: MediaQuery.of(context).size.width*0.5,
                                       child: OneProduct(product: snapShot.data[index],user: widget.user.user,position: posit,
                                         distance: 1.0,)
@@ -355,7 +358,7 @@ class OneProduct extends StatelessWidget{
           return Container(
       //height: height*0.22,
       margin: EdgeInsets.only(
-          bottom: height * 0.02,
+          //bottom: height * 0.02,
           left: height * 0.02,
           right: height * 0.02),
       decoration: BoxDecoration(
@@ -425,7 +428,56 @@ class OneProduct extends StatelessWidget{
                       if(merchant.hasData)
                         if(merchant.data != null)Text(merchant.data.bName),
 
+                  if(product.isManaging)
+                 if(product.pStockCount <= 0)
+                   Row(
+                     children: [
+                       Expanded(
+                           child: Center(
+                               child: Text('Out of Stock',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.grey),)
+                           )
+                       )
+                     ],
+                   )
+                 else
+                   Row(
+                     children: <Widget>[
+                       Expanded(
+                         child: FlatButton(
+                           color: PRIMARYCOLOR,
+                           onPressed: () {
+                             if(merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose)) {
+                               Get.bottomSheet(
+                                 builder: (_) => OrderUI(
+                                   merchant: merchant.data,
+                                   payload: product,
+                                   user: user,
+                                   distance: GeoFirePoint(
+                                       position.latitude,
+                                       position.longitude).
+                                   distance(lat: merchant.data.bGeoPoint['geopoint'].latitude, lng: merchant.data.bGeoPoint['geopoint'].longitude),
+                                   initPosition: position,
+                                 ),
+                                 isScrollControlled: true,
 
+                               );
+                             }
+                             else{
+                               Utility.infoDialogMaker('Currently Unavailable',title: '${merchant.data.bName}');
+                             }
+
+                           },
+                           child: Text(
+                             "Order",
+                             style: TextStyle(
+                                 fontWeight: FontWeight.bold,
+                                 color: Colors.white),
+                           ),
+                         ),
+                       ),
+                     ],
+                   )
+                 else
                   Row(
                     children: <Widget>[
                       Expanded(

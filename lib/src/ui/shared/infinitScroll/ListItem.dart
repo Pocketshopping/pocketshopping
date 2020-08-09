@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_skeleton/flutter_skeleton.dart';
+import 'package:pocketshopping/src/admin/product/repository/productObj.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -749,7 +750,7 @@ class ListItem extends StatelessWidget {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        RatingBar(
+                        /*RatingBar(
                           onRatingUpdate: (rate) {},
                           initialRating: 3.5,
                           minRating: 1,
@@ -763,7 +764,54 @@ class ListItem extends StatelessWidget {
                             Icons.star,
                             color: Colors.amber,
                           ),
-                        ),
+                        ),*/
+                        if((title as Product).isManaging)
+                          if((title as Product).pStockCount <= 0)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Center(
+                                    child: Text('Out of Stock',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.grey),)
+                                  )
+                                )
+                              ],
+                            )
+                            else
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                  child: FlatButton.icon(
+                                      onPressed: () {
+                                        callback({
+                                          'callType': 'CART',
+                                          'payload': title
+                                        });
+                                      },
+                                      icon: Icon(Icons.shopping_basket,
+                                          color: Colors.black54),
+                                      label: Text(
+                                        'Add',
+                                        style: TextStyle(
+                                            color: Colors.black54, fontSize: 12),
+                                      ))),
+                              Expanded(
+                                child: FlatButton(
+                                  color: PRIMARYCOLOR,
+                                  onPressed: () {
+                                    callback(
+                                        {'callType': 'ORDER', 'payload': title});
+                                  },
+                                  child: Text(
+                                    "Order",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                          else
                         Row(
                           children: <Widget>[
                             Expanded(
@@ -893,7 +941,7 @@ class ListItem extends StatelessWidget {
     MerchantRepo.getMerchant(mid).then((value) {
       name = value.bName;
     });
-    print(name);
+    //print(name);
     //return name;
   }
 }

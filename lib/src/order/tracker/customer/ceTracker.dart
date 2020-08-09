@@ -1,15 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/business/business.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
+import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
+import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
 import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
+import 'package:pocketshopping/src/order/tracker/customer/riderErrandDirection.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -17,6 +23,7 @@ import 'package:pocketshopping/src/ui/shared/direction/bloc/errandDirectionBloc.
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:share/share.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -109,32 +116,32 @@ class _CustomerErrandTrackerWidgetState extends State<CustomerErrandTrackerWidge
               }
               else{
                 return  FutureBuilder(
-                  future: UserRepo.getOneUsingUID(order.data.customerID),
-                  builder: (context,AsyncSnapshot<User>customer){
+                  future: LogisticRepo.getOneAgentByUid(order.data.agent),
+                  builder: (context,AsyncSnapshot<Agent>agent){
                     return FutureBuilder(
                       future: ReviewRepo.getOne(order.data.orderCustomer.customerReview),
                       builder: (context, AsyncSnapshot<Review>review){
-                        return order.data.status == 0? SlidingUpPanel(
+                        return order.data.isAssigned?order.data.status == 0? SlidingUpPanel(
                           controller: slider,
                           onPanelClosed: (){expanded.value=false;},
                           onPanelOpened: (){expanded.value=true;},
                           body: Container(
                             color: Colors.grey.withOpacity(0.2),
                             child: Center(
-                              child: Direction(source: LatLng(order.data.errand.source.latitude,order.data.errand.source.longitude),
+                              child: RiderErrandDirection(source: LatLng(order.data.errand.source.latitude,order.data.errand.source.longitude),
                                 destination: LatLng(order.data.errand.destination.latitude,order.data.errand.destination.longitude),
                                 destAddress: order.data.errand.destinationAddress,
                                 sourceAddress: order.data.errand.sourceAddress,
                                 destName: 'Destination',
                                 sourceName: 'Source',
-                                user: widget.user,
+                                agent: agent.data,
                               ),
                             ),
                           ),
                           panelBuilder: (ScrollController sc) => ListView(
                             controller: sc,
                             children: [
-                              ErrandTracker(user: widget.user,order: order,)
+                              ErrandTracker(agent: agent,order: order,review: review,)
                             ],
                           ),
                           collapsed: Container(
@@ -171,146 +178,42 @@ class _CustomerErrandTrackerWidgetState extends State<CustomerErrandTrackerWidge
                                       )
                                   ),
                                   Expanded(
-                                      child: ValueListenableBuilder(
-                                        valueListenable: pathLine,
-                                        builder: (_,CurrentPathLine path,__){
-                                          return path != null ?Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              if(path.hasVisitedSource)
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      flex:2,
-                                                      child: Center(child:Text('Destination: ${order.data.errand.destinationAddress}', textAlign: TextAlign.center,)),
-                                                    ),
-                                                    if(path.hasVisitedDestination)
-                                                      Expanded(
-                                                        flex: 1,
-                                                        child: IconButton(
-                                                          onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
-                                                          icon: Icon(Icons.call,size: 40,),
-                                                        ),
-                                                      )
-
-                                                  ],
-                                                ),
-                                              if(!path.hasVisitedSource)
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Expanded(
-                                                      flex:2,
-                                                      child: Center(
-                                                        child:  Text('Source: ${order.data.errand.sourceAddress}', textAlign: TextAlign.center,),
-                                                      ),
-                                                    ),
-                                                    if(path.hasVisitedDestination)
-                                                      Expanded(
-                                                        flex: 1,
-                                                        child: IconButton(
-                                                          onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
-                                                          icon: Icon(Icons.call,size: 40,),
-                                                        ),
-                                                      )
-
-                                                  ],
-                                                ),
-
-                                            ],
-                                          ):
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                flex:2,
-                                                child: Center(child:Text('Destination: ${order.data.errand.destinationAddress}', textAlign: TextAlign.center,)),
+                                      child: agent.data != null?FutureBuilder(
+                                        future: UserRepo.getOneUsingUID(agent.data.agent),
+                                        builder: (context,AsyncSnapshot<User> snapshot){
+                                          if(snapshot.hasData){
+                                            return ListTile(
+                                              leading: CircleAvatar(
+                                                radius: 30,
+                                                backgroundColor: Colors.grey.withOpacity(0.2),
+                                                backgroundImage: NetworkImage(snapshot.data.profile),
                                               ),
-                                              if(path != null)
-                                                if(path.hasVisitedDestination)
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: IconButton(
-                                                      onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
-                                                      icon: Icon(Icons.call,size: 40,),
-                                                    ),
-                                                  )
-
-                                            ],
-                                          );
-                                        },
-                                      )/*Column(
-                                        children: [
-                                          Expanded(
-                                              child:
-                                          ),
-                                         *//* Expanded(
-                                            flex: 0,
-                                            child:const SizedBox(height: 5,),
-                                          ),
-                                          Expanded(
-                                              child: Padding(
-                                                  padding: EdgeInsets.symmetric(horizontal: 15),
-                                                  child: Row(
-                                                    children: [
-                                                      Expanded(
-                                                        flex:0,
-                                                        child: Text('Reciever: ${order.data.errand.destinationName}'),
-                                                      ),
-                                                      Expanded(
-                                                          flex: 1,
-                                                          child: Align(
-                                                            alignment: Alignment.centerLeft,
-                                                            child: IconButton(
-                                                              onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
-                                                              icon: Icon(Icons.call),
-                                                            ),
-                                                          )
-                                                      )
-                                                    ],
-                                                  )
+                                              title: Text('${snapshot.data.fname}'),
+                                              subtitle: Text('Rider'),
+                                              trailing: IconButton(
+                                                onPressed: () => launch("tel:${snapshot.data.telephone}"),
+                                                icon: Icon(Icons.call,size: 40,),
                                               )
-                                          ),*//*
-                                        ],
-                                      ),*/
+                                            );
+                                          }
+                                          else{
+                                            return Center(child: Text('Processing Errand'),);
+                                          }
+                                        },
+                                      ):Center(child: Text('Processing Errand'),),
                                   ),
                                 ],
                               )
                           ),
-                          /* expandableContent: Container(
-                            height: MediaQuery.of(context).size.height*0.6,
-                            color: Colors.white,
-                            child:  Listener(
-                                onPointerUp: (_) {
-                                  if (scrollController.offset <= scrollController.position.minScrollExtent &&
-                                      !scrollController.position.outOfRange) {
-
-                                    contract();
-                                    expanded.value = false;
-                                  }
-                                },
-                                onPointerDown: (_) {
-
-                                },
-                              child:
-
-                              ListView(
-                                controller: scrollController,
-                              children: [
-                                ErrandTracker(user: widget.user,order: order,)
-                              ],
-                            ),
-                          ),
-                          )*/
                         ):
                         ListView(
                           children: [
-                            ErrandTracker(user: widget.user,order: order,)
+                            ErrandTracker(agent: agent,order: order,review: review,)
+                          ],
+                        ):
+                        ListView(
+                          children: [
+                            ErrandTracker(agent: agent,order: order,review: review,)
                           ],
                         );
                       },
@@ -372,36 +275,45 @@ class _CustomerErrandTrackerWidgetState extends State<CustomerErrandTrackerWidge
 
 class ErrandTracker extends StatelessWidget{
   final dynamic order;
-  final User user;
-  ErrandTracker({this.order,this.user});
-  final _formKey = GlobalKey<FormState>();
+  final dynamic agent;
+  final dynamic review;
+  ErrandTracker({this.order,this.agent,this.review});
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Column(
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: 10, horizontal: 10),
-              child: Row(
-                children: [
-                  if(order.data.isAssigned)
-                    Expanded(
-                      flex:1,
-                      child: Text('${order.data.status != 0 ? order.data.receipt.psStatus=='success'?'Completed':'Cancelled' : 'Processing'}',
-                        style: TextStyle(fontSize: 20),
+        children: <Widget>[
+          SizedBox(height: 50,),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: 10, horizontal: 10),
+                child: Row(
+                  children: [
+                    if(order.data.isAssigned)
+                      Expanded(
+                        flex:1,
+                        child: Text('${order.data.status != 0 ? order.data.receipt.psStatus=='success'?'Completed':'Cancelled' : 'Processing'}',
+                          style: TextStyle(fontSize: 20),
+                        ),
                       ),
-                    ),
-                ],
-              )
+                    if(order.data.status == 0 && !order.data.isAssigned )
+                      Expanded(
+                        child:  Text('Task not yet accepted.',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )
+                  ],
+                )
+            ),
           ),
-        ),
 
-        if(order.data.status != 0 && order.data.receipt.psStatus=='fail')
-          psCard(
+          (!order.data.orderConfirmation.isConfirmed && order.data.status == 0 && order.data.isAssigned) ||
+              (order.data.orderMode.mode == 'Pickup' && !order.data.orderConfirmation.isConfirmed && order.data.status == 0)
+              ?
+          psHeadlessCard(
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey,
@@ -409,91 +321,28 @@ class ErrandTracker extends StatelessWidget{
                   blurRadius: 6.0,
                 ),
               ],
-              color: PRIMARYCOLOR,
-              title: "Reason for concellation.",
               child: Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: 10, horizontal: 10),
-                  child: Column(
-                    children: [
-                      Text(order.data.receipt.pRef,style: TextStyle(fontSize: 16),
-                        textAlign: TextAlign.start,),
-                      if(order.data.receipt.type == 'CARD' || order.data.receipt.type == 'POCKET')
-                        Text('Please note. Yor money has been refunded to your pocket',
-                          textAlign: TextAlign.start,style: TextStyle(fontSize: 14),),
-                    ],
-                  )
-              )
-          ),
-
-        (!order.data.orderConfirmation.isConfirmed && order.data.status == 0 && order.data.isAssigned) ||
-            (order.data.orderMode.mode == 'Pickup' && !order.data.orderConfirmation.isConfirmed && order.data.status == 0)
-            ?
-        psHeadlessCard(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey,
-                //offset: Offset(1.0, 0), //(x,y)
-                blurRadius: 6.0,
-              ),
-            ],
-            child: Container(
-              color: Colors.green,
-              child: FlatButton(
-                onPressed: () {
-                  Get.defaultDialog(
-                    title: 'Confirmation',
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Enter Confirmation code:'),
-                        Form(
-                          key: _formKey,
-                          child:
-                          TextFormField(
-                            validator: (value) {
-                              if (value != order.data.orderConfirmation.confirmOTP) {
-                                return 'Wrong Confirmation Code';
-                              }
-                              return null;
-                            },
-                            controller: null,
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.confirmation_number),
-                              hintText: 'Confirmation Code',
-                              filled: true,
-                              fillColor: Colors.grey.withOpacity(0.2),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                              ),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                              ),
-                            ),
-                            autofocus: true,
-                            enableSuggestions: true,
-                            textInputAction: TextInputAction.done,
-                            autovalidate: true,
-                            onChanged: (value) {},
-                          )
-                          ,)
-                      ],
-                    ),
-                    cancel: FlatButton(
-                      onPressed: () {
-                        Get.back();
-                      },
-                      child: Text('No'),
-                    ),
-                    confirm: FlatButton(
-                      onPressed: () {
-                        if(_formKey.currentState.validate())
-                        {
+                color: Colors.green,
+                child: FlatButton(
+                  onPressed: () {
+                    Get.defaultDialog(
+                      title: 'Confirmation',
+                      content: const Text(
+                          'Confirming this errand implies your package has been delivered to the destination.'
+                              ' please note this action can not be undone.'),
+                      cancel: FlatButton(
+                        onPressed: () {
+                          Get.back();
+                        },
+                        child: const Text('No'),
+                      ),
+                      confirm: FlatButton(
+                        onPressed: () {
                           Get.back();
                           confirm(
                               order.data,
-                              null,
-                              user,
+                              null,//merchant.data,
+                              agent.data,
                               order.data.docID,
                               Confirmation(
                                 confirmOTP: order.data
@@ -504,23 +353,624 @@ class ErrandTracker extends StatelessWidget{
                               ),
                               Receipt.fromMap(order.data.receipt.copyWith(psStatus: "success").toMap())
                           );
-                        }
-                        //refreshOrder();
-                      },
-                      child: Text('Yes Confirm'),
+                          //refreshOrder();
+                        },
+                        child: const Text('Yes Confirm'),
+                      ),
+                    );
+                  },
+                  child: Center(
+                    child: Text(
+                      'Confirm Errand Completion',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  );
-                },
-                child: Center(
-                  child: Text(
-                    'Conclude Errand task',
-                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-              ),
-            )
-        ):Container(),
+              )
+          ):Container(),
 
+
+
+          if(order.data.status == 0 && agent.hasData)
+            Center(
+              child:
+              FutureBuilder(
+                future: UserRepo.getOneUsingUID(agent.data.agent),
+                builder: (context,AsyncSnapshot<User> snapshot){
+                  if(snapshot.hasData){
+                    return Loader(
+                      rider: snapshot.data,
+                    );
+                  }
+                  else{
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
+            ),
+
+          if(!order.data.isAssigned)
+            psHeadlessCard(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
+                  ),
+                ],
+                child: Column(
+                  children: [
+                    Center(
+                      child: Padding(padding: EdgeInsets.symmetric(vertical: 10),child: Text('Waiting For Rider to accept'),),
+                    ),
+                    Container(
+                      child: JumpingDotsProgressIndicator(
+                        fontSize: MediaQuery.of(context).size.height * 0.08,
+                        color: PRIMARYCOLOR,
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10,horizontal: 5),
+                        child: Text('Ensure the rider accepts the task before handing over the package to him/her.'
+                            ' Without rider accepting the task pocketshopping will not be able to track the errand and in '
+                            'such case would not be held responsible in any situation.',textAlign: TextAlign.center,),),
+                    ),
+                  ],
+                )
+            ),
+
+          if(order.data.status != 0 && order.data.receipt.psStatus=='fail')
+            psCard(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
+                  ),
+                ],
+                color: PRIMARYCOLOR,
+                title: "Reason for concellation.",
+                child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 10),
+                    child: Column(
+                      children: [
+                        Text(order.data.receipt.pRef,style: TextStyle(fontSize: 16),
+                          textAlign: TextAlign.start,),
+                        if(order.data.receipt.type == 'CARD' || order.data.receipt.type == 'POCKET')
+                          Text('Please note. Yor money has been refunded to your pocket',
+                            textAlign: TextAlign.start,style: TextStyle(fontSize: 14),),
+                      ],
+                    )
+                )
+            ),
+
+          if(review.data != null)
+            Container(
+                child: psHeadlessCard(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey,
+                        //offset: Offset(1.0, 0), //(x,y)
+                        blurRadius: 6.0,
+                      ),
+                    ],
+                    child: Column(
+                      children: [
+                        Center(
+                          child: const Text('Your Review'),
+                        ),
+                        RatingBar(
+                          onRatingUpdate: (rate){},
+                          initialRating: review.data.rating,
+                          minRating: 1,
+                          maxRating: 5,
+                          itemSize: MediaQuery.of(context).size.width * 0.08,
+                          direction: Axis.horizontal,
+                          allowHalfRating: true,
+                          ignoreGestures: true,
+                          itemCount: 5,
+                          //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                          itemBuilder: (context, _) => Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Center(
+                          child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: Text(review.data.text)),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: Text(
+                                '${Utility.presentDate(DateTime.parse((review.data.reviewedAt).toDate().toString()))}'),
+                          ),
+                        ),
+                      ],
+                    )
+
+                )
+            ),
+
+          psHeadlessCard(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  //offset: Offset(1.0, 0), //(x,y)
+                  blurRadius: 6.0,
+                ),
+              ],
+              child: Column(
+                children: [
+                  if(order.data.status == 0)
+                    Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              //                   <--- left side
+                              color: Colors.black12,
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                        padding: EdgeInsets.all(
+                            MediaQuery.of(context).size.width *
+                                0.02),
+                        child: Row(
+                          children: <Widget>[
+                            const Expanded(
+                              child: const Text('Share the confirmation code with the reciever. The rider will require the code for confimation at the destination. ',textAlign: TextAlign.center,),
+                            ),
+                          ],
+                        )),
+                  Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            //                   <--- left side
+                            color: Colors.black12,
+                            width: 1.0,
+                          ),
+                        ),
+                      ),
+                      padding: EdgeInsets.all(
+                          MediaQuery.of(context).size.width *
+                              0.02),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          const Expanded(
+                            child:const Text('Completed:'),
+                          ),
+                          Expanded(
+                            child: Text(order.data
+                                .orderConfirmation.isConfirmed
+                                ? "Yes"
+                                : 'No'),
+                          )
+                        ],
+                      )),
+                  Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            //                   <--- left side
+                            color: Colors.black12,
+                            width: 1.0,
+                          ),
+                        ),
+                      ),
+                      padding: EdgeInsets.all(
+                          MediaQuery.of(context).size.width *
+                              0.02),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          const Expanded(
+                            flex: 0,
+                            child: const Text('Confirmation code:'),
+                          ),
+                          Expanded(
+                            child: Center(child: Text(order.data.orderConfirmation.confirmOTP),),
+                          ),
+                          if(order.data.status == 0)
+                            Expanded(
+                                flex: 0,
+                                child: Padding(
+                                  padding: EdgeInsets.only(right: 20),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      Share.share('${order.data.orderConfirmation.confirmOTP}');
+                                    },
+                                    icon: Icon(Icons.share),
+                                  ),
+                                ))
+                        ],
+                      )),
+                  Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            //                   <--- left side
+                            color: Colors.black12,
+                            width: 1.0,
+                          ),
+                        ),
+                      ),
+                      padding: EdgeInsets.all(
+                          MediaQuery.of(context).size.width *
+                              0.02),
+                      child: Row(
+                        children: <Widget>[
+                          const Expanded(
+                            child: const Text('Completed:'),
+                          ),
+                          Expanded(
+                            child: Text(
+                                '${order.data.orderConfirmation.confirmedAt == null || order.data.orderConfirmation.confirmedAt=="" ? '-' :Utility.presentDate(DateTime.parse(((order.data.orderConfirmation.confirmedAt as Timestamp).toDate()).toString()))}'),
+                          )
+                        ],
+                      )),
+                ],
+              )),
+          psHeadlessCard(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  //offset: Offset(1.0, 0), //(x,y)
+                  blurRadius: 6.0,
+                ),
+              ],
+              child: Column(children: [
+                Container(
+                    decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            //                   <--- left side
+                            color: Colors.black12,
+                            width: 1.0,
+                          ),
+                        ),
+                        color: PRIMARYCOLOR),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: const Align(
+                      alignment: Alignment.centerLeft,
+                      child: const Text(
+                        'Errand Details',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    )),
+                SizedBox(height: 10,),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text('Source:'),
+                        ),
+                        Expanded(
+                          child: Text('${order.data.errand.sourceAddress}'),
+                        )
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text('Destination:'),
+                        ),
+                        Expanded(
+                          child: Text('${order.data.errand.destinationAddress}'),
+                        )
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text('Reciever:'),
+                        ),
+                        Expanded(
+                          child: Text('${order.data.errand.destinationName}'),
+                        )
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text('Reciever Contact:'),
+                        ),
+                        Expanded(
+                          child: Text('${order.data.errand.destinationContact}',textAlign: TextAlign.center,),
+                        ),
+                        Expanded(
+                            flex: 0,
+                            child: Center(
+                              child: IconButton(
+                                onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
+                                icon: Icon(Icons.call),
+                              ),
+                            )
+                        )
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text('${order.data.errand.comment}'),
+                        )
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width *
+                            0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text('Created At:'),
+                        ),
+                        Expanded(
+                          child:
+                          Text('${Utility.presentDate(DateTime.parse((order.data.orderCreatedAt as Timestamp).toDate().toString()))}'),
+                        ),
+                      ],
+                    )),
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width *
+                            0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text('Fee:'),
+                        ),
+                        Expanded(
+                          child:
+                          Text('$CURRENCY${order.data.orderMode.fee}'),
+                        ),
+                      ],
+                    )),
+
+                Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          //                   <--- left side
+                          color: Colors.black12,
+                          width: 1.0,
+                        ),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.02),
+                    child: Row(
+                      children: <Widget>[
+                        const Expanded(
+                          child: const Text(
+                            'Payment Method:',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${order.data.receipt.type}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      ],
+                    )),
+              ])),
+
+          FutureBuilder<List<CustomerCareLine>>(
+            future: CustomerCareRepo.fetchCustomerCareLine((order.data.orderMode.mode=='Delivery'?order.data.orderLogistic:order.data.orderMerchant)),
+            initialData: null,
+            builder: (_, AsyncSnapshot<List<CustomerCareLine>> customerCare){
+              if(customerCare.hasData){
+                return psHeadlessCard(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey,
+                        //offset: Offset(1.0, 0), //(x,y)
+                        blurRadius: 6.0,
+                      ),
+                    ],
+                    child: Column(
+                        children: <Widget>[
+                          Container(
+                              decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      //                   <--- left side
+                                      color: Colors.black12,
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                  color: PRIMARYCOLOR),
+                              padding: EdgeInsets.all(
+                                  MediaQuery.of(context).size.width * 0.02),
+                              child:const Align(
+                                alignment: Alignment.centerLeft,
+                                child: const Text(
+                                  'Customer care line',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              )
+                          ),
+                          Column(
+                              children:List<Widget>.generate(customerCare.data.length, (index) {
+                                return Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          //                   <--- left side
+                                          color: Colors.black12,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.all(
+                                        MediaQuery.of(context).size.width * 0.02),
+                                    child: Align(
+                                        alignment: Alignment.center,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text('${customerCare.data[index].name}'),
+                                            ),
+                                            Expanded(
+                                                child: Text('${customerCare.data[index].number}')
+                                            )
+                                          ],
+                                        )
+                                    )
+                                );
+                              }).toList()
+                          )
+
+                        ]
+                    )
+                );
+              }
+              else{return const SizedBox.shrink();}
+            },
+          ),
+        ]
+    );
+  }
+
+  bool confirm(Order _order, Merchant merchant, Agent agent,String oid, Confirmation confirmation,Receipt receipt) {
+    bool isDone = true;
+    int unit = (_order.orderMode.fee * 0.1).round();
+
+    Geolocator().distanceBetween(_order.errand.source.latitude, _order.errand.source.longitude,
+        _order.errand.destination.latitude, _order.errand.destination.longitude).then((value) {
+      OrderRepo.confirm(_order, confirmation,receipt,agent.agent,
+          _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
+        isDone = false;
+      });
+    });
+
+
+    if (isDone) {
+      //refreshOrder();
+      //confirmNotifier().then((value) => null);
+      GetBar(
+        title: 'Errand Completed',
+        messageText: const Text(
+          'Errand has been successfully completed ',
+          style: const TextStyle(color: Colors.white),
+        ),
+        duration: const Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+
+    }
+    return isDone;
+  }
+}
+
+class Loader extends StatelessWidget{
+  Loader({this.rider});
+  final User rider;
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      if(rider != null)
+        CircleAvatar(
+          radius: MediaQuery.of(context).size.width*0.25,
+          backgroundColor: Colors.grey.withOpacity(0.2),
+          backgroundImage: NetworkImage(rider.profile.isNotEmpty?rider.profile:PocketShoppingDefaultAvatar),
+        ),
+      if(rider != null)
         psHeadlessCard(
             boxShadow: [
               BoxShadow(
@@ -549,7 +999,7 @@ class ErrandTracker extends StatelessWidget{
                       child: const Align(
                         alignment: Alignment.centerLeft,
                         child: const Text(
-                          'Reciever Contact',
+                          'Rider',
                           style: const TextStyle(
                               color: Colors.white),
                         ),
@@ -573,7 +1023,7 @@ class ErrandTracker extends StatelessWidget{
                       child: Align(
                         alignment: Alignment.center,
                         child: Text(
-                          '${order.data.errand.destinationName}',
+                          '${rider.fname}',
                           style: const TextStyle(
                               color: Colors.black, fontSize: 18),
                         ),
@@ -603,7 +1053,7 @@ class ErrandTracker extends StatelessWidget{
                               Expanded(
                                   child: Center(
                                     child: Text(
-                                      '${order.data.errand.destinationContact}',
+                                      '${rider.telephone}',
                                       style: const TextStyle(
                                           color: Colors.black, fontSize: 18),
                                     ),
@@ -614,7 +1064,7 @@ class ErrandTracker extends StatelessWidget{
                                   flex: 0,
                                   child: Center(
                                     child: IconButton(
-                                      onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
+                                      onPressed: () => launch("tel:${rider.telephone}"),
                                       icon: Icon(Icons.call),
                                     ),
                                   )
@@ -627,373 +1077,11 @@ class ErrandTracker extends StatelessWidget{
                 ]
             )
         ),
-
-        psHeadlessCard(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey,
-              //offset: Offset(1.0, 0), //(x,y)
-              blurRadius: 6.0,
-            ),
-          ],
-          child: Column(
-            children: <Widget>[
-              Container(
-                  decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          //                   <--- left side
-                          color: Colors.black12,
-                          width: 1.0,
-                        ),
-                      ),
-                      color: PRIMARYCOLOR),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Customer Details',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text('Name:'),
-                      ),
-                      Expanded(
-                        child: Text(
-                            '${order.data.orderCustomer.customerName}'),
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text('Telephone:'),
-                      ),
-                      Expanded(
-                        child: Text(
-                            '${order.data.orderCustomer.customerTelephone}'),
-                      ),
-                      Expanded(
-
-                          child: Center(
-                            child: IconButton(
-                              onPressed: () => launch("tel:${order.data.orderCustomer.customerTelephone}"),
-                              icon: Icon(Icons.call),
-                            ),
-                          )
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text('Address:'),
-                      ),
-                      Expanded(
-                        child: Text(
-                            '${order.data.errand.sourceAddress}'),
-                      )
-                    ],
-                  )),
-            ],
-          ),
-        ),
-
-        psHeadlessCard(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey,
-                //offset: Offset(1.0, 0), //(x,y)
-                blurRadius: 6.0,
-              ),
-            ],
-            child: Column(children: [
-              Container(
-                  decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          //                   <--- left side
-                          color: Colors.black12,
-                          width: 1.0,
-                        ),
-                      ),
-                      color: PRIMARYCOLOR),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: const Align(
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Errand Details',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  )),
-              SizedBox(height: 10,),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text('Source:'),
-                      ),
-                      Expanded(
-                        child: Text('${order.data.errand.sourceAddress}'),
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text('Destination:'),
-                      ),
-                      Expanded(
-                        child: Text('${order.data.errand.destinationAddress}'),
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text('Reciever:'),
-                      ),
-                      Expanded(
-                        child: Text('${order.data.errand.destinationName}'),
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text('Reciever Contact:'),
-                      ),
-                      Expanded(
-                        child: Text('${order.data.errand.destinationContact}',textAlign: TextAlign.center,),
-                      ),
-                      Expanded(
-                          flex: 0,
-                          child: Center(
-                            child: IconButton(
-                              onPressed: () => launch("tel:${order.data.errand.destinationContact}"),
-                              icon: Icon(Icons.call),
-                            ),
-                          )
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text('${order.data.errand.comment}'),
-                      )
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width *
-                          0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text('Created At:'),
-                      ),
-                      Expanded(
-                        child:
-                        Text('${Utility.presentDate(DateTime.parse((order.data.orderCreatedAt as Timestamp).toDate().toString()))}'),
-                      ),
-                    ],
-                  )),
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width *
-                          0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text('Fee:'),
-                      ),
-                      Expanded(
-                        child:
-                        Text('$CURRENCY${order.data.orderMode.fee}'),
-                      ),
-                    ],
-                  )),
-
-              Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        //                   <--- left side
-                        color: Colors.black12,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: <Widget>[
-                      const Expanded(
-                        child: const Text(
-                          'Payment Method:',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          '${order.data.receipt.type}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold),
-                        ),
-                      )
-                    ],
-                  )),
-            ])),
-      ],
+      const SizedBox.shrink()
+    ]
     );
+
   }
 
-  bool confirm(Order _order, Merchant merchant, User agent,String oid, Confirmation confirmation,Receipt receipt) {
-    bool isDone = true;
-    int unit = (_order.orderMode.fee * 0.1).round();
-    Geolocator().distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
-        _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude).then((value) {
-      OrderRepo.confirm(_order, confirmation,receipt,agent.uid,
-          _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
-        isDone = false;
-      });
-    });
-    if (isDone) {
-      //refreshOrder();
-      //confirmNotifier().then((value) => null);
-      GetBar(
-        title: 'Order Confirmed',
-        messageText: const Text(
-          'Take your time to rate this user your rating will help us '
-              ' improve our service',
-          style: const TextStyle(color: Colors.white),
-        ),
-        duration: const Duration(seconds: 10),
-        backgroundColor: PRIMARYCOLOR,
-      ).show();
-
-    }
-    return isDone;
-  }
 }
 

@@ -51,6 +51,8 @@ class _PosCheckOutState extends State<PosCheckOut> {
   Stream<LocalNotification> _notificationsStream;
   Order order;
   String errorMessage;
+  final fcm = ValueNotifier<String>('');
+
 
 
   @override
@@ -69,7 +71,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
             case 'paymentInitiatedResponse':
               if(payload['paymentId'] == paymentId){
                 setState(() { transactionExpires=true; stage=3;_start=0;});
-                print(payload['customerWallet']);
+                //print(payload['customerWallet']);
                 if(payload['customerWallet'] != null) {
                   Wallet wallet = await WalletRepo.getWallet(
                       payload['customerWallet']);
@@ -161,7 +163,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
           }
         );
 
-
+    FirebaseMessaging().getToken().then((value) => fcm.value =value);
     super.initState();
   }
 
@@ -831,16 +833,19 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 flex: 2,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
-                  child: QrImage(
-                    data: json.encode({
-                      'merchant':widget.session.merchant.bName,
-                      'amount':Utility.sum(widget.payload),
-                      'wallet':widget.session.user.role == 'admin'?widget.session.user.walletId:'',
-                      'fcm': widget.session.user.notificationID,
-                      'paymentid':paymentId
-                    }),
-
-
+                  child: ValueListenableBuilder(
+                    valueListenable: fcm,
+                    builder: (_,String token,__){
+                      return QrImage(
+                        data: json.encode({
+                          'merchant':widget.session.merchant.bName,
+                          'amount':Utility.sum(widget.payload),
+                          'wallet':widget.session.user.role == 'admin'?widget.session.user.walletId:'',
+                          'fcm': token,
+                          'paymentid':paymentId
+                        }),
+                      );
+                    },
                   )
                 )
             ),

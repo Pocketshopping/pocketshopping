@@ -7,6 +7,7 @@ import 'package:google_map_polyline/google_map_polyline.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:pocketshopping/src/location/bloc/locationBloc.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/order/repository/currentPathLine.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
@@ -85,10 +86,11 @@ class DirectionState extends State<Direction> {
       setInitialLocation();
 
       lStream = LocationBloc.instance.locationStream;
-      lStream.listen((LocationData cLoc) {
+      lStream.listen((LocationData cLoc) async {
         currentLocation = cLoc;
         updatePinOnMap();
         if (mounted) setState(() {});
+        await LogisticRepo.updateAgentTrackerLocation(widget.user.uid,cLoc);
       });
       pathLineStream = OrderRepo.currentPathLineStream(currentUser.uid).listen((event) {
         if(event != null) {
@@ -103,7 +105,7 @@ class DirectionState extends State<Direction> {
   }
 
   awayFrom(List<LatLng> polylineCoordinates) async {
-    print(polylineCoordinates[0]);
+    //print(polylineCoordinates[0]);
     double dist = 0.0;
 
     for (int i = 0; i < polylineCoordinates.length; i++) {

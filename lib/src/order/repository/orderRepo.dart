@@ -1,3 +1,5 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
@@ -9,7 +11,7 @@ import 'package:pocketshopping/src/order/repository/orderEntity.dart';
 import 'package:pocketshopping/src/order/repository/orderItem.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
-
+import 'package:pocketshopping/src/stockManager/repository/stockRepo.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
@@ -23,15 +25,18 @@ class OrderRepo {
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
       if(bid != null)
       {
-        StatisticRepo.saveTransaction({
-          'oid':bid.documentID,
-          'mid':order.orderMerchant,
-          'sid':order.agent,
-          'insertedAt':Timestamp.now(),
-          'day':DateTime.now().weekday,
-          'items': OrderItem.toNames(order.orderItem),
-          'amount':order.orderAmount
-        });
+        if(order.status == 1 && order.receipt.psStatus == 'success'){
+          StatisticRepo.saveTransaction({
+            'oid':bid.documentID,
+            'mid':order.orderMerchant,
+            'sid':order.agent,
+            'insertedAt':Timestamp.now(),
+            'day':DateTime.now().weekday,
+            'items': OrderItem.toNames(order.orderItem),
+            'amount':order.orderAmount
+          });
+          StockRepo.buyList(order.orderItem);
+        }
 
         return bid.documentID;
       }
@@ -48,8 +53,7 @@ class OrderRepo {
 
     yield* databaseReference.collection("orders").document(order).snapshots().map((event)  {
       return Order.fromEntity(OrderEntity.fromSnapshot(event));
-    })
-        .timeout(Duration(seconds: TIMEOUT),onTimeout: (sink){sink.add(null);});
+    });
   }
 
   static Future<bool> removeOnePotential(String order, String collectionID,String cDevice, List<String>potentials)async {
@@ -58,14 +62,16 @@ class OrderRepo {
       if(potentials.isEmpty)
      {
        await databaseReference.collection("orders").document(order).updateData({
-         'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.','isAssigned':true,'status':1,'receipt.psStatus':'fail'});
+         'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.','isAssigned':true,'status':1,'receipt.psStatus':'fail'})
+           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
        await Utility.finalizePay(collectionID: collectionID,isSuccessful: false);
        await Utility.pushNotifier(body: 'Your order has been cancelled(Rider currently unavailable)', title: 'Delivey Cancelled',fcm: cDevice);
 
      }
       else{
         await databaseReference.collection("orders").document(order).updateData({
-          'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.'});
+          'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.'})
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
       return true;
     }
@@ -90,7 +96,7 @@ class OrderRepo {
           'index': index,
           'potentials': [],
           'isAssigned': true,
-        });
+        }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         await LogisticRepo.makeAgentBusy(agentId, isBusy: true);
         await Utility.agentAccept(collectionID: collectionId,
             status: true,
@@ -156,106 +162,206 @@ class OrderRepo {
   }
 
   static Future<List<Order>> get(
-      dynamic lastDoc, int openOrClose, String uid) async {
-    var snap;
-    if (lastDoc == null) {
-      snap = await databaseReference
-          .collection('orders')
-          .orderBy('orderCreatedAt', descending: true)
-          .where("customerID", isEqualTo: uid)
-          .where("status", isEqualTo: openOrClose)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    } else {
-      snap = await databaseReference
-          .collection('orders')
-          .orderBy('orderCreatedAt', descending: true)
-          .where("customerID", isEqualTo: uid)
-          .where("status", isEqualTo: openOrClose)
-          .startAfter(
+      dynamic lastDoc, int openOrClose, String uid,{int source=0}) async {
+    try{
+      QuerySnapshot snap;
+      if (lastDoc == null) {
+        try{
+          if(source == 1)throw Exception;
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: openOrClose)
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(snap.documents.isEmpty)throw Exception;
+        }
+        catch(_){
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: openOrClose)
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      } else {
+        try{
+          if(source == 1)throw Exception;
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: openOrClose)
+              .startAfter(
               [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    }
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(snap.documents.isEmpty)throw Exception;
+        }
+        catch(_){
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: openOrClose)
+              .startAfter(
+              [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      }
 
-    List<Order> orders = [];
-    snap.documents.forEach((doc) {
-      orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
-    });
-    if (orders.length > 0)
-      return orders;
-    else
+      List<Order> orders = [];
+      snap.documents.forEach((doc) {
+        orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
+      });
+      if (orders.length > 0)
+        return orders;
+      else
+        return [];
+    }
+    catch(_){
       return [];
+    }
   }
 
   static Future<List<Order>> getCompleted(
-      dynamic lastDoc, String uid) async {
-    var snap;
-    if (lastDoc == null) {
-      snap = await databaseReference
-          .collection('orders')
-          .orderBy('orderCreatedAt', descending: true)
-          .where("customerID", isEqualTo: uid)
-          .where("status", isEqualTo: 1)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    } else {
-      snap = await databaseReference
-          .collection('orders')
-          .orderBy('orderCreatedAt', descending: true)
-          .where("customerID", isEqualTo: uid)
-          .where("status", isEqualTo: 1)
-          .startAfter(
-          [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
-    }
+      dynamic lastDoc, String uid,{int source=0}) async {
+    try{
+      QuerySnapshot snap;
+      if (lastDoc == null) {
+        try{
+          if(source == 1)throw Exception;
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: 1)
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(snap.documents.isEmpty)throw Exception;
+        }
+        catch(_){
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: 1)
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      } else {
+        try{
+          if(source == 1)throw Exception;
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: 1)
+              .startAfter(
+              [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(snap.documents.isEmpty)throw Exception;
+        }
+        catch(_){
+          snap = await databaseReference
+              .collection('orders')
+              .orderBy('orderCreatedAt', descending: true)
+              .where("customerID", isEqualTo: uid)
+              .where("status", isEqualTo: 1)
+              .startAfter(
+              [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
+      }
 
-    List<Order> orders = [];
-    snap.documents.forEach((doc) {
-      orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
-    });
-    if (orders.length > 0)
-      return orders;
-    else
+      List<Order> orders = [];
+      snap.documents.forEach((doc) {
+        orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
+      });
+      if (orders.length > 0)
+        return orders;
+      else
+        return [];
+    }
+    catch(_){
       return [];
+    }
   }
 
   static Future<void> confirm(Order oid, Confirmation confirmation,Receipt receipt,String agent,int fee,int distance,int unit) async {
-    await databaseReference.collection("orders").document(oid.docID).updateData({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()});
-    await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: true);
-    await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalAmount: fee,totalDistance: distance,totalUnitUsed: unit);
-    await LogisticRepo.makeAgentBusy(agent,isBusy: false);
-    StatisticRepo.saveTransaction({
-      'oid':oid.docID,
-      'mid':oid.orderMerchant,
-      'sid':oid.agent,
-      'insertedAt':Timestamp.now(),
-      'day':DateTime.now().weekday,
-      'items': OrderItem.toNames(oid.orderItem),
-      'amount':oid.orderAmount
-    });
+    try{
+      await databaseReference.collection("orders").document(oid.docID).updateData({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()})
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: true);
+      await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalAmount: fee,totalDistance: distance,totalUnitUsed: unit);
+      await LogisticRepo.makeAgentBusy(agent,isBusy: false);
+      if(receipt.psStatus == 'success'){
+        StatisticRepo.saveTransaction({
+          'oid':oid.docID,
+          'mid':oid.orderMerchant,
+          'sid':oid.agent,
+          'insertedAt':Timestamp.now(),
+          'day':DateTime.now().weekday,
+          'items': OrderItem.toNames(oid.orderItem),
+          'amount':oid.orderAmount
+        });
+        StockRepo.buyList(oid.orderItem);
+      }
+    }
+    catch(_){}
+
     //await LogisticRepo.checkRemittance(agent);
   }
 
   static Future<void> cancel(String oid,Receipt receipt,String agent) async {
-    await databaseReference.collection("orders").document(oid).updateData({ 'status': 1,'receipt':receipt.toMap()});
-    await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: false);
-    await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalCancelled: 1);
-    await LogisticRepo.makeAgentBusy(agent,isBusy: false);
+    try{
+      await databaseReference.collection("orders").document(oid).updateData({ 'status': 1,'receipt':receipt.toMap()});
+      await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: false);
+      await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalCancelled: 1);
+      await LogisticRepo.makeAgentBusy(agent,isBusy: false);
+    }
+    catch(_){}
     //await LogisticRepo.checkRemittance(agent);
   }
 
-  static Future<Order> getOne(String oid) async {
-    var doc = await databaseReference.collection("orders").document(oid).get(source: Source.serverAndCache);
-    return Order.fromEntity(OrderEntity.fromSnapshot(doc));
+  static Future<Order> getOne(String oid,{int source=0}) async {
+    try{
+      try{
+        if(source == 1)throw Exception;
+        var doc = await databaseReference.collection("orders").document(oid).get(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(!doc.exists)throw Exception;
+        return Order.fromEntity(OrderEntity.fromSnapshot(doc));
+      }
+      catch(_){
+        var doc = await databaseReference.collection("orders").document(oid).get(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        return Order.fromEntity(OrderEntity.fromSnapshot(doc));
+      }
+    }
+    catch(_){
+      return null;
+    }
   }
 
   static Future<bool> review(String oid, Customer orderCustomer) async {
     try{
       await databaseReference.collection("orders").document(oid).updateData({
         'orderCustomer': orderCustomer.toMap(),
-      });
+      }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -267,7 +373,7 @@ class OrderRepo {
     try{
       await databaseReference.collection("orders").document(oid).updateData({
         'resolution': resolution,
-      });
+      }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -276,10 +382,14 @@ class OrderRepo {
   }
 
   static Future<void> isComplete(String oid, Confirmation confirmation) async {
-    await databaseReference
-        .collection("orders")
-        .document(oid)
-        .updateData({'status': 1});
+    try{
+      await databaseReference
+          .collection("orders")
+          .document(oid)
+          .updateData({'status': 1})
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+    }
+    catch(_){}
   }
 
   static Stream<List<Order>> agentOrder(String agentID, {int type=0,String whose= 'agent'}) async* {
@@ -329,30 +439,64 @@ class OrderRepo {
         .snapshots().map((event) => event.documents.length);
   }
 
-  static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc,{String whose= 'agent'}) async {
+  static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc,{String whose= 'agent',int source=0}) async {
+  try{
     List<Order> tmp = List();
-    print(lastDoc);
-    var document;
+    //print(lastDoc);
+    QuerySnapshot document;
 
     if (lastDoc == null) {
-      document = await Firestore.instance
-          .collection('orders')
-      //.orderBy('status',descending: true)
-          .orderBy('orderCreatedAt',descending: true)
-          .where('$whose',isEqualTo: agentID)
-          .where('status',isEqualTo: 1)
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+      try{
+        if(source == 1)throw Exception;
+        document = await Firestore.instance
+            .collection('orders')
+        //.orderBy('status',descending: true)
+            .orderBy('orderCreatedAt',descending: true)
+            .where('$whose',isEqualTo: agentID)
+            .where('status',isEqualTo: 1)
+            .limit(10)
+            .getDocuments(source: Source.cache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty)throw Exception;
+      }
+      catch(_){
+        document = await Firestore.instance
+            .collection('orders')
+        //.orderBy('status',descending: true)
+            .orderBy('orderCreatedAt',descending: true)
+            .where('$whose',isEqualTo: agentID)
+            .where('status',isEqualTo: 1)
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      }
     } else {
-      document = await Firestore.instance
-          .collection('orders')
-      //.orderBy('status',descending: true)
-          .orderBy('orderCreatedAt',descending: true)
-          .where('$whose',isEqualTo: agentID)
-          .where('status',isEqualTo: 1)
-          .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
-          .limit(10)
-          .getDocuments(source: Source.serverAndCache);
+      try{
+        if(source == 1)throw Exception;
+        document = await Firestore.instance
+            .collection('orders')
+        //.orderBy('status',descending: true)
+            .orderBy('orderCreatedAt',descending: true)
+            .where('$whose',isEqualTo: agentID)
+            .where('status',isEqualTo: 1)
+            .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.documents.isEmpty)throw Exception;
+      }
+      catch(_){
+        document = await Firestore.instance
+            .collection('orders')
+        //.orderBy('status',descending: true)
+            .orderBy('orderCreatedAt',descending: true)
+            .where('$whose',isEqualTo: agentID)
+            .where('status',isEqualTo: 1)
+            .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+            .limit(10)
+            .getDocuments(source: Source.serverAndCache)
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      }
     }
     //tmp.clear();
     document.documents.forEach((element) {
@@ -360,33 +504,68 @@ class OrderRepo {
     });
     return tmp;
   }
+  catch(_){
+    return [];
+  }
+  }
 
-  static Future<List<Order>> fetchStaffOrder(String id, String mid,Order lastDoc,{String whose= 'agent'}) async {
+  static Future<List<Order>> fetchStaffOrder(String id, String mid,Order lastDoc,{String whose= 'agent', int source=0}) async {
     try{
       List<Order> tmp = List();
-      var document;
+      QuerySnapshot document;
 
       if (lastDoc == null) {
-        document = await Firestore.instance
-            .collection('orders')
-            .orderBy('orderCreatedAt',descending: true)
-            .where('$whose',isEqualTo: id)
-            .where('orderMerchant',isEqualTo: mid)
-            .where('status',isEqualTo: 1)
-            .limit(10)
-            .getDocuments(source: Source.serverAndCache)
-            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+        try{
+          if(source == 1)throw Exception;
+          document = await Firestore.instance
+              .collection('orders')
+              .orderBy('orderCreatedAt',descending: true)
+              .where('$whose',isEqualTo: id)
+              .where('orderMerchant',isEqualTo: mid)
+              .where('status',isEqualTo: 1)
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty)throw Exception;
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('orders')
+              .orderBy('orderCreatedAt',descending: true)
+              .where('$whose',isEqualTo: id)
+              .where('orderMerchant',isEqualTo: mid)
+              .where('status',isEqualTo: 1)
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
       } else {
-        document = await Firestore.instance
-            .collection('orders')
-            .orderBy('orderCreatedAt',descending: true)
-            .where('$whose',isEqualTo: id)
-            .where('orderMerchant',isEqualTo: mid)
-            .where('status',isEqualTo: 1)
-            .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
-            .limit(10)
-            .getDocuments(source: Source.serverAndCache)
-            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+        try{
+          if(source == 1)throw Exception;
+          document = await Firestore.instance
+              .collection('orders')
+              .orderBy('orderCreatedAt',descending: true)
+              .where('$whose',isEqualTo: id)
+              .where('orderMerchant',isEqualTo: mid)
+              .where('status',isEqualTo: 1)
+              .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.cache)
+              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+          if(document.documents.isEmpty)throw Exception;
+        }
+        catch(_){
+          document = await Firestore.instance
+              .collection('orders')
+              .orderBy('orderCreatedAt',descending: true)
+              .where('$whose',isEqualTo: id)
+              .where('orderMerchant',isEqualTo: mid)
+              .where('status',isEqualTo: 1)
+              .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
+              .limit(10)
+              .getDocuments(source: Source.serverAndCache)
+              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        }
       }
       if(document != null){
         document.documents.forEach((element) {
@@ -413,7 +592,7 @@ class OrderRepo {
             .where('status',isEqualTo: 1)
             .limit(10)
             .getDocuments(source: Source.serverAndCache)
-            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       } else {
         document = await Firestore.instance
             .collection('orders')
@@ -423,7 +602,7 @@ class OrderRepo {
             .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
             .limit(10)
             .getDocuments(source: Source.serverAndCache)
-            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){return null;});
+            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
       if(document != null){
         document.documents.forEach((element) {
@@ -441,15 +620,17 @@ class OrderRepo {
 
 
   static Future<int> getUnclaimedDelivery(String agentID)async{
-    QuerySnapshot document;
+
     try{
+      QuerySnapshot document;
       document = await Firestore.instance
           .collection('orders')
           .orderBy('orderCreatedAt',descending: true)
           .where('potentials',arrayContains: agentID)
           .where('status',isEqualTo: 0)
           .where('isAssigned',isEqualTo: false)
-          .getDocuments(source: Source.server);
+          .getDocuments(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return document.documents.length;
     }
     catch(_){
@@ -460,7 +641,8 @@ class OrderRepo {
 
   static Future<bool> setCurrentPathLine(CurrentPathLine cpl)async{
     try{
-      await Firestore.instance.collection('pathLine').document(cpl.id).setData(cpl.toMap());
+      await Firestore.instance.collection('pathLine').document(cpl.id).setData(cpl.toMap())
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -470,7 +652,8 @@ class OrderRepo {
 
   static Future<CurrentPathLine> getCurrentPathLine(String cpl)async{
     try{
-     var doc = await Firestore.instance.collection('pathLine').document(cpl).get(source: Source.server);
+     var doc = await Firestore.instance.collection('pathLine').document(cpl).get(source: Source.server)
+         .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return doc.exists?CurrentPathLine.fromSnap(doc):null;
     }
     catch(_){

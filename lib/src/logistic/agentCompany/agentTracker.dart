@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -24,7 +25,12 @@ class _AgentTrackerState extends State<AgentTracker> {
   void initState() {
 
     Future.delayed(Duration(seconds: 2),(){
+      if(widget.agent.agentLocation != null)
       _latLngNotifier.value = LatLng( widget.agent.agentLocation.latitude, widget.agent.agentLocation.longitude);
+      else{
+        Get.back();
+        Utility.bottomProgressFailure(title: 'Error',body: "Error getting rider's location");
+      }
     });
     super.initState();
   }

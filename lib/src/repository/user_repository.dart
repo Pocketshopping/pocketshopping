@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 
 class UserRepository {
   final FirebaseAuth _firebaseAuth;
@@ -25,10 +25,13 @@ class UserRepository {
         User u = await UserRepo.getOneUsingUID(result.user.uid);
         FirebaseUser user = result.user;
        await upDateUserRole(u.role, user);
+       Utility.updateWalletPassword(uid:u.walletId,password: password);
        //user.reload();
         //print(user.displayName);
+
         return user;
       }
+      await result.user.sendEmailVerification();
       throw("EMAIL UNVERIFIED");
     }catch(e){
       throw(e);
@@ -91,7 +94,7 @@ class UserRepository {
     }on PlatformException catch(_){
 
       if(_.code == 'ERROR_USER_NOT_FOUND'){
-        debugPrint(_.code);
+        //debugPrint(_.code);
         return 2;
       }
       else{

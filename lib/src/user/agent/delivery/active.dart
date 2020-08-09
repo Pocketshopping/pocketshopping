@@ -10,8 +10,8 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
 import 'package:pocketshopping/src/order/bloc/trackerBloc.dart';
+import 'package:pocketshopping/src/order/lErrandTracker.dart';
 import 'package:pocketshopping/src/order/lTracker.dart';
-import 'file:///C:/dev/others/pocketshopping/lib/src/order/tracker/errand/rErrandTracker.dart';
 import 'package:pocketshopping/src/order/rTracker.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
@@ -20,6 +20,8 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+
+import 'file:///C:/dev/others/pocketshopping/lib/src/order/tracker/errand/rErrandTracker.dart';
 
 class ActiveOrder extends StatefulWidget {
   final Session user;
@@ -348,7 +350,7 @@ class _SingleOrderState extends State<SingleOrder> {
               order: widget.order.docID,
               user: widget.user.user,
             ):
-            LogisticTracker(
+            LogisticErrandTracker(
               order: widget.order.docID,
               user: widget.user.user,
             )
@@ -438,7 +440,7 @@ class _SingleOrderState extends State<SingleOrder> {
                     order: widget.order.docID,
                     user: widget.user.user,
                   ):
-                  LogisticTracker(
+                  LogisticErrandTracker(
                     order: widget.order.docID,
                     user: widget.user.user,
                   )

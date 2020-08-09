@@ -8,6 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/backgrounder/app_retain_widget.dart';
 import 'package:pocketshopping/src/geofence/radius.dart';
@@ -18,6 +19,7 @@ import 'package:pocketshopping/src/request/blank.dart';
 import 'package:pocketshopping/src/request/bloc/requestBloc.dart';
 import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/request/request.dart';
+import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/favourite.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
@@ -69,7 +71,7 @@ class _StaffScreenState extends State<StaffScreen> {
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('Transations'),
+      title: Text('History'),
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
@@ -96,6 +98,7 @@ class _StaffScreenState extends State<StaffScreen> {
         }catch(_){}
       }
     });
+    Utility.stopAllService();
     Utility.locationAccess();
     super.initState();
   }
@@ -106,6 +109,7 @@ class _StaffScreenState extends State<StaffScreen> {
     RequestBloc.instance.newCount(value.length);
     if(showNotification){
       if (value.length > 0)
+        if(!Get.isSnackbarOpen)
         GetBar(
           title: 'Rquest',
           messageText: Text(
@@ -170,7 +174,6 @@ class _StaffScreenState extends State<StaffScreen> {
         NotificationsBloc.instance.newNotification(null);
         break;
       case 'RemoveStaffResponse':
-        if(!Get.isSnackbarOpen)
         GetBar(
           title: payload['title'],
           messageText: Text(payload['message']??'',style: TextStyle(color: Colors.white),),
@@ -178,15 +181,17 @@ class _StaffScreenState extends State<StaffScreen> {
           icon: Icon(Icons.check,color: Colors.white,),
           duration: Duration(seconds: 5),
         ).show().then((value) async{
-          await RequestRepo.clear(payload['data']['requestId']);
+          //await RequestRepo.clear(payload['data']['requestId']);
+          Utility.bottomProgressLoader(title: 'Changing account.',body: 'Please wait');
           await UserRepository().changeRole('user');
-          BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
           Get.back();
+          BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
+          Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
+          //Get.back();
         });
         NotificationsBloc.instance.newNotification(null);
         break;
       case 'StaffStatusNotifier':
-        if(!Get.isSnackbarOpen)
           GetBar(
             title: payload['title'],
             messageText: Text(payload['message']??'',style: TextStyle(color: Colors.white),),
@@ -195,12 +200,13 @@ class _StaffScreenState extends State<StaffScreen> {
             duration: Duration(seconds: 5),
           ).show().then((value) async{
             BlocProvider.of<AuthenticationBloc>(context).add(AppStarted());
-            Get.back();
+            Get.off(App(userRepository: await SessionBloc.instance.getSession(),));
+            //Get.back();
           });
         NotificationsBloc.instance.newNotification(null);
         break;
       case 'WorkRequestCancelResponse':
-        await requester(showNotification: false);
+        //await requester(showNotification: true);
         NotificationsBloc.instance.newNotification(null);
         break;
       case 'PocketTransferResponse':
@@ -222,12 +228,16 @@ class _StaffScreenState extends State<StaffScreen> {
         NotificationsBloc.instance.newNotification(null);
         break;
       default:
-        Utility.bottomProgressSuccess(
-            title:payload['title'],
-            body: payload['message'],
-            //wallet: payload['data']['wallet'],
-            duration: 5
-        );
+        if(payload['message'] != null){
+          if(payload['message'].toString().isNotEmpty){
+            Utility.bottomProgressSuccess(
+                title:payload['title'],
+                body: payload['message'],
+                //wallet: payload['data']['wallet'],
+                duration: 5
+            );
+          }
+        }
         //NotificationsBloc.instance.newNotification(null);
         break;
     }

@@ -1,17 +1,10 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffPermission.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffRepo.dart';
-import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -196,7 +189,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                                     Utility.pushNotifier(
                                                       body: 'Your staff account has been deactivated by ${widget.session.merchant.bName} ',
                                                       title: 'Staff',
-                                                      fcm: '',
+                                                      fcm: '${staff.data.notificationID}',
                                                       notificationType: 'StaffStatusNotifier',
                                                       data: {}
                                                     );
@@ -212,6 +205,13 @@ class _ManageStaffState extends State<ManageStaff> {
                                                   Get.back();
                                                   if(result){
                                                     Utility.bottomProgressSuccess(title: 'Staff Activated',body: '${widget.staff.staffName} has been activated',goBack: true);
+                                                    Utility.pushNotifier(
+                                                        body: 'Your staff account has been activated by ${widget.session.merchant.bName} ',
+                                                        title: 'Staff',
+                                                        fcm: '${staff.data.notificationID}',
+                                                        notificationType: 'StaffStatusNotifier',
+                                                        data: {}
+                                                    );
                                                   }
                                                   else{
                                                     Utility.bottomProgressFailure(title: 'Error',body: 'Error encounterd while activating staff');
@@ -427,7 +427,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                                             fcm: staff.data.notificationID,
                                                             body: 'Your previledge(s) at your ${widget.session.merchant.bName} hass been changed',
                                                             title: '${widget.session.merchant.bName}',
-                                                            notificationType: '',
+                                                            notificationType: 'StaffStatusNotifier',
                                                             data: {}
                                                           );
                                                         }
@@ -468,7 +468,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                                           Utility.bottomProgressLoader(title: 'Removing Staff',body: 'Removing staff please wait');
                                                           bool result = await StaffRepo.delete(widget.staff,
                                                             staff.data,
-                                                              Request(
+                                                              /*Request(
                                                                   requestCleared: false,
                                                                   requestClearedAt: null,
                                                                   requestReceiver: staff.data.uid,
@@ -478,21 +478,21 @@ class _ManageStaffState extends State<ManageStaff> {
                                                                   requestInitiatorID: widget.session.merchant.mID,
                                                                   requestInitiator: widget.session.merchant.bName,
                                                                   requestCreatedAt: Timestamp.now()
-                                                              ),
+                                                              ),*/
                                                             merchant: widget.session.merchant.bName,
                                                           );
                                                           Get.back();
                                                           if(result)
                                                           {
                                                             Utility.bottomProgressSuccess(title: 'Staff Removed',body: 'Staff has been removed',goBack: true);
-                                                            if(widget.staff.startDate != null)
+                                                            /*if(widget.staff.startDate != null)
                                                             await Utility.pushMessage(
                                                                 fcm: staff.data.notificationID,
                                                                 body: 'You have a request to attend to click for more information',
                                                                 title: 'Request',
                                                                 notificationType: 'WorkRequestCancelResponse',
                                                                 data: {}
-                                                            );
+                                                            );*/
                                                           }
                                                           else
                                                             Utility.bottomProgressFailure(title: 'Error Removing staff',body: "Error removing staff. check interent and tr again");

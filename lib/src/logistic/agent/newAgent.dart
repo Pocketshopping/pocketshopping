@@ -74,6 +74,7 @@ class _AgentFormState extends State<AgentForm> {
                 ),
                 onPressed: () {
                   if (!isSubmitting) Get.back();
+                  else Get.back();
                 },
               ),
               title: Text(
@@ -110,62 +111,6 @@ class _AgentFormState extends State<AgentForm> {
                                     height: 10,
                                   ),
                                   Container(
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(
-                                            //                   <--- left side
-                                            color: Colors.black12,
-                                            width: 1.0,
-                                          ),
-                                        ),
-                                      ),
-                                      padding: EdgeInsets.all(
-                                          MediaQuery.of(context).size.width *
-                                              0.02),
-                                      child: Column(
-                                        children: [
-                                          Center(
-                                            child: CircleAvatar(
-                                              backgroundColor: Colors.white,
-                                              radius: 50,
-                                              backgroundImage: agent != null
-                                                  ? agent.runtimeType != String
-                                                      ? agent.profile.isNotEmpty
-                                                          ? NetworkImage(
-                                                              agent.profile)
-                                                          : NetworkImage(
-                                                              PocketShoppingDefaultAvatar)
-                                                      : NetworkImage(
-                                                          PocketShoppingDefaultAvatar)
-                                                  : NetworkImage(
-                                                      PocketShoppingDefaultAvatar),
-                                            ),
-                                          ),
-                                          Center(
-                                            child: Text(
-                                                '${agent != null ? agent.runtimeType != String ? agent.fname : 'Rider' : 'Rider'}'),
-                                          ),
-                                          SizedBox(
-                                            height: 20,
-                                          ),
-                                          agent != null
-                                              ? agent.runtimeType == String
-                                                  ? Center(
-                                                      child: Text(
-                                                      'This user can not be a Rider, because the account is registered as ${agent=='admin'?' a business owner':' a staff'}',
-                                                      style: TextStyle(
-                                                          color: Colors.red),textAlign: TextAlign.center,
-                                                    ))
-                                                  : Container()
-                                              : _agentController.text.isNotEmpty?Center(
-                                                  child: Text(
-                                                  'No Rider with this ID',
-                                                  style: TextStyle(
-                                                      color: Colors.red),
-                                                )):const SizedBox.shrink(),
-                                        ],
-                                      )),
-                                  Container(
                                     decoration: BoxDecoration(
                                       border: Border(
                                         bottom: BorderSide(
@@ -181,34 +126,22 @@ class _AgentFormState extends State<AgentForm> {
                                     child: TextFormField(
                                       controller: _agentController,
                                       decoration: InputDecoration(
-                                          labelText: 'Rider ID',
-                                          hintText: 'Rider ID',
+                                          labelText: 'Enter User ID',
+                                          hintText: 'Enter User ID',
                                           border: InputBorder.none),
-                                      keyboardType: TextInputType.text,
-                                      autocorrect: false,
+                                      keyboardType: TextInputType.number,
                                       autovalidate: autoValidate,
+                                      maxLength: 10,
 
                                       validator: (value) {
                                         if (value.isEmpty) {
-                                          return 'Rider ID can not be empty';
-                                        } else if (agent == null) {
-                                          return 'No Rider with this ID';
-                                        } else if (agent.runtimeType ==
-                                            String) {
-                                          return 'This user can not be a Rider, because the account is registered as $agent';
+                                          return 'User ID can not be empty';
+                                        } else if (value.length < 10) {
+                                          return 'Enter a valid User ID';
                                         }
                                         return null;
                                       },
-                                      onChanged: (value) {
-                                        if (value.length > 6) {
-                                          UserRepo()
-                                              .getOneUsingWallet(value)
-                                              .then((value) => setState(() {
-                                                    agent = value;
-                                                    //autoValidate=true;
-                                                  }));
-                                        }
-                                      },
+                                      onChanged: (value) {},
                                     ),
                                   ),
                                   Container(
@@ -233,6 +166,7 @@ class _AgentFormState extends State<AgentForm> {
                                       keyboardType: TextInputType.number,
                                       autocorrect: false,
                                       autovalidate: autoValidate,
+                                      inputFormatters: <TextInputFormatter>[ WhitelistingTextInputFormatter.digitsOnly],
                                       validator: (value) {
                                         if (value.isEmpty) {
                                           return 'Collection Limit can not be empty';
@@ -307,13 +241,10 @@ class _AgentFormState extends State<AgentForm> {
                                                         value)
                                                     .then((value) =>
                                                         setState(() {
-                                                          if (value.length >
-                                                              0) {
+                                                          if (value.length > 0) {
                                                             typeData = value;
                                                             assign = ['Select'];
-                                                            assign.addAll(value
-                                                                .keys
-                                                                .toList());
+                                                            assign.addAll(value.keys.toList());
                                                           } else {
                                                             assigned = 'Select';
                                                             assign = ['Select'];
@@ -383,7 +314,7 @@ class _AgentFormState extends State<AgentForm> {
                                                 onChanged: (value) {
                                                   setState(() {
                                                     assigned = value;
-                                                    print(value);
+                                                    //print(value);
                                                     //value != 'Select'?assigning=true:assign=['Select'];
                                                   });
                                                 },
@@ -409,177 +340,90 @@ class _AgentFormState extends State<AgentForm> {
                                               vertical: marginLR * 0.008,
                                               horizontal: marginLR * 0.08),
                                           child: RaisedButton(
-                                            onPressed: !isSubmitting
-                                                ? () {
-                                                    if (_formKey.currentState
-                                                        .validate()) {
-                                                      setState(() {
-                                                        isSubmitting = true;
-                                                      });
-                                                      GetBar(
-                                                        title: 'Rider',
-                                                        messageText: Text(
-                                                          'Adding new Rider please wait',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
-                                                        duration:
-                                                            Duration(days: 365),
-                                                        snackPosition:
-                                                            SnackPosition
-                                                                .BOTTOM,
-                                                        backgroundColor:
-                                                            PRIMARYCOLOR,
-                                                        showProgressIndicator:
-                                                            true,
-                                                        progressIndicatorValueColor:
-                                                            AlwaysStoppedAnimation<
-                                                                    Color>(
-                                                                Colors.white),
-                                                      ).show();
-                                                      LogisticRepo.saveAgent(
-                                                              Agent(
-                                                                  agentWorkPlace:
-                                                                      widget
-                                                                          .session
-                                                                          .merchant
-                                                                          .mID,
-                                                                  agentID: '',
-                                                                  agentBehaviour:
-                                                                      '',
-                                                                  agentCreatedAt:
-                                                                      Timestamp
-                                                                          .now(),
-                                                                  startDate:
-                                                                      Timestamp
-                                                                          .now(),
-                                                                  endDate: null,
-                                                                  autoAssigned:
-                                                                      typeData[
-                                                                              assigned]
-                                                                          .autoID,
-                                                                  agent:
-                                                                      agent.uid,
-                                                                  name: (agent as User).fname,
-                                                                  limit: int.tryParse(_limitController.text.trim())??10000,
-                                                                  agentWallet: agent.walletId,
-                                                                  autoType:
-                                                                      type,
-                                                                  agentStatus:1,
-                                                              workPlaceWallet: widget.
-                                                                            session.
-                                                                            user.
-                                                                            walletId),
-                                                              Request(
-                                                                requestTitle:
-                                                                    'Work Request',
-                                                                requestReceiver:
-                                                                    agent.uid,
-                                                                requestClearedAt:
-                                                                    null,
-                                                                requestAction:
-                                                                    'WORKREQUEST',
-                                                                requestBody:
-                                                                    'You are requested to be an delivery agent of ${widget.session.merchant.bName} do you want to accept it.',
-                                                                requestCleared:
-                                                                    false,
-                                                                requestID: '',
-                                                              ),
-                                                          AgentStatistic(
-                                                            agent: agent.uid,
-                                                            totalAmount: 0,
-                                                            totalCancelled: 0,
-                                                            totalDistance: 0,
-                                                            totalOrderCount: 0,
-                                                            totalUnitUsed: 0,
-                                                          ),
-                                                      )
-                                                          .then((value)  {
-                                                                if (Get
-                                                                    .isSnackbarOpen)
-                                                                  {
-                                                                    Get.back();
-                                                                    Utility.pushNotifier(
-                                                                    fcm: agent.notificationID,
-                                                                    body: 'You have a request to attend to click for more information',
-                                                                    title: 'Request',
-                                                                    notificationType: 'WorkRequestResponse',
-                                                                    data: {}
-                                                                    );
-                                                                    //requestPusher(agent.notificationID);
-                                                                    GetBar(
-                                                                      title:
-                                                                          'Agent',
-                                                                      messageText:
-                                                                          Text(
-                                                                        'Work request has been sent to the Agent once confirmed the agent will be activated.',
-                                                                        style: TextStyle(
-                                                                            color:
-                                                                                Colors.white),
-                                                                      ),
-                                                                      duration: Duration(
-                                                                          seconds:
-                                                                              5),
-                                                                      snackPosition:
-                                                                          SnackPosition
-                                                                              .BOTTOM,
-                                                                      backgroundColor:
-                                                                          PRIMARYCOLOR,
-                                                                      icon:
-                                                                          Icon(
-                                                                        Icons
-                                                                            .check,
-                                                                        color: Colors
-                                                                            .white,
-                                                                      ),
-                                                                    ).show();
-                                                                    _agentController
-                                                                        .clear();
-                                                                    setState(
-                                                                        () {
-                                                                      autoValidate =
-                                                                          false;
-                                                                      agent =
-                                                                          null;
-                                                                    });
-                                                                  }
-                                                                setState(() {
-                                                                  isSubmitting =
-                                                                      false;
-                                                                });
-                                                              })
-                                                          .catchError((_) {
-                                                        if (Get
-                                                            .isSnackbarOpen) {
-                                                          Get.back();
-                                                          GetBar(
-                                                            title: 'Agent',
-                                                            messageText: Text(
-                                                              'Error adding Rider, check your connection and try again',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .white),
+                                            onPressed: !isSubmitting ? () async{
+                                                    if (_formKey.currentState.validate()) {
+                                                      setState(() {isSubmitting = true;});
+                                                      Utility.bottomProgressLoader(title: 'Rider',body: 'Adding new Rider please wait');
+                                                      User agent = await UserRepo.getUserUsingWallet(_agentController.text);
+                                                      if(agent != null){
+                                                        if(agent.role == 'user'){
+                                                          bool result =await LogisticRepo.saveAgent(
+                                                            Agent(
+                                                                agentWorkPlace: widget.session.merchant.mID,
+                                                                agentID: '',
+                                                                agentBehaviour: '',
+                                                                agentCreatedAt: Timestamp.now(),
+                                                                startDate: Timestamp.now(),
+                                                                endDate: null,
+                                                                autoAssigned: typeData[assigned].autoID,
+                                                                agent: agent.uid,
+                                                                name: agent.fname,
+                                                                limit: int.tryParse(_limitController.text.trim())??10000,
+                                                                agentWallet: agent.walletId,
+                                                                autoType: type,
+                                                                accepted: false,
+                                                                agentStatus:1,
+                                                                workPlaceWallet: widget.session.merchant.bWallet),
+                                                            Request(
+                                                              requestTitle: 'Work Request',
+                                                              requestReceiver: agent.uid,
+                                                              requestClearedAt: null,
+                                                              requestAction: 'WORKREQUEST',
+                                                              requestBody: 'You are requested to be a rider of ${widget.session.merchant.bName} do you want to accept it.',
+                                                              requestCleared: false,
+                                                              requestID: '',
                                                             ),
-                                                            duration: Duration(
-                                                                seconds: 3),
-                                                            snackPosition:
-                                                                SnackPosition
-                                                                    .BOTTOM,
-                                                            backgroundColor:
-                                                                Colors.red,
-                                                            icon: Icon(
-                                                              Icons.check,
-                                                              color:
-                                                                  Colors.white,
+                                                            AgentStatistic(
+                                                              agent: agent.uid,
+                                                              totalAmount: 0,
+                                                              totalCancelled: 0,
+                                                              totalDistance: 0,
+                                                              totalOrderCount: 0,
+                                                              totalUnitUsed: 0,
                                                             ),
-                                                          ).show();
-                                                          setState(() {
-                                                            isSubmitting =
-                                                                false;
-                                                          });
+                                                          );
+                                                          if(result){
+                                                            Get.back();
+                                                            Utility.pushNotifier(
+                                                                fcm: agent.notificationID,
+                                                                body: 'You have a request to attend to click for more information',
+                                                                title: 'Request',
+                                                                notificationType: 'WorkRequestResponse',
+                                                                data: {}
+                                                            );
+                                                            setState(() {isSubmitting = false;autoValidate = false;});
+                                                            _agentController.clear();
+                                                            Utility.bottomProgressSuccess(title: 'Rider', body: 'Work request has been sent to ${agent.fname} once confirmed,  ${agent.fname} will be activated as a Rider.');
+                                                          }
+                                                          else{
+                                                            Get.back();
+                                                            Utility.bottomProgressFailure(title: 'Rider',body: 'Error adding ${agent.fname}, check your connection and try again');
+                                                            setState(() {isSubmitting = false;});
+                                                          }
                                                         }
-                                                      });
+                                                        else if(agent.role == 'rider'){
+                                                          Get.back();
+                                                          Utility.bottomProgressFailure(title: 'Rider',body: 'Sorry. ${agent.fname} is a rider of another organization.',duration: 5);
+                                                          setState(() {isSubmitting = false;});
+                                                        }
+                                                        else if(agent.role == 'staff'){
+                                                          Get.back();
+                                                          Utility.bottomProgressFailure(title: 'Staff',body: 'Sorry. ${agent.fname} is a staff of another organization.',duration: 5);
+                                                          setState(() {isSubmitting = false;});
+                                                        }
+                                                        else{
+                                                          Get.back();
+                                                          Utility.bottomProgressFailure(title: 'Business Owner',body: 'Sorry. ${agent.fname} is a business owner. Can not be added as a rider',duration: 5);
+                                                          setState(() {isSubmitting = false;});
+                                                        }
+
+
+                                                      }
+                                                      else{
+                                                        Get.back();
+                                                        Utility.bottomProgressFailure(title: 'Invalid User',body: 'The ID you entered is not a valid user ID check the ID and try again.',duration: 5);
+                                                        setState(() {isSubmitting = false;});
+                                                      }
                                                     } else {
                                                       setState(() {
                                                         autoValidate = true;

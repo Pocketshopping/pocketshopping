@@ -10,20 +10,24 @@ class Session {
   final Merchant merchant;
   final Agent agent;
   final Staff staff;
+  final bool isFirstTime;
 
-  Session({this.user, this.merchant, this.agent, this.staff});
+  Session({this.user, this.merchant, this.agent, this.staff,this.isFirstTime});
 
-  Session copyWith({User user, Merchant merchant, Agent agent, Staff staff}) {
+  Session copyWith({User user, Merchant merchant, Agent agent, Staff staff,bool isFirstTime}) {
     return Session(
       user: user ?? this.user,
       merchant: merchant ?? this.merchant,
       agent: agent ?? this.agent,
       staff: staff ?? this.staff,
+      isFirstTime: isFirstTime ?? this.isFirstTime
     );
   }
 
+
   @override
-  int get hashCode => user.hashCode ^ merchant.hashCode ^ agent.hashCode ^ staff.hashCode;
+  int get hashCode => user.hashCode ^ merchant.hashCode ^ agent.hashCode ^ staff.hashCode ^ isFirstTime.hashCode;
+
 
   @override
   bool operator ==(Object other) =>
@@ -33,7 +37,8 @@ class Session {
           user == other.user &&
           merchant == other.merchant &&
           agent == other.agent &&
-          staff == other.staff;
+          staff == other.staff &&
+          isFirstTime == other.isFirstTime;
 
   @override
   String toString() {

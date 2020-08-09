@@ -10,7 +10,8 @@ class RequestRepo {
   static Future<String> save(dynamic request) async {
     try{
       DocumentReference bid;
-      bid = await databaseReference.collection("request").add(request.toMap());
+      bid = await databaseReference.collection("request").add(request.toMap())
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return bid.documentID;
     }
     catch(_){
@@ -25,7 +26,8 @@ class RequestRepo {
           .orderBy('requestCreatedAt', descending: true)
           .where('requestReceiver', isEqualTo: uid)
           .where('requestCleared', isEqualTo: false)
-          .getDocuments(source: Source.server);
+          .getDocuments(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return Request.fromListSnap(docs.documents);
     }
     catch(_){
@@ -39,7 +41,8 @@ class RequestRepo {
           .collection("request")
           .where('requestReceiver', isEqualTo: uid)
           .where('requestInitiatorID', isEqualTo: wid)
-          .getDocuments(source: Source.server);
+          .getDocuments(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return Request.fromListSnap(docs.documents);
     }
     catch(_){
@@ -68,7 +71,8 @@ class RequestRepo {
           .collection("request")
           .document(requestID)
           .updateData(
-          {'requestCleared': true, 'requestClearedAt': Timestamp.now()});
+          {'requestCleared': true, 'requestClearedAt': Timestamp.now()})
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
     catch(_){
@@ -84,7 +88,8 @@ class RequestRepo {
         .where('requestReceiver', isEqualTo: uid)
         .where('requestCleared', isEqualTo: false)
         .where('requestAction', isEqualTo: "REMOVEWORK")
-        .getDocuments(source: Source.serverAndCache);
+        .getDocuments(source: Source.serverAndCache)
+        .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     return Request.fromListSnap(docs.documents);
   }
   catch(_){

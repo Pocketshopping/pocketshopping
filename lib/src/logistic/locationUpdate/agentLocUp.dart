@@ -18,6 +18,7 @@ class AgentLocUp {
   final String workPlaceWallet;
   final int limit;
   final bool autoAssigned;
+  final bool accepted;
 
   AgentLocUp({
     this.agent,
@@ -35,6 +36,8 @@ class AgentLocUp {
     this.workPlaceWallet,
     this.limit,
     this.autoAssigned,
+    this.accepted,
+
   });
 
   AgentLocUp copyWith({
@@ -52,7 +55,9 @@ class AgentLocUp {
     String wallet,
     String workPlaceWallet,
     int limit,
-    bool autoAssigned
+    bool autoAssigned,
+    bool accepted,
+
   }) {
     return AgentLocUp(
       agent: agent ?? this.agent,
@@ -70,6 +75,7 @@ class AgentLocUp {
       workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
       limit: limit??this.limit,
       autoAssigned: autoAssigned ?? this.autoAssigned,
+      accepted: accepted?? this.accepted
     );
   }
 
@@ -89,7 +95,7 @@ class AgentLocUp {
       wallet.hashCode ^
       workPlaceWallet.hashCode ^
       limit.hashCode ^
-      autoAssigned.hashCode;
+      autoAssigned.hashCode ^ accepted.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -110,7 +116,7 @@ class AgentLocUp {
           wallet == other.wallet &&
           workPlaceWallet == other.workPlaceWallet &&
           limit == other.limit &&
-          autoAssigned == other.autoAssigned;
+          autoAssigned == other.autoAssigned && accepted == other.accepted;
 
   AgentLocUp update({
     String agent,
@@ -127,7 +133,8 @@ class AgentLocUp {
     String wallet,
     String workPlaceWallet,
     int limit,
-    bool autoAssigned
+    bool autoAssigned,
+    bool accepted,
   }) {
     return copyWith(
       agent: agent,
@@ -144,7 +151,8 @@ class AgentLocUp {
       workPlaceWallet: workPlaceWallet,
       wallet: wallet,
       limit: limit,
-      autoAssigned: autoAssigned
+      autoAssigned: autoAssigned,
+      accepted: accepted
     );
   }
 
@@ -169,7 +177,8 @@ class AgentLocUp {
       'wallet':wallet,
       'workPlaceWallet':workPlaceWallet,
       'limit':limit,
-      'autoAssigned':autoAssigned
+      'autoAssigned':autoAssigned,
+      'accepted':accepted
     };
   }
 
@@ -190,6 +199,7 @@ class AgentLocUp {
       workPlaceWallet: snap.data['workPlaceWallet'],
       limit: snap.data['limit'],
       autoAssigned: snap.data['autoAssigned'],
+      accepted: snap.data['accepted']??false,
 
     );
   }

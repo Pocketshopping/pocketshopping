@@ -3,7 +3,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:pocketshopping/src/admin/staff/staffRepo/staffObj.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/logistic/agent/repository/agentObj.dart';
+import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserRepo {
@@ -47,25 +49,28 @@ class UserRepo {
     String country,
   }) async {
     String fcmToken = await _fcm.getToken();
-    await databaseReference
-        .collection("users")
-        .document(uid)
-        .updateData(makeData(
-          fcmToken: fcmToken,
-          fname: fname,
-          uid: uid,
-          email: email,
-          telephone: telephone,
-          role: role,
-          notificationID: notificationID,
-          defaultAddress: defaultAddress,
-          profile: profile,
-          bid: bid,
-          behaviour: behaviour,
-          country: country,
-        ));
+    try{
+      await databaseReference
+          .collection("users")
+          .document(uid)
+          .updateData(makeData(
+        fcmToken: fcmToken,
+        fname: fname,
+        uid: uid,
+        email: email,
+        telephone: telephone,
+        role: role,
+        notificationID: notificationID,
+        defaultAddress: defaultAddress,
+        profile: profile,
+        bid: bid,
+        behaviour: behaviour,
+        country: country,
+      )).timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet();throw Exception;});
 
-    return true;
+      return true;
+    }
+    catch(_){return false;}
   }
 
   Map<String, dynamic> makeData({
@@ -84,18 +89,15 @@ class UserRepo {
   }) {
     Map<String, dynamic> data = {};
 
+    if (fname != null && fname.isNotEmpty) data['fname'] = fname;
     if (email != null && email.isNotEmpty) data['email'] = email;
-    if (telephone != null && telephone.isNotEmpty)
-      data['telephone'] = telephone;
+    if (telephone != null && telephone.isNotEmpty) data['telephone'] = telephone;
     if (role != null && role.isNotEmpty) data['role'] = role;
     if (notificationID == 'fcm') data['notificationID'] = fcmToken;
-    if (defaultAddress != null && defaultAddress.isNotEmpty)
-      data['defaultAddress'] = defaultAddress;
+    if (defaultAddress != null && defaultAddress.isNotEmpty) data['defaultAddress'] = defaultAddress;
     if (profile != null && profile.isNotEmpty) data['profile'] = profile;
-    if (bid != null && bid.isNotEmpty)
-      data['business'] = databaseReference.document('merchants/' + bid);
-    if (behaviour != null && behaviour.isNotEmpty)
-      data['behaviour'] = databaseReference.document('userBehaviour/' + behaviour);
+    if (bid != null && bid.isNotEmpty) data['business'] = databaseReference.document('merchants/' + bid);
+    if (behaviour != null && behaviour.isNotEmpty) data['behaviour'] = databaseReference.document('userBehaviour/' + behaviour);
 
     //print(data.toString());
     return data;
@@ -115,7 +117,7 @@ class UserRepo {
       var _agent = await Firestore.instance
           .collection('agent')
           .where('agent', isEqualTo: uid)
-          .where('endDate', isEqualTo: null)
+          .where('accepted', isEqualTo: true)
           .getDocuments(source: Source.serverAndCache);
       if (_agent.documents.length > 0)
         agent = Agent.fromSnap(_agent.documents[0]);
@@ -127,7 +129,13 @@ class UserRepo {
       if (_staff.documents.length > 0)
         staff = Staff.fromSnap(_staff.documents[0]);
     }
-    return Session(user: user, merchant: merchant, agent: agent, staff: staff);
+    SharedPreferences prefs= await SharedPreferences.getInstance();
+    bool isFirst = true;
+    if(prefs.containsKey('isFirstTime'))
+      isFirst = prefs.getBool('isFirstTime');
+
+
+    return Session(user: user, merchant: merchant, agent: agent, staff: staff,isFirstTime: isFirst);
   }
 
   Stream<Merchant> getMyMerchant(DocumentReference mid) {
@@ -141,27 +149,34 @@ class UserRepo {
   }
 
   firstTimer() async {
-    print('am working over here');
+    //print('am working over here');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('uid', 'newUser');
   }
 
   Future<bool> isNew(String email) async {
-    var document = await Firestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .getDocuments(source: Source.serverAndCache);
-    if (document.documents.length > 0)
-      return false;
-    else
+    try{
+      var document = await Firestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .getDocuments(source: Source.server)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      if (document.documents.length > 0)
+        return false;
+      else
+        return true;
+    }
+    catch(_){
       return true;
+    }
   }
 
   Future<List<DocumentSnapshot>> getOneUsingEmail(String email) async {
     var document = await Firestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
-        .getDocuments(source: Source.serverAndCache);
+        .getDocuments(source: Source.serverAndCache)
+        .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     if (document.documents.length > 0)
       return document.documents;
     else
@@ -172,7 +187,8 @@ class UserRepo {
     var document = await Firestore.instance
         .collection('users')
         .where('wallet', isEqualTo: wallet)
-        .getDocuments(source: Source.serverAndCache);
+        .getDocuments(source: Source.serverAndCache)
+        .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     if (document.documents.length > 0) if (document.documents[0].data['role'] == 'user')
       return User.fromEntity(UserEntity.fromSnapshot(document.documents.first));
     else
@@ -186,7 +202,8 @@ class UserRepo {
       var document = await Firestore.instance
           .collection('users')
           .where('wallet', isEqualTo: wallet)
-          .getDocuments(source: Source.serverAndCache);
+          .getDocuments(source: Source.serverAndCache)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       if (document.documents.length > 0)
         return User.fromEntity(UserEntity.fromSnapshot(document.documents.first));
       else
@@ -204,7 +221,8 @@ class UserRepo {
 
     try{
       var document = await Firestore.instance
-          .collection('users').document(uid).get(source: Source.serverAndCache);
+          .collection('users').document(uid).get(source: Source.serverAndCache)
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return User.fromEntity(UserEntity.fromSnapshot(document));
     }catch(_){
       return null;

@@ -16,6 +16,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:location/location.dart';
+import 'package:pocketshopping/src/pocketPay/repository/pocketHistory.dart';
+import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
@@ -295,10 +297,10 @@ class Utility {
   }
 
   static Future<dynamic> walletTransfer({String to, String from,int amount,int channelId}) async {
-    print({'to:$to from:$from amount:${(amount*1.0)} channelid:$channelId'});
     final response = await http.post("${WALLETAPI}wallets/transfer/wallet",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -315,8 +317,6 @@ class Utility {
     );
     if(response != null)
       {
-        print(response.statusCode);
-        print(response.body);
         if (response.statusCode == 200) {return true;}
         else {return false;}
       }
@@ -325,12 +325,41 @@ class Utility {
   }
 
 
+  static Future<dynamic> unitTransfer({String to, String from,int amount,int channelId}) async {
+    final response = await http.post("${WALLETAPI}wallets/transfer/pocket",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "amount":(amount*1.0),
+            "channel": channelId,
+            "from": "$from",
+            "to": "$to",
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+    {
+      if (response.statusCode == 200) {return true;}
+      else {return false;}
+    }
+    else
+      return false;
+  }
 
-  static Future<dynamic> topUpWallet(
-      String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
+
+
+  static Future<dynamic> topUpWallet(String ReferenceID, String From, String Description, int Status,int Amount,int PaymentMethod) async {
     final response = await http.post("${WALLETAPI}wallets/fund/",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -339,8 +368,8 @@ class Utility {
             "amount":(Amount/100).round(),
             "paymentId": 1,
             "channelId": PaymentMethod,
-            "from": "$From",
-            "to": "$PocketDefaultWallet",
+            "to": "$From",
+            "from": "$PocketDefaultWallet",
           },
         )).timeout(
       Duration(seconds: TIMEOUT),
@@ -359,7 +388,42 @@ class Utility {
       return null;
   }
 
-  static Future<dynamic> initializePay({
+  static Future<bool> claimGift(String to,int amount,) async {
+    final response = await http.post("${WALLETAPI}wallets/fund/",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "refID": "",
+            "statusId": 1,
+            "amount":amount,
+            "paymentId": 13,
+            "channelId": 5,
+            "to": "$to",
+            "from": "$PocketDefaultWallet",
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+
+        return true;
+      } else {
+        print(response.body);
+        return false;
+      }
+    else
+      return false;
+  }
+
+  static Future<dynamic> initializePay(
+      {
       String referenceID, String from, String to, int status=4,int amount,int paymentMethod=4,
       int channelId,int deliveryFee,String state='Abuja'}) async {
     Map<String, dynamic> data = {
@@ -376,6 +440,7 @@ class Utility {
     final response = await http.post("${WALLETAPI}wallets/pay/initiate/",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           data
@@ -397,7 +462,8 @@ class Utility {
       return null;
   }
 
-  static Future<dynamic> agentAccept({String collectionID, String to, bool status=true,String agent,}) async {
+  static Future<dynamic> agentAccept(
+      {String collectionID, String to, bool status=true,String agent,}) async {
     Map<String, dynamic> data = {
       "to": to,
       "agentID": agent,
@@ -408,6 +474,7 @@ class Utility {
     final response = await http.post("${WALLETAPI}wallets/pay/agent/accept",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
             data
@@ -429,7 +496,8 @@ class Utility {
       return null;
   }
 
-  static Future<dynamic> initializePosPay({
+  static Future<dynamic> initializePosPay(
+      {
      String from, String to, int status=4,int amount,int paymentMethod=2,
     int channelId=2,String agent }) async {
     Map<String, dynamic> data = {
@@ -444,6 +512,7 @@ class Utility {
     final response = await http.post("${WALLETAPI}wallets/pay/pos/initiate/",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
             data
@@ -465,10 +534,12 @@ class Utility {
     }
   }
 
-  static Future<dynamic> finalizePosPay({String collectionID, bool isSuccessful=true }) async {
+  static Future<dynamic> finalizePosPay(
+      {String collectionID, bool isSuccessful=true }) async {
     final response = await http.post("${WALLETAPI}wallets/pay/pos/finalize/",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -490,10 +561,12 @@ class Utility {
     return null;
   }
 
-  static Future<dynamic> finalizePay({String collectionID, bool isSuccessful=true }) async {
+  static Future<dynamic> finalizePay(
+      {String collectionID, bool isSuccessful=true }) async {
     final response = await http.post("${WALLETAPI}wallets/pay/finalize/",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -515,10 +588,12 @@ class Utility {
     return null;
   }
 
-  static Future<dynamic> updateWallet({String uid, String cid,int type }) async {
+  static Future<dynamic> updateWallet(
+      {String uid, String cid,int type }) async {
     final response = await http.post("${WALLETAPI}wallets/update",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -542,10 +617,71 @@ class Utility {
       return null;
   }
 
-  static Future<bool> updateWalletAccount({String wid, String accountNumber,String sortCode,String bankName }) async {
+
+  static Future<bool> updateWalletPassword(
+      {String uid, String password }) async {
+    final response = await http.post("${WALLETAPI}wallets/update",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "walletID": uid,
+            "password": password,
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    else
+      return false;
+  }
+
+  static Future<bool> resetPasswordOtp(
+      {String email, String subject = 'Pin reset', String otp }) async {
+    final response = await http.post("${WALLETAPI}notification/email",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            "email": email,
+            "subject": subject,
+            'message':'Use $otp for Pin reset. This code expires at ${DateTime.now().add(Duration(minutes: 15)).toString()}',
+          },
+        )).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    else
+      return false;
+  }
+
+  static Future<bool> updateWalletAccount(
+
+      {String wid, String accountNumber,String sortCode,String bankName }) async {
     final response = await http.post("${WALLETAPI}wallets/updatebank",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -570,34 +706,14 @@ class Utility {
       return false;
   }
 
-  static Future<bool> withdrawFunds({String wid, int type=1 }) async {
-    final response = await http.post("${WALLETAPI}Withdraw",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(
-          <String, dynamic>{
-            "walletID": wid,
-            "type": type,
-          },
-        )).timeout(
-      Duration(seconds: TIMEOUT),
-      onTimeout: () {
-        return null;
-      },
-    );
-    if(response != null)
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
-    else
-      return false;
-  }
+
 
   static Future<bool> clearRemittance(String rid) async {
-    final response = await http.get("${WALLETAPI}remittance/update/clear?id=$rid").timeout(
+    final response = await http.get("${WALLETAPI}remittance/update/clear?id=$rid",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        }).timeout(
       Duration(seconds: TIMEOUT),
       onTimeout: () {
         return null;
@@ -615,8 +731,13 @@ class Utility {
 
 
 
-  static Future<Map<String,dynamic>> generateRemittance({String aid, int limit}) async {
-    final response = await http.get("${WALLETAPI}collection/cash/agent/remittance?id=$aid&limit=$limit").timeout(
+  static Future<Map<String,dynamic>> generateRemittance(
+      {String aid, int limit,String key=''}) async {
+    final response = await http.get("${WALLETAPI}collection/cash/agent/remittance?id=$aid&limit=$limit",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey': key.isNotEmpty?key:await ServerBloc.instance.getServerKey(),
+        }).timeout(
       Duration(seconds: TIMEOUT),
       onTimeout: () {
         return null;
@@ -633,12 +754,114 @@ class Utility {
       return null;
   }
 
+  static Future<double> logisticTodayAmount(String wallet,) async {
+    var start = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 00:00:00';
+    var end = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 23:59:59';
+    final response = await http.get("${WALLETAPI}merchant/DashboadCount?pocketid=$wallet&from=$start&to=$end",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        }).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        return result['logisticsAmountCollected'];
+      } else {
+        return 0;
+      }
+    else
+      return 0;
+  }
+
+
+  static Future<double> riderTodayAmount(
+      String wallet,) async {
+    var start = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 00:00:00';
+    var end = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 23:59:59';
+    final response = await http.get("${WALLETAPI}staffreport/DashboadCount?agentId=$wallet&from=$start&to=$end",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        }).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        return result['amountCollected'];
+      } else {
+        return 0;
+      }
+    else
+      return 0;
+  }
+
+  static Future<List<PocketHistory>> pocketHistory({String pocket,int pNumber=1,int pSize=20,String from, String to,String type='debit'}) async {
+    //var start = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 00:00:00';
+    //var end = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 23:59:59';
+    final response = await http.get("${WALLETAPI}collection/report/pocket/$type?pocket=$pocket&from=$from&to=$to&pageNumber=$pNumber&pageSize=$pSize&_pageSize=$pSize",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        }).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        Utility.noInternet();
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        return PocketHistory.fromListMap(List.castFrom(result));
+      } else {
+        return [];
+      }
+    else
+      return [];
+  }
+
+  static Future<List<PocketHistory>> unitHistory({String pocket,int pNumber=1,int pSize=20,String from, String to}) async {
+    //var start = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 00:00:00';
+    //var end = '${DateTime.now().month}-${DateTime.now().day}-${DateTime.now().year} 23:59:59';
+    final response = await http.get("${WALLETAPI}collection/report/pocketunit/history?pocket=$pocket&from=$from&to=$to&pageNumber=$pNumber&pageSize=$pSize&_pageSize=$pSize",
+        headers: {
+          'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
+        }).timeout(
+      Duration(seconds: TIMEOUT),
+      onTimeout: () {
+        Utility.noInternet();
+        return null;
+      },
+    );
+    if(response != null)
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        //print(result);
+        return PocketHistory.fromListMap(List.castFrom(result));
+      } else {
+        return [];
+      }
+    else
+      return [];
+  }
+
   static Future<dynamic> topUpUnit(
       String referenceID, String from, String description, int status,int amount,int paymentMethod) async {
     assert(referenceID != null);
     final response = await http.post("${WALLETAPI}wallets/fund/",
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey':await ServerBloc.instance.getServerKey(),
         },
         body: jsonEncode(
           <String, dynamic>{
@@ -647,8 +870,8 @@ class Utility {
             "amount":(amount/100).round(),
             "paymentId": 5,
             "channelId": paymentMethod,
-            "from": "$from",
-            "to": "$PocketDefaultWallet",
+            "to": "$from",
+            "from": "$PocketDefaultWallet",
           },
         )).timeout(
       Duration(seconds: TIMEOUT),
@@ -667,22 +890,13 @@ class Utility {
       return null;
   }
 
-  static dynamic presentDate(dynamic datetime) {
-    var result;
+  static String presentDate(dynamic datetime) {
     bool yesterday = false;
     bool today = false;
     var date;
     var time;
-    //if(DateTime.now().difference(datetime))
-    result = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day - 1);
-    yesterday = formatDate(
-        DateTime(DateTime.now().year, DateTime.now().month,
-            DateTime.now().day - 1),
-        [dd, '/', mm, '/', yyyy]) ==
-        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
-    today = formatDate(DateTime.now(), [dd, '/', mm, '/', yyyy]) ==
-        formatDate(datetime, [dd, '/', mm, '/', yyyy]);
+    yesterday = formatDate(DateTime.now().subtract(Duration(days: 1)), [dd, '/', mm, '/', yyyy]) == formatDate(datetime, [dd, '/', mm, '/', yyyy]);
+    today = formatDate(DateTime.now(), [dd, '/', mm, '/', yyyy]) == formatDate(datetime, [dd, '/', mm, '/', yyyy]);
     date = formatDate(datetime, [d, ' ', M, ', ', yyyy]);
     time = formatDate(datetime, [HH, ':', nn, ' ', am]);
     if (today)
@@ -747,16 +961,13 @@ class Utility {
 
         final StorageUploadTask uploadTask =
         storageReference.putFile(_imageList[i]);
-
         final StreamSubscription<StorageTaskEvent> streamSubscription =
         uploadTask.events.listen((event) {
           //print(event.toString());
         });
-
         // Cancel your subscription when done.
         await uploadTask.onComplete;
         streamSubscription.cancel();
-
         String imageUrl = await storageReference.getDownloadURL();
         _imageUrls.add(imageUrl); //all all the urls to the list
       }
@@ -806,18 +1017,21 @@ class Utility {
   }
 
   static String numberFormatter(int number){
-    if(number > 1000 && number < 1000000)
-      return '${(number/1000).toStringAsFixed(1)}K';
-    else if(number > 1000000 && number < 1000000000)
-      return '${(number/1000000).toStringAsFixed(1)}M';
-    else if(number > 1000000000)
-      return '${(number/1000000000).toStringAsFixed(1)}B';
-    else
-      return '$number';
+    if(number == null){return '0';}
+    else{
+      if(number > 1000 && number < 1000000)
+        return '${(number/1000).toStringAsFixed(1)}K';
+      else if(number > 1000000 && number < 1000000000)
+        return '${(number/1000000).toStringAsFixed(1)}M';
+      else if(number > 1000000000)
+        return '${(number/1000000000).toStringAsFixed(1)}B';
+      else
+        return '$number';
+    }
   }
 
-  static Future<void> noWorker(){
-    Workmanager.cancelAll();
+  static Future<void> noWorker()async{
+    await Workmanager.cancelAll();
     return Future.value();
   }
 
@@ -878,7 +1092,7 @@ class Utility {
     });
   }
 
-  static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false, String wallet=''}){
+  static bottomProgressSuccess({String title='Loading', String body='...please wait',int duration=3,bool goBack=false, String wallet='',String key}){
     if(!Get.isSnackbarOpen)
     GetBar(
       title: title,
@@ -914,6 +1128,7 @@ class Utility {
       backgroundColor: PRIMARYCOLOR,
       icon: Icon(Icons.check,color: Colors.white,),
       duration: Duration(seconds: 5),
+      snackPosition: SnackPosition.TOP,
     ).show();
   }
 
@@ -926,6 +1141,20 @@ class Utility {
           child: Text('Ok'),
         )
     );
+  }
+
+  static dialogLoader(){
+    if(!Get.isDialogOpen)
+      Get.defaultDialog(title:'Please wait.',
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: CircularProgressIndicator(),
+              )
+            ],
+          ),
+      );
   }
 
   static Future<bool> confirmDialogMaker(String body,{String title='Confirm',})async{
@@ -1084,6 +1313,8 @@ class Utility {
       return 13.0;
   }
 
+  static double onePointFive(int amount) => amount * 0.015;
+
 
   static LatLng computeCentroid(List<LatLng> points) {
     double latitude = 0;
@@ -1131,6 +1362,49 @@ class Utility {
       sum += (element[1] as int);
     });
     return sum;
+  }
+
+  static String getMonth(DateTime tm){
+    String month;
+    switch (tm.month) {
+      case 1:
+        month = "January";
+        break;
+      case 2:
+        month = "February";
+        break;
+      case 3:
+        month = "March";
+        break;
+      case 4:
+        month = "April";
+        break;
+      case 5:
+        month = "May";
+        break;
+      case 6:
+        month = "June";
+        break;
+      case 7:
+        month = "July";
+        break;
+      case 8:
+        month = "August";
+        break;
+      case 9:
+        month = "September";
+        break;
+      case 10:
+        month = "October";
+        break;
+      case 11:
+        month = "November";
+        break;
+      case 12:
+        month = "December";
+        break;
+    }
+    return month;
   }
 
 }

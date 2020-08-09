@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/main.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
@@ -42,7 +43,8 @@ class _LoginFormState extends State<LoginForm> {
   bool isLoginButtonEnabled(LoginState state) {
     return state.isFormValid && isPopulated && !state.isSubmitting;
   }
-
+  final email = TextEditingController();
+  final  _formKey = GlobalKey<FormState>();
   @override
   void initState() {
     super.initState();
@@ -94,7 +96,8 @@ class _LoginFormState extends State<LoginForm> {
         }
         if (state.isSuccess) {
           BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
-          if (widget.fromSignup) {Get.back();Get.back();}
+          Get.off(App(userRepository: widget._userRepository,));
+          //if (widget.fromSignup) {Get.back();Get.back();}
           //Navigator.pop(context);
         }
       },
@@ -108,9 +111,9 @@ class _LoginFormState extends State<LoginForm> {
                       padding: EdgeInsets.only(
                           left: marginLR * 0.02, right: marginLR * 0.02),
                       margin: EdgeInsets.only(top: marginLR * 0.1),
-                      child: psCard(
-                          color: PRIMARYCOLOR,
-                          title: 'Sign In',
+                      child: psHeadlessCard(
+                          //color: PRIMARYCOLOR,
+                          //title: 'Sign In',
                           boxShadow: [
                             BoxShadow(
                               color: Colors.grey,
@@ -139,12 +142,13 @@ class _LoginFormState extends State<LoginForm> {
                                     padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
                                     child: Row(
                                       children: [
-                                        Expanded(child: Text('Email address has not been verified. Click  Resend to get verification email.'),),
-                                        Expanded(flex: 0,child: FlatButton(
+                                        Expanded(child: Text('A verification mail has been sent to your email'
+                                            ' proceed to your email account and activate your pocketshopping account. Thank you'),),
+                                        /*Expanded(flex: 0,child: FlatButton(
                                           onPressed: (){},
                                           color: PRIMARYCOLOR,
                                           child: Text('Resend',style: TextStyle(color: Colors.white),),
-                                        ),)
+                                        ),)*/
                                       ],
                                     )
                                   ),
@@ -243,37 +247,127 @@ class _LoginFormState extends State<LoginForm> {
                                         'Reset Password',
                                       ),
                                       onPressed: () async{
-                                        if(_emailController.text.isNotEmpty)
-                                        {
-                                          if(Validators.isValidEmail(_emailController.text))
-                                          {
-                                            Utility.bottomProgressLoader(title: 'Resetting Password',body: 'Please wait...'.sentenceCase);
-                                            var result =await  _userRepository.passwordReset(_emailController.text);
-                                            if(result == 1)
-                                            {
-                                              Get.back();
-                                              Utility.bottomProgressSuccess(title: 'Password Reset',body: 'Check your mailbox for password reset link'.sentenceCase,duration: 5);
-                                            }
-                                            else if(result == 2)
-                                            {
-                                              Get.back();
-                                              Utility.bottomProgressFailure(title: 'User Not Found.', body: 'No User With this email'.sentenceCase,duration: 5);
-                                            }
-                                            else
-                                            {
-                                              Get.back();
-                                              Utility.bottomProgressFailure(title: 'Password Reset', body: 'Error resetting password, check your internet connection and try again'.sentenceCase,duration: 5);
-                                            }
-                                          }
-                                          else{
-                                            Utility.bottomProgressFailure(title: 'Email Address', body: 'Enter a Valid Email Address'.sentenceCase,duration: 3);
-                                          }
-                                        }
-                                        else
-                                          {
-                                            Utility.bottomProgressFailure(title: 'Email Address', body: 'Enter Your Email Address'.sentenceCase,duration: 3);
 
-                                          }
+                                        email.text = _emailController.text;
+                                        Get.dialog(
+                                          Scaffold(
+                                            backgroundColor: Colors.black.withOpacity(0.2),
+                                            body: Center(
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                                color: Colors.white,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Center(
+                                                            child: Text('Password Reset',style: TextStyle(fontSize: 18),),
+                                                          ),
+                                                        ),
+                                                        Expanded(
+                                                          flex: 0,
+                                                          child: Padding(
+                                                            padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                                            child: Align(
+                                                              alignment: Alignment.centerRight,
+                                                              child: IconButton(
+                                                                onPressed: (){
+                                                                  Get.back();
+                                                                },
+                                                                icon: Icon(Icons.close),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Form(
+                                                      child: TextFormField(
+                                                        validator: (value) {
+                                                          if (value.isEmpty) {
+                                                            return 'Enter Email';
+                                                          }
+                                                          if(!Validators.isValidEmail(value)){
+                                                            return 'Invalid email address';
+                                                          }
+                                                          return null;
+                                                        },
+                                                        controller: email,
+                                                        decoration: InputDecoration(
+                                                          hintText: 'Email',
+                                                          hintStyle: TextStyle(fontSize: 18,letterSpacing: 1),
+                                                          filled: true,
+                                                          fillColor: Colors.grey.withOpacity(0.2),
+                                                          focusedBorder: OutlineInputBorder(
+                                                            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                                          ),
+                                                          enabledBorder: UnderlineInputBorder(
+                                                            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                                          ),
+                                                          errorBorder: InputBorder.none,
+                                                        ),
+                                                        autovalidate: true,
+                                                        autofocus: false,
+                                                        textInputAction: TextInputAction.done,
+                                                        keyboardType: TextInputType.emailAddress,
+                                                        onChanged: (value) {},
+                                                        style: TextStyle(fontSize: 18),
+
+                                                      ),
+                                                      key: _formKey,
+                                                    ),
+                                                    FlatButton(
+                                                        onPressed: ()async{
+                                                          if(_formKey.currentState.validate()){
+                                                            Get.back();
+                                                            if(email.text.isNotEmpty)
+                                                            {
+                                                              if(Validators.isValidEmail(email.text))
+                                                              {
+                                                                Utility.bottomProgressLoader(title: 'Resetting Password',body: 'Please wait...'.sentenceCase);
+                                                                var result =await  _userRepository.passwordReset(email.text);
+                                                                if(result == 1)
+                                                                {
+                                                                  Get.back();
+                                                                  Utility.bottomProgressSuccess(title: 'Password Reset',body: 'Check your mailbox for password reset link'.sentenceCase,duration: 5);
+                                                                }
+                                                                else if(result == 2)
+                                                                {
+                                                                  Get.back();
+                                                                  Utility.bottomProgressFailure(title: 'User Not Found.', body: 'No User With this email'.sentenceCase,duration: 5);
+                                                                }
+                                                                else
+                                                                {
+                                                                  Get.back();
+                                                                  Utility.bottomProgressFailure(title: 'Password Reset', body: 'Error resetting password, check your internet connection and try again'.sentenceCase,duration: 5);
+                                                                }
+                                                              }
+                                                              else{
+                                                                Utility.bottomProgressFailure(title: 'Email Address', body: 'Enter a Valid Email Address'.sentenceCase,duration: 3);
+                                                              }
+                                                            }
+                                                            else
+                                                            {
+                                                              Utility.bottomProgressFailure(title: 'Email Address', body: 'Enter Your Email Address'.sentenceCase,duration: 3);
+
+                                                            }
+                                                          }
+                                                        },
+                                                        color: PRIMARYCOLOR,
+                                                        child: Center(
+                                                          child: Text('Reset',style: TextStyle(color: Colors.white),),
+                                                        )
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            )
+                                          )
+                                        );
 
                                       },
                                     )

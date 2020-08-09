@@ -34,7 +34,7 @@ class _CloseOrderState extends State<CloseOrder> {
     _finish = true;
     loading =true;
     empty = false;
-    OrderRepo.getCompleted(null, widget.user.user.uid).then((value){
+    OrderRepo.getCompleted(null, widget.user.user.uid,source: 1).then((value){
       //print(value);
       list=value;
       loading =false;
@@ -52,6 +52,7 @@ class _CloseOrderState extends State<CloseOrder> {
       OrderRepo.getCompleted(list.last, widget.user.user.uid).then((value) {
         list.addAll(value);
         _finish = value.length == 10 ? false : true;
+        loading = false;
         if(mounted)
           setState((){ });
 
@@ -61,6 +62,7 @@ class _CloseOrderState extends State<CloseOrder> {
         list=value;
         _finish = value.length == 10 ? false : true;
         empty=value.isEmpty?true:false;
+        loading =false;
         if(mounted)
           setState((){ });
 
@@ -164,7 +166,7 @@ class _CloseOrderState extends State<CloseOrder> {
   }
 
   Future<void> _refresh() async {
-    setState(() {list.clear();});
+    setState(() {list.clear(); loading = true;});
     load();
   }
 }

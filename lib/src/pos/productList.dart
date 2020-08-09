@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:badges/badges.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,7 +12,6 @@ import 'package:pocketshopping/src/pos/checkOut.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -41,6 +39,7 @@ class _ProductListState extends State<ProductList> {
   final _count = ValueNotifier<int>(1);
   List<CartItem> _cartItem;
   final _walletNotifier = ValueNotifier<Wallet>(null);
+
 
 
   void initState() {
@@ -117,16 +116,11 @@ class _ProductListState extends State<ProductList> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<HttpsCallableResult>(
-      future: CloudFunctions.instance.getHttpsCallable(
-        functionName: "FetchMerchantsProductCategory",
-      ).call({'mID': widget.user.merchant.mID}).timeout(Duration(seconds: TIMEOUT),onTimeout: (){
-      Utility.noInternet();
-      throw CloudFunctionsException;
-      }),
-      builder: (context,AsyncSnapshot<HttpsCallableResult> data){
+    return FutureBuilder<List<String>>(
+      future: ProductRepo.runFetchCategory(widget.user.merchant.mID),
+      builder: (context,AsyncSnapshot<List<String>> data){
         if(data.hasData){
-          category.addAll( List.castFrom(data.data.data));
+          category.addAll(data.data);
           //selectedCategory = category[0];
           //list.clear();
           //load();
@@ -176,7 +170,8 @@ class _ProductListState extends State<ProductList> {
                           hint: Text('Category'),
                           decoration: InputDecoration(
                               border: InputBorder.none),
-                          onChanged: (value) {setState(() {
+                          onChanged: (value) {
+                            setState(() {
                             selectedCategory = value;
                             list.clear();
                             loading=true;
@@ -194,7 +189,26 @@ class _ProductListState extends State<ProductList> {
                             });
                           }
                           else{
-                            load();
+                            if(selectedCategory != 'All')
+                              ProductRepo.fetchCategoryProduct(widget.user.merchant.mID, null,value).then((value) {
+                                list=value;
+                                _finish = value.length == 10 ? false : true;
+                                empty=value.isEmpty;
+                                loading =false;
+                                if(mounted)
+                                  setState((){ });
+
+                              });
+                            else
+                              ProductRepo.fetchAllProduct(widget.user.merchant.mID, null).then((value) {
+                                list=value;
+                                _finish = value.length == 10 ? false : true;
+                                empty=value.isEmpty;
+                                loading =false;
+                                if(mounted)
+                                  setState((){ });
+
+                              });
                           }
 
                           },
@@ -346,7 +360,14 @@ class _ProductListState extends State<ProductList> {
                                           Center(
                                             child: GestureDetector(
                                               onTap: () {
-                                                _count.value += 1;
+                                                if(list[index].isManaging)
+                                                {
+                                                  if(_count.value < list[index].pStockCount)
+                                                    _count.value += 1;
+                                                }
+                                                else{
+                                                  _count.value += 1;
+                                                }
                                               },
                                               child: Container(
                                                 margin:
@@ -374,11 +395,21 @@ class _ProductListState extends State<ProductList> {
                                           ),
                                           ),
                                         ],
+                                      ),
+                                      if(list[index].isManaging)
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text('Stock Count: ${Utility.numberFormatter(list[index].pStockCount)}'),
+                                          )
+                                        ],
                                       )
                                     ],
+
                                   ),
                                   cancel: FlatButton(
                                     onPressed: () {
+                                      _count.value =1;
                                       Get.back();
                                     },
                                     child: Text('Cancel', style: TextStyle(
@@ -458,13 +489,33 @@ class _ProductListState extends State<ProductList> {
                                       Text('$CURRENCY${list[index].pPrice}'),
                                     ],
                                   ),
+                                  if(list[index].isManaging)
                                   Row(
                                     children: [
                                       Text('Stock Count: ${list[index].pStockCount}',style: TextStyle(fontSize: 16),)
                                     ],
-                                  )
+                                  ),
+
+                                  if(list[index].isManaging)
+                                    if(list[index].pStockCount>0 && list[index].pStockCount < 10)
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text('The ${widget.user.merchant.bCategory} is running out of ${list[index].pName}',style: TextStyle(fontSize: 16,color: Colors.orangeAccent),)
+                                          )
+                                                                 ],
+                                      )
+                                  else if(list[index].pStockCount <= 0)
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(' ${list[index].pName} is out of stock',style: TextStyle(fontSize: 16,color: Colors.red),)
+                                          ),
+                                        ],
+                                      )
                                 ],
                               ),
+                              enabled: list[index].isManaging?list[index].pStockCount>0?true:false:true,
                               trailing:  Icon(Icons.shopping_basket),
                             );
                           },
@@ -550,7 +601,7 @@ class _ProductListState extends State<ProductList> {
                   top: 1, right: 1),
               child: IconButton(
                 onPressed: () {
-                  print(widget.user.merchant.bCategory== 'Restuarant' );
+                  //print(widget.user.merchant.bCategory== 'Restuarant' );
                   if(_cartItem.isNotEmpty)
                   Get.bottomSheet(builder: (context){
                     return Container(

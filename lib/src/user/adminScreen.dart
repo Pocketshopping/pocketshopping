@@ -67,7 +67,7 @@ class _AdminScreenState extends State<AdminScreen> {
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('Transations'),
+      title: Text('History'),
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
@@ -102,7 +102,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
     processNotification(dynamic payload,dynamic notification)async{
     switch (payload['NotificationType']) {
-      case 'NewDeliveryOrderRequest':
+      /*case 'NewDeliveryOrderRequest':
         GetBar(titleText: Text('New Delivery',style: TextStyle(color: Colors.white),),
           messageText:Text('You have new Delivery. Check you dashboard for details',style: TextStyle(color: Colors.white),),
             snackPosition: SnackPosition.BOTTOM,
@@ -112,19 +112,21 @@ class _AdminScreenState extends State<AdminScreen> {
         ).show();
 
 
-      break;
+      break;*/
       case 'WorkRequestResponse':
         await requester();
+        NotificationsBloc.instance.newNotification(null);
         break;
-      case 'WorkRequestCancelResponse':
+      /*case 'WorkRequestCancelResponse':
         await requester(showNotification: false);
-        break;
+        break;*/
       case 'PocketTransferResponse':
         Utility.bottomProgressSuccess(
           title:payload['title'],
           body: payload['message'],
             wallet: payload['data']['wallet'],
         duration: 5);
+        NotificationsBloc.instance.newNotification(null);
         break;
 
       case 'CloudDeliveryCancelledResponse':
@@ -134,15 +136,20 @@ class _AdminScreenState extends State<AdminScreen> {
             body: 'Your Delivery has been cancelled',
             wallet: user.walletId
         );
+        NotificationsBloc.instance.newNotification(null);
         break;
      default:
-         Utility.bottomProgressSuccess(
-              title:payload['title'],
-              body: payload['message'],
-              //wallet: payload['data']['wallet'],
-              duration: 5
-          );
-          break;
+       if(payload['message'] != null){
+         if(payload['message'].toString().isNotEmpty){
+           Utility.bottomProgressSuccess(
+               title:payload['title'],
+               body: payload['message'],
+               //wallet: payload['data']['wallet'],
+               duration: 5
+           );
+         }
+       }
+       break;
     }
   }
 
@@ -225,7 +232,27 @@ class _AdminScreenState extends State<AdminScreen> {
                   decoration:  BoxDecoration(
                       border: Border(
                           bottom: BorderSide(
-                              color: Colors.black54.withOpacity(0.2))))),
+                              color: Colors.black54.withOpacity(0.2)))))/*ShowCaseWidget(
+                builder: Builder (
+                  builder: (context){
+                    return Container(
+                        child: Center(
+                          child: <Widget>[
+                            state.user.merchant.bCategory == 'Logistic' ? LogisticDashBoardScreen() : DashBoardScreen(),
+                            MyRadius(),//GeoFence(),
+                            Favourite(),
+                            MyOrders(),
+                            PocketPay(),
+                          ].elementAt(_selectedIndex),
+                        ),
+                        decoration:  BoxDecoration(
+                            border: Border(
+                                bottom: BorderSide(
+                                    color: Colors.black54.withOpacity(0.2)))));
+                  },
+                ),
+
+              )*/,
               bottomNavigationBar: BottomNavigationBar(
                 items: items,
                 currentIndex: _selectedIndex,

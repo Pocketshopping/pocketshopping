@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
+import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
+import 'package:pocketshopping/src/user/fav/faq.dart';
 import 'package:pocketshopping/src/user/fav/fav.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
@@ -31,15 +34,8 @@ class _FavouriteState extends State<Favourite> {
           preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
               0.15), // here the desired height
           child: AppBar(
-            leading: IconButton(
-              icon: Icon(
-                Icons.menu,
-                color: PRIMARYCOLOR,
-              ),
-              onPressed: () {
-                //print("your menu action here");
-                Scaffold.of(context).openDrawer();
-              },
+            leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
+              openDrawer: (){Scaffold.of(context).openDrawer();},
             ),
             backgroundColor: Colors.white,
             elevation: 0,
@@ -59,12 +55,15 @@ class _FavouriteState extends State<Favourite> {
               ],
             ),
             automaticallyImplyLeading: false,
+            actions: [
+              Help(page: 'user',),
+            ],
           ),
         ),
         body: TabBarView(
           children: [
             FavoriteWidget(user: currentUser,),
-            Text('Ur mind'),
+            FaqWidget(),
           ],
         ),
       ),

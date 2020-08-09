@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
+import 'package:pocketshopping/src/review/repository/ReviewEntity.dart';
 
-import 'ReviewEntity.dart';
 
 @immutable
 class Review {
