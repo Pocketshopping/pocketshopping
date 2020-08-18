@@ -43,7 +43,7 @@ class Help extends StatelessWidget{
 class HelpWebView extends StatefulWidget {
   final String page;
   final bool showNav;
-  HelpWebView({this.page,this.showNav});
+  HelpWebView({this.page,this.showNav=true});
   @override
   _HelpWebViewState createState() => _HelpWebViewState();
 }
@@ -80,7 +80,7 @@ class _HelpWebViewState extends State<HelpWebView> {
       // to allow calling Scaffold.of(context) so we can show a snackbar.
       body: Builder(builder: (BuildContext context) {
         return WebView(
-          initialUrl: 'http://pocketshopping.com.ng/mobile/howto/${widget.page}',
+          initialUrl: 'http://pocketshopping.com.ng/mobile/howto/${widget.page}.html',
           javascriptMode: JavascriptMode.unrestricted,
           onWebViewCreated: (WebViewController webViewController) {
             _controller.complete(webViewController);

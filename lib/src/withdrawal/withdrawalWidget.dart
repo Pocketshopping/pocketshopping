@@ -6,8 +6,8 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:pocketshopping/withdrawal/repository/WithdrawalRepo.dart';
-import 'package:pocketshopping/withdrawal/repository/withdrawalObj.dart';
+import 'package:pocketshopping/src/withdrawal/repository/WithdrawalRepo.dart';
+import 'package:pocketshopping/src/withdrawal/repository/withdrawalObj.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
 class WithdrawalWidget extends StatefulWidget {
@@ -54,7 +54,7 @@ class _WithdrawalState extends State<WithdrawalWidget> {
             alignment: Alignment.centerLeft,
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-              child: Text('List of withdrawal(30 days)',style: TextStyle(fontWeight: FontWeight.bold),)
+              child: Text('List of withdrawal(Last 30 days)',style: TextStyle(fontWeight: FontWeight.bold),)
             ),
           ),),
           Expanded(flex: 0,child: SizedBox(height: 10,),),

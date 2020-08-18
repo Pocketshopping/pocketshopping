@@ -613,7 +613,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                                     Expanded(
                                                         child: WebView(
 
-                                                          initialUrl: 'http://pocketshopping.com.ng/mobile/business/terms-conditions',
+                                                          initialUrl: 'http://pocketshopping.com.ng/mobile/business/terms-conditions.html',
                                                           javascriptMode: JavascriptMode.disabled,
                                                           onWebViewCreated: (WebViewController webViewController) {
                                                             //_controller.complete(webViewController);

@@ -205,10 +205,12 @@ class _TopUpState extends State<TopUp> {
                   "cvv":(details['cvv'] as String),
                   "month":int.parse(temp[0]),
                   "year":int.parse(temp[1]),
-                  "amount":int.tryParse(_amount.text),
+                  "amount":widget.payType == "TOPUP"?(int.tryParse(_amount.text)+Utility.onePointFive((int.tryParse(_amount.text)).round())):int.tryParse(_amount.text),
                   "email":(details['email'] as String),
 
                 }))
+
+                //+
         );
         if (reference.isNotEmpty) {
           var details = await Utility.fetchPaymentDetail(reference['reference']);

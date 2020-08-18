@@ -5,7 +5,9 @@ import 'package:pocketshopping/src/bank/repository/bankRepo.dart';
 import 'package:pocketshopping/src/profile/pinTester.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
-import 'package:pocketshopping/withdrawal/repository/WithdrawalRepo.dart';
+import 'package:pocketshopping/src/withdrawal/repository/WithdrawalRepo.dart';
+
+
 
 class BankWithdraw extends StatefulWidget {
   final Wallet wallet;

@@ -363,47 +363,42 @@ class OneProduct extends StatelessWidget{
           right: height * 0.02),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
+        /*borderRadius: BorderRadius.only(
           topRight: Radius.circular(30.0),
           bottomLeft: Radius.circular(30.0),
-        ),
+        ),*/
         border:
         Border.all(color: Colors.grey.withOpacity(0.4), width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.4),
             //offset: Offset(1.0, 0), //(x,y)
-            blurRadius: 6.0,
+            blurRadius: 4.0,
           ),
         ],
       ),
       child: Row(
         children: <Widget>[
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30.0),
+            child: ShaderMask(
+              shaderCallback: (rect) {
+                return LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.topRight,
+                  colors: [Colors.black, Colors.transparent],
+                ).createShader(
+                    Rect.fromLTRB(0, 0, rect.width, rect.height));
+              },
+              blendMode: BlendMode.dstIn,
+              child: FadeInImage.memoryNetwork(
+                placeholder: kTransparentImage,
+                image: product.pPhoto.length > 0
+                    ? product.pPhoto[0]
+                    : 'https://i.pinimg.com/originals/85/8d/b9/858db9330ae2c94a28a6a99fcd07f85c.jpg',
+                fit: BoxFit.cover,
+                height: height * 0.2,
               ),
-              child: ShaderMask(
-                shaderCallback: (rect) {
-                  return LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.topRight,
-                    colors: [Colors.black, Colors.transparent],
-                  ).createShader(
-                      Rect.fromLTRB(0, 0, rect.width, rect.height));
-                },
-                blendMode: BlendMode.dstIn,
-                child: FadeInImage.memoryNetwork(
-                  placeholder: kTransparentImage,
-                  image: product.pPhoto.length > 0
-                      ? product.pPhoto[0]
-                      : 'https://i.pinimg.com/originals/85/8d/b9/858db9330ae2c94a28a6a99fcd07f85c.jpg',
-                  fit: BoxFit.cover,
-                  height: height * 0.2,
-                ),
-              ),
-            ),
+            )
           ),
           Expanded(
             child: Container(
@@ -424,11 +419,9 @@ class OneProduct extends StatelessWidget{
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-
-                      if(merchant.hasData)
-                        if(merchant.data != null)Text(merchant.data.bName),
-
-                  if(product.isManaging)
+                 if(merchant.hasData)
+                 if(merchant.data != null)Text(merchant.data.bName),
+                 if(product.isManaging)
                  if(product.pStockCount <= 0)
                    Row(
                      children: [

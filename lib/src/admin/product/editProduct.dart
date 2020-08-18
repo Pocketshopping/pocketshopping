@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +9,10 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
-import 'package:pocketshopping/src/stockManager/repository/stock.dart';
-import 'package:pocketshopping/src/stockManager/repository/stockRepo.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/imageEditor.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:progress_indicators/progress_indicators.dart';
 import 'package:recase/recase.dart';
 
 class EditProductForm extends StatefulWidget {
@@ -255,7 +251,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                           _priceEnabler=true;
                                                         });
                                                         await Future.delayed(Duration(seconds: 1));
-                                                        FocusScope.of(context).requestFocus(_nameFocus);
+                                                        FocusScope.of(context).requestFocus(_priceFocus);
                                                       },
                                                       child: Text('Edit'),
                                                     )
@@ -358,7 +354,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                       _categoryEnabler=true;
                                                     });
                                                     await Future.delayed(Duration(seconds: 1));
-                                                    FocusScope.of(context).requestFocus(_nameFocus);
+                                                    FocusScope.of(context).requestFocus(_categoryFocus);
                                                   },
                                                   child: Text('Edit'),
                                                 )
@@ -421,7 +417,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                           _descriptionEnabler=true;
                                                         });
                                                         await Future.delayed(Duration(seconds: 1));
-                                                        FocusScope.of(context).requestFocus(_nameFocus);
+                                                        FocusScope.of(context).requestFocus(_descriptionFocus);
                                                       },
                                                       child: Text('Edit'),
                                                     )
@@ -581,7 +577,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                     _unitEnabler=true;
                                                   });
                                                   await Future.delayed(Duration(seconds: 1));
-                                                  FocusScope.of(context).requestFocus(_nameFocus);
+                                                  FocusScope.of(context).requestFocus(_unitFocus);
                                                 },
                                                 child: Text('Edit'),
                                               )

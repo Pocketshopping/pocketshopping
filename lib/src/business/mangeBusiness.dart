@@ -36,6 +36,17 @@ class _ManageBusinessState extends State<ManageBusiness> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
   final TextEditingController _telephone2Controller = TextEditingController();
+
+  FocusNode _nameFocus = FocusNode();
+  FocusNode _addressFocus = FocusNode();
+  FocusNode _descriptionFocus = FocusNode();
+  FocusNode _openFocus = FocusNode();
+  FocusNode _closeFocus = FocusNode();
+  FocusNode _emailFocus = FocusNode();
+  FocusNode _telephone = FocusNode();
+  FocusNode _telephone2Focus = FocusNode();
+
+
   final format = DateFormat("HH:mm");
   Session currentUser;
   bool _nameEnabler;
@@ -157,6 +168,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   autovalidate: true,
                                                   enabled: _nameEnabler,
                                                   autofocus: _nameEnabler,
+                                                  focusNode: _nameFocus,
                                                 ),
                                               ),
                                               !working?
@@ -184,7 +196,8 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       setState(() {
                                                         _nameEnabler=true;
                                                       });
-
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_nameFocus);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -218,6 +231,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   autocorrect: false,
                                                   autovalidate: true,
                                                   enabled: _addressEnabler,
+                                                  focusNode: _addressFocus,
                                                   inputFormatters: <TextInputFormatter>[
                                                     //WhitelistingTextInputFormatter.digitsOnly
                                                   ],
@@ -242,10 +256,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _addressEnabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_addressFocus);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -279,6 +295,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   autovalidate: true,
                                                   maxLines: 3,
                                                   enabled: _descriptionEnabler,
+                                                  focusNode: _descriptionFocus,
                                                   inputFormatters: <TextInputFormatter>[
                                                     //WhitelistingTextInputFormatter.digitsOnly
                                                   ],
@@ -303,10 +320,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _descriptionEnabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_descriptionFocus);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -338,6 +357,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     border: InputBorder.none,
                                                   ),
                                                   enabled: _openEnabler,
+                                                  focusNode: _openFocus,
                                                   format: format,
                                                   onShowPicker: (context, currentValue) async {
                                                     final time = await showTimePicker(
@@ -367,10 +387,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _openEnabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_openFocus);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -404,6 +426,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
 
                                                     ),
                                                     enabled: _closeEnabler,
+                                                    focusNode: _closeFocus,
                                                     format: format,
                                                     onShowPicker: (context, currentValue) async {
                                                       final time = await showTimePicker(
@@ -433,10 +456,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _closeEnabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_closeFocus);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -468,6 +493,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
                                                   autovalidate: true,
+                                                  focusNode: _emailFocus,
                                                   enabled: _emailEnabler,
                                                   inputFormatters: <TextInputFormatter>[
                                                     //WhitelistingTextInputFormatter.digitsOnly
@@ -493,10 +519,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _emailEnabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_emailFocus);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -528,6 +556,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
                                                   autovalidate: true,
+                                                  focusNode: _telephone,
                                                   enabled: _telephoneEnabler,
                                                   inputFormatters: <TextInputFormatter>[
                                                     //WhitelistingTextInputFormatter.digitsOnly
@@ -553,10 +582,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _telephoneEnabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_telephone);
                                                     },
                                                     child: Text('Edit'),
                                                   )
@@ -588,6 +619,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
                                                   autovalidate: true,
+                                                  focusNode: _telephone2Focus,
                                                   enabled: _telephone2Enabler,
                                                   inputFormatters: <TextInputFormatter>[
                                                     //WhitelistingTextInputFormatter.digitsOnly
@@ -613,10 +645,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                     child: Text('Save',style: TextStyle(color: Colors.white),),
                                                   ):
                                                   FlatButton(
-                                                    onPressed: (){
+                                                    onPressed: ()async{
                                                       setState(() {
                                                         _telephone2Enabler=true;
                                                       });
+                                                      await Future.delayed(Duration(milliseconds: 500));
+                                                      FocusScope.of(context).requestFocus(_telephone2Focus);
                                                     },
                                                     child: Text('Edit'),
                                                   )

@@ -18,6 +18,7 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'orderUI.dart';
 
@@ -101,25 +102,7 @@ class _MerchantUIState extends State<MerchantUI> {
     super.initState();
   }
 
-  Future scan() async {
-    try {
-      String barcode = await BarcodeScanner.scan();
-      Navigator.pop(context);
-      setState(() => vmodel.handleQRcodeSearch(search: barcode));
-    } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
-        setState(() {
-          this.barcode = 'The user did not grant the camera permission!';
-        });
-      } else {
-        setState(() => this.barcode = 'Unknown error: $e');
-      }
-    } on FormatException {
-      setState(() => this.barcode = 'you cancelled the QRcode search');
-    } catch (e) {
-      setState(() => this.barcode = 'Unknown error: $e');
-    }
-  }
+
 
   void _searchPressed() {
     _filter.clear();
@@ -129,30 +112,33 @@ class _MerchantUIState extends State<MerchantUI> {
           Icons.close,
           color: PRIMARYCOLOR,
         );
-        this._appBarTitle = TextFormField(
-          controller: _filter,
-          decoration: InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            hintText: 'Search ${widget.merchant.bName}',
-            filled: true,
-            fillColor: Colors.grey.withOpacity(0.2),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+        this._appBarTitle = Container(
+          margin: EdgeInsets.symmetric(vertical: 5),
+          child: TextFormField(
+            controller: _filter,
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Search ${widget.merchant.bName}',
+              filled: true,
+              fillColor: Colors.grey.withOpacity(0.2),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+              ),
             ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-            ),
-          ),
-          autofocus: true,
-          enableSuggestions: true,
-          textInputAction: TextInputAction.done,
-          onChanged: (value) {
-            if (value.isNotEmpty) {
-              vmodel.handleSearch(search: _filter.text);
-              _searchText = value;
-              setState(() {});
-            }
-          },
+            autofocus: true,
+            enableSuggestions: true,
+            textInputAction: TextInputAction.done,
+            onChanged: (value) {
+              if (value.isNotEmpty) {
+                vmodel.handleSearch(search: _filter.text);
+                _searchText = value;
+                setState(() {});
+              }
+            },
+          )
         );
 
         searchMode = true;
@@ -191,18 +177,18 @@ class _MerchantUIState extends State<MerchantUI> {
                 appBar: PreferredSize(
                   preferredSize: Size.fromHeight(
                       MediaQuery.of(context).size.height *
-                          0.3), // here the desired height
+                          0.25), // here the desired height
                   child: AppBar(
                     elevation: 0.0,
                     centerTitle: true,
-                    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+                    backgroundColor: Colors.white,//Color.fromRGBO(255, 255, 255, 1),
                     leading: IconButton(
                       icon: Icon(
                         Icons.arrow_back_ios,
                         color: Colors.grey,
                       ),
                       onPressed: () {
-                        Navigator.pop(context);
+                        Get.back();
                       },
                     ),
                     actions: <Widget>[
@@ -213,10 +199,11 @@ class _MerchantUIState extends State<MerchantUI> {
                     ],
                     bottom: PreferredSize(
                         preferredSize: Size.fromHeight(
-                            MediaQuery.of(context).size.height * 0.15),
+                            MediaQuery.of(context).size.height * 0.1),
                         child: Builder(
                             builder: (context) => Container(
                                 padding: EdgeInsets.only(left: 10, right: 10),
+                                color: Colors.white,
                                 //margin: EdgeInsets.only(bottom: 20),
                                 child: Column(
                                   children: <Widget>[
@@ -345,13 +332,15 @@ class _MerchantUIState extends State<MerchantUI> {
                                                     animationDuration:
                                                         Duration(seconds: 5),
                                                   ),
-                                            /*IconButton(
-                                              onPressed: (){},
+                                            IconButton(
+                                              onPressed: () => launch("tel:${widget.merchant.bTelephone}"),
                                               icon: Icon(
+
                                                 Icons.call,
                                                 color: PRIMARYCOLOR,
                                               ),
                                             ),
+                                            /*
                                             IconButton(
                                               onPressed: (){},
                                               icon: Icon(
@@ -390,12 +379,13 @@ class _MerchantUIState extends State<MerchantUI> {
                                                           Axis.horizontal,
                                                       children: <Widget>[
                                                         Wrap(
-                                                          spacing: 2.0,
+                                                          spacing: 4.0,
                                                           children: List<
                                                               Widget>.generate(
                                                             category.length,
                                                             (int index) {
                                                               return ChoiceChip(
+                                                                elevation: 4,
                                                                 label: Text(
                                                                   '${category[index]}',
                                                                   style: TextStyle(
@@ -550,6 +540,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                   fontSize:
                                       MediaQuery.of(context).size.height * 0.06,
                                   color: Colors.black54),
+                                textAlign: TextAlign.center
                             ),
                             SizedBox(height: 20),
                             Text(
@@ -562,7 +553,7 @@ class _MerchantUIState extends State<MerchantUI> {
                             ),
                             SizedBox(height: 20),
                             Text(
-                              'Visit Us',
+                              'Contact Us',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize:
@@ -571,8 +562,8 @@ class _MerchantUIState extends State<MerchantUI> {
                             ),
                             SizedBox(height: 10),
                             FlatButton(
-                              onPressed: () {},
-                              child: Icon(Icons.place,
+                                onPressed: () => launch("tel:${widget.merchant.bTelephone}"),
+                              child: Icon(Icons.call,
                                   size:
                                       MediaQuery.of(context).size.height * 0.1,
                                   color: Colors.black54),

@@ -177,7 +177,8 @@ class ListItem extends StatelessWidget {
                 backgroundColor: Colors.white,
                 child: Center(
                   child: Icon(Icons.check),
-                )),
+                )
+            ),
             title: Text(
               "${(title as Order).orderItem[0].ProductName}"
               " ${(title as Order).orderItem.length > 1 ? '+${(title as Order).orderItem.length - 1} more' : ''}",
@@ -604,7 +605,7 @@ class ListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Text("Reviewskvnvkdjv vkjv xkjcvx "),
+                Text("Reviews"),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[Text("Customer Name"), Text("DateTime")],
@@ -689,12 +690,11 @@ class ListItem extends StatelessWidget {
                 right: height * 0.02),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(
+              /*borderRadius: BorderRadius.only(
                 topRight: Radius.circular(30.0),
                 bottomLeft: Radius.circular(30.0),
-              ),
-              border:
-                  Border.all(color: Colors.grey.withOpacity(0.4), width: 1.0),
+              ),*/
+              border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1.0),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.4),
@@ -706,28 +706,23 @@ class ListItem extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(30.0),
-                    ),
-                    child: ShaderMask(
-                      shaderCallback: (rect) {
-                        return LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.topRight,
-                          colors: [Colors.black, Colors.transparent],
-                        ).createShader(
-                            Rect.fromLTRB(0, 0, rect.width, rect.height));
-                      },
-                      blendMode: BlendMode.dstIn,
-                      child: FadeInImage.memoryNetwork(
-                        placeholder: kTransparentImage,
-                        image: title.pPhoto.length > 0
-                            ? title.pPhoto[0]
-                            : 'https://i.pinimg.com/originals/85/8d/b9/858db9330ae2c94a28a6a99fcd07f85c.jpg',
-                        fit: BoxFit.cover,
-                        height: height * 0.2,
-                      ),
+                  child: ShaderMask(
+                    shaderCallback: (rect) {
+                      return LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.topRight,
+                        colors: [Colors.black, Colors.transparent],
+                      ).createShader(
+                          Rect.fromLTRB(0, 0, rect.width, rect.height));
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: FadeInImage.memoryNetwork(
+                      placeholder: kTransparentImage,
+                      image: title.pPhoto.length > 0
+                          ? title.pPhoto[0]
+                          : 'https://i.pinimg.com/originals/85/8d/b9/858db9330ae2c94a28a6a99fcd07f85c.jpg',
+                      fit: BoxFit.cover,
+                      height: height * 0.2,
                     ),
                   ),
                 ),

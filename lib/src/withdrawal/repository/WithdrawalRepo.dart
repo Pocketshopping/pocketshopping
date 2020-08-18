@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
-import 'package:pocketshopping/withdrawal/repository/withdrawalObj.dart';
+import 'package:pocketshopping/src/withdrawal/repository/withdrawalObj.dart';
 
 class WithdrawalRepo {
   final databaseReference = Firestore.instance;

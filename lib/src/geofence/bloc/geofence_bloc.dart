@@ -85,7 +85,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
           .collection('merchants')
           .where('businessCategory', isEqualTo: category)
           .where('businessActive',isEqualTo: true)
-          .limit(10);
+          .limit(20);
       Stream<List<DocumentSnapshot>> stream = geo
           .collection(collectionRef: collectionReference)
           .within(center: center, radius: radius, field: field, strictMode: true);
@@ -128,7 +128,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
       var collectionReference = Firestore.instance
           .collection('merchants')
           .where('businessActive',isEqualTo: true)
-          .limit(10);
+          .limit(20);
       Stream<List<DocumentSnapshot>> stream = geo
           .collection(collectionRef: collectionReference)
           .within(center: center, radius: radius, field: field, strictMode: true);
@@ -170,16 +170,19 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
         );
       }
 
-      _positionSubscription = geolocator
-          .getPositionStream(LocationOptions(
-              accuracy: LocationAccuracy.bestForNavigation,
-              timeInterval: 60000))
-          .listen((position) {
-            if(category != 'All')
-              add(FetchNearByMerchant(position: position, category: category));
-            else
-              add(FetchAllNearByMerchant(position: position));
-      });
+      try{
+        _positionSubscription = geolocator
+            .getPositionStream(LocationOptions(
+            accuracy: LocationAccuracy.bestForNavigation,
+            timeInterval: 60000))
+            .listen((position) {
+          if(category != 'All')
+            add(FetchNearByMerchant(position: position, category: category));
+          else
+            add(FetchAllNearByMerchant(position: position));
+        });
+      }
+      catch(_){}
     } catch (e) {
       yield GeoFenceState.failure(
           category: state.category,

@@ -155,16 +155,22 @@ class _OrderUIState extends State<OrderUI> {
   }
 
   Future<void> address(Position position) async {
-    final coordinates = geocode.Coordinates(position.latitude, position.longitude);
-    var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
-    if (mounted)
-      setState(() {
-        List<String> temp = address.first.addressLine.split(',');
-        temp.removeLast();
-        deliveryAddress = temp.reduce((value, element) => value + ',' + element);
-        //if (deliveryAddress != _address.text && !userChange)
+    try{
+      final coordinates = geocode.Coordinates(position.latitude, position.longitude);
+      var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
+      if (mounted)
+        setState(() {
+          List<String> temp = address.first.addressLine.split(',');
+          temp.removeLast();
+          deliveryAddress = temp.reduce((value, element) => value + ',' + element);
+          //if (deliveryAddress != _address.text && !userChange)
           //homeDelivery = false;
+        });
+    }catch(_){
+      setState(() {
+        deliveryAddress = '';
       });
+    }
   }
 
   @override
@@ -197,25 +203,33 @@ class _OrderUIState extends State<OrderUI> {
   }
 
   int deliveryCut(double distance) {
-    CloudFunctions.instance
-        .getHttpsCallable(
-      functionName: "DeliveryCut",
-    ).call({'distance': distance}).then((value) => mounted ? setState(() {dCut = (value.data +((order.orderItem.fold(0, (previousValue, element) => previousValue + element.count)as int )*50) );}) : null);
-    return 1;
+   try{
+     CloudFunctions.instance
+         .getHttpsCallable(
+       functionName: "DeliveryCut",
+     ).call({'distance': distance}).then((value) => mounted ? setState(() {dCut = (value.data +((order.orderItem.fold(0, (previousValue, element) => previousValue + element.count)as int )*50) );}) : null);
+     return 1;
+   }
+   catch(_){
+     return 0;
+   }
   }
 
   double deliveryETA(double distance, String type, double ttc, int server, double top) {
-    CloudFunctions.instance
-        .getHttpsCallable(
-      functionName: "ETA",
-    ).call({
-      'distance': distance,
-      'type': type,
-      'ttc': ttc,
-      'server': server,
-      'top': top
-    }).then((value) => {if (mounted)setState(() {dETA = value.data * 1.0;})});
-    return 0.0;
+    try{
+      CloudFunctions.instance
+          .getHttpsCallable(
+        functionName: "ETA",
+      ).call({
+        'distance': distance,
+        'type': type,
+        'ttc': ttc,
+        'server': server,
+        'top': top
+      }).then((value) => {if (mounted)setState(() {dETA = value.data * 1.0;})});
+      return 0.0;
+    }
+    catch(_){}
   }
 
   Widget detailMaker() {
@@ -1253,7 +1267,7 @@ class _OrderUIState extends State<OrderUI> {
           Text(
             widget.payload.pName,
             style:
-                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025,fontWeight: FontWeight.bold),
           ),
           SizedBox(
             height: 5,
@@ -1296,8 +1310,7 @@ class _OrderUIState extends State<OrderUI> {
                     Container(
                       padding:
                           EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      child: Text(
-                          '$orderCount ${widget.payload.pUnit.toString()}'),
+                      child: Text('$orderCount ${widget.payload.pUnit.toString()}'),
                     ),
                     GestureDetector(
                       onTap: () {

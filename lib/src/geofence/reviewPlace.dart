@@ -95,7 +95,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                             textAlign: TextAlign.left,
                           )),
                     ),
-                    Expanded(
+                    /*Expanded(
                       child: widget.cPosition != null
                           ? IconButton(
                         icon: Icon(
@@ -139,7 +139,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                         onPressed: () {
                         },
                       ),
-                    )
+                    )*/
                   ],
                 ),
               ),
@@ -147,7 +147,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                 children: <Widget>[
                   Text(widget.merchant.bName,
                     style: TextStyle(
-                        color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),
+                        color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center
                   ),
 
                   FutureBuilder(

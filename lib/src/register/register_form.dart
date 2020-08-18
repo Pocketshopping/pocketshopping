@@ -352,7 +352,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                               Expanded(
                                                 child: WebView(
 
-                                                  initialUrl: 'http://pocketshopping.com.ng/mobile/terms-conditions',
+                                                  initialUrl: 'http://pocketshopping.com.ng/mobile/terms-conditions.html',
                                                   javascriptMode: JavascriptMode.disabled,
                                                   onWebViewCreated: (WebViewController webViewController) {
                                                     //_controller.complete(webViewController);

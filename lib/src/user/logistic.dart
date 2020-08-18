@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:get/get.dart';
+import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/bank/BankWithdraw.dart';
@@ -37,7 +37,8 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
-import 'package:pocketshopping/withdrawal/withdrawalWidget.dart';
+import 'package:pocketshopping/src/withdrawal/withdrawalWidget.dart';
+
 
 class LogisticDashBoardScreen extends StatefulWidget {
   LogisticDashBoardScreen();
@@ -522,6 +523,19 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       openCount: 3,
                       content: LogisticStatistic(user: currentUser,title: 'Report',),
                       refresh: reloadMerchant,
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.deployment_unit,
+                          size: MediaQuery.of(context).size.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'PocketUnit',
+                      border: PRIMARYCOLOR,
+                      content: UnitBottomPage(user: currentUser,wallet: currentUser.merchant.bWallet,
+                        sender:User(currentUser.merchant.mID,role: 'admin',
+                            walletId: currentUser.merchant.bWallet,email: currentUser.user.email,fname: currentUser.merchant.bName),
+                      ),
+
                     ),
                     MenuItem(
                       gridHeight,
