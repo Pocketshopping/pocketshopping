@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +13,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart' as _get;
-import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/product/bloc/categoryBloc.dart';
 import 'package:pocketshopping/src/admin/product/bloc/refreshBloc.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
@@ -23,7 +21,6 @@ import 'package:pocketshopping/src/geofence/bloc/geofenceRefreshBloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
-import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
@@ -357,7 +354,7 @@ class AppState extends State<App> {
                         Center(child: Image.asset('assets/images/blogo.png'),),
                         Center(child:
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 5),
                           child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                         )
                         ),
@@ -381,7 +378,7 @@ class AppState extends State<App> {
                         Center(child: Image.asset('assets/images/blogo.png'),),
                         Center(child:
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 5),
                           child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                         )
                         ),
@@ -409,7 +406,7 @@ class AppState extends State<App> {
                 Center(child: Image.asset('assets/images/blogo.png'),),
                 Center(child:
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
+                  padding: EdgeInsets.symmetric(vertical: 20,horizontal: 5),
                   child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                 )
                 ),

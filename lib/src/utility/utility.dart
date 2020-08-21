@@ -1135,7 +1135,7 @@ class Utility {
   static infoDialogMaker(String body,{String title='Info',}){
     if(!Get.isDialogOpen)
     Get.defaultDialog(title:title,
-        content: Text(body),
+        content: Text(body,textAlign: TextAlign.center,),
         confirm: FlatButton(
           onPressed: (){Get.back();},
           child: Text('Ok'),

@@ -12,6 +12,7 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:recase/recase.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -55,8 +56,8 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     categoria = [
       'Restuarant',
       'Store',
-      'Super Market',
-      'Bar',
+      'Pharmacy',
+      'Logistic',
     ];
     deliveria = [
       'No',
@@ -108,7 +109,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                           fit: BoxFit.cover,
                         ),
                         Text(
-                          "Loading",
+                          "Loading... Please wait",
                           style: TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ],
@@ -281,7 +282,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                       children: <Widget>[
                         psCard(
                           color: PRIMARYCOLOR,
-                          title: 'Business SetUp',
+                          title: 'Business Setup',
                           boxShadow: [
                             BoxShadow(
                               color: Colors.grey,
@@ -345,11 +346,11 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
                                     autovalidate: true,
-                                    validator: (_) {
+                                    /*validator: (_) {
                                       return !state.isNameValid
                                           ? 'Invalid Name'
                                           : null;
-                                    },
+                                    },*/
                                   ),
                                 ),
                                 Container(
@@ -419,11 +420,11 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
                                     autovalidate: true,
-                                    validator: (_) {
+                                    /*validator: (_) {
                                       return !state.isAddressValid
                                           ? 'Invalid Address'
                                           : null;
-                                    },
+                                    },*/
                                   ),
                                 ),
                                 Container(
@@ -584,57 +585,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   child: CheckboxListTile(
                                     title: GestureDetector(
                                       onTap: () {
-                                        if (!Get.isBottomSheetOpen)
-                                          Get.bottomSheet(
-                                            builder: (_) {
-                                              return Container(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.8,
-                                                color: Colors.white,
-                                                child: Column(
-                                                  children: [
-                                                    Expanded(
-                                                        flex:0,
-                                                        child: Padding(
-                                                          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                                          child: Align(
-                                                            alignment: Alignment.centerRight,
-                                                            child: IconButton(
-                                                              onPressed: (){
-                                                                Get.back();
-                                                              },
-                                                              icon: Icon(Icons.close),
-                                                            ),
-                                                          ),
-                                                        )
-                                                    ),
-                                                    Expanded(
-                                                        child: WebView(
-
-                                                          initialUrl: 'http://pocketshopping.com.ng/mobile/business/terms-conditions.html',
-                                                          javascriptMode: JavascriptMode.disabled,
-                                                          onWebViewCreated: (WebViewController webViewController) {
-                                                            //_controller.complete(webViewController);
-                                                          },
-
-
-                                                          onPageStarted: (String url) {
-                                                            print('Page started loading: $url');
-                                                          },
-                                                          onPageFinished: (String url) {
-                                                            print('Page finished loading: $url');
-                                                          },
-                                                          gestureNavigationEnabled: true,
-                                                        )
-                                                    ),
-                                                  ],
-                                                )
-                                              );
-                                            },
-                                            isScrollControlled: true,
-                                          );
+                                        Get.to(HelpWebView(page: 'business-terms-conditions',));
                                       },
                                       child: Text(
                                         "I Agree to Terms and Conditions",

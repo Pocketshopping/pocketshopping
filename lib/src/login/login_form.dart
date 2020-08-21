@@ -1,3 +1,4 @@
+import 'package:ant_icons/ant_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -45,6 +46,7 @@ class _LoginFormState extends State<LoginForm> {
   }
   final email = TextEditingController();
   final  _formKey = GlobalKey<FormState>();
+  final _passwordEye = ValueNotifier<bool>(false);
   @override
   void initState() {
     super.initState();
@@ -206,16 +208,29 @@ class _LoginFormState extends State<LoginForm> {
                               ),
                               padding: EdgeInsets.all(
                                   MediaQuery.of(context).size.width * 0.02),
-                              child: TextFormField(
-                                controller: _passwordController,
-                                decoration: InputDecoration(
-                                  hintText: 'Password',
-                                  border: InputBorder.none,
-                                ),
-                                obscureText: true,
-                                autovalidate: true,
-                                autocorrect: false,
-                              ),
+                              child:
+                                ValueListenableBuilder(
+                                    valueListenable: _passwordEye,
+                                    builder: (_,bool passwordEye,__){
+                                      return TextFormField(
+                                        controller: _passwordController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Password',
+                                          suffix: IconButton(
+                                            onPressed: (){
+                                              _passwordEye.value = !passwordEye;
+                                            },
+                                            icon: !passwordEye?Icon(AntIcons.eye,color: Colors.black54,)
+                                                :Icon(AntIcons.eye_invisible,color: Colors.black54,),
+                                          ),
+                                          border: InputBorder.none,
+                                        ),
+                                        obscureText: !passwordEye,
+                                        autovalidate: true,
+                                        autocorrect: false,
+                                      );
+
+                                    })
                             ),
                             Container(
                               child: Padding(
@@ -247,7 +262,6 @@ class _LoginFormState extends State<LoginForm> {
                                         'Reset Password',
                                       ),
                                       onPressed: () async{
-
                                         email.text = _emailController.text;
                                         Get.dialog(
                                           Scaffold(
@@ -255,6 +269,7 @@ class _LoginFormState extends State<LoginForm> {
                                             body: Center(
                                               child: Container(
                                                 padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                                margin: EdgeInsets.symmetric(horizontal: 15),
                                                 color: Colors.white,
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -417,6 +432,7 @@ class _LoginFormState extends State<LoginForm> {
 
   void _onFormSubmitted() {
     FocusScope.of(context).requestFocus(FocusNode());
+    _passwordEye.value=false;
     _loginBloc.add(
       LoginWithCredentialsPressed(
         email: _emailController.text,

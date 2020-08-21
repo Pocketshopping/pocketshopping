@@ -460,6 +460,7 @@ class _MyRadiusState extends State<MyRadius> {
                                           GeoFence(user: currentUser,category: items[index].categoryName,position: state.currentPosition,)
                                       );
                                     }
+                                    print(items[index].categoryName);
                                   },
                                   leading: CircleAvatar(
                                     radius: 25,

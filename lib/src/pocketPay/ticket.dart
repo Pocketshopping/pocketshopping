@@ -116,7 +116,7 @@ class _TicketWidgetState extends State<TicketWidget> {
                             return 'Loading.. please wait';
                             break;
                           case LoadMoreStatus.fail:
-                            return 'Error';
+                            return '';
                             break;
                           default:
                             return 'Loading.. please wait';

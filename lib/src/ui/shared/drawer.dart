@@ -325,7 +325,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
             title: const Text("Settings"),
             onTap: () {
               Get.back();
-              Get.to(Settings(user: widget.user,));
+              Get.to(Settings(user: widget.user,userRepository: widget._userRepository,));
             },
           ),
           ListTile(

@@ -4,6 +4,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:badges/badges.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -532,6 +533,7 @@ class _MerchantUIState extends State<MerchantUI> {
                       ),
                       Container(
                         height: MediaQuery.of(context).size.height * 0.6,
+                        padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Column(
                           children: <Widget>[
                             Text(

@@ -147,7 +147,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                 children: <Widget>[
                   Text(widget.merchant.bName,
                     style: TextStyle(
-                        color: Colors.white,fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center
+                        color: Colors.white, fontWeight: FontWeight.bold),textAlign: TextAlign.center
                   ),
 
                   FutureBuilder(
@@ -178,7 +178,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                           else{
                             return RatingBar(
                               onRatingUpdate: null,
-                              initialRating: 1,
+                              initialRating: 3,
                               minRating: 1,
                               maxRating: 5,
                               itemSize: MediaQuery.of(context).size.width * 0.05,
@@ -197,7 +197,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                         else{
                           return RatingBar(
                             onRatingUpdate: null,
-                            initialRating: 1,
+                            initialRating: 3,
                             minRating: 1,
                             maxRating: 5,
                             itemSize: MediaQuery.of(context).size.width * 0.05,

@@ -57,7 +57,7 @@ class MerchantRepo {
 
       bid = await databaseReference.collection("merchants").add({
         'businessCreator': databaseReference.document('users/' + uid),
-        'businessName': bName.sentenceCase,
+        'businessName': bName,
         'businessAdress': bAddress,
         'businessCategory': bCategory,
         'businessOpenTime': bOpenTime,

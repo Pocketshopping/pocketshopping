@@ -102,7 +102,7 @@ class _CloseOrderState extends State<CloseOrder> {
                             return 'Loading.. please wait';
                             break;
                           case LoadMoreStatus.fail:
-                            return 'Error';
+                            return '';
                             break;
                           default:
                             return 'Loading.. please wait';

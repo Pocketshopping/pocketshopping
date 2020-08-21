@@ -1,3 +1,4 @@
+import 'package:ant_icons/ant_icons.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:pocketshopping/src/login/login.dart' as login;
 import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
+import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -30,9 +32,11 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _telephoneController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   RegisterBloc _registerBloc;
+
+  final _passwordEye = ValueNotifier<bool>(false);
+  final _cpasswordEye = ValueNotifier<bool>(false);
 
   bool get isPopulated =>
       _emailController.text.isNotEmpty &&
@@ -266,20 +270,31 @@ class _RegisterFormState extends State<RegisterForm> {
                             ),
                             padding: EdgeInsets.all(
                                 MediaQuery.of(context).size.width * 0.02),
-                            child: TextFormField(
-                              controller: _passwordController,
-                              decoration: InputDecoration(
-                                  hintText: 'Password',
-                                  border: InputBorder.none),
-                              obscureText: true,
-                              autocorrect: false,
-                              autovalidate: true,
-                              validator: (_) {
-                                return !state.isPasswordValid
-                                    ? 'Weak Password'
-                                    : null;
-                              },
-                            ),
+                            child: ValueListenableBuilder(
+                                valueListenable: _passwordEye,
+                                builder: (_,bool passwordEye,__){
+                              return TextFormField(
+                                controller: _passwordController,
+                                decoration: InputDecoration(
+                                    hintText: 'Password',
+                                    suffix: IconButton(
+                                      onPressed: (){
+                                        _passwordEye.value = !passwordEye;
+                                      },
+                                      icon: !passwordEye?Icon(AntIcons.eye,color: Colors.black54,)
+                                          :Icon(AntIcons.eye_invisible,color: Colors.black54,),
+                                    ),
+                                    border: InputBorder.none),
+                                obscureText: !passwordEye,
+                                autocorrect: false,
+                                autovalidate: true,
+                                validator: (_) {
+                                  return !state.isPasswordValid
+                                      ? 'Weak Password'
+                                      : null;
+                                },
+                              );
+                                })
                           ),
                           Container(
                             decoration: BoxDecoration(
@@ -293,20 +308,31 @@ class _RegisterFormState extends State<RegisterForm> {
                             ),
                             padding: EdgeInsets.all(
                                 MediaQuery.of(context).size.width * 0.02),
-                            child: TextFormField(
-                              controller: _confirmPasswordController,
-                              decoration: InputDecoration(
-                                  hintText: 'Confirm Password',
-                                  border: InputBorder.none),
-                              obscureText: true,
-                              autocorrect: false,
-                              autovalidate: true,
-                              validator: (_) {
-                                return !state.isConfirmPasswordValid
-                                    ? 'Confirm Password not thesame with password'
-                                    : null;
-                              },
-                            ),
+                            child: ValueListenableBuilder(
+                                  valueListenable: _cpasswordEye,
+                                  builder: (_,bool cpasswordEye,__){
+                                    return TextFormField(
+                                      controller: _confirmPasswordController,
+                                      decoration: InputDecoration(
+                                          hintText: 'Confirm Password',
+                                          suffix: IconButton(
+                                            onPressed: (){
+                                              _cpasswordEye.value = !cpasswordEye;
+                                            },
+                                            icon: !cpasswordEye?Icon(AntIcons.eye,color: Colors.black54,)
+                                                :Icon(AntIcons.eye_invisible,color: Colors.black54,),
+                                          ),
+                                          border: InputBorder.none),
+                                      obscureText: !cpasswordEye,
+                                      autocorrect: false,
+                                      autovalidate: true,
+                                      validator: (_) {
+                                        return !state.isConfirmPasswordValid
+                                            ? 'Confirm Password not thesame with password'
+                                            : null;
+                                      },
+                                    );
+                                  })
                           ),
                           Container(
                             decoration: BoxDecoration(
@@ -323,57 +349,7 @@ class _RegisterFormState extends State<RegisterForm> {
                             child: CheckboxListTile(
                               title: GestureDetector(
                                 onTap: () {
-                                  if (!Get.isBottomSheetOpen)
-                                    Get.bottomSheet(
-                                      builder: (_) {
-                                        return Container(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.8,
-                                          color: Colors.white,
-                                          child: Column(
-                                            children: [
-                                              Expanded(
-                                                flex:0,
-                                                child: Padding(
-                                                  padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                                  child: Align(
-                                                    alignment: Alignment.centerRight,
-                                                    child: IconButton(
-                                                      onPressed: (){
-                                                        Get.back();
-                                                      },
-                                                      icon: Icon(Icons.close),
-                                                    ),
-                                                  ),
-                                                )
-                                              ),
-                                              Expanded(
-                                                child: WebView(
-
-                                                  initialUrl: 'http://pocketshopping.com.ng/mobile/terms-conditions.html',
-                                                  javascriptMode: JavascriptMode.disabled,
-                                                  onWebViewCreated: (WebViewController webViewController) {
-                                                    //_controller.complete(webViewController);
-                                                  },
-
-
-                                                  onPageStarted: (String url) {
-                                                    //print('Page started loading: $url');
-                                                  },
-                                                  onPageFinished: (String url) {
-                                                    //print('Page finished loading: $url');
-                                                  },
-                                                  gestureNavigationEnabled: true,
-                                                )
-                                              ),
-                                            ],
-                                          )
-                                        );
-                                      },
-                                      isScrollControlled: true,
-                                    );
+                                  Get.to(HelpWebView(page: 'terms-conditions',));
                                 },
                                 child: Text(
                                   "I Agree to Terms and Conditions",
@@ -480,6 +456,8 @@ class _RegisterFormState extends State<RegisterForm> {
 
   void _onFormSubmitted() {
     FocusScope.of(context).requestFocus(FocusNode());
+    _cpasswordEye.value = false;
+    _passwordEye.value = false;
     _registerBloc.add(
       Submitted(
         email: _emailController.text,

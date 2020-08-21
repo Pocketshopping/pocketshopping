@@ -40,14 +40,21 @@ class _MerchantMapState extends State<MerchantMap> {
   @override
   void initState() {
     pinPosition = widget.destination;
-    pinLocationIcon =
-        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+    pinLocationIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
     markerId = MarkerId('PS1');
     _initial = CameraPosition(
       target: widget.destination,
       tilt: 0.0,
       zoom: 15.1234452,
     );
+    _markers.add(Marker(
+        markerId: markerId,
+        position: _initial.target,
+        icon: pinLocationIcon,
+        infoWindow: InfoWindow(title: "${widget.destName}", snippet: '${widget.destAddress}'),
+        visible: true
+
+    ));
     delay();
     //_controller.future.then((value) => value.showMarkerInfoWindow(markerId));
     super.initState();
@@ -71,20 +78,9 @@ class _MerchantMapState extends State<MerchantMap> {
               mapType: MapType.normal,
               markers: _markers,
               initialCameraPosition: _initial,
-              onMapCreated: (GoogleMapController controller) {
+              onMapCreated: (GoogleMapController controller)async {
+                controller.showMarkerInfoWindow(markerId);
                 _controller.complete(controller);
-
-                if (mounted) {
-                  setState(() {
-                    _markers.add(Marker(
-                      markerId: markerId,
-                      position: _initial.target,
-                      icon: pinLocationIcon,
-                      infoWindow:
-                          InfoWindow(title: "Restuarant", snippet: 'dfdfd'),
-                    ));
-                  });
-                }
               },
             ),
            /* floatingActionButton: widget.source != null

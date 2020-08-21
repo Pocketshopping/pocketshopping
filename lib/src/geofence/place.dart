@@ -12,6 +12,7 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PlaceWidget extends StatefulWidget {
   PlaceWidget({this.merchant, this.user, this.cPosition});
@@ -54,7 +55,7 @@ class _PlaceWidgetState extends State<PlaceWidget> {
             Get.to(page);
           }
           else{
-            Utility.infoDialogMaker('Currently Unavailable',title: '');
+            Utility.infoDialogMaker('${widget.merchant.bName} is currently Unavailable',title: '');
           }
         },
         child: Container(
@@ -88,69 +89,91 @@ class _PlaceWidgetState extends State<PlaceWidget> {
                     placeholder: kTransparentImage,
                     image: widget.merchant.bPhoto.isNotEmpty ? widget.merchant.bPhoto : PocketShoppingDefaultCover,
                     fit: BoxFit.cover,
-                    height: MediaQuery.of(context).size.height * 0.15,
+                    height: MediaQuery.of(context).size.height * 0.2,
                   ),
                 ),
               ),
               Expanded(
                 flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            flex: 3,
-                            child: Center(
-                                child: Text(
-                                  widget.merchant.bCategory,
-                                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                                  textAlign: TextAlign.left,
-                                )),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      children: <Widget>[
-                        Text(
-                          widget.merchant.bName,
-                          style: TextStyle(
-                              color: PRIMARYCOLOR,fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 5),
+                  child:
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              flex: 3,
+                              child: Center(
+                                  child: Text(
+                                    widget.merchant.bCategory,
+                                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                                    textAlign: TextAlign.left,
+                                  )),
+                            ),
+                          ],
                         ),
-                        FutureBuilder(
-                          future: ReviewRepo.getRating(widget.merchant.mID),
-                          builder: (context,AsyncSnapshot<Rating>snapshot){
-                            if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
-                            else if(snapshot.hasError)return const SizedBox.shrink();
-                            else {
-                              if(snapshot.hasData){
-                                if(snapshot.data != null){
-                                  return RatingBar(
-                                    onRatingUpdate: null,
-                                    initialRating: snapshot.data.rating,
-                                    minRating: 1,
-                                    maxRating: 5,
-                                    itemSize: MediaQuery.of(context).size.width * 0.05,
-                                    direction: Axis.horizontal,
-                                    allowHalfRating: true,
-                                    ignoreGestures: true,
-                                    itemCount: 5,
-                                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                    itemBuilder: (context, _) => Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
-                                    ),
-                                  );
+                      ),
+                      Column(
+                        children: <Widget>[
+                          Text(
+                            widget.merchant.bName,
+                            style: TextStyle(
+                                color: PRIMARYCOLOR,fontSize: 16, fontWeight: FontWeight.bold),textAlign: TextAlign.center,
+                          ),
+                          FutureBuilder(
+                            future: ReviewRepo.getRating(widget.merchant.mID),
+                            builder: (context,AsyncSnapshot<Rating>snapshot){
+                              if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
+                              else if(snapshot.hasError)return const SizedBox.shrink();
+                              else {
+                                if(snapshot.hasData){
+                                  if(snapshot.data != null){
+                                    return RatingBar(
+                                      onRatingUpdate: null,
+                                      initialRating: snapshot.data.rating,
+                                      minRating: 1,
+                                      maxRating: 5,
+                                      itemSize: MediaQuery.of(context).size.width * 0.05,
+                                      direction: Axis.horizontal,
+                                      allowHalfRating: true,
+                                      ignoreGestures: true,
+                                      itemCount: 5,
+                                      //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                      itemBuilder: (context, _) => Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      ),
+                                    );
+                                  }
+                                  else{
+                                    return RatingBar(
+                                      onRatingUpdate: null,
+                                      initialRating: 3,
+                                      minRating: 1,
+                                      maxRating: 5,
+                                      itemSize: MediaQuery.of(context).size.width * 0.05,
+                                      direction: Axis.horizontal,
+                                      allowHalfRating: true,
+                                      ignoreGestures: true,
+                                      itemCount: 5,
+                                      //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                      itemBuilder: (context, _) => Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      ),
+                                    );
+                                  }
                                 }
                                 else{
                                   return RatingBar(
                                     onRatingUpdate: null,
-                                    initialRating: 1,
+                                    initialRating: 3,
                                     minRating: 1,
                                     maxRating: 5,
                                     itemSize: MediaQuery.of(context).size.width * 0.05,
@@ -166,73 +189,73 @@ class _PlaceWidgetState extends State<PlaceWidget> {
                                   );
                                 }
                               }
-                              else{
-                                return RatingBar(
-                                  onRatingUpdate: null,
-                                  initialRating: 1,
-                                  minRating: 1,
-                                  maxRating: 5,
-                                  itemSize: MediaQuery.of(context).size.width * 0.05,
-                                  direction: Axis.horizontal,
-                                  allowHalfRating: true,
-                                  ignoreGestures: true,
-                                  itemCount: 5,
-                                  //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                  itemBuilder: (context, _) => Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                        Text('${awayFrom(dist)}', style: TextStyle(fontSize: 12, color: Colors.black54),),
-                        const SizedBox(height: 5,),
-                        if (widget.merchant.bStatus == 0 || !Utility.isOperational(widget.merchant.bOpen, widget.merchant.bClose))
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[Text('Unavailable', style: TextStyle(fontSize: 14, color: Colors.black54))],
+                            },
                           ),
-                      ],
-                    ),
-                  ],
-                ),
+                          Text('${awayFrom(dist)}', style: TextStyle(fontSize: 12, color: Colors.black54),),
+                          const SizedBox(height: 5,),
+                          Text('${widget.merchant.bAddress}', style: TextStyle(fontSize: 12, color: Colors.black54),textAlign: TextAlign.center,),
+                          if (widget.merchant.bStatus == 0 || !Utility.isOperational(widget.merchant.bOpen, widget.merchant.bClose))
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[Text('Unavailable', style: TextStyle(fontSize: 14, color: Colors.black54))],
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
               ),
               Expanded(
                 flex: 0,
-                child: Center(
-                  child: widget.cPosition != null
-                      ? IconButton(
-                    icon: Icon(
-                      Icons.place,
-                      color: PRIMARYCOLOR,
-                      size: 30,
-                    ),
-                    tooltip: 'View Map and get Direction',
-                    onPressed: () {
-                      //Navigator.of(context).pushNamed(MerchantMap.tag);
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return BottomSheetMapTemplate(
-                            source: LatLng(widget.cPosition.latitude, widget.cPosition.longitude),
-                            destination: LatLng(widget.merchant.bGeoPoint['geopoint'].latitude, widget.merchant.bGeoPoint['geopoint'].longitude,),
-                            destAddress: widget.merchant.bAddress,
-                            destName: widget.merchant.bName,
-                            destPhoto: widget.merchant.bPhoto,
-                            sourceName: widget.user.fname,
-                            sourceAddress: widget.user.defaultAddress,
-                            sourcePhoto: widget.user.profile,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: widget.cPosition != null
+                          ? IconButton(
+                        icon: Icon(
+                          Icons.place,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        tooltip: 'View Map and get Direction',
+                        onPressed: () {
+                          //Navigator.of(context).pushNamed(MerchantMap.tag);
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) {
+                              return BottomSheetMapTemplate(
+                                source: LatLng(widget.cPosition.latitude, widget.cPosition.longitude),
+                                destination: LatLng(widget.merchant.bGeoPoint['geopoint'].latitude, widget.merchant.bGeoPoint['geopoint'].longitude,),
+                                destAddress: widget.merchant.bAddress,
+                                destName: widget.merchant.bName,
+                                destPhoto: widget.merchant.bPhoto,
+                                sourceName: widget.user.fname,
+                                sourceAddress: widget.user.defaultAddress,
+                                sourcePhoto: widget.user.profile,
+                              );
+                            },
+                            enableDrag: false,
+                            isDismissible: false,
+                            isScrollControlled: true,
                           );
                         },
-                        enableDrag: false,
-                        isDismissible: false,
-                        isScrollControlled: true,
-                      );
-                    },
-                  ) : Container(),
+                      ) : Container(),
+                    ),
+                    Center(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.call,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        tooltip: 'Click to call',
+                        onPressed: () => launch("tel:${widget.merchant.bTelephone}"),
+                      )
+                    )
+                  ],
                 ),
               )
             ],
@@ -244,8 +267,8 @@ class _PlaceWidgetState extends State<PlaceWidget> {
 
   String awayFrom(double dist) {
     if (dist > 1)
-      return '$dist   km away';
+      return '$dist   kilometer(s)';
     else
-      return '${dist * 1000} m away';
+      return '${dist * 1000} meter(s)';
   }
 }
