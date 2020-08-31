@@ -24,7 +24,7 @@ class CustomerCare extends StatelessWidget {
       backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
-            MediaQuery.of(context).size.height *
+            Get.height *
                 0.08),
         child: AppBar(
             title: Text('CustomerCare',style: TextStyle(color: PRIMARYCOLOR),),
@@ -54,7 +54,7 @@ class CustomerCare extends StatelessWidget {
                     case ConnectionState.waiting:
                       return Center(
                         child: JumpingDotsProgressIndicator(
-                          fontSize: MediaQuery.of(context).size.height * 0.12,
+                          fontSize: Get.height * 0.12,
                           color: PRIMARYCOLOR,
                         ),
                       );
@@ -88,7 +88,7 @@ class CustomerCare extends StatelessWidget {
                                       icon: Icon(Icons.delete),
                                     ),
                                   );
-                                  //return buildUserRow(snapshot.data.documents[index]);
+                                  //return buildUserRow(snapshot.data.docs[index]);
                                 },
                                 separatorBuilder: (context, index) {
                                   return Divider();
@@ -115,7 +115,7 @@ class CustomerCare extends StatelessWidget {
                                   child: Text(
                                     'Empty',
                                     style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.height * 0.04),
+                                        fontSize: Get.height * 0.04),
                                   ),
                                 ),
                                 SizedBox(
@@ -162,7 +162,7 @@ class CustomerCare extends StatelessWidget {
             Get.bottomSheet(builder: (context){
               return Container(
                 color: Colors.white,
-                height: MediaQuery.of(context).size.height / 2 +
+                height: Get.height / 2 +
                     MediaQuery.of(context).viewInsets.bottom,
                 child: Column(
                   children: [

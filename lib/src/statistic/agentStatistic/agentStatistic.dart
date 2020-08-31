@@ -84,13 +84,13 @@ class AgentStatistic {
 
   static AgentStatistic fromSnapshot(DocumentSnapshot request) {
     return AgentStatistic(
-      updatedAt: request.data['updatedAt'],
-      agent: request.data['agent'],
-      totalUnitUsed: request.data['totalUnitUsed'],
-      totalAmount: request.data['totalAmount'],
-      totalDistance: request.data['totalDistance'],
-      totalOrderCount: request.data['totalOrderCount'],
-      totalCancelled: request.data['totalCancelled'],
+      updatedAt: request.data()['updatedAt'],
+      agent: request.data()['agent'],
+      totalUnitUsed: request.data()['totalUnitUsed'],
+      totalAmount: request.data()['totalAmount'],
+      totalDistance: request.data()['totalDistance'],
+      totalOrderCount: request.data()['totalOrderCount'],
+      totalCancelled: request.data()['totalCancelled'],
     );
   }
 

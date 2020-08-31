@@ -36,7 +36,7 @@ class _RequestBucketState extends State<RequestBucket> {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
-            MediaQuery.of(context).size.height *
+            Get.height *
                 0.1),
         child: AppBar(
             title: Text('Request Bucket',style: TextStyle(color: PRIMARYCOLOR),),
@@ -61,7 +61,7 @@ class _RequestBucketState extends State<RequestBucket> {
           if(snapshots.connectionState == ConnectionState.waiting){
             return Center(
                 child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ));
           }
@@ -428,7 +428,7 @@ class _RequestBucketState extends State<RequestBucket> {
                       child: Text(
                         'All request has been claimed.',
                         style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.04),textAlign: TextAlign.center,
+                            fontSize: Get.height * 0.04),textAlign: TextAlign.center,
                       ),
                     ),
                     SizedBox(

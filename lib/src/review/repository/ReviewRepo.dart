@@ -5,7 +5,7 @@ import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 
 class ReviewRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<String> save(Review review,{Rating rating}) async {
     try{
@@ -14,7 +14,7 @@ class ReviewRepo {
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       if(rating != null)
       await updateRating(rating);
-      return doc.documentID;
+      return doc.id;
     }
     catch(_){
       return "";
@@ -35,11 +35,11 @@ class ReviewRepo {
           negative: Rating.calculate(oldCount: rate.negative,newCount: rating.negative),
         );
 
-        await databaseReference.collection("rating").document(rating.id).updateData(rate.toMap())
+        await databaseReference.collection("rating").doc(rating.id).update(rate.toMap())
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
       else{
-        await databaseReference.collection("rating").document(rating.id).setData(rating.toMap())
+        await databaseReference.collection("rating").doc(rating.id).set(rating.toMap())
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
 
@@ -59,7 +59,7 @@ class ReviewRepo {
       return null;
 
 
-    var doc = await databaseReference.collection("rating").document(rid).get(source: Source.server)
+    var doc = await databaseReference.collection("rating").doc(rid).get(GetOptions(source: Source.server))
         .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     return doc.exists?Rating.fromSnap(doc):null;
   }
@@ -72,13 +72,13 @@ class ReviewRepo {
    try{
      try{
        if(source == 1)throw Exception;
-       var doc = await databaseReference.collection("reviews").document(rid).get(source: Source.serverAndCache)
+       var doc = await databaseReference.collection("reviews").doc(rid).get(GetOptions(source: Source.serverAndCache))
            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
        if(!doc.exists)throw Exception;
        return Review.fromEntity(ReviewEntity.fromSnapshot(doc));
      }
      catch(_){
-       var doc = await databaseReference.collection("reviews").document(rid).get(source: Source.serverAndCache)
+       var doc = await databaseReference.collection("reviews").doc(rid).get(GetOptions(source: Source.serverAndCache))
            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
        return Review.fromEntity(ReviewEntity.fromSnapshot(doc));
      }

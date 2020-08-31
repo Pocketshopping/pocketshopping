@@ -100,7 +100,7 @@ class _ManageProductState extends State<ManageProduct> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.15),
           child: AppBar(
             title: Text('${widget.user.merchant.bName}',style: TextStyle(color: PRIMARYCOLOR),),
@@ -117,7 +117,7 @@ class _ManageProductState extends State<ManageProduct> {
             elevation: 0.0,
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
               0.1),
             child: Container(
               child: TextFormField(
@@ -299,7 +299,7 @@ class _ManageProductState extends State<ManageProduct> {
                         child: Text(
                           'Empty',
                           style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                              fontSize: Get.height * 0.06),
                         ),
                       ),
                       SizedBox(
@@ -325,7 +325,7 @@ class _ManageProductState extends State<ManageProduct> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )

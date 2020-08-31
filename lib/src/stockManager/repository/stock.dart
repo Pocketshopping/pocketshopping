@@ -125,15 +125,15 @@ class Stock {
 
   static Stock fromSnap(DocumentSnapshot snap) {
     return Stock(
-        productID: snap.data['productID'],
-        restockedBy: snap.data['restockedBy'],
-        isManaging: snap.data['isManaging'],
-        restockedAt: snap.data['restockedAt'],
-        company: snap.data['company'],
-        lastRestockCount: snap.data['lastRestockCount'],
-        stockCount: snap.data['stockCount'],
-        frequency: snap.data['frequency'],
-      product: snap.data['product'],
+        productID: snap.data()['productID'],
+        restockedBy: snap.data()['restockedBy'],
+        isManaging: snap.data()['isManaging'],
+        restockedAt: snap.data()['restockedAt'],
+        company: snap.data()['company'],
+        lastRestockCount: snap.data()['lastRestockCount'],
+        stockCount: snap.data()['stockCount'],
+        frequency: snap.data()['frequency'],
+      product: snap.data()['product'],
     );
   }
 

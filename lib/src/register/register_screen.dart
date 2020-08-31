@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/register/register.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 
@@ -17,7 +18,7 @@ class RegisterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+        preferredSize: Size.fromHeight(Get.height *
             0.05), // here the desired height
         child: AppBar(
           centerTitle: true,

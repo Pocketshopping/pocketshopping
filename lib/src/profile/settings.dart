@@ -16,6 +16,7 @@ import 'package:pocketshopping/src/validators.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:recase/recase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings extends StatefulWidget {
   final User user;
@@ -28,6 +29,7 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> {
 
   final key = ValueNotifier<String>('');
+  final val = ValueNotifier<String>('Low');
   Stream<Map<String,dynamic>> _serverStream;
   bool isPinSet;
   final email = TextEditingController();
@@ -47,7 +49,7 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: AppBar(
             leading: IconButton(
@@ -194,7 +196,7 @@ class _SettingsState extends State<Settings> {
                                         child: ListTile(
 
                                           title: Text('Set Bank Account'),
-                                          subtitle: Text('Set up Bank Account for withdrawal'),
+                                          subtitle: Text('Set up Bank Account for withdrawals'),
                                           trailing: Icon(Icons.arrow_forward_ios),
                                           leading: CircleAvatar(
                                             backgroundColor: Colors.grey[200],
@@ -208,6 +210,7 @@ class _SettingsState extends State<Settings> {
                                           onTap: ()async{
                                             Get.back();
                                             Get.dialog(BankSetter(wallet: widget.user.walletId,)).then((value) {
+                                              if(mounted)
                                               setState(() {
 
                                               });
@@ -228,6 +231,7 @@ class _SettingsState extends State<Settings> {
                                           onTap: ()async{
                                             Get.back();
                                             Get.dialog(BankSetter(wallet: widget.user.walletId,)).then((value) {
+                                              if(mounted)
                                               setState(() {
 
                                               });
@@ -398,7 +402,205 @@ class _SettingsState extends State<Settings> {
                     title: Text("Change Password",style: TextStyle(fontSize: 20),),
                     subtitle: Text("click to change password"),
                     trailing: Icon(Icons.arrow_forward_ios),
-                  )
+                  ),
+                  FutureBuilder(
+                    future: SharedPreferences.getInstance(),
+                    builder: (context,AsyncSnapshot<SharedPreferences> notification){
+
+                      return ListTile(
+                        onTap: ()async{
+                          Get.back();
+                          bool _notification =false;
+                          if(notification.hasData)
+                            if(notification.data.containsKey('notification'))
+                              if(notification.data.getBool("notification"))
+                                {
+                                  _notification =true;
+                                  val.value ="High";
+                                }
+                              else
+                                {
+                                  _notification =false;
+                                  val.value = "Low";
+                                }
+                            else
+                            {
+                              _notification =true;
+                              val.value ="High";
+                            }
+                          else
+                          {
+                            _notification =true;
+                            val.value ="High";
+                          }
+
+                          Get.dialog(
+                              Scaffold(
+                                  backgroundColor: Colors.black.withOpacity(0.2),
+                                  body: Center(
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                        margin: EdgeInsets.symmetric(horizontal: 15),
+                                        color: Colors.white,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Center(
+                                                    child: Text('Notification',style: TextStyle(fontSize: 18),),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  flex: 0,
+                                                  child: Padding(
+                                                    padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                                                    child: Align(
+                                                      alignment: Alignment.centerRight,
+                                                      child: IconButton(
+                                                        onPressed: (){
+                                                          Get.back();
+                                                        },
+                                                        icon: Icon(Icons.close),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            ValueListenableBuilder(
+                                              valueListenable: val,
+                                              builder: (_,String _val,__){
+                                                return
+                                                  Column(
+                                                    children: <Widget>[
+                                                      ListTile(
+                                                        title: const Text('Low'),
+                                                        leading: Radio(
+                                                          value: "Low",
+                                                          groupValue: _val,
+                                                          onChanged: (value) async{
+                                                            if(value != val.value){
+                                                              val.value = value;
+                                                              Utility.bottomProgressLoader(title: 'Notification',body: 'Changing notification..Please wait...'.sentenceCase);
+                                                              bool result = await notification.data.setBool("notification", !_notification);
+                                                              Get.back();
+                                                              if(result)
+                                                              {
+                                                                Get.back();
+                                                                Utility.bottomProgressSuccess(title: 'Notification',body: 'Notification is now ${!_notification?"High":"Low"}'.sentenceCase,duration: 5);
+                                                              }
+                                                              else
+                                                              {
+                                                                Get.back();
+                                                                Utility.bottomProgressFailure(title: 'Notification', body: 'Error changing notification'.sentenceCase,duration: 5);
+                                                              }
+                                                            }
+                                                          },
+                                                        ),
+                                                        onTap: ()async{
+                                                          if(val.value != "Low"){
+                                                            val.value = "Low";
+                                                            Utility.bottomProgressLoader(title: 'Notification',body: 'Changing notification..Please wait...'.sentenceCase);
+                                                            bool result = await notification.data.setBool("notification", !_notification);
+                                                            Get.back();
+                                                            if(result)
+                                                            {
+                                                              Get.back();
+                                                              Utility.bottomProgressSuccess(title: 'Notification',body: 'Notification is now ${!_notification?"High":"Low"}'.sentenceCase,duration: 5);
+                                                            }
+                                                            else
+                                                            {
+                                                              Get.back();
+                                                              Utility.bottomProgressFailure(title: 'Notification', body: 'Error changing notification'.sentenceCase,duration: 5);
+                                                            }
+                                                          }
+                                                        },
+                                                      ),
+                                                      ListTile(
+                                                        title: const Text('High'),
+                                                        leading: Radio(
+                                                          value: "High",
+                                                          groupValue: _val,
+                                                          onChanged: (value) async{
+                                                            if(val.value != value){
+                                                              val.value = value;
+                                                              Utility.bottomProgressLoader(title: 'Notification',body: 'Changing notification..Please wait...'.sentenceCase);
+                                                              bool result = await notification.data.setBool("notification", !_notification);
+                                                              Get.back();
+                                                              if(result)
+                                                              {
+                                                                Get.back();
+                                                                Utility.bottomProgressSuccess(title: 'Notification',body: 'Notification is now ${!_notification?"High":"Low"}'.sentenceCase,duration: 5);
+                                                              }
+                                                              else
+                                                              {
+                                                                Get.back();
+                                                                Utility.bottomProgressFailure(title: 'Notification', body: 'Error changing notification'.sentenceCase,duration: 5);
+                                                              }
+                                                            }
+                                                          },
+
+                                                        ),
+                                                        onTap: ()async{
+                                                          if(val.value != "High"){
+                                                            val.value = "High";
+                                                            Utility.bottomProgressLoader(title: 'Notification',body: 'Changing notification..Please wait...'.sentenceCase);
+                                                            bool result = await notification.data.setBool("notification", !_notification);
+                                                            Get.back();
+                                                            if(result)
+                                                            {
+                                                              Get.back();
+                                                              Utility.bottomProgressSuccess(title: 'Notification',body: 'Notification is now ${!_notification?"High":"Low"}'.sentenceCase,duration: 5);
+                                                            }
+                                                            else
+                                                            {
+                                                              Get.back();
+                                                              Utility.bottomProgressFailure(title: 'Notification', body: 'Error changing notification'.sentenceCase,duration: 5);
+                                                            }
+                                                          }
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                  )
+                              )
+                          );
+                        },
+                        leading: CircleAvatar(
+                          radius: 25,
+                          backgroundColor: Colors.grey[200],
+                          child: Center(child: Icon(AntIcons.notification_outline),),
+                        ),
+                        title: Text("Notifications",style: TextStyle(fontSize: 20),),
+                        trailing: Icon(Icons.arrow_forward_ios),
+                        subtitle: Row(
+                          children: [
+                            if(notification.hasData)
+                              if(notification.data.containsKey('notification'))
+                                if(notification.data.getBool("notification"))
+                                  Text("High")
+                                  else
+                                  Text("Low")
+                              else
+                                Text("High")
+                            else
+                              Text("High"),
+
+                          ],
+                        )
+
+                      );
+                    },
+                  ),
                 ]
             ).toList(),
 

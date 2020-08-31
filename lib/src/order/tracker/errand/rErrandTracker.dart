@@ -96,7 +96,7 @@ class _RiderErrandTrackerState extends State<RiderErrandTracker> {
               if(order.connectionState == ConnectionState.waiting){
                 return Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 );
@@ -283,7 +283,7 @@ class _RiderErrandTrackerState extends State<RiderErrandTracker> {
                                 )
                           ),
                          /* expandableContent: Container(
-                            height: MediaQuery.of(context).size.height*0.6,
+                            height: Get.height*0.6,
                             color: Colors.white,
                             child:  Listener(
                                 onPointerUp: (_) {
@@ -648,7 +648,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                       color: PRIMARYCOLOR),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -667,7 +667,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -690,7 +690,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -722,7 +722,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -758,7 +758,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                       color: PRIMARYCOLOR),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: const Align(
                     alignment: Alignment.centerLeft,
                     child: const Text(
@@ -778,7 +778,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       const Expanded(
@@ -800,7 +800,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       const Expanded(
@@ -822,7 +822,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       const Expanded(
@@ -844,7 +844,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       const Expanded(
@@ -875,7 +875,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       Expanded(
@@ -894,7 +894,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width *
+                      Get.width *
                           0.02),
                   child: Row(
                     children: <Widget>[
@@ -918,7 +918,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width *
+                      Get.width *
                           0.02),
                   child: Row(
                     children: <Widget>[
@@ -943,7 +943,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: Row(
                     children: <Widget>[
                       const Expanded(

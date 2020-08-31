@@ -80,14 +80,14 @@ class _ActiveOrderState extends State<ActiveOrder> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.09),
           child: widget.user.agent  == null ?AppBar(
             elevation: 0.0,
             backgroundColor: Colors.white,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(
-                    MediaQuery.of(context).size.height *
+                    Get.height *
                         0.09),
                 child: widget.user.agent  == null ?Container(
                     child: TextFormField(
@@ -174,7 +174,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
                         child: Text(
                           'Empty',
                           style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                              fontSize: Get.height * 0.06),
                         ),
                       ),
                       SizedBox(
@@ -200,7 +200,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -215,7 +215,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
                 case ConnectionState.waiting:
                   return Center(
                     child: JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height * 0.12,
+                      fontSize: Get.height * 0.12,
                       color: PRIMARYCOLOR,
                     ),
                   );
@@ -230,7 +230,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
                           itemCount: snapshot.data.length,
                           itemBuilder: (context, index) {
                             return SingleOrder(order: snapshot.data[index],user: widget.user,refresh: _refresh,);
-                            //return buildUserRow(snapshot.data.documents[index]);
+                            //return buildUserRow(snapshot.data.docs[index]);
                           },
                           separatorBuilder: (context, index) {
                             return Divider();
@@ -248,7 +248,7 @@ class _ActiveOrderState extends State<ActiveOrder> {
                           child: Text(
                             'Empty',
                             style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.06),
+                                fontSize: Get.height * 0.06),
                           ),
                         ),
                         SizedBox(

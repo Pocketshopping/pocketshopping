@@ -12,7 +12,6 @@ import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class RegisterForm extends StatefulWidget {
   final UserRepository _userRepository;
@@ -65,7 +64,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
         if (state.isSubmitting) {
@@ -82,7 +81,7 @@ class _RegisterFormState extends State<RegisterForm> {
                       style: TextStyle(color: Colors.white),
                     ),
                     JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height * 0.05,
+                      fontSize: Get.height * 0.05,
                       color: Colors.white,
                     )
                   ],
@@ -154,7 +153,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               //placeholder: kTransparentImage,
                               'assets/images/blogo.png',
                               fit: BoxFit.cover,
-                              height: MediaQuery.of(context).size.height * 0.1,
+                              height: Get.height * 0.1,
                             ),
                           ),
                           Container(
@@ -168,7 +167,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: TextFormField(
                               controller: _nameController,
                               decoration: InputDecoration(
@@ -195,7 +194,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: TextFormField(
                               controller: _emailController,
                               decoration: InputDecoration(
@@ -223,7 +222,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child: Row(children: <Widget>[
                                 Expanded(
                                   child: CountryCodePicker(
@@ -269,7 +268,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: ValueListenableBuilder(
                                 valueListenable: _passwordEye,
                                 builder: (_,bool passwordEye,__){
@@ -307,7 +306,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: ValueListenableBuilder(
                                   valueListenable: _cpasswordEye,
                                   builder: (_,bool cpasswordEye,__){
@@ -345,7 +344,7 @@ class _RegisterFormState extends State<RegisterForm> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: CheckboxListTile(
                               title: GestureDetector(
                                 onTap: () {

@@ -71,7 +71,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+        preferredSize: Size.fromHeight(Get.height *
             0.1), // here the desired height
         child: AppBar(
           leading: IconButton(
@@ -100,7 +100,7 @@ class _ProfileState extends State<Profile> {
           if(user.connectionState == ConnectionState.waiting){
             return Center(
               child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
             );
@@ -129,7 +129,7 @@ class _ProfileState extends State<Profile> {
                         children: [
                           CircularProfileAvatar(
                             user.data.profile.isNotEmpty?user.data.profile:PocketShoppingDefaultAvatar,
-                            radius:  MediaQuery.of(context).size.height * 0.13,
+                            radius:  Get.height * 0.13,
                             backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
                             borderWidth: 5,  // sets border, default 0.0
                             initialsText: Text(
@@ -174,7 +174,7 @@ class _ProfileState extends State<Profile> {
                                           )
                                         ],
                                       ),
-                                      height: MediaQuery.of(context).size.height*0.25,
+                                      height: Get.height*0.25,
                                     );
                                   });
                                 },
@@ -231,7 +231,7 @@ class _ProfileState extends State<Profile> {
                                 ),
                                 color: PRIMARYCOLOR),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: const Align(
                               alignment: Alignment.centerLeft,
                               child: const Text(
@@ -251,7 +251,7 @@ class _ProfileState extends State<Profile> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: Row(
                               children: <Widget>[
                                 Expanded(
@@ -270,7 +270,7 @@ class _ProfileState extends State<Profile> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: Row(
                               children: <Widget>[
                                 Expanded(
@@ -369,7 +369,7 @@ class _ProfileState extends State<Profile> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: Row(
                               children: <Widget>[
                                 Expanded(
@@ -467,7 +467,7 @@ class _ProfileState extends State<Profile> {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width *
+                                Get.width *
                                     0.02),
                             child: Row(
                               children: <Widget>[
@@ -479,7 +479,7 @@ class _ProfileState extends State<Profile> {
                             )),
                         if(user.data.role != 'user')
                           FutureBuilder(
-                            future: MerchantRepo.getMerchant(user.data.bid.documentID),
+                            future: MerchantRepo.getMerchant(user.data.bid.id),
                             builder: (context,AsyncSnapshot<Merchant> snapshot){
                               if(snapshot.hasData){
                                 return Container(
@@ -493,7 +493,7 @@ class _ProfileState extends State<Profile> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Row(
                                       children: <Widget>[

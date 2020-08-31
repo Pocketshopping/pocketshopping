@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/fav/repository/favObj.dart';
 import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
@@ -49,13 +50,17 @@ class _FavoriteState extends State<FavoriteWidget> {
         if(snapshot.connectionState == ConnectionState.waiting){
           return Center(
               child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ));
         }
         else if(snapshot.hasError){
           return Center(
-              child: Text('Error communicating with server check internet connection and try again.'));
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text('Error communicating with server check internet connection and try again.')
+              )
+          );
         }
         else {
           if(snapshot.data.favourite.values.toList().isNotEmpty){
@@ -109,8 +114,8 @@ class _FavoriteState extends State<FavoriteWidget> {
                                   },
                                   isSelected: isSelected,
                                   constraints: BoxConstraints(
-                                      maxWidth: MediaQuery.of(context).size.width,
-                                      minWidth: MediaQuery.of(context).size.width*0.4),
+                                      maxWidth: Get.width,
+                                      minWidth: Get.width*0.4),
                                 ),
                               ],
                             ),
@@ -122,7 +127,7 @@ class _FavoriteState extends State<FavoriteWidget> {
                         gridDelegate:
                         SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent:
-                          MediaQuery.of(context).size.width * 0.5,
+                          Get.width * 0.5,
                           //maxCrossAxisExtent :200,
                           mainAxisSpacing: 5.0,
                           crossAxisSpacing: 5.0,
@@ -153,7 +158,7 @@ class _FavoriteState extends State<FavoriteWidget> {
                       child: Text(
                         'Empty',
                         style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.06),
+                            fontSize: Get.height * 0.06),
                       ),
                     ),
                     SizedBox(
@@ -184,7 +189,7 @@ class _FavoriteState extends State<FavoriteWidget> {
     ):
     Center(
         child: JumpingDotsProgressIndicator(
-          fontSize: MediaQuery.of(context).size.height * 0.12,
+          fontSize: Get.height * 0.12,
           color: PRIMARYCOLOR,
         ));
   }

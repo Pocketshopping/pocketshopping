@@ -12,7 +12,7 @@ import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 
 class LocRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<void> update(Map<String,dynamic> data) async {
     try{
@@ -35,12 +35,12 @@ class LocRepo {
       }
       else {
         data['pocket'] = false;
-        Utility.localNotifier('PocketShopping','PocketUnit','PocketUnit','${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}');
+        await Utility.localNotifier('PocketShopping','PocketUnit','PocketUnit','${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}');
       }
 
       if(!remitted){
         data['remitted']=false;
-        Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
+        await Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
       }else{data['remitted']=true;}
 
       if(!Utility.isOperational(company.bOpen, company.bClose))
@@ -72,19 +72,19 @@ class LocRepo {
       }
       else {
         data['pocket'] = false;
-        Utility.localNotifier('PocketShopping','PocketUnit','PocketUnit','${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}');
+        await Utility.localNotifier('PocketShopping','PocketUnit','PocketUnit','${'You are currently on hold because your PocketUnit is below the expected quota($CURRENCY 100), you will be unavaliable to run delivery until you Topup'}');
       }
 
       if(!remitted){
         data['remitted']=false;
-        Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
+        await Utility.localNotifier('PocketShopping','Collection','Collection','You are currently on hold because you have a pending clearance. Head to the office for clearance');
       }
 
       data['startedAt']=Timestamp.now();
       data['autoAssigned']=agent.autoAssigned!=null?(agent.autoAssigned.isNotEmpty && agent.autoAssigned != 'Unassign'):false;
 
 
-      await databaseReference.collection("agentLocationUpdate").document(data['agentID']).setData(data);
+      await databaseReference.collection("agentLocationUpdate").doc(data['agentID']).set(data);
     }
 
     try{
@@ -98,7 +98,7 @@ class LocRepo {
       }
       int count = await OrderRepo.getUnclaimedDelivery(agent.agentID);
       if(count>0)
-        Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');
+        await Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');
     }
     catch(_){}
 
@@ -107,7 +107,7 @@ class LocRepo {
   }
 
   static Future<bool> getLocUpdate(String agentID) async {
-    var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get(source: Source.serverAndCache);
+    var doc = await databaseReference.collection("agentLocationUpdate").doc(agentID).get(GetOptions(source: Source.serverAndCache));
     if(doc.exists) return true;
     else return false;
   }

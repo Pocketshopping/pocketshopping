@@ -46,7 +46,7 @@ class AuthenticationBloc
     yield Started(link: uri.link);
     try {
 
-      final isSignedIn = await _userRepository.isSignedIn();
+      final isSignedIn = _userRepository.isSignedIn();
       if (isSignedIn) {
         final user = await _userRepository.getCurrentUser();
         yield DLink(user, uri.link);
@@ -74,7 +74,7 @@ class AuthenticationBloc
     SharedPreferences prefs= await SharedPreferences.getInstance();
     try {
 
-      final isSignedIn = await _userRepository.isSignedIn();
+      final isSignedIn = _userRepository.isSignedIn();
       if (isSignedIn) {
         final user = await _userRepository.getCurrentUser();
         yield Authenticated(user);

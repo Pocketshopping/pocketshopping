@@ -40,6 +40,7 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
           distance: getDistance(),
           initPosition: widget.position,
         );
+        //print(getDistance());
         Get.to(page);
       }
       else{
@@ -65,7 +66,7 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
             //colorFilter: Colors.black.withOpacity(0.4),
           ),
         ),
-        margin: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+        margin: EdgeInsets.all(Get.width * 0.04),
 
         child: merchant!=null?
         Center(child:
@@ -83,7 +84,7 @@ class _FavoriteState extends State<SingleFavoriteWidget> {
         )
             :Center(
           child:JumpingDotsProgressIndicator(
-            fontSize: MediaQuery.of(context).size.height * 0.1,
+            fontSize: Get.height * 0.1,
             color: Colors.white,
           ),
         )

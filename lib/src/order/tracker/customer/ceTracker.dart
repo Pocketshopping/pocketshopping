@@ -103,7 +103,7 @@ class _CustomerErrandTrackerWidgetState extends State<CustomerErrandTrackerWidge
               if(order.connectionState == ConnectionState.waiting){
                 return Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 );
@@ -293,10 +293,26 @@ class ErrandTracker extends StatelessWidget{
                 child: Row(
                   children: [
                     if(order.data.isAssigned)
+                    Expanded(
+                      flex:0,
+                      child:  IconButton(
+                        onPressed: (){Get.back();},
+                        icon: Icon(Icons.arrow_back_ios),
+                      ),
+                    ),
+                    if(order.data.isAssigned)
                       Expanded(
                         flex:1,
                         child: Text('${order.data.status != 0 ? order.data.receipt.psStatus=='success'?'Completed':'Cancelled' : 'Processing'}',
                           style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    if(order.data.status == 0 && !order.data.isAssigned )
+                      Expanded(
+                        flex:0,
+                        child:  IconButton(
+                          onPressed: (){Get.back();},
+                          icon: Icon(Icons.arrow_back_ios),
                         ),
                       ),
                     if(order.data.status == 0 && !order.data.isAssigned )
@@ -405,7 +421,7 @@ class ErrandTracker extends StatelessWidget{
                     ),
                     Container(
                       child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context).size.height * 0.08,
+                        fontSize: Get.height * 0.08,
                         color: PRIMARYCOLOR,
                       ),
                     ),
@@ -466,7 +482,7 @@ class ErrandTracker extends StatelessWidget{
                           initialRating: review.data.rating,
                           minRating: 1,
                           maxRating: 5,
-                          itemSize: MediaQuery.of(context).size.width * 0.08,
+                          itemSize: Get.width * 0.08,
                           direction: Axis.horizontal,
                           allowHalfRating: true,
                           ignoreGestures: true,
@@ -522,7 +538,7 @@ class ErrandTracker extends StatelessWidget{
                           ),
                         ),
                         padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width *
+                            Get.width *
                                 0.02),
                         child: Row(
                           children: <Widget>[
@@ -542,7 +558,7 @@ class ErrandTracker extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width *
+                          Get.width *
                               0.02),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -569,7 +585,7 @@ class ErrandTracker extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width *
+                          Get.width *
                               0.02),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -606,7 +622,7 @@ class ErrandTracker extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width *
+                          Get.width *
                               0.02),
                       child: Row(
                         children: <Widget>[
@@ -641,7 +657,7 @@ class ErrandTracker extends StatelessWidget{
                         ),
                         color: PRIMARYCOLOR),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: const Align(
                       alignment: Alignment.centerLeft,
                       child: const Text(
@@ -661,7 +677,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -683,7 +699,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -705,7 +721,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -727,7 +743,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -758,7 +774,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -777,7 +793,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width *
+                        Get.width *
                             0.02),
                     child: Row(
                       children: <Widget>[
@@ -801,7 +817,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width *
+                        Get.width *
                             0.02),
                     child: Row(
                       children: <Widget>[
@@ -826,7 +842,7 @@ class ErrandTracker extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -846,6 +862,56 @@ class ErrandTracker extends StatelessWidget{
                       ],
                     )),
               ])),
+
+          if(order.data.status == 0   && !(order.data as Order).isAssigned)
+            psHeadlessCard(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
+                  ),
+                ],
+                child:Container(
+                    color: Colors.red,
+                    child:
+                    FlatButton.icon(
+                      color: Colors.red,
+                      onPressed: (){
+                        Get.defaultDialog(
+                          title: 'Cancel',
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Are you sure you want to cancel'),
+                            ],
+                          ),
+                          cancel: FlatButton(
+                            onPressed: () {
+                              Get.back();
+                            },
+                            child: Text('No'),
+                          ),
+                          confirm: FlatButton(
+                            onPressed: ()async {
+                                Get.back();
+                                var result = cancel(order.data.docID,
+                                    Receipt.fromMap(order.data.receipt.copyWith(psStatus: "fail",
+                                        pRef: ' Order was cancelled by customer.').toMap()),
+                                    ""
+                                );
+
+                              //refreshOrder();
+                            },
+                            child: Text('Yes'),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.close,color: Colors.white,),
+                      label:  Text('Cancel Request',style: TextStyle(color: Colors.white),),
+                    )
+                )
+            ),
 
           FutureBuilder<List<CustomerCareLine>>(
             future: CustomerCareRepo.fetchCustomerCareLine((order.data.orderMode.mode=='Delivery'?order.data.orderLogistic:order.data.orderMerchant)),
@@ -873,7 +939,7 @@ class ErrandTracker extends StatelessWidget{
                                   ),
                                   color: PRIMARYCOLOR),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child:const Align(
                                 alignment: Alignment.centerLeft,
                                 child: const Text(
@@ -895,7 +961,7 @@ class ErrandTracker extends StatelessWidget{
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width * 0.02),
+                                        Get.width * 0.02),
                                     child: Align(
                                         alignment: Alignment.center,
                                         child: Row(
@@ -953,6 +1019,27 @@ class ErrandTracker extends StatelessWidget{
     }
     return isDone;
   }
+
+  bool cancel(String oid,Receipt receipt,String agent) {
+    bool isDone = true;
+    OrderRepo.cancel(oid,receipt,agent).catchError((onError) {
+      isDone = false;
+    });
+
+    if (isDone) {
+      GetBar(
+        title: 'Order Cancelled',
+        messageText: Text(
+          'The request has been cancelled. ',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+    }
+
+    return isDone;
+  }
 }
 
 class Loader extends StatelessWidget{
@@ -966,7 +1053,7 @@ class Loader extends StatelessWidget{
     return Column(children: [
       if(rider != null)
         CircleAvatar(
-          radius: MediaQuery.of(context).size.width*0.25,
+          radius: Get.width*0.25,
           backgroundColor: Colors.grey.withOpacity(0.2),
           backgroundImage: NetworkImage(rider.profile.isNotEmpty?rider.profile:PocketShoppingDefaultAvatar),
         ),

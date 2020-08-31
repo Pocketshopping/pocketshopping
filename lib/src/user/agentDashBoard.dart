@@ -37,6 +37,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
+import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -117,6 +118,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
               break;
           }
           WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+          reloadMerchant(complete: true);
         }
         }catch(_){}
       }
@@ -205,6 +207,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
     await prefs.setString('workPlaceWallet', currentUser.agent.workPlaceWallet??"");
     await prefs.setString('profile', currentUser.user.profile??"");
     await prefs.setInt('limit', currentUser.agent.limit??1000);
+    await prefs.setString('merchant', "");
     await prefs.setBool('autoAssigned', currentUser.agent.autoAssigned!=null?currentUser.agent.autoAssigned.isNotEmpty:false);
     return true;
   }
@@ -387,13 +390,13 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
 
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.1), // here the desired height
+          preferredSize: Size.fromHeight(Get.height * 0.1), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
               openDrawer: (){Scaffold.of(context).openDrawer();},
@@ -435,8 +438,8 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
                         Center(
                           child: SizedBox(
-                            height: MediaQuery.of(context).size.height*0.3,
-                            width: MediaQuery.of(context).size.width*0.6,
+                            height: Get.height*0.3,
+                            width: Get.width*0.6,
                             child: GestureDetector(onTap: ()async{
                               /*FlutterRingtonePlayer.playNotification();
                               await FlutterRingtonePlayer.play(
@@ -484,7 +487,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
 
                         Container(
                             color: Colors.white,
-                            //margin:  MediaQuery.of(context).size.height*0.05,
+                            //margin:  Get.height*0.05,
                             margin: EdgeInsets.only(
                                 left: marginLR * 0.01, right: marginLR * 0.01),
                             child: ValueListenableBuilder(
@@ -727,7 +730,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                           ],
                         ),
                         Container(
-                          height: MediaQuery.of(context).size.height * 0.02,
+                          height: Get.height * 0.02,
                         ),
                       ],
                     )),
@@ -920,7 +923,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate([
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.02,
+                    height: Get.height * 0.02,
                   ),
                 ])),
 
@@ -955,7 +958,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                         MenuItem(
                           gridHeight,
                           Icon(AntIcons.shopping_outline,
-                              size: MediaQuery.of(context).size.width * 0.1,
+                              size: Get.width * 0.1,
                               color: PRIMARYCOLOR.withOpacity(0.8)),
                           'Current Deliveries',
                           border: PRIMARYCOLOR,
@@ -969,7 +972,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.bulb_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       'New Business',
@@ -983,7 +986,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.shop_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Business(es)',
                       border: PRIMARYCOLOR,
@@ -996,7 +999,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.smile_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -1010,7 +1013,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.deployment_unit,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
@@ -1022,7 +1025,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Account',
                       isBadged: false,
@@ -1035,7 +1038,7 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(Icons.help_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Help',
                       border: PRIMARYCOLOR,
@@ -1048,7 +1051,37 @@ class _AgentDashBoardScreenState extends State<AgentDashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
-                    const SizedBox(height: 20,),
+                    if(currentUser.merchant.bSocial.isNotEmpty)
+                      if(currentUser.merchant.bSocial['url'] != null)
+                        Column(
+                          children: [
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Center(
+                              child: Text('${currentUser.merchant.bName} Url'),
+                            ),
+                            Center(
+                              child: Text('${currentUser.merchant.bSocial['url']}',style: TextStyle(color: PRIMARYCOLOR,fontWeight: FontWeight.bold),),
+                            ),
+                            Center(
+                                child: FlatButton(
+                                  onPressed: (){
+                                    Share.share('${currentUser.merchant.bSocial['url']}');
+                                  },
+                                  color: PRIMARYCOLOR,
+                                  child: Text('Share Url',style: TextStyle(color: Colors.white),),
+                                )
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                        )
+                      else
+                        const SizedBox(
+                          height: 20,
+                        ),
                   ],
                 )),
               ],

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -22,6 +23,7 @@ import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -463,13 +465,14 @@ class Utility {
   }
 
   static Future<dynamic> agentAccept(
-      {String collectionID, String to, bool status=true,String agent,}) async {
+      {String collectionID, String to, bool status=true,String agent, bool isAssignedbyLogistics =false}) async {
     Map<String, dynamic> data = {
       "to": to,
       "agentID": agent,
       "status": status,
       "collectionID": collectionID,
-      "logistics": to
+      "logistics": to,
+      "isAssignedbyLogistics":isAssignedbyLogistics
     };
     final response = await http.post("${WALLETAPI}wallets/pay/agent/accept",
         headers: {
@@ -908,6 +911,7 @@ class Utility {
   }
 
   static localNotifier(String channelID,String channel,String title, String body)async{
+    var shared = await SharedPreferences.getInstance();
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       '$channelID', '$channel', '$channel',
       importance: Importance.Default,
@@ -922,15 +926,32 @@ class Utility {
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
     var platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      '$title',
-      '$body',
-      platformChannelSpecifics,
-      payload: '$channel',
+
+    if(shared.containsKey('notification')){
+      if(shared.getBool("notification")){
+        await flutterLocalNotificationsPlugin.show(
+          0,
+          '$title',
+          '$body',
+          platformChannelSpecifics,
+          payload: '$channel',
 
 
-    );
+        );
+      }
+    }
+    else{
+      await flutterLocalNotificationsPlugin.show(
+        0,
+        '$title',
+        '$body',
+        platformChannelSpecifics,
+        payload: '$channel',
+      );
+    }
+
+
+
   }
 
   static Future<File> cropImage(File image) async {
@@ -1123,13 +1144,15 @@ class Utility {
   static noInternet(){
     if(!Get.isSnackbarOpen)
     GetBar(
-      title: 'Internet',
-      messageText: Text("No internet connection",style: TextStyle(color: Colors.white),),
-      backgroundColor: PRIMARYCOLOR,
-      icon: Icon(Icons.check,color: Colors.white,),
+     // title: 'Internet',
+      messageText: Text("Poor internet connection",style: TextStyle(color: Colors.white),),
+      backgroundColor: Colors.redAccent,
+      icon: Icon(Icons.close,color: Colors.white,),
       duration: Duration(seconds: 5),
+      snackStyle: SnackStyle.FLOATING,
       snackPosition: SnackPosition.TOP,
     ).show();
+
   }
 
   static infoDialogMaker(String body,{String title='Info',}){
@@ -1327,6 +1350,18 @@ class Utility {
     });
 
     return new LatLng(latitude/n, longitude/n);
+  }
+
+  static Future<double> computeDistance(GeoPoint start, GeoPoint end) async{
+    return await Geolocator().distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude);
+  }
+
+  static String formatDistance(double dist, String bName) {
+    double  distance = (dist/1000);
+    if(dist < 1000)
+      return '${dist.round()} meter(s) away from $bName';
+    else
+      return '${distance.round()} kilometer(s) away from $bName';
   }
 
   static Future<void> stopAllService()async{

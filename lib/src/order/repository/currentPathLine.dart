@@ -109,11 +109,11 @@ class CurrentPathLine {
 
   static CurrentPathLine fromSnap(DocumentSnapshot cpl) {
     return CurrentPathLine(
-        destination: cpl.data['destination'],
-        hasVisitedSource: cpl.data['hasVisitedSource'],
-        hasVisitedDestination: cpl.data['hasVisitedDestination'],
-        source: cpl.data['source'],
-        id: cpl.documentID,
+        destination: cpl.data()['destination'],
+        hasVisitedSource: cpl.data()['hasVisitedSource'],
+        hasVisitedDestination: cpl.data()['hasVisitedDestination'],
+        source: cpl.data()['source'],
+        id: cpl.id,
 
     );
   }

@@ -30,11 +30,12 @@ class Validators {
   }
 
   static isValidName(String name) {
-    return RegExp(r'^[a-zA-Z\s.-]+$').hasMatch(name);
+    return RegExp(r'^[0-9a-zA-Z\s.!#$%&’*+/=?^_`{|}~-]+$').hasMatch(name);
   }
 
   static isValidAddress(String name) {
-    return RegExp(r'^[a-zA-Z0-9,\s]+$').hasMatch(name);
+    return true;
+    //return RegExp(r'^[a-zA-Z0-9,\s]+$').hasMatch(name);
   }
 
   static isValidTelephone(String telephone, {String ccode}) {

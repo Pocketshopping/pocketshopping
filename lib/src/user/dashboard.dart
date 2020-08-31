@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -47,6 +48,10 @@ import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/src/withdrawal/withdrawalWidget.dart';
+import 'package:share/share.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:pocketshopping/src/order/logisticBucket.dart';
 
 
 
@@ -75,6 +80,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   StreamSubscription orders;
   final report = ValueNotifier<Map<String,dynamic>>({});
   final _agentNotifier = ValueNotifier<int>(0);
+  final _bucketCount = ValueNotifier<int>(0);
+  StreamSubscription bucket;
 
 
   @override
@@ -109,6 +116,18 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     /*WidgetsBinding.instance.addPostFrameCallback((_) =>
         ShowCaseWidget.of(context).startShowCase([_one,]));*/
 
+    bucket = OrderRepo.logisticBucketCount(currentUser.merchant.mID).listen((event) {
+      if(mounted)
+      {
+        _bucketCount.value=event;
+      }
+
+    });
+
+    setMerchant().then((value) {
+      AndroidAlarmManager.initialize();
+      requestListenerWorker();
+    });
 
     super.initState();
   }
@@ -117,11 +136,41 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     //GetBar(title: 'tdsd',messageText: Text('sdsd'),duration: Duration(seconds: 2),).show();
   }
 
+  Future<bool> setMerchant() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('merchant', currentUser.merchant.mID??"");
+    return true;
+  }
+
+  static Future<void> backgroundWorker()async{
+    //await Workmanager.cancelAll();
+    await Workmanager.registerPeriodicTask(
+        "AGENTLOCATIONUPDATE", "LocationUpdateTask",
+        constraints: Constraints(
+            networkType: NetworkType.connected,
+            requiresBatteryNotLow: false,
+            requiresCharging: false,
+            requiresDeviceIdle: false,
+            requiresStorageNotLow: false
+        ),
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+        frequency: Duration(minutes: 15),
+        tag: 'LocationUpdateTag',
+        inputData: {});
+
+  }
+
+  Future<void> requestListenerWorker()async{
+    await AndroidAlarmManager.cancel(requestWorkerID);
+    await AndroidAlarmManager.periodic(const Duration(minutes: 2), requestWorkerID, backgroundWorker, rescheduleOnReboot: true, exact: true,);
+  }
+
   @override
   void dispose() {
     _walletNotifier.dispose();
     orders?.cancel();
     iosSubscription?.cancel();
+    bucket?.cancel();
     super.dispose();
   }
 
@@ -137,12 +186,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
 
     return Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
@@ -192,11 +241,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   [
 
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                     Container(
                       color: Colors.white,
-                      //margin:  MediaQuery.of(context).size.height*0.05,
+                      //margin:  Get.height*0.05,
                       margin: EdgeInsets.only(
                           left: marginLR * 0.01, right: marginLR * 0.01),
                       child: AdminFinance(
@@ -257,7 +306,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           Get.back();
                           if(total > 10){
                             if(currentUser.user.role == 'admin'){
-                              if(currentUser.user.uid == currentUser.merchant.bCreator.documentID){
+                              if(currentUser.user.uid == currentUser.merchant.bCreator.id){
                                 if(isSet){
                                   if(canWithdraw){
 
@@ -293,7 +342,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       ),
                     ),
                      SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                   ],
                 )),
@@ -592,7 +641,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate([
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.02,
+                    height: Get.height * 0.02,
                   ),
                 ])),
                 SliverList(
@@ -623,7 +672,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         gridHeight,
                         Icon(
                           AntIcons.shop_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8),
                         ),
                         'Transactions',
@@ -636,7 +685,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       gridHeight,
                       Icon(
                         AntIcons.printer_outline,
-                        size: MediaQuery.of(context).size.width * 0.1,
+                        size: Get.width * 0.1,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       'Point of Sale',
@@ -652,7 +701,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             return MenuItem(
                               gridHeight,
                               Icon(Icons.calendar_today,
-                                  size: MediaQuery.of(context).size.width * 0.1,
+                                  size: Get.width * 0.1,
                                   color: PRIMARYCOLOR.withOpacity(0.8)),
                               'Stock Manager',
                               border: PRIMARYCOLOR,
@@ -667,7 +716,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.shopping_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Products',
                       border: PRIMARYCOLOR,
@@ -678,7 +727,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                         gridHeight,
                         Icon(AntIcons.pie_chart_outline,
-                            size: MediaQuery.of(context).size.width * 0.1,
+                            size: Get.width * 0.1,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                         'Report',
                         border: PRIMARYCOLOR,
@@ -690,7 +739,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Staffs',
                       border: PRIMARYCOLOR,
@@ -701,7 +750,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                         gridHeight,
                         Icon(AntIcons.deployment_unit,
-                            size: MediaQuery.of(context).size.width * 0.1,
+                            size: Get.width * 0.1,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                         'PocketUnit',
                         border: PRIMARYCOLOR,
@@ -714,7 +763,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.history,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Withdrawal(s)',
                       border: PRIMARYCOLOR,
@@ -725,7 +774,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(Icons.thumb_up,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Reviews',
                       border: PRIMARYCOLOR,
@@ -738,7 +787,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.setting_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',
                       border: PRIMARYCOLOR,
@@ -749,12 +798,30 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(AntIcons.home_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Branch',
                       border: PRIMARYCOLOR,
                       content: Text('hello'),
                     ),*/
+                      ValueListenableBuilder(
+                          valueListenable: _bucketCount,
+                          builder: (_, count,__){
+                            return
+                              MenuItem(
+                                gridHeight,
+                                Icon(AntIcons.bell_outline,
+                                    size: Get.width * 0.1,
+                                    color: PRIMARYCOLOR.withOpacity(0.8)),
+                                'Request',
+                                border: PRIMARYCOLOR,
+                                isBadged: true,
+                                isMultiMenu: false,
+                                openCount: count,
+                                content: LogisticBucket(user: currentUser,),
+                                refresh: reloadMerchant,
+                              );
+                          }),
                     ValueListenableBuilder(
                         valueListenable: _orderNotifier,
                         builder: (_, orders,__){
@@ -762,7 +829,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             MenuItem(
                               gridHeight,
                               Icon(AntIcons.shopping_outline,
-                                  size: MediaQuery.of(context).size.width * 0.1,
+                                  size: Get.width * 0.1,
                                   color: PRIMARYCOLOR.withOpacity(0.8)),
                               'Current Deliveries',
                               border: PRIMARYCOLOR,
@@ -776,7 +843,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pie_chart_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Logistic Report',
                       border: PRIMARYCOLOR,
@@ -789,7 +856,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Clearance',
                       border: PRIMARYCOLOR,
@@ -802,7 +869,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.car_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
@@ -813,7 +880,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user_add_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Rider(s)',
                       border: PRIMARYCOLOR,
@@ -824,7 +891,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pushpin_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Tracker',
                       border: PRIMARYCOLOR,
@@ -835,7 +902,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.smile_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -847,7 +914,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ),MenuItem(
                       gridHeight,
                       Icon(AntIcons.customer_service_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',
                       border: PRIMARYCOLOR,
@@ -859,7 +926,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(Icons.help_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Help',
                       border: PRIMARYCOLOR,
@@ -871,9 +938,37 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    if(currentUser.merchant.bSocial.isNotEmpty)
+                      if(currentUser.merchant.bSocial['url'] != null)
+                        Column(
+                          children: [
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Center(
+                              child: Text('${currentUser.merchant.bName} Url'),
+                            ),
+                            Center(
+                              child: Text('${currentUser.merchant.bSocial['url']}',style: TextStyle(color: PRIMARYCOLOR,fontWeight: FontWeight.bold),),
+                            ),
+                            Center(
+                                child: FlatButton(
+                                  onPressed: (){
+                                    Share.share('${currentUser.merchant.bSocial['url']}');
+                                  },
+                                  color: PRIMARYCOLOR,
+                                  child: Text('Share Url',style: TextStyle(color: Colors.white),),
+                                )
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                        )
+                      else
+                        const SizedBox(
+                          height: 20,
+                        ),
                   ],
                 )),
               ],

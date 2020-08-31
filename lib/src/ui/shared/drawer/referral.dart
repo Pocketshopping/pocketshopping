@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
 import 'package:pocketshopping/src/ui/shared/psCard.dart';
@@ -32,7 +33,7 @@ class _ReferralState extends State<Referral> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+        preferredSize: Size.fromHeight(Get.height *
             0.1), // here the desired height
         child: AppBar(
           centerTitle: true,
@@ -56,8 +57,8 @@ class _ReferralState extends State<Referral> {
       ),
       body: Center(
         child: Container(
-            height: MediaQuery.of(context).size.height * 0.8,
-            width: MediaQuery.of(context).size.width * 0.9,
+            height: Get.height * 0.8,
+            width: Get.width * 0.9,
             child: psHeadlessCard(
                 boxShadow: [
                   BoxShadow(

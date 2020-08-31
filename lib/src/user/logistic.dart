@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/unit.dart';
 import 'package:pocketshopping/src/admin/finance.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
+import 'package:pocketshopping/src/admin/staff/staffList.dart';
 import 'package:pocketshopping/src/bank/BankWithdraw.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/business/mangeBusiness.dart';
@@ -19,6 +22,7 @@ import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/logisticBucket.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/payment/topUpPocket.dart';
@@ -38,6 +42,9 @@ import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'package:pocketshopping/src/withdrawal/withdrawalWidget.dart';
+import 'package:share/share.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
 
 class LogisticDashBoardScreen extends StatefulWidget {
@@ -54,12 +61,14 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   Stream<LocalNotification> _notificationsStream;
   StreamSubscription iosSubscription;
+  StreamSubscription bucket;
   Stream<Wallet> _walletStream;
   Wallet _wallet;
   final _agentNotifier = ValueNotifier<int>(0);
   final _isOperationalNotifier = ValueNotifier<bool>(true);
   final _orderNotifier = ValueNotifier<List<Order>>([]);
   StreamSubscription orders;
+  final _bucketCount = ValueNotifier<int>(0);
 
 
   @override
@@ -96,13 +105,62 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     });
 
     ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
+    //Utility.noWorker().then((value) => null);
+    bucket = OrderRepo.logisticBucketCount(currentUser.merchant.mID).listen((event) {
+      if(mounted)
+      {
+        _bucketCount.value=event;
+      }
 
-    Utility.noWorker().then((value) => null);
+    });
+    setMerchant().then((value) {
+      AndroidAlarmManager.initialize();
+      requestListenerWorker();
+    });
+
+    /*DynamicLinks.createLinkWithParams({
+      'merchant': '${currentUser.merchant.mID}',
+    }).then((value) {
+      print(value);
+    });*/
+
+    //print(currentUser.merchant.bSocial['url']);
+
+
     super.initState();
   }
 
   showBottom() {
     //GetBar(title: 'tdsd',messageText: Text('sdsd'),duration: Duration(seconds: 2),).show();
+  }
+
+  Future<bool> setMerchant() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('merchant', currentUser.merchant.mID??"");
+    return true;
+  }
+
+  static Future<void> backgroundWorker()async{
+    //await Workmanager.cancelAll();
+    await Workmanager.registerPeriodicTask(
+        "AGENTLOCATIONUPDATE", "LocationUpdateTask",
+        constraints: Constraints(
+            networkType: NetworkType.connected,
+            requiresBatteryNotLow: false,
+            requiresCharging: false,
+            requiresDeviceIdle: false,
+            requiresStorageNotLow: false
+        ),
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+        frequency: Duration(minutes: 15),
+        tag: 'LocationUpdateTag',
+        inputData: {});
+
+  }
+
+  Future<void> requestListenerWorker()async{
+    await AndroidAlarmManager.cancel(requestWorkerID);
+    await AndroidAlarmManager.periodic(const Duration(minutes: 3), requestWorkerID, backgroundWorker, rescheduleOnReboot: true, exact: true,);
   }
 
   @override
@@ -111,6 +169,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
     _walletStream = null;
     iosSubscription?.cancel();
     orders?.cancel();
+    bucket?.cancel();
     super.dispose();
   }
 
@@ -121,12 +180,12 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
 
     return Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
@@ -149,15 +208,64 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
             color: Colors.white,
             child: CustomScrollView(
               slivers: <Widget>[
+                /*SliverList(
+                    delegate: SliverChildListDelegate(
+                      [
+
+                        Center(
+                            child: SizedBox(
+                                height: Get.height*0.3,
+                                width: Get.width*0.6,
+                                child: GestureDetector(onTap: ()async{
+                                  *//*FlutterRingtonePlayer.playNotification();
+                              await FlutterRingtonePlayer.play(
+                                android: AndroidSounds.notification,
+                                ios: IosSounds.glass,
+                                looping: false, // Android only - API >= 28
+                                volume: 0.1, // Android only - API >= 28
+                                asAlarm: false, // Android only - all APIs
+                              );
+                              FlutterRingtonePlayer.stop();*//*
+                                  Get.to(LogisticBucket(user: currentUser,),).then((value) => null);
+                                },child: Card(
+                                  child: ValueListenableBuilder(
+                                    valueListenable: _bucketCount,
+                                    builder: (_,count,__){
+                                      return
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Text('$count',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(color:PRIMARYCOLOR,fontSize: 30),),
+                                            const Text('Request Bucket',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(color: PRIMARYCOLOR),),
+                                            const Text('click to view',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(color: PRIMARYCOLOR),),
+                                          ],
+
+                                        );
+                                    },
+                                  ),
+                                )
+                                )
+                            )
+                        ),
+                        const SizedBox(height: 20,)
+                      ],
+                    )),*/
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                     Container(
                       color: Colors.white,
-                      //margin:  MediaQuery.of(context).size.height*0.05,
+                      //margin:  Get.height*0.05,
                       margin: EdgeInsets.only(
                           left: marginLR * 0.01, right: marginLR * 0.01),
                       child: AdminFinance(topUp: (){
@@ -215,7 +323,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                         bool isSet = await PinRepo.isSet(currentUser.user.walletId);
                         if(total > 10){
                           if(currentUser.user.role == 'admin'){
-                            if(currentUser.user.uid == currentUser.merchant.bCreator.documentID){
+                            if(currentUser.user.uid == currentUser.merchant.bCreator.id){
                               if(isSet){
                                 if(canWithdraw){
 
@@ -251,7 +359,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                       ),
                     ),
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                   ],
                 )),
@@ -453,7 +561,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate([
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.02,
+                    height: Get.height * 0.02,
                   ),
                 ])),
                 SliverList(
@@ -481,13 +589,31 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                   crossAxisCount: 3,
                   children: [
                     ValueListenableBuilder(
+                        valueListenable: _bucketCount,
+                        builder: (_, count,__){
+                          return
+                            MenuItem(
+                              gridHeight,
+                              Icon(AntIcons.bell_outline,
+                                  size: Get.width * 0.1,
+                                  color: PRIMARYCOLOR.withOpacity(0.8)),
+                              'Request',
+                              border: PRIMARYCOLOR,
+                              isBadged: true,
+                              isMultiMenu: false,
+                              openCount: count,
+                              content: LogisticBucket(user: currentUser,),
+                              refresh: reloadMerchant,
+                            );
+                        }),
+                    ValueListenableBuilder(
                         valueListenable: _orderNotifier,
                         builder: (_, orders,__){
                           return
                             MenuItem(
                               gridHeight,
                               Icon(AntIcons.shopping_outline,
-                                  size: MediaQuery.of(context).size.width * 0.1,
+                                  size: Get.width * 0.1,
                                   color: PRIMARYCOLOR.withOpacity(0.8)),
                               'Current Deliveries',
                               border: PRIMARYCOLOR,
@@ -501,7 +627,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Clearance',
                       border: PRIMARYCOLOR,
@@ -513,56 +639,8 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(AntIcons.pie_chart_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Logistic Report',
-                      border: PRIMARYCOLOR,
-                      isBadged: false,
-                      isMultiMenu: false,
-                      openCount: 3,
-                      content: LogisticStatistic(user: currentUser,title: 'Report',),
-                      refresh: reloadMerchant,
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(AntIcons.deployment_unit,
-                          size: MediaQuery.of(context).size.width * 0.1,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'PocketUnit',
-                      border: PRIMARYCOLOR,
-                      content: UnitBottomPage(user: currentUser,wallet: currentUser.merchant.bWallet,
-                        sender:User(currentUser.merchant.mID,role: 'admin',
-                            walletId: currentUser.merchant.bWallet,email: currentUser.user.email,fname: currentUser.merchant.bName),
-                      ),
-
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(AntIcons.history,
-                          size: MediaQuery.of(context).size.width * 0.1,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Withdrawal(s)',
-                      border: PRIMARYCOLOR,
-                      isMultiMenu: false,
-                      content: WithdrawalWidget(user: currentUser,),
-                      refresh: reloadMerchant,
-                    ),
-                    MenuItem(
-                      gridHeight,
-                      Icon(AntIcons.car_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
-                          color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'My AutoMobile(s)',
-                      border: PRIMARYCOLOR,
-                      isMultiMenu: false,
-                      content: AutomobileList(user: currentUser,title: 'My Automobile',callBckActionType: 1,),
-                      refresh: reloadMerchant,
-                    ),
-                    MenuItem(
-                      gridHeight,
                       Icon(AntIcons.user_add_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Rider(s)',
                       border: PRIMARYCOLOR,
@@ -572,19 +650,30 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
-                      Icon(AntIcons.pushpin_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                      Icon(AntIcons.car_outline,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
-                      'Rider Tracker',
+                      'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
                       isMultiMenu: false,
-                      content: AgentList(user: currentUser,),
+                      content: AutomobileList(user: currentUser,title: 'My Automobile',callBckActionType: 1,),
+                      refresh: reloadMerchant,
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.user,
+                          size: Get.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Staffs',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: StaffList(user: currentUser,title: 'Manage Staff(s)',callBckActionType: 3,route: 1,),
                       refresh: reloadMerchant,
                     ),
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.bulb_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'New Business',
                       border: PRIMARYCOLOR,
@@ -597,7 +686,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.shop_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Business(es)',
                       border: PRIMARYCOLOR,
@@ -609,8 +698,57 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     ),
                     MenuItem(
                       gridHeight,
+                      Icon(AntIcons.pie_chart_outline,
+                          size: Get.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Logistic Report',
+                      border: PRIMARYCOLOR,
+                      isBadged: false,
+                      isMultiMenu: false,
+                      openCount: 3,
+                      content: LogisticStatistic(user: currentUser,title: 'Report',),
+                      refresh: reloadMerchant,
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.deployment_unit,
+                          size: Get.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'PocketUnit',
+                      border: PRIMARYCOLOR,
+                      content: UnitBottomPage(user: currentUser,wallet: currentUser.merchant.bWallet,
+                        sender:User(currentUser.merchant.mID,role: 'admin',
+                            walletId: currentUser.merchant.bWallet,email: currentUser.user.email,fname: currentUser.merchant.bName),
+                      ),
+
+                    ),
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.history,
+                          size: Get.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Withdrawal(s)',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: WithdrawalWidget(user: currentUser,),
+                      refresh: reloadMerchant,
+                    ),
+
+                    MenuItem(
+                      gridHeight,
+                      Icon(AntIcons.pushpin_outline,
+                          size: Get.width * 0.1,
+                          color: PRIMARYCOLOR.withOpacity(0.8)),
+                      'Rider Tracker',
+                      border: PRIMARYCOLOR,
+                      isMultiMenu: false,
+                      content: AgentList(user: currentUser,),
+                      refresh: reloadMerchant,
+                    ),
+                    MenuItem(
+                      gridHeight,
                       Icon(AntIcons.smile_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -623,7 +761,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.customer_service_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',
                       border: PRIMARYCOLOR,
@@ -634,7 +772,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.setting_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',
                       border: PRIMARYCOLOR,
@@ -646,7 +784,7 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(Icons.help_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Help',
                       border: PRIMARYCOLOR,
@@ -658,10 +796,37 @@ class _LogisticDashBoardScreenState extends State<LogisticDashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
-                    Container(
-                      color: Colors.white,
-                      height: MediaQuery.of(context).size.height * 0.1,
-                    ),
+                    if(currentUser.merchant.bSocial.isNotEmpty)
+                      if(currentUser.merchant.bSocial['url'] != null)
+                    Column(
+                      children: [
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Center(
+                          child: Text('${currentUser.merchant.bName} Url'),
+                        ),
+                        Center(
+                          child: Text('${currentUser.merchant.bSocial['url']}',style: TextStyle(color: PRIMARYCOLOR,fontWeight: FontWeight.bold),),
+                        ),
+                        Center(
+                          child: FlatButton(
+                            onPressed: (){
+                              Share.share('${currentUser.merchant.bSocial['url']}');
+                            },
+                            color: PRIMARYCOLOR,
+                            child: Text('Share Url',style: TextStyle(color: Colors.white),),
+                          )
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                      ],
+                    )
+                    else
+                        const SizedBox(
+                          height: 20,
+                        ),
                   ],
                 )),
               ],

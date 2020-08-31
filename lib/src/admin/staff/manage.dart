@@ -62,7 +62,7 @@ class _ManageStaffState extends State<ManageStaff> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return WillPopScope(
         onWillPop: () async {
           if (isSubmitting)
@@ -131,7 +131,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: Column(
                                             children: [
@@ -175,7 +175,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child:Center(
                                             child: FlatButton(
@@ -238,9 +238,10 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child:Center(child: Text('Staff Previledge(s)'),)),
+                                      if(widget.session.merchant.bCategory != 'Logistic')
                                       Container(
                                         decoration: BoxDecoration(
                                           border: Border(
@@ -252,7 +253,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                           ),
                                         ),
                                         padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width *
+                                            Get.width *
                                                 0.02),
                                         child: CheckboxListTile(
                                           title: Text(
@@ -278,11 +279,11 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
                                             title: Text(
-                                                "Manages Logistics."),
+                                                "${widget.session.merchant.bCategory != 'Logistic'?'Manages Logistics':'Basic Staff'}."),
                                             value: this.logistic,
                                             onChanged:editRole? (bool value) {
                                               setState(() {
@@ -292,6 +293,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                             }:null,
                                           )
                                       ),
+                                      if(widget.session.merchant.bCategory != 'Logistic')
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -303,7 +305,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
                                             title: Text(
@@ -317,7 +319,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                             }:null,
                                           )
                                       ),
-
+                                      if(widget.session.merchant.bCategory != 'Logistic')
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -329,7 +331,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
                                             title: Text(
@@ -355,11 +357,11 @@ class _ManageStaffState extends State<ManageStaff> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
                                             title: Text(
-                                                "Managerial Role. Reserve all permission"),
+                                                "Managerial Role. Reserve all Previledge(s)"),
                                             value: this.managers,
                                             onChanged: editRole?(bool value) {
                                               setState(() {
@@ -385,14 +387,14 @@ class _ManageStaffState extends State<ManageStaff> {
                                               ),
                                             ),
                                             padding: EdgeInsets.all(
-                                                MediaQuery.of(context).size.width *
+                                                Get.width *
                                                     0.02),
                                             child:Text("Select staff Previledge(s).",style: TextStyle(color: Colors.red),)
                                         ),
                                       if(editRole)
                                         Container(
                                             padding: EdgeInsets.all(
-                                                MediaQuery.of(context).size.width *
+                                                Get.width *
                                                     0.02),
                                             child: Padding(
                                                 padding: EdgeInsets.symmetric(
@@ -448,7 +450,7 @@ class _ManageStaffState extends State<ManageStaff> {
                                       if(!editRole)
                                         Container(
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: Row(
                                             children: [

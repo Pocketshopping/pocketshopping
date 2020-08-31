@@ -21,7 +21,7 @@ import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
 import 'locationUpdate/agentLocUp.dart';
 
 class LogisticRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
   static final Geoflutterfire geo = Geoflutterfire();
 
 
@@ -33,7 +33,7 @@ class LogisticRepo {
         .where('agentParent',isEqualTo: company)
         .where('availability',isEqualTo: true)
         .where('autoAssigned',isEqualTo: true)
-        .snapshots().map((event) {return event.documents.length;});
+        .snapshots().map((event) {return event.docs.length;});
 
   }
 
@@ -60,24 +60,24 @@ class LogisticRepo {
      try{
        if(source == 1) throw Exception;
        QuerySnapshot document;
-       document = await Firestore.instance
+       document = await FirebaseFirestore.instance
            .collection('agent')
            .where('hasEnded',isEqualTo: false)
            .where('agentWorkPlace',isEqualTo: company)
-           .getDocuments(source: Source.serverAndCache)
+           .get(GetOptions(source: Source.cache))
            .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-       if(document.documents.isEmpty){throw Exception;}
-       return Agent.fromListSnap(document.documents);
+       if(document.docs.isEmpty){throw Exception;}
+       return Agent.fromListSnap(document.docs);
      }
      catch(_){
        QuerySnapshot document;
-       document = await Firestore.instance
+       document = await FirebaseFirestore.instance
            .collection('agent')
            .where('hasEnded',isEqualTo: false)
            .where('agentWorkPlace',isEqualTo: company)
-           .getDocuments(source: Source.serverAndCache)
+           .get(GetOptions(source: Source.serverAndCache))
            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw Exception;});
-       return Agent.fromListSnap(document.documents);
+       return Agent.fromListSnap(document.docs);
      }
     }
     catch(_){
@@ -86,185 +86,200 @@ class LogisticRepo {
 
   }
 
-  static Future<List<AgentLocUp>> fetchMyAgents(String company,AgentLocUp last,{int source=0})async{
+  static Future<List<AgentLocUp>> fetchMyAgents(String company,AgentLocUp last,{int source=0, int count =10})async{
 
     try{
       QuerySnapshot document;
       if (last == null) {
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('agentLocationUpdate')
             .orderBy('startedAt')
             .where('agentParent',isEqualTo: company)
-            .limit(10)
-            .getDocuments(source: Source.server);
+            .limit(count)
+            .get(GetOptions(source: Source.server));
       } else {
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('agentLocationUpdate')
             .orderBy('startedAt')
             .where('agentParent',isEqualTo: company)
             .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
-            .limit(10)
-            .getDocuments(source: Source.server);
+            .limit(count)
+            .get(GetOptions(source: Source.server));
       }
-      return AgentLocUp.fromListSnap(document.documents);
+      return AgentLocUp.fromListSnap(document.docs);
     }
     catch(_){
       return [];
     }
 
+  }
+
+  static Future<List<AgentLocUp>> agentUpForTask(String company,AgentLocUp last,{int source=0, int count =10,String keyword=''})async{
+    if(keyword.isNotEmpty){
+      return searchMyAgent(company, last, keyword,source: 1);
+    }
+    else{
+      return await fetchMyAgents(company,last,source: source,count: count);
+    }
   }
 
   static Future<Map<String,AutoMobile>> fetchMyAutomobile(String company,AutoMobile last)async{
     QuerySnapshot document;
     if (last == null) {
-      document = await Firestore.instance
+      document = await FirebaseFirestore.instance
           .collection('automobile')
           .orderBy('autoAddedAt',descending: true)
           .where('autoLogistic',isEqualTo: company)
           .limit(10)
-          .getDocuments(source: Source.server);
+          .get(GetOptions(source: Source.server));
     } else {
-      document = await Firestore.instance
+      document = await FirebaseFirestore.instance
           .collection('automobile')
           .orderBy('autoAddedAt',descending: true)
           .where('autoLogistic',isEqualTo: company)
           .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
           .limit(10)
-          .getDocuments(source: Source.server);
+          .get(GetOptions(source: Source.server));
     }
 
-    return AutoMobile.fromListSnap(document.documents);
+    return AutoMobile.fromListSnap(document.docs);
 
   }
 
-  static Future<bool> deleteAutomobile(String autoID)async{
+  static Future<bool> deleteAutomobile(String autoID,{String lid,int bCount=0, int cCount=0, int vCount=0})async{
     try{
-      await Firestore.instance
-          .collection('automobile').document(autoID).delete();
+      await FirebaseFirestore.instance.collection('automobile').doc(autoID).delete();
+      await databaseReference.collection("merchants").doc(lid).update({
+        'bikeCount':bCount,
+        'carCount':cCount,
+        'vanCount':vCount,
+      });
       return true;
     }
     catch(_){return false;}
   }
 
-  static Future<Map<String,AutoMobile>> searchMyAutomobile(
-      String mID, AutoMobile last, String search,{int source=0}) async {
+  static Future<Map<String,AutoMobile>> searchMyAutomobile(String mID, AutoMobile last, String search,{int source=0}) async {
    try{
      QuerySnapshot document;
 
      if (last == null) {
        try{
          if(source == 1) throw Exception;
-         document = await Firestore.instance
+         document = await FirebaseFirestore.instance
              .collection('automobile')
              .where('autoLogistic', isEqualTo: mID)
              .where('index', arrayContains: search.toLowerCase())
              .limit(10)
-             .getDocuments(source: Source.cache)
+             .get(GetOptions(source: Source.cache))
              .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-         if(document.documents.isEmpty){throw Exception;}
+         if(document.docs.isEmpty){throw Exception;}
        }
        catch(_){
-         document = await Firestore.instance
+         document = await FirebaseFirestore.instance
              .collection('automobile')
              .where('autoLogistic', isEqualTo: mID)
              .where('index', arrayContains: search.toLowerCase())
              .limit(10)
-             .getDocuments(source: Source.serverAndCache)
+             .get(GetOptions(source: Source.serverAndCache))
              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
        }
      } else {
        try{
          if(source == 1) throw Exception;
-         document = await Firestore.instance
+         document = await FirebaseFirestore.instance
              .collection('automobile')
              .where('autoLogistic', isEqualTo: mID)
              .where('index', arrayContains: search.toLowerCase())
              .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
              .limit(10)
-             .getDocuments(source: Source.cache
+             .get(GetOptions(source: Source.cache)
          ).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-         if(document.documents.isEmpty){throw Exception;}
+         if(document.docs.isEmpty){throw Exception;}
        }
        catch(_){
-         document = await Firestore.instance
+         document = await FirebaseFirestore.instance
              .collection('automobile')
              .where('autoLogistic', isEqualTo: mID)
              .where('index', arrayContains: search.toLowerCase())
              .startAfter([DateTime.parse(last.autoAddedAt.toDate().toString())])
              .limit(10)
-             .getDocuments(source: Source.serverAndCache)
+             .get(GetOptions(source: Source.serverAndCache))
              .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
        }
      }
 
-     return AutoMobile.fromListSnap(document.documents);
+     return AutoMobile.fromListSnap(document.docs);
    }
    catch(_){
      return {};
    }
   }
 
-  static Future<List<AgentLocUp>> searchMyAgent(
-      String mID, AgentLocUp last, String search,{int source=0}) async {
+  static Future<List<AgentLocUp>> searchMyAgent(String mID, AgentLocUp last, String search,{int source=0}) async {
     QuerySnapshot document;
 
     if (last == null) {
       try{
         if(source == 1) throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('agentLocationUpdate')
             .where('agentParent', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .limit(10)
-            .getDocuments(source: Source.cache)
+            .get(GetOptions(source: Source.cache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty){throw Exception;}
+        if(document.docs.isEmpty){throw Exception;}
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('agentLocationUpdate')
             .where('agentParent', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     } else {
       try{
         if(source == 1) throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('agentLocationUpdate')
             .where('agentParent', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.cache)
+            .get(GetOptions(source: Source.cache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty){throw Exception;}
+        if(document.docs.isEmpty){throw Exception;}
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('agentLocationUpdate')
             .where('agentParent', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .startAfter([DateTime.parse(last.startedAt.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     }
 
-    return AgentLocUp.fromListSnap(document.documents);
+    return AgentLocUp.fromListSnap(document.docs);
   }
 
 
 
-  static Future<String> saveAutomobile(dynamic automobile) async {
+  static Future<String> saveAutomobile(AutoMobile automobile,{int bCount=0, int cCount=0, int vCount=0}) async {
     DocumentReference bid;
-    bid = await databaseReference
-        .collection("automobile")
-        .add(automobile.toMap());
-    return bid.documentID;
+    bid = await databaseReference.collection("automobile").add(automobile.toMap());
+
+    await databaseReference.collection("merchants").doc(automobile.autoLogistic).update({
+      'bikeCount':bCount,
+      'carCount':cCount,
+      'vanCount':vCount,
+    });
+    return bid.id;
   }
 
   static Future<bool> updateAgentTrackerLocation(String uid,LocationData point) async {
@@ -273,7 +288,7 @@ class LogisticRepo {
       Geoflutterfire geo = Geoflutterfire();
       GeoFirePoint agentLocation = geo.point(latitude: point.latitude, longitude: point.longitude);
       Agent agent = await getOneAgentByUid(uid);
-      await databaseReference.collection("agentLocationUpdate").document(agent.agentID).updateData({'agentLocation':agentLocation.data})
+      await databaseReference.collection("agentLocationUpdate").doc(agent.agentID).update({'agentLocation':agentLocation.data})
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       CurrentPathLine cpl = await OrderRepo.getCurrentPathLine(agent.agent);
       if(cpl != null){
@@ -291,14 +306,14 @@ class LogisticRepo {
     try{
       DocumentReference bid;
       bid = await databaseReference.collection("agent").add(agent.toMap()).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      request = request.update(requestInitiatorID: bid.documentID, requestInitiator: 'agent');
+      request = request.update(requestInitiatorID: bid.id, requestInitiator: 'agent');
       await RequestRepo.save(request);
       await StatisticRepo.updateAgentStatistic(agent.agent);
       await reAssignAutomobile(agent .autoAssigned,agent.agent,);
      /* await LocRepo.update({
         'agentParent':agent.agentWorkPlace,
         'wallet':agent.agentWallet,
-        'agentID':bid.documentID,
+        'agentID':bid.id,
         'agentLocation':{},
         'agentAutomobile':agent.autoType,
         'agentName':'',
@@ -354,7 +369,7 @@ class LogisticRepo {
 
   static Future<bool> deleteAgentLocUpdate(String agentId)async{
     try{
-      await databaseReference.collection('agentLocationUpdate').document(agentId).delete()
+      await databaseReference.collection('agentLocationUpdate').doc(agentId).delete()
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
@@ -363,7 +378,7 @@ class LogisticRepo {
 
   static Future<bool> reAssignAutomobile(String autoID,String agent,{bool isAssigned = true}) async {
     try{
-      await databaseReference.collection("automobile").document(autoID).updateData({
+      await databaseReference.collection("automobile").doc(autoID).update({
         'autoAssigned':isAssigned,
         'assignedTo':agent,
       })
@@ -377,7 +392,7 @@ class LogisticRepo {
 
   static Future<bool> updateAgent(String agent,Map<String,dynamic> data) async {
     try{
-      await databaseReference.collection("agent").document(agent).updateData(data)
+      await databaseReference.collection("agent").doc(agent).update(data)
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
@@ -389,7 +404,7 @@ class LogisticRepo {
 
   static Future<bool> updateAgentLoc(String agent,Map<String,dynamic> data) async {
     try{
-      await databaseReference.collection("agentLocationUpdate").document(agent).updateData(data)
+      await databaseReference.collection("agentLocationUpdate").doc(agent).update(data)
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
@@ -405,13 +420,13 @@ class LogisticRepo {
     try{
       try{
         if(source == 1)throw Exception;
-        var doc = await databaseReference.collection("agent").document(agentID).get(source: Source.cache)
+        var doc = await databaseReference.collection("agent").doc(agentID).get(GetOptions(source: Source.cache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
         if(!doc.exists){throw Exception;}
         return Agent.fromSnap(doc);
       }
       catch(_){
-        var doc = await databaseReference.collection("agent").document(agentID).get(source: Source.serverAndCache)
+        var doc = await databaseReference.collection("agent").doc(agentID).get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         return Agent.fromSnap(doc);
       }
@@ -428,18 +443,18 @@ class LogisticRepo {
         var doc = await databaseReference.collection("agent")
             .where('agent',isEqualTo: uid)
             .where('endDate',isEqualTo: null)
-            .getDocuments(source: Source.cache)
+            .get(GetOptions(source: Source.cache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(doc.documents.isEmpty){throw Exception;}
-        return doc.documents.isNotEmpty?Agent.fromSnap(doc.documents.first):null;
+        if(doc.docs.isEmpty){throw Exception;}
+        return doc.docs.isNotEmpty?Agent.fromSnap(doc.docs.first):null;
       }
       catch(_){
         var doc = await databaseReference.collection("agent")
             .where('agent',isEqualTo: uid)
             .where('endDate',isEqualTo: null)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-        return doc.documents.isNotEmpty?Agent.fromSnap(doc.documents.first):null;
+        return doc.docs.isNotEmpty?Agent.fromSnap(doc.docs.first):null;
       }
     }
     catch(_){
@@ -449,7 +464,7 @@ class LogisticRepo {
 
   static Future<AgentLocUp> getOneAgentLocation(String agentID) async {
    try{
-     var doc = await databaseReference.collection("agentLocationUpdate").document(agentID).get(source: Source.server)
+     var doc = await databaseReference.collection("agentLocationUpdate").doc(agentID).get(GetOptions(source: Source.server))
          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
      return doc.exists?AgentLocUp.fromSnap(doc):null;
    }
@@ -459,7 +474,7 @@ class LogisticRepo {
   }
 
   static Stream<AgentLocUp> getOneAgentLocationStream(String agentID) async* {
-    yield* databaseReference.collection("agentLocationUpdate").document(agentID).snapshots().map((event) {return AgentLocUp.fromSnap(event);});
+    yield* databaseReference.collection("agentLocationUpdate").doc(agentID).snapshots().map((event) {return AgentLocUp.fromSnap(event);});
 
   }
 
@@ -468,7 +483,7 @@ class LogisticRepo {
     try{
       Agent agent = await getOneAgentByUid(uid);
       var doc = await databaseReference.collection("agentLocationUpdate")
-          .document(agent.agentID).get(source: Source.server)
+          .doc(agent.agentID).get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return AgentLocUp.fromSnap(doc);
     }
@@ -534,7 +549,7 @@ class LogisticRepo {
 
   static Future<AutoMobile> getAutomobile(String autoID) async {
     try{
-      var doc = await databaseReference.collection("automobile").document(autoID).get(source: Source.server)
+      var doc = await databaseReference.collection("automobile").doc(autoID).get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return AutoMobile.fromSnap(doc);
     }
@@ -583,7 +598,7 @@ class LogisticRepo {
     List<String> collect = List();
     GeoFirePoint center =
         geo.point(latitude: mpos.latitude, longitude: mpos.longitude);
-    var collectionReference = Firestore.instance
+    var collectionReference = FirebaseFirestore.instance
         .collection('agentLocationUpdate')
         .where('availability', isEqualTo: true)
         .where('pocket', isEqualTo: true)
@@ -612,7 +627,7 @@ class LogisticRepo {
     try{
       Agent agent  = await getOneAgent(agentID);
       AutoMobile auto = await getAutomobile(agent.autoAssigned);
-      await databaseReference.collection('agent').document(agentID).delete()
+      await databaseReference.collection('agent').doc(agentID).delete()
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       await reAssignAutomobile(auto.autoID, 'Unassign',isAssigned: false);
       //await updateAgent(agentID,{'agentStatus': 0, 'startDate': Timestamp.now()});
@@ -634,9 +649,9 @@ class LogisticRepo {
         isEqualTo: plate,
       )
           .where('autoLogistic', isEqualTo: logistic)
-          .getDocuments(source: Source.server)
+          .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return docs.documents.length > 0 ? true : false;
+      return docs.docs.length > 0 ? true : false;
     }
     catch(_){
       return false;
@@ -655,9 +670,9 @@ class LogisticRepo {
         isEqualTo: type,
       )
           .where('autoLogistic', isEqualTo: logistic)
-          .getDocuments(source: Source.serverAndCache)
+          .get(GetOptions(source: Source.serverAndCache))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return AutoMobile.fromListSnap(docs.documents);
+      return AutoMobile.fromListSnap(docs.docs);
     }
     catch(_){
       return {};
@@ -675,9 +690,9 @@ class LogisticRepo {
       )
           .where('autoLogistic', isEqualTo: logistic)
           .where('autoAssigned',isEqualTo: isAssigned)
-          .getDocuments(source: Source.server)
+          .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return AutoMobile.fromListSnap(docs.documents);
+      return AutoMobile.fromListSnap(docs.docs);
     }
     catch(_){
       return {};
@@ -691,9 +706,9 @@ class LogisticRepo {
           .collection("automobile")
           .where('autoAssigned',isEqualTo: assign)
           .where('autoLogistic', isEqualTo: logistic)
-          .getDocuments(source: Source.serverAndCache)
+          .get(GetOptions(source: Source.serverAndCache))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return AutoMobile.fromListSnap(docs.documents);
+      return AutoMobile.fromListSnap(docs.docs);
     }
     catch(_){
       return {};

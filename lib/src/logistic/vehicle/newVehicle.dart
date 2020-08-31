@@ -38,7 +38,7 @@ class _VehicleFormState extends State<VehicleForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return WillPopScope(
         onWillPop: () async {
           if (isSubmitting)
@@ -105,7 +105,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TextFormField(
                                       controller: _plateController,
@@ -126,6 +126,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                       },
                                       onChanged: (value) {
                                         isNew(value);
+                                        if(mounted)
                                         setState(() {
                                           autoValidate = true;
                                         });
@@ -143,7 +144,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TextFormField(
                                       controller: _modelController,
@@ -167,7 +168,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Column(
                                       children: <Widget>[
@@ -213,7 +214,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TextFormField(
                                       controller: _nameController,
@@ -226,7 +227,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                   ),
                                   Container(
                                       padding: EdgeInsets.all(
-                                          MediaQuery.of(context).size.width *
+                                          Get.width *
                                               0.02),
                                       child: Padding(
                                           padding: EdgeInsets.symmetric(
@@ -237,6 +238,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                                 ? () {
                                                     if (_formKey.currentState
                                                         .validate()) {
+                                                      if(mounted)
                                                       setState(() {
                                                         isSubmitting = true;
                                                       });
@@ -280,7 +282,11 @@ class _VehicleFormState extends State<VehicleForm> {
                                                                       .text,
                                                               autoAssigned:
                                                                   false,
-                                                              autoType: type))
+                                                              autoType: type),
+                                                              bCount: type == 'MotorBike' ?(widget.session.merchant.bikeCount+1):widget.session.merchant.bikeCount,
+                                                              cCount: type == 'Car' ?(widget.session.merchant.carCount+1):widget.session.merchant.carCount,
+                                                              vCount: type == 'Van' ?(widget.session.merchant.vanCount+1):widget.session.merchant.vanCount,
+                                                      )
                                                           .then((value) => {
                                                                 if (Get
                                                                     .isSnackbarOpen)
@@ -318,12 +324,14 @@ class _VehicleFormState extends State<VehicleForm> {
                                                                         .clear(),
                                                                     _modelController
                                                                         .clear(),
+                                                                    if(mounted)
                                                                     setState(
                                                                         () {
                                                                       autoValidate =
                                                                           false;
                                                                     }),
                                                                   },
+                                                        if(mounted)
                                                                 setState(() {
                                                                   isSubmitting =
                                                                       false;
@@ -354,6 +362,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                                                   Colors.white,
                                                             ),
                                                           ).show();
+                                                          if(mounted)
                                                           setState(() {
                                                             isSubmitting =
                                                                 false;
@@ -361,6 +370,7 @@ class _VehicleFormState extends State<VehicleForm> {
                                                         }
                                                       });
                                                     } else {
+                                                      if(mounted)
                                                       setState(() {
                                                         autoValidate = true;
                                                       });

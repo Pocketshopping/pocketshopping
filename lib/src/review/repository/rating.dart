@@ -105,12 +105,12 @@ class Rating {
 
   static Rating fromSnap(DocumentSnapshot snap) {
     return Rating(
-      rating: (snap.data['rating']),
-      positive: (snap.data['positive']),
-      neutral: (snap.data['neutral']),
-      negative: (snap.data['negative']),
-      updatedAt: snap.data['updatedAt'],
-      id: snap.documentID,
+      rating: (snap.data()['rating']),
+      positive: (snap.data()['positive']),
+      neutral: (snap.data()['neutral']),
+      negative: (snap.data()['negative']),
+      updatedAt: snap.data()['updatedAt'],
+      id: snap.id,
     );
 
   }

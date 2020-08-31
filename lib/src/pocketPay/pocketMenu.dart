@@ -52,6 +52,7 @@ class _PocketMenuState extends State<PocketMenu> {
             var payload = jsonDecode(notification.data['data']['payload']);
             switch (payload['NotificationType']) {
               case 'paymentInitiatedConfirmResponse':
+                if(mounted)
                 setState(() {_start=0;confirm=true;});
                 if(payload['isSuccessful']){
                   Utility.infoDialogMaker('Payment Recieved by the merchant.',title: '');
@@ -133,7 +134,7 @@ class _PocketMenuState extends State<PocketMenu> {
                             Get.bottomSheet(builder: (context){
                               return Container(
                                 color: Colors.white,
-                                height: MediaQuery.of(context).size.height*0.3,
+                                height: Get.height*0.3,
                                 child: Column(
                                   children: [
                                     ListTile(
@@ -244,6 +245,7 @@ class _PocketMenuState extends State<PocketMenu> {
                                                             waiting.value = false;
                                                             _start=60;
                                                             startTimer();
+                                                            if(mounted)
                                                             setState(() {
                                                               paying =true;
                                                               confirm = false;
@@ -324,8 +326,8 @@ class _PocketMenuState extends State<PocketMenu> {
                                   ),
                                 ],
                               ),
-                              height: MediaQuery.of(context).size.height*0.2,
-                              width: MediaQuery.of(context).size.width*0.2,
+                              height: Get.height*0.2,
+                              width: Get.width*0.2,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -360,8 +362,8 @@ class _PocketMenuState extends State<PocketMenu> {
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
                             child: Container(
-                              height: MediaQuery.of(context).size.height*0.2,
-                              width: MediaQuery.of(context).size.width*0.2,
+                              height: Get.height*0.2,
+                              width: Get.width*0.2,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.only(
@@ -420,8 +422,8 @@ class _PocketMenuState extends State<PocketMenu> {
                                   ),
                                 ],
                               ),
-                              height: MediaQuery.of(context).size.height*0.2,
-                              width: MediaQuery.of(context).size.width*0.2,
+                              height: Get.height*0.2,
+                              width: Get.width*0.2,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -442,8 +444,8 @@ class _PocketMenuState extends State<PocketMenu> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
                               child: Container(
-                                height: MediaQuery.of(context).size.height*0.2,
-                                width: MediaQuery.of(context).size.width*0.2,
+                                height: Get.height*0.2,
+                                width: Get.width*0.2,
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.only(
@@ -502,18 +504,23 @@ class _PocketMenuState extends State<PocketMenu> {
   Future scan() async {
     try {
       String barcode = await BarcodeScanner.scan();
+      if(mounted)
       setState(() => this.barcode = barcode);
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
+        if(mounted)
         setState(() {
           this.barcode = null;
         });
       } else {
+        if(mounted)
         setState(() => this.barcode = null);
       }
     } on FormatException {
+      if(mounted)
       setState(() => this.barcode =null);
     } catch (e) {
+      if(mounted)
       setState(() => this.barcode = null);
     }
   }

@@ -69,7 +69,7 @@ class TicketFormWidget extends StatelessWidget {
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Text('Fill the form below to submit a complain, once submitted your complaint will be logged and our customer care will work to resolve the issue.')
                 ),
                 Container(
@@ -83,7 +83,7 @@ class TicketFormWidget extends StatelessWidget {
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: ValueListenableBuilder(
                       valueListenable: category,
                       builder: (_,String categoria,__){
@@ -129,7 +129,7 @@ class TicketFormWidget extends StatelessWidget {
                     ),
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: TextFormField(
                     controller: complain,
                     decoration: InputDecoration(
@@ -162,7 +162,7 @@ class TicketFormWidget extends StatelessWidget {
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Text(mssg,style: TextStyle(color: Colors.orangeAccent,fontWeight: FontWeight.bold),),
                     );
                   },
@@ -179,7 +179,7 @@ class TicketFormWidget extends StatelessWidget {
                     color: PRIMARYCOLOR
                   ),
                   padding: EdgeInsets.all(
-                      MediaQuery.of(context).size.width * 0.02),
+                      Get.width * 0.02),
                   child: ValueListenableBuilder(
                     valueListenable: loading,
                     builder: (_,bool load,__){

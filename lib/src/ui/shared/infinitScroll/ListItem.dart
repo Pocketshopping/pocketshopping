@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_skeleton/flutter_skeleton.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/product/repository/productObj.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
@@ -23,7 +23,7 @@ class ListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
+    double height = Get.height;
 
 
     //print(odState.order);
@@ -31,7 +31,7 @@ class ListItem extends StatelessWidget {
       showModalBottomSheet(
         context: context,
         builder: (context) => BottomSheetTemplate(
-          height: MediaQuery.of(context).size.height * 0.6,
+          height: Get.height * 0.6,
           opacity: 0.2,
           child: Container(),
         ),
@@ -433,7 +433,7 @@ class ListItem extends StatelessWidget {
                   child: Text(
                     'Empty',
                     style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.06),
+                        fontSize: Get.height * 0.06),
                   ),
                 ),
                 SizedBox(
@@ -468,7 +468,7 @@ class ListItem extends StatelessWidget {
                   child: Text(
                     'Empty',
                     style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.height * 0.06),
+                        fontSize: Get.height * 0.06),
                   ),
                 ),
                 SizedBox(
@@ -750,7 +750,7 @@ class ListItem extends StatelessWidget {
                           initialRating: 3.5,
                           minRating: 1,
                           maxRating: 5,
-                          itemSize: MediaQuery.of(context).size.width * 0.04,
+                          itemSize: Get.width * 0.04,
                           direction: Axis.horizontal,
                           allowHalfRating: true,
                           itemCount: 5,

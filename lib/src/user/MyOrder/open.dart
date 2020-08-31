@@ -58,10 +58,10 @@ class _OpenOrderState extends State<OpenOrder> {
     super.initState();
   }
 
-  void load() {
+  void load({int source=0}) {
 
     if(list.isNotEmpty)
-      OrderRepo.get(list.last,0, widget.user.user.uid).then((value) {
+      OrderRepo.get(list.last,0, widget.user.user.uid,source: source).then((value) {
         list.addAll(value);
         _finish = value.length == 10 ? false : true;
         loading =false;
@@ -70,7 +70,7 @@ class _OpenOrderState extends State<OpenOrder> {
 
       });
     else
-      OrderRepo.get(null,0, widget.user.user.uid).then((value) {
+      OrderRepo.get(null,0, widget.user.user.uid,source: source).then((value) {
         list=value;
         _finish = value.length == 10 ? false : true;
         empty=value.isEmpty?true:false;
@@ -161,7 +161,7 @@ class _OpenOrderState extends State<OpenOrder> {
                     :
                  Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -178,11 +178,14 @@ class _OpenOrderState extends State<OpenOrder> {
   }
 
   Future<void> _refresh() async {
-    setState(() {
-      list.clear();
-      loading=true;
-    });
-    load();
+    if(mounted)
+    {
+      setState(() {
+        list.clear();
+        loading=true;
+      });
+      load(source: 1);
+    }
   }
 }
 

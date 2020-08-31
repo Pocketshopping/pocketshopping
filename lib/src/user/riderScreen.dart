@@ -3,8 +3,9 @@ import 'dart:convert';
 
 import 'package:ant_icons/ant_icons.dart';
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fire;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/main.dart';
@@ -21,6 +22,7 @@ import 'package:pocketshopping/src/request/request.dart';
 import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/favourite.dart';
+import 'package:pocketshopping/src/user/merchant.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -30,8 +32,10 @@ import 'bloc/user.dart';
 
 class RiderScreen extends StatefulWidget {
   final UserRepository _userRepository;
+  final int route;
+  final String merchant;
 
-  RiderScreen({Key key, @required UserRepository userRepository})
+  RiderScreen({Key key, @required UserRepository userRepository,this.route=0,this.merchant})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -42,7 +46,7 @@ class RiderScreen extends StatefulWidget {
 
 class _RiderScreenState extends State<RiderScreen> {
   int _selectedIndex;
-  FirebaseUser currentUser;
+  fire.User currentUser;
   StreamSubscription iosSubscription;
   String userName;
   Stream<LocalNotification> _notificationsStream;
@@ -56,26 +60,26 @@ class _RiderScreenState extends State<RiderScreen> {
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     const BottomNavigationBarItem(
       icon: Icon(AntIcons.shop_outline),
-      title: Text('WorkPlace'),
+      label: 'WorkPlace',
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.search),
-      title: Text('Places'),
+      label: 'Places',
     ),
     const BottomNavigationBarItem(
-      title: Text('Favourite'),
+      label: 'Favourite',
       icon: Icon(Icons.favorite_border),
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('History'),
+      label: 'History',
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
         AssetImage("assets/images/blogo.png"),
         color: PRIMARYCOLOR,
       ),
-      title: Text('Pocket'),
+      label: 'Pocket',
     ),
   ];
 
@@ -95,7 +99,12 @@ class _RiderScreenState extends State<RiderScreen> {
         }catch(_){}
       }
     });
+    if(widget.route > 0)
+      SchedulerBinding.instance.addPostFrameCallback((_) async{
+        Get.dialog(MerchantScreen(user: currentUser.uid ,merchant: widget.merchant,));
+      });
     Utility.locationAccess();
+    Utility.stopAllService();
     super.initState();
   }
 
@@ -325,7 +334,7 @@ class _RiderScreenState extends State<RiderScreen> {
             return Scaffold(
               body: Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   )),
             );

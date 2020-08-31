@@ -2,6 +2,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:badges/badges.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/promo/bloc/promoBloc.dart';
 import 'package:pocketshopping/src/promo/repository/promoObj.dart';
 import 'package:pocketshopping/src/promo/repository/promoRepo.dart';
@@ -17,7 +18,7 @@ class BonusDrawerIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return StreamBuilder(
       stream: PromoBloc.instance.promoStream,
       builder: (_,AsyncSnapshot<bool>reload){

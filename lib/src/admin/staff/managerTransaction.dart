@@ -165,7 +165,7 @@ class _TransactionsState extends State<Transactions> {
             backgroundColor: Color.fromRGBO(255, 255, 255, 1),
             appBar: PreferredSize(
               preferredSize: Size.fromHeight(
-                  MediaQuery.of(context).size.height *
+                  Get.height *
                       0.15),
               child: AppBar(
                   title: Text(widget.title==null?'Transactions(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -183,7 +183,7 @@ class _TransactionsState extends State<Transactions> {
                   elevation: 0.0,
                   bottom: PreferredSize(
                       preferredSize: Size.fromHeight(
-                          MediaQuery.of(context).size.height *
+                          Get.height *
                               0.22),
                       child: Column(
                         children: [
@@ -333,7 +333,7 @@ class _TransactionsState extends State<Transactions> {
                             child: Text(
                               'Empty',
                               style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height * 0.06),
+                                  fontSize: Get.height * 0.06),
                             ),
                           ),
                           SizedBox(
@@ -359,7 +359,7 @@ class _TransactionsState extends State<Transactions> {
                         :
                     Center(
                       child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        fontSize: Get.height * 0.12,
                         color: PRIMARYCOLOR,
                       ),
                     )
@@ -386,7 +386,7 @@ class _TransactionsState extends State<Transactions> {
                 color: Colors.white,
                 child: Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )

@@ -47,7 +47,20 @@ class Preview extends StatefulWidget {
   final String auto;
   final String sourceAddress;
   final String destinationAddress;
-  Preview({this.user,this.position,this.source,this.destination,this.distance,this.fee,this.type,this.auto,this.sourceAddress,this.destinationAddress});
+  final String logistic;
+  Preview({
+    this.user,
+    this.position,
+    this.source,
+    this.destination,
+    this.distance,
+    this.fee,
+    this.type,
+    this.auto,
+    this.sourceAddress,
+    this.destinationAddress,
+    this.logistic="",
+  });
 
   @override
   State<StatefulWidget> createState() => _PreviewState();
@@ -152,7 +165,7 @@ class _PreviewState extends State<Preview> {
         child: Scaffold(
             resizeToAvoidBottomInset: true,
             appBar: PreferredSize(
-              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+              preferredSize: Size.fromHeight(Get.height *
                   0.08), // here the desired height
               child: AppBar(
                 leading: IconButton(
@@ -210,7 +223,7 @@ class _PreviewState extends State<Preview> {
                                   if(_stage == 0)
                                   Expanded(
                                     child: Container(
-                                        width: MediaQuery.of(context).size.width,
+                                        width: Get.width,
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           //border: Border(top: BorderSide(width: 0.5, color: Colors.black54)),
@@ -344,12 +357,16 @@ class _PreviewState extends State<Preview> {
                                                               onPressed: (){
                                                                 FocusScope.of(context).requestFocus(FocusNode());
                                                                 if(_formKey.currentState.validate()){
-                                                                  if(agentLocUp.isNotEmpty){
+                                                                  if(agentLocUp.isNotEmpty || widget.logistic.isNotEmpty){
                                                                     stage.value=1;
                                                                     dComment.value = _commentController.text;
                                                                     dContact.value = _contactController.text;
                                                                     dName.value = _nameController.text;
-                                                                    singleAgent.value = agentLocUp.firstWhere((element) => element.agentAutomobile == widget.auto);
+                                                                    if(widget.logistic.isEmpty)
+                                                                      singleAgent.value = agentLocUp.firstWhere((element) => element.agentAutomobile == widget.auto);
+                                                                    else
+                                                                      singleAgent.value=null;
+
                                                                   }
                                                                   else{
                                                                     Get.defaultDialog(
@@ -391,7 +408,7 @@ class _PreviewState extends State<Preview> {
                                     Expanded(
                                       child:
                                       Container(
-                                          width: MediaQuery.of(context).size.width,
+                                          width: Get.width,
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             //border: Border(top: BorderSide(width: 0.5, color: Colors.black54)),
@@ -420,7 +437,7 @@ class _PreviewState extends State<Preview> {
                                                                   child: Text(
                                                                     'Error communicating with server. Check internet and try again',
                                                                     style: TextStyle(
-                                                                      fontSize: MediaQuery.of(context).size.height * 0.025,
+                                                                      fontSize: Get.height * 0.025,
                                                                     ),
                                                                     textAlign: TextAlign.center,
                                                                   ),
@@ -430,7 +447,7 @@ class _PreviewState extends State<Preview> {
                                                                 padding: EdgeInsets.symmetric(vertical: 10),
                                                                 child: Text(
                                                                   'Pay With',
-                                                                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),),
+                                                                  style: TextStyle(fontSize: Get.height * 0.03),),
                                                               ):const SizedBox.shrink(),
                                                               pocket != null?
                                                               ListTile(
@@ -500,7 +517,7 @@ class _PreviewState extends State<Preview> {
                                                                 title:  Text(
                                                                   'Pocketshopping',
                                                                   style: TextStyle(
-                                                                      fontSize: MediaQuery.of(context).size.height * 0.025),
+                                                                      fontSize: Get.height * 0.025),
                                                                 ),
                                                                 subtitle: Column(
                                                                   children: <Widget>[
@@ -562,7 +579,7 @@ class _PreviewState extends State<Preview> {
                                                                 title:  Text(
                                                                   'ATM Card',
                                                                   style: TextStyle(
-                                                                      fontSize: MediaQuery.of(context).size.height * 0.025),
+                                                                      fontSize: Get.height * 0.025),
                                                                 ),
                                                                 subtitle: const Text('Choose this if you want to pay with ATM Card(instant payment).'),
                                                                 trailing: const Icon(Icons.arrow_forward_ios),
@@ -602,7 +619,7 @@ class _PreviewState extends State<Preview> {
                                                                   backgroundColor: Colors.white,
                                                                 ),
                                                                 title: Text('Cash',
-                                                                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+                                                                  style: TextStyle(fontSize: Get.height * 0.025),
                                                                 ),
                                                                 subtitle: Text( 'Choose this if you want to pay with cash.'),
                                                                 trailing: IconButton(
@@ -623,7 +640,7 @@ class _PreviewState extends State<Preview> {
                                                             children: [
                                                               Center(
                                                                 child: JumpingDotsProgressIndicator(
-                                                                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                                                                  fontSize: Get.height * 0.12,
                                                                   color: PRIMARYCOLOR,
                                                                 ),
                                                               ),
@@ -689,7 +706,9 @@ class _PreviewState extends State<Preview> {
 
   processPay(String method,Map<String,dynamic> details ) async {
     payStatus.value = 1;
-    Agent agent = await LogisticRepo.getOneAgent(singleAgent.value.agent);
+    Agent agent;
+    if(widget.logistic.isEmpty)
+    agent = await LogisticRepo.getOneAgent(singleAgent.value.agent);
     Map<String,String> reference;
     details['email']=widget.user.user.email;
     var temp = details['expiry'].toString().split('/');
@@ -705,7 +724,7 @@ class _PreviewState extends State<Preview> {
         tableNumber: '',
         coordinate: GeoPoint(position.latitude,position.longitude),
         fee: fee.value,
-        deliveryMan: singleAgent.value.agentName,
+        deliveryMan: widget.logistic.isEmpty?singleAgent.value.agentName:'',
         address: '',
         acceptedBy: '',
         mode: 'Errand'
@@ -713,16 +732,17 @@ class _PreviewState extends State<Preview> {
       orderMerchant: '',
       orderCreatedAt: Timestamp.now(),
       orderID: '',
-      orderETA: 300,
+      orderETA: 3600,
       status: 0,
       isAssigned: false,
       docID: '',
       customerDevice: await FirebaseMessaging().getToken(),
       resolution: '',
-      agent: agent.agent,
+      agent: widget.logistic.isEmpty?agent.agent:'',
+      auto: widget.auto,
       customerID: currentUser.user.uid,
-      orderLogistic: '',
-      potentials: [singleAgent.value.agent],
+      orderLogistic: widget.logistic,
+      potentials: widget.logistic.isEmpty?[singleAgent.value.agent]:[],
       orderConfirmation: Confirmation(
         isConfirmed: false,
         confirmOTP: randomAlphaNumeric(6),
@@ -777,7 +797,7 @@ class _PreviewState extends State<Preview> {
                   status: 0,
                   orderID: '',
                   docID: '',
-                  orderLogistic: '',
+                  //orderLogistic: '',
                 );
             else{
               payStatus.value = 2;
@@ -791,8 +811,10 @@ class _PreviewState extends State<Preview> {
                   then((value) => WalletBloc.instance.newWallet(value));
                   order = order.update(docID: value);
                   //Utility.bottomProgressSuccess(body: 'Request has been sent to Rider',title: 'Request Sent');
+                  if(widget.logistic.isEmpty)
                   Utility.pushNotifier(fcm: singleAgent.value.device,body: 'You have a new Errand request. check request bucket for details',title: 'Errand Request',
                       notificationType: 'ErrandRequest',data: {});
+
                   Get.off(CustomerErrandTrackerWidget(user: currentUser.user,order: value,isActive: true,));
                 }
                 else{
@@ -832,7 +854,7 @@ class _PreviewState extends State<Preview> {
               status: 0,
               orderID: '',
               docID: '',
-              orderLogistic: '',
+              //orderLogistic: '',
             );
 
         else
@@ -847,8 +869,10 @@ class _PreviewState extends State<Preview> {
               then((value) => WalletBloc.instance.newWallet(value));
               order = order.update(docID: value);
               //Utility.bottomProgressSuccess(body: 'Request has been sent to Rider',title: 'Request Sent');
+              if(widget.logistic.isEmpty)
               Utility.pushNotifier(fcm: singleAgent.value.device,body: 'You have a new Errand request. check request bucket for details',title: 'Errand Request',
                   notificationType: 'ErrandRequest',data: {});
+
               Get.off(CustomerErrandTrackerWidget(user: currentUser.user,order: value,isActive: true,));
             }
             else{
@@ -877,7 +901,7 @@ class _PreviewState extends State<Preview> {
               status: 0,
               orderID: '',
               docID: '',
-              orderLogistic: '',
+             // orderLogistic: '',
             );
 
         }
@@ -892,8 +916,10 @@ class _PreviewState extends State<Preview> {
               then((value) => WalletBloc.instance.newWallet(value));
               order = order.update(docID: value);
               //Utility.bottomProgressSuccess(body: 'Request has been sent to Rider',title: 'Request Sent');
+              if(widget.logistic.isEmpty)
               Utility.pushNotifier(fcm: singleAgent.value.device,body: 'You have a new Errand request. check request bucket for details',title: 'Errand Request',
                   notificationType: 'ErrandRequest',data: {});
+
               Get.off(CustomerErrandTrackerWidget(user: currentUser.user,order: value,isActive: true,));
 
             }

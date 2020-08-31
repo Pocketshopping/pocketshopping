@@ -70,6 +70,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
           switch (payload['NotificationType']) {
             case 'paymentInitiatedResponse':
               if(payload['paymentId'] == paymentId){
+                if(mounted)
                 setState(() { transactionExpires=true; stage=3;_start=0;});
                 //print(payload['customerWallet']);
                 if(payload['customerWallet'] != null) {
@@ -77,6 +78,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                       payload['customerWallet']);
                   if (wallet.walletBalance < order.orderAmount) {
                     ack(device: payload['fcm'],isSuccessful: false);
+                    if(mounted)
                     setState(() {
                       stage = 6;
                       errorMessage =
@@ -122,10 +124,12 @@ class _PosCheckOutState extends State<PosCheckOut> {
                             ),
                             customerID: payload['customer']
                         );
+                        if(mounted)
                         setState(() {});
                       }
                     }
                     bool result = await finaliseOrder();
+                    if(mounted)
                     setState(() {
                       if (result) {
                         stage = 5;
@@ -140,6 +144,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                   }
                 }
                 else{
+                  if(mounted)
                   setState(() {
                       stage = 6;
                       errorMessage = 'Error decoding customer detail.';
@@ -211,7 +216,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageTwo() {
     return Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: Get.height * 0.8,
     child: Column(
     children: <Widget>[
 
@@ -226,6 +231,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 child: IconButton(
                   onPressed: () {
                     stage = 0;
+                    if(mounted)
                     setState(() {});
                   },
                   icon: Icon(Icons.arrow_back),
@@ -308,6 +314,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
           child: Center(
             child: FlatButton(
               onPressed: () async{
+                if(mounted)
                 setState(() {stage=2;
                 order = order.update(
                     orderItem: OrderItem.fromCartList(widget.payload),
@@ -353,7 +360,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageOneOfList() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
 
@@ -368,6 +375,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                         child: FlatButton(
                           onPressed: () {
                             widget.payload.clear();
+                            if(mounted)
                             setState(() {});
                             widget.cartOps();
                             Get.back();
@@ -438,7 +446,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                                       '${widget.payload[index].item.pPrice}',
                                   style: TextStyle(
                                       fontSize:
-                                      MediaQuery.of(context).size.height *
+                                      Get.height *
                                           0.025),
                                 ),
                               ),
@@ -462,6 +470,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                                                   widget.payload[index].count *
                                                       widget.payload[index].item
                                                           .pPrice;
+                                              if(mounted)
                                               setState(() {});
                                             }
                                           },
@@ -494,6 +503,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                                                 widget.payload[index].count *
                                                     widget.payload[index].item
                                                         .pPrice;
+                                            if(mounted)
                                             setState(() {});
                                           },
                                           child: Container(
@@ -527,6 +537,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                           trailing: IconButton(
                             onPressed: () {
                               widget.payload.remove(widget.payload[index]);
+                              if(mounted)
                               setState(() {});
                               widget.cartOps();
                               if (widget.payload.length == 0)
@@ -544,7 +555,9 @@ class _PosCheckOutState extends State<PosCheckOut> {
               color: PRIMARYCOLOR,
               child: Center(
                 child: FlatButton(
-                  onPressed: () {setState(() {stage=1; });},
+                  onPressed: () {
+                    if(mounted)
+                    setState(() {stage=1; });},
                   child: Text(
                     'Next ($CURRENCY ${Utility.sum(widget.payload)})',
                     style: TextStyle(color: Colors.white),
@@ -638,7 +651,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageThree() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
           Row(
@@ -649,6 +662,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 child: IconButton(
                   onPressed: () {
                     stage = 1;
+                    if(mounted)
                     setState(() {});
                   },
                   icon: Icon(Icons.arrow_back),
@@ -673,7 +687,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 child: Text(
                   'Proceed with payment to complete transaction',
                   style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.height * 0.025,
+                    fontSize: Get.height * 0.025,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -682,11 +696,12 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 margin: EdgeInsets.only(bottom: 20),
                 child: Text(
                   'Pay with',
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),),
+                  style: TextStyle(fontSize: Get.height * 0.03),),
               ),
 
               ListTile(
                 onTap: () async {
+                  if(mounted)
                   setState(() {
                     _start =120;
                     stage=4;
@@ -702,7 +717,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 title:  Text(
                   'Pocket',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.025),
+                      fontSize: Get.height * 0.025),
                 ),
                 subtitle: Column(
                   children: <Widget>[
@@ -727,6 +742,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
               ),
               ListTile(
                 onTap: () async {
+                  if(mounted)
                   setState(() {stage=3;});
                   Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
                   String currentAddress = await Utility.address(position);
@@ -757,10 +773,12 @@ class _PosCheckOutState extends State<PosCheckOut> {
                         )
 
                       );
+                      if(mounted)
                       setState(() {});
                     }
                   }
                   bool result = await finaliseOrder();
+                  if(mounted)
                   setState(() {
                     if(result)
                       stage = 5;
@@ -775,7 +793,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 ),
                 title: Text(
                    'Cash',
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+                  style: TextStyle(fontSize: Get.height * 0.025),
                 ),
                 subtitle: Text('Choose this if customer want to pay with cash.'),
                 trailing: IconButton(
@@ -795,7 +813,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageFourCash() {
     return Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: Get.height * 0.8,
     child: Column(
         children: [
           Expanded(
@@ -822,7 +840,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageFourPocket() {
     return Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: Get.height * 0.8,
         child: Column(
           children: [
             Expanded(
@@ -863,7 +881,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageFive(){
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
           Expanded(
@@ -882,7 +900,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                         'Transaction has completed successfully',
                         style: TextStyle(
                             fontSize:
-                            MediaQuery.of(context).size.height * 0.04),textAlign: TextAlign.center,
+                            Get.height * 0.04),textAlign: TextAlign.center,
                       ),
                     ),
                     SizedBox(
@@ -898,7 +916,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                           style: TextStyle(
                             color: Colors.white,
                               fontSize:
-                              MediaQuery.of(context).size.height * 0.03),
+                              Get.height * 0.03),
                         )
                       )
                     ),
@@ -913,7 +931,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
 
   Widget stageSix(){
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
           Expanded(
@@ -931,13 +949,14 @@ class _PosCheckOutState extends State<PosCheckOut> {
                       '$errorMessage',
                       style: TextStyle(
                           fontSize:
-                          MediaQuery.of(context).size.height * 0.04),textAlign: TextAlign.center
+                          Get.height * 0.04),textAlign: TextAlign.center
                     ),
                     SizedBox(
                       height: 10,
                     ),
                     FlatButton(
                         onPressed: (){
+                          if(mounted)
                           setState(() {
                             stage=2;
                           });
@@ -950,7 +969,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize:
-                                  MediaQuery.of(context).size.height * 0.03),
+                                  Get.height * 0.03),
                             )
                         )
                     ),

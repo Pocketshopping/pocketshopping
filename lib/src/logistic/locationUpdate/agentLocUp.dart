@@ -19,6 +19,7 @@ class AgentLocUp {
   final int limit;
   final bool autoAssigned;
   final bool accepted;
+  final bool busy;
 
   AgentLocUp({
     this.agent,
@@ -37,6 +38,7 @@ class AgentLocUp {
     this.limit,
     this.autoAssigned,
     this.accepted,
+    this.busy,
 
   });
 
@@ -57,6 +59,7 @@ class AgentLocUp {
     int limit,
     bool autoAssigned,
     bool accepted,
+    bool busy
 
   }) {
     return AgentLocUp(
@@ -75,7 +78,8 @@ class AgentLocUp {
       workPlaceWallet: workPlaceWallet??this.workPlaceWallet,
       limit: limit??this.limit,
       autoAssigned: autoAssigned ?? this.autoAssigned,
-      accepted: accepted?? this.accepted
+      accepted: accepted?? this.accepted,
+      busy: busy??this.busy
     );
   }
 
@@ -95,7 +99,7 @@ class AgentLocUp {
       wallet.hashCode ^
       workPlaceWallet.hashCode ^
       limit.hashCode ^
-      autoAssigned.hashCode ^ accepted.hashCode;
+      autoAssigned.hashCode ^ accepted.hashCode ^ busy.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -116,7 +120,7 @@ class AgentLocUp {
           wallet == other.wallet &&
           workPlaceWallet == other.workPlaceWallet &&
           limit == other.limit &&
-          autoAssigned == other.autoAssigned && accepted == other.accepted;
+          autoAssigned == other.autoAssigned && accepted == other.accepted && busy == other.busy;
 
   AgentLocUp update({
     String agent,
@@ -135,6 +139,7 @@ class AgentLocUp {
     int limit,
     bool autoAssigned,
     bool accepted,
+    bool busy
   }) {
     return copyWith(
       agent: agent,
@@ -152,7 +157,8 @@ class AgentLocUp {
       wallet: wallet,
       limit: limit,
       autoAssigned: autoAssigned,
-      accepted: accepted
+      accepted: accepted,
+      busy: busy
     );
   }
 
@@ -178,28 +184,30 @@ class AgentLocUp {
       'workPlaceWallet':workPlaceWallet,
       'limit':limit,
       'autoAssigned':autoAssigned,
-      'accepted':accepted
+      'accepted':accepted,
+      'busy':busy??false,
     };
   }
 
   static AgentLocUp fromSnap(DocumentSnapshot snap) {
     return AgentLocUp(
-      agentAutomobile: snap.data['agentAutomobile'],
-      agentUpdateAt: snap.data['UpdatedAt'],
-      agentLocation: (snap.data['agentLocation'] as Map<String, dynamic>)['geopoint'],
-      agent: snap.documentID,
-      agentName: snap.data['agentName'],
-      agentTelephone: snap.data['agentTelephone'],
-      availability: snap.data['availability'],
-      device: snap.data['device'],
-      startedAt: snap.data['startedAt'],
-      profile: snap.data['profile'],
-      address: snap.data['address'],
-      wallet: snap.data['wallet'],
-      workPlaceWallet: snap.data['workPlaceWallet'],
-      limit: snap.data['limit'],
-      autoAssigned: snap.data['autoAssigned'],
-      accepted: snap.data['accepted']??false,
+      agentAutomobile: snap.data()['agentAutomobile'],
+      agentUpdateAt: snap.data()['UpdatedAt'],
+      agentLocation: (snap.data()['agentLocation'] as Map<String, dynamic>)['geopoint'],
+      agent: snap.id,
+      agentName: snap.data()['agentName'],
+      agentTelephone: snap.data()['agentTelephone'],
+      availability: snap.data()['availability'],
+      device: snap.data()['device'],
+      startedAt: snap.data()['startedAt'],
+      profile: snap.data()['profile'],
+      address: snap.data()['address'],
+      wallet: snap.data()['wallet'],
+      workPlaceWallet: snap.data()['workPlaceWallet'],
+      limit: snap.data()['limit'],
+      autoAssigned: snap.data()['autoAssigned'],
+      accepted: snap.data()['accepted']??false,
+      busy: snap.data()['busy']??false,
 
     );
   }

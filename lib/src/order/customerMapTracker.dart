@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -42,7 +43,7 @@ class _CustomerMapTrackerState extends State<CustomerMapTracker> {
     return Scaffold(
       appBar:PreferredSize(
         preferredSize: Size.fromHeight(
-            MediaQuery.of(context).size.height *
+            Get.height *
                 0.15),
         child: AppBar(
             title: Text('${widget.customerName}',style: TextStyle(color: PRIMARYCOLOR),),

@@ -76,7 +76,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
       backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
-            MediaQuery.of(context).size.height *
+            Get.height *
                 0.17),
         child: AppBar(
           title: Text('Business(es)',style: TextStyle(color: PRIMARYCOLOR),),
@@ -93,7 +93,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
           elevation: 0.0,
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(
-                  MediaQuery.of(context).size.height *
+                  Get.height *
                       0.1),
               child: Container(
                   child: TextFormField(
@@ -171,7 +171,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
                     if(!Get.isBottomSheetOpen)
                     Get.bottomSheet(builder: (context)=>
                         admin.BottomSheetTemplate(
-                          height: MediaQuery.of(context).size.height * 0.25,
+                          height: Get.height * 0.25,
                           child: Container(
                             child:  Container(
                               child: Row(
@@ -182,7 +182,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
                                       child: Column(
                                         children: [
                                           Image.asset('assets/images/product.png',
-                                            height: MediaQuery.of(context).size.height*0.1,),
+                                            height: Get.height*0.1,),
                                           Center(
                                             child: Text('Product'),
                                           )
@@ -213,7 +213,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
                                         children: [
                                           Icon(
                                             Icons.settings,
-                                            size: MediaQuery.of(context).size.height*0.1,
+                                            size: Get.height*0.1,
                                           ),
                                           Center(
                                             child: Text('Manage Business'),
@@ -286,7 +286,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
               child: Text(
                 'Empty',
                 style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.height * 0.06),
+                    fontSize: Get.height * 0.06),
               ),
             ),
             SizedBox(
@@ -312,7 +312,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
           :
       Center(
         child: JumpingDotsProgressIndicator(
-          fontSize: MediaQuery.of(context).size.height * 0.12,
+          fontSize: Get.height * 0.12,
           color: PRIMARYCOLOR,
         ),
       )

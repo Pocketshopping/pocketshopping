@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class psCard extends StatefulWidget {
   psCard({
@@ -28,7 +29,7 @@ class _psCardState extends State<psCard> {
         boxShadow: widget.boxShadow,
       ),
       //width: 300,
-      margin: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+      margin: EdgeInsets.all(Get.width * 0.04),
 
       child: Column(children: <Widget>[
         Container(
@@ -36,9 +37,9 @@ class _psCardState extends State<psCard> {
             color: widget.color,
           ),
           alignment: Alignment.centerLeft,
-          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height * 0.05,
+          padding: EdgeInsets.all(Get.width * 0.02),
+          width: Get.width,
+          height: Get.height * 0.05,
           child: FittedBox(
               fit: BoxFit.contain,
               child: Text(
@@ -47,7 +48,7 @@ class _psCardState extends State<psCard> {
               )),
         ),
         Container(
-          //padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
+          //padding: EdgeInsets.all(Get.width*0.02),
           child: widget.child != null ? widget.child : Container(),
         ),
       ]),
@@ -73,10 +74,10 @@ class psHeadlessCard extends StatelessWidget {
         boxShadow: boxShadow,
       ),
       //width: 300,
-      margin: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+      margin: EdgeInsets.all(Get.width * 0.04),
       child: Column(children: <Widget>[
         Container(
-          //padding: EdgeInsets.all(MediaQuery.of(context).size.width*0.02),
+          //padding: EdgeInsets.all(Get.width*0.02),
           child: child != null ? child : Container(),
         ),
       ]),

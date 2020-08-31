@@ -43,7 +43,7 @@ class _LogisticStatisticState extends State<LogisticStatistic> {
                 backgroundColor: Color.fromRGBO(255, 255, 255, 1),
                 appBar: PreferredSize(
                   preferredSize: Size.fromHeight(
-                      MediaQuery.of(context).size.height *
+                      Get.height *
                           0.15),
                   child: AppBar(
                       title: Text(widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -61,7 +61,7 @@ class _LogisticStatisticState extends State<LogisticStatistic> {
                       elevation: 0.0,
                       bottom: PreferredSize(
                           preferredSize: Size.fromHeight(
-                              MediaQuery.of(context).size.height *
+                              Get.height *
                                   0.22),
                           child: Column(
                             children: [
@@ -121,7 +121,7 @@ class _LogisticStatisticState extends State<LogisticStatistic> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           JumpingDotsProgressIndicator(
-                            fontSize: MediaQuery.of(context).size.height * 0.12,
+                            fontSize: Get.height * 0.12,
                             color: PRIMARYCOLOR,
                           ),
                           Text('Generating report...please wait')
@@ -232,7 +232,7 @@ class _LogisticStatisticState extends State<LogisticStatistic> {
                   color: Colors.white,
                   child: Center(
                     child: JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height * 0.12,
+                      fontSize: Get.height * 0.12,
                       color: PRIMARYCOLOR,
                     ),
                   )
@@ -337,7 +337,7 @@ class YesterdayStat extends StatelessWidget{
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
               Text('Generating report...please wait')
@@ -459,7 +459,7 @@ class ThirtyDaysStat extends StatelessWidget{
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                   Text('Generating report...please wait')

@@ -161,19 +161,19 @@ class Staff {
 
   static Staff fromSnap(DocumentSnapshot snap) {
     return Staff(
-      staff: snap.data['staff'],
-      staffBehaviour: snap.data['staffBehaviour'],
-      staffCreatedAt: snap.data['staffCreatedAt'],
-      staffJobTitle: snap.data['staffJobTitle'],
-      staffPermissions: Permission.fromMap(snap.data['staffPermissions'] as Map<String, dynamic>),
-      staffStatus: snap.data['staffStatus'],
-      staffWorkPlace: snap.data['staffWorkPlace'],
-      startDate: snap.data['startDate'],
-      endDate: snap.data['endDate'],
-      staffName: snap.data['staffName'],
-      parentAllowed: snap.data['parentAllowed'],
-      staffWorkPlaceWallet: snap.data['staffWorkPlaceWallet'],
-      staffID: snap.documentID,
+      staff: snap.data()['staff'],
+      staffBehaviour: snap.data()['staffBehaviour'],
+      staffCreatedAt: snap.data()['staffCreatedAt'],
+      staffJobTitle: snap.data()['staffJobTitle'],
+      staffPermissions: Permission.fromMap(snap.data()['staffPermissions'] as Map<String, dynamic>),
+      staffStatus: snap.data()['staffStatus'],
+      staffWorkPlace: snap.data()['staffWorkPlace'],
+      startDate: snap.data()['startDate'],
+      endDate: snap.data()['endDate'],
+      staffName: snap.data()['staffName'],
+      parentAllowed: snap.data()['parentAllowed'],
+      staffWorkPlaceWallet: snap.data()['staffWorkPlaceWallet'],
+      staffID: snap.id,
     );
   }
 

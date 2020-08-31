@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/logistic/agent/newAgent.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
@@ -13,17 +14,17 @@ class AgentBottomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: Get.height * 0.4,
       width: marginLR,
       child: CustomScrollView(
         slivers: <Widget>[
           SliverList(
               delegate: SliverChildListDelegate([
             Container(
-              height: MediaQuery.of(context).size.height * 0.02,
+              height: Get.height * 0.02,
             ),
           ])),
           SliverList(
@@ -55,7 +56,7 @@ class AgentBottomPage extends StatelessWidget {
                 height: gridHeight,
                 icon: Icon(
                   Icons.person_add,
-                  size: MediaQuery.of(context).size.width * 0.16,
+                  size: Get.width * 0.16,
                   color: PRIMARYCOLOR.withOpacity(0.8),
                 ),
                 title: 'Add Agent',
@@ -66,7 +67,7 @@ class AgentBottomPage extends StatelessWidget {
               height: gridHeight,
               icon: Icon(
                 Icons.edit,
-                size: MediaQuery.of(context).size.width * 0.16,
+                size: Get.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Manage Agent',

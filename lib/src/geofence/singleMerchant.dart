@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:badges/badges.dart';
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -75,18 +74,22 @@ class _MerchantUIState extends State<MerchantUI> {
     orderCount = 1;
     position = widget.initPosition;
     try{
+
       CloudFunctions.instance
           .getHttpsCallable(
         functionName: "FetchMerchantsProductCategory",
       )
-          .call({'mID': widget.merchant.mID}).then((value) => setState(() {
-        category = value.data;
-        if (category.isNotEmpty) selectedCategory = category[0];
-      }));
+          .call({'mID': widget.merchant.mID}).then((value)  {
+        if(mounted)
+        setState(() {
+          category = value.data;
+          if (category.isNotEmpty) selectedCategory = category[0];
+        });
+      });
     }
     catch(_){Get.back();}
     location.changeSettings(
-        accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
+        accuracy: loc.LocationAccuracy.high, interval: 60000);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
       position = Position(
           latitude: cLoc.latitude,
@@ -107,6 +110,7 @@ class _MerchantUIState extends State<MerchantUI> {
 
   void _searchPressed() {
     _filter.clear();
+    if(mounted)
     setState(() {
       if (this._searchIcon.icon == Icons.search) {
         this._searchIcon = Icon(
@@ -136,6 +140,7 @@ class _MerchantUIState extends State<MerchantUI> {
               if (value.isNotEmpty) {
                 vmodel.handleSearch(search: _filter.text);
                 _searchText = value;
+                if(mounted)
                 setState(() {});
               }
             },
@@ -169,7 +174,7 @@ class _MerchantUIState extends State<MerchantUI> {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
+    double height = Get.height;
 
     return category != null
         ? category.isNotEmpty
@@ -177,7 +182,7 @@ class _MerchantUIState extends State<MerchantUI> {
                 backgroundColor: Colors.white,
                 appBar: PreferredSize(
                   preferredSize: Size.fromHeight(
-                      MediaQuery.of(context).size.height *
+                      Get.height *
                           0.25), // here the desired height
                   child: AppBar(
                     elevation: 0.0,
@@ -200,7 +205,7 @@ class _MerchantUIState extends State<MerchantUI> {
                     ],
                     bottom: PreferredSize(
                         preferredSize: Size.fromHeight(
-                            MediaQuery.of(context).size.height * 0.1),
+                            Get.height * 0.1),
                         child: Builder(
                             builder: (context) => Container(
                                 padding: EdgeInsets.only(left: 10, right: 10),
@@ -405,6 +410,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                                                             1),
                                                                 onSelected: (bool
                                                                     selected) {
+                                                                  if(mounted)
                                                                   setState(() {
                                                                     int lastIndex =
                                                                         _value;
@@ -509,7 +515,7 @@ class _MerchantUIState extends State<MerchantUI> {
                   child: Column(
                     children: <Widget>[
                       Container(
-                        height: MediaQuery.of(context).size.height * 0.4,
+                        height: Get.height * 0.4,
                         child: ShaderMask(
                           shaderCallback: (rect) {
                             return LinearGradient(
@@ -526,13 +532,13 @@ class _MerchantUIState extends State<MerchantUI> {
                                 ? widget.merchant.bPhoto
                                 : PocketShoppingDefaultCover,
                             fit: BoxFit.cover,
-                            width: MediaQuery.of(context).size.width,
+                            width: Get.width,
                             height: height * 0.4,
                           ),
                         ),
                       ),
                       Container(
-                        height: MediaQuery.of(context).size.height * 0.6,
+                        height: Get.height * 0.6,
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Column(
                           children: <Widget>[
@@ -540,7 +546,7 @@ class _MerchantUIState extends State<MerchantUI> {
                               widget.merchant.bName ?? 'Merchant',
                               style: TextStyle(
                                   fontSize:
-                                      MediaQuery.of(context).size.height * 0.06,
+                                      Get.height * 0.06,
                                   color: Colors.black54),
                                 textAlign: TextAlign.center
                             ),
@@ -550,7 +556,7 @@ class _MerchantUIState extends State<MerchantUI> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize:
-                                      MediaQuery.of(context).size.height * 0.03,
+                                      Get.height * 0.03,
                                   color: Colors.black54),
                             ),
                             SizedBox(height: 20),
@@ -559,7 +565,7 @@ class _MerchantUIState extends State<MerchantUI> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize:
-                                      MediaQuery.of(context).size.height * 0.03,
+                                      Get.height * 0.03,
                                   color: Colors.black54),
                             ),
                             SizedBox(height: 10),
@@ -567,7 +573,7 @@ class _MerchantUIState extends State<MerchantUI> {
                                 onPressed: () => launch("tel:${widget.merchant.bTelephone}"),
                               child: Icon(Icons.call,
                                   size:
-                                      MediaQuery.of(context).size.height * 0.1,
+                                      Get.height * 0.1,
                                   color: Colors.black54),
                             ),
                             SizedBox(height: 10),
@@ -576,7 +582,7 @@ class _MerchantUIState extends State<MerchantUI> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize:
-                                      MediaQuery.of(context).size.height * 0.02,
+                                      Get.height * 0.02,
                                   color: Colors.black54),
                             ),
                             SizedBox(height: 5),
@@ -584,7 +590,7 @@ class _MerchantUIState extends State<MerchantUI> {
                               widget.merchant.bTelephone ?? '',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height *
+                                  fontSize: Get.height *
                                       0.025,
                                   color: Colors.black54),
                             ),*/
@@ -598,7 +604,7 @@ class _MerchantUIState extends State<MerchantUI> {
             backgroundColor: Colors.white,
             body: Center(
               child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
             ),
@@ -609,7 +615,7 @@ class _MerchantUIState extends State<MerchantUI> {
     showModalBottomSheet(
         context: context,
         builder: (context) => BottomSheetTemplate(
-              height: MediaQuery.of(context).size.height * 0.4,
+              height: Get.height * 0.4,
               child: Container(
                 child: Container(),
               ),
@@ -630,12 +636,14 @@ class _MerchantUIState extends State<MerchantUI> {
             mainButton: FlatButton(
               onPressed: () {
                 cart.remove(item);
+                if(mounted)
                 setState(() {});
               },
               child: Text('Remove'),
             ));
     } else {
       cart.add(item);
+      if(mounted)
       setState(() {});
       if (!Get.isSnackbarOpen)
         Get.snackbar('Basket', "Item added to the basket",
@@ -648,6 +656,7 @@ class _MerchantUIState extends State<MerchantUI> {
             mainButton: FlatButton(
               onPressed: () {
                 cart.remove(item);
+                if(mounted)
                 setState(() {});
               },
               child: Text('Remove'),
@@ -672,6 +681,7 @@ class _MerchantUIState extends State<MerchantUI> {
   }
 
   cartOps() {
+    if(mounted)
     setState(() {});
   }
 

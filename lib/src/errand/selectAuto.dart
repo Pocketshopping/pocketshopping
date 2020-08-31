@@ -26,7 +26,24 @@ class SelectAuto extends StatefulWidget {
   final int distance;
   final sourceAddress;
   final destinationAddress;
-  SelectAuto({this.user,this.position,this.source,this.destination,this.distance,this.sourceAddress,this.destinationAddress});
+  final String logistic;
+  final int bCount;
+  final int cCount;
+  final int vCount;
+  final String logName;
+  SelectAuto({this.user,
+    this.position,
+    this.source,
+    this.destination,
+    this.distance,
+    this.sourceAddress,
+    this.destinationAddress,
+    this.logistic="",
+    this.bCount =0,
+    this.vCount = 0,
+    this.cCount =0,
+    this.logName
+  });
 
   @override
   State<StatefulWidget> createState() => _SelectAutoState();
@@ -63,7 +80,10 @@ class _SelectAutoState extends State<SelectAuto> {
     Future.delayed(Duration(seconds: 1),(){load.value=true;});
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     zoom = Utility.zoomer(widget.distance);
-    CloudFunctions.instance.getHttpsCallable(functionName: "ErrandDeliveryCut",).call({'distance': (widget.distance*1000)}).then((value) {fee.value = List.castFrom(value.data);});
+    CloudFunctions.instance.getHttpsCallable(functionName: "ErrandDeliveryCut",).call({'distance': (widget.distance*1000)}).then((value) {
+      if(mounted)
+      fee.value = List.castFrom(value.data);
+    });
     agentStream = ErrandRepo.getNearByErrandRider(Position(latitude: widget.source.latitude,longitude: widget.source.longitude)).listen((event) {
       agents.value = event;
       ErrandBloc.instance.newAgentLocList(event);
@@ -102,7 +122,7 @@ class _SelectAutoState extends State<SelectAuto> {
                             ):
                             Center(
                               child: JumpingDotsProgressIndicator(
-                                fontSize: MediaQuery.of(context).size.height * 0.12,
+                                fontSize: Get.height * 0.12,
                                 color: PRIMARYCOLOR,
                               ),
                             )
@@ -123,7 +143,7 @@ class _SelectAutoState extends State<SelectAuto> {
                               ],
                             ),
 
-                            child:snapshot.isNotEmpty?
+                            child:snapshot.isNotEmpty || (widget.logistic.isNotEmpty && (widget.bCount>0 || widget.cCount>0 || widget.vCount>0))?
                             Column(
                               children: [
                                 Expanded(
@@ -147,7 +167,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                               alignment: Alignment.centerLeft,
                                               child: Padding(
                                                   padding: EdgeInsets.symmetric(vertical: 5),
-                                                  child: Text('Select Rider.',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18,color: Colors.black45),)
+                                                  child: Text('Select Automobile.',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18,color: Colors.black45),)
                                               ),
                                             ),
                                           ],
@@ -161,7 +181,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                       children: [
 
 
-                                        snapshot.any((element) => element.agentAutomobile == 'MotorBike')?
+                                        snapshot.any((element) => element.agentAutomobile == 'MotorBike') || (widget.logistic.isNotEmpty && widget.bCount>0)?
                                         Padding(
                                           padding: EdgeInsets.symmetric(vertical: 5),
                                           child: ListTile(
@@ -179,6 +199,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                                   auto: 'MotorBike',
                                                   sourceAddress: widget.sourceAddress,
                                                   destinationAddress: widget.destinationAddress,
+                                                  logistic:widget.logistic,
 
                                                 ));
                                               }
@@ -197,7 +218,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                           ),
                                         ):const SizedBox.shrink(),
 
-                                       snapshot.any((element) => element.agentAutomobile == 'Car')?
+                                       snapshot.any((element) => element.agentAutomobile == 'Car') || (widget.logistic.isNotEmpty && widget.cCount>0) ?
                                         Padding(
                                           padding: EdgeInsets.symmetric(vertical: 5),
                                           child: ListTile(
@@ -214,6 +235,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                                   auto: 'Car',
                                                   sourceAddress: widget.sourceAddress,
                                                   destinationAddress: widget.destinationAddress,
+                                                  logistic:widget.logistic,
                                                 ));
                                             },
                                             leading: CircleAvatar(
@@ -229,7 +251,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                         )
                                             :const SizedBox.shrink(),
 
-                                       snapshot.any((element) => element.agentAutomobile == 'Van')?
+                                       snapshot.any((element) => element.agentAutomobile == 'Van') || (widget.logistic.isNotEmpty && widget.vCount>0)?
                                         Padding(
                                           padding: EdgeInsets.symmetric(vertical: 5),
                                           child: ListTile(
@@ -246,6 +268,7 @@ class _SelectAutoState extends State<SelectAuto> {
                                                   auto: 'Van',
                                                   sourceAddress: widget.sourceAddress,
                                                   destinationAddress: widget.destinationAddress,
+                                                  logistic:widget.logistic,
                                                 ));
                                             },
                                             leading: CircleAvatar(
@@ -265,8 +288,30 @@ class _SelectAutoState extends State<SelectAuto> {
                                     )
                                 ),
                               ],
-                            ):Center(
-                                        child: Text('No available Rider within region.')
+                            ):(widget.logistic.isNotEmpty && widget.bCount==0 && widget.cCount==0 && widget.vCount==0)?
+                            Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(' ${widget.logName} Is currently not operational'),
+                                    FlatButton(
+                                        onPressed: (){Get.back();},
+                                        color: PRIMARYCOLOR,
+                                        child: Text('Go Back',style: TextStyle(color: Colors.white),))
+                                  ],
+                                )
+                            ):
+                            Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text('No available Rider within region.'),
+                                            FlatButton(
+                                                onPressed: (){Get.back();},
+                                                color: PRIMARYCOLOR,
+                                                child: Text('Go Back',style: TextStyle(color: Colors.white),))
+                                          ],
+                                        )
                                     )
                           ),
                         )

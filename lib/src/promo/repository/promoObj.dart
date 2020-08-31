@@ -86,12 +86,12 @@ class Bonus {
 
   static Bonus fromMap(DocumentSnapshot snap) {
     return Bonus(
-      bonus: snap.data['bonus'],
-      recipient: snap.data['recipient'],
-      createdDate: snap['createdDate'],
-      status: snap.data['status'],
-      amount: snap.data['amount'],
-      id: snap.documentID,
+      bonus: snap.data()['bonus'],
+      recipient: snap.data()['recipient'],
+      createdDate: snap.data()['createdDate'],
+      status: snap.data()['status'],
+      amount: snap.data()['amount'],
+      id: snap.id,
 
     );
   }

@@ -117,23 +117,23 @@ class ProductEntity extends Equatable {
   static ProductEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
     return ProductEntity(
-      snap.documentID,
-      snap.data['productMerchant'],
-      snap.data['productName'],
-      snap.data['productPrice'],
-      snap.data['productCategory'],
-      snap.data['productDesc'],
-      snap.data['productPhoto'],
-      snap.data['productGroup'],
-      snap.data['productStockCount'],
-      snap.data['productQRCode'],
-      snap.data['productUploader'].toString(),
-      snap.data['productUnit'],
-      snap.data['productCreatedAt'],
-      snap.data['productStatus'],
-      snap.data['productAvailability'],
-      snap.data['geoPoint'],
-      snap.data['isManaging']??false
+      snap.id,
+      snap.data()['productMerchant'],
+      snap.data()['productName'],
+      snap.data()['productPrice'],
+      snap.data()['productCategory'],
+      snap.data()['productDesc'],
+      snap.data()['productPhoto'],
+      snap.data()['productGroup'],
+      snap.data()['productStockCount'],
+      snap.data()['productQRCode'],
+      snap.data()['productUploader'].toString(),
+      snap.data()['productUnit'],
+      snap.data()['productCreatedAt'],
+      snap.data()['productStatus'],
+      snap.data()['productAvailability'],
+      snap.data()['geoPoint'],
+      snap.data()['isManaging']??false
 
     );
   }

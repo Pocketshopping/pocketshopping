@@ -67,13 +67,13 @@ class ReviewEntity extends Equatable {
   static ReviewEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
     return ReviewEntity(
-        snap.data['rating'],
-        snap.data['text'],
-        snap.data['reviewedAt'],
-        snap.data['reviewed'],
-        snap.data['reviewerId'],
-        snap.data['reviewerName'],
-        snap.documentID);
+        snap.data()['rating'],
+        snap.data()['text'],
+        snap.data()['reviewedAt'],
+        snap.data()['reviewed'],
+        snap.data()['reviewerId'],
+        snap.data()['reviewerName'],
+        snap.id);
   }
 
   Map<String, Object> toDocument() {

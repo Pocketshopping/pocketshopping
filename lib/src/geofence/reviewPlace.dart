@@ -3,7 +3,6 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
@@ -163,7 +162,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                               initialRating: snapshot.data.rating,
                               minRating: 1,
                               maxRating: 5,
-                              itemSize: MediaQuery.of(context).size.width * 0.05,
+                              itemSize: Get.width * 0.05,
                               direction: Axis.horizontal,
                               allowHalfRating: true,
                               ignoreGestures: true,
@@ -181,7 +180,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                               initialRating: 3,
                               minRating: 1,
                               maxRating: 5,
-                              itemSize: MediaQuery.of(context).size.width * 0.05,
+                              itemSize: Get.width * 0.05,
                               direction: Axis.horizontal,
                               allowHalfRating: true,
                               ignoreGestures: true,
@@ -200,7 +199,7 @@ class _SinglePlaceWidgetUIState extends State<ReviewPlaceWidget> {
                             initialRating: 3,
                             minRating: 1,
                             maxRating: 5,
-                            itemSize: MediaQuery.of(context).size.width * 0.05,
+                            itemSize: Get.width * 0.05,
                             direction: Axis.horizontal,
                             allowHalfRating: true,
                             ignoreGestures: true,

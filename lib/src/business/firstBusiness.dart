@@ -15,7 +15,7 @@ class FirstBusinessPage extends StatelessWidget {
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: AppBar(
             centerTitle: true,
@@ -42,7 +42,7 @@ class FirstBusinessPage extends StatelessWidget {
             SliverList(
                 delegate: SliverChildListDelegate([
               Container(
-                height: MediaQuery.of(context).size.height * 0.02,
+                height: Get.height * 0.02,
               ),
               psCard(
                 color: themecolor,
@@ -69,7 +69,7 @@ class FirstBusinessPage extends StatelessWidget {
                           ),
                         ),
                         padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width * 0.02),
+                            Get.width * 0.02),
                         child: Text(
                           "Please do well to read our terms and conditions.",
                           style: TextStyle(),textAlign: TextAlign.center,
@@ -78,7 +78,7 @@ class FirstBusinessPage extends StatelessWidget {
                       Center(
                           child: Container(
                         padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width * 0.02),
+                            Get.width * 0.02),
                         child: FlatButton(
                           onPressed: () {
                             Get.off(SetupBusiness());
@@ -92,7 +92,7 @@ class FirstBusinessPage extends StatelessWidget {
                       )),
                       /*Container(
                         padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width * 0.02),
+                            Get.width * 0.02),
                         child: Center(
                             child: Text(
                           "Or",
@@ -112,7 +112,7 @@ class FirstBusinessPage extends StatelessWidget {
                           ),
                         ),
                         padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width * 0.02),
+                            Get.width * 0.02),
                         child: FlatButton(
                           onPressed: () {
                             Navigator.push(

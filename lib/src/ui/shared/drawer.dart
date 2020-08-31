@@ -73,7 +73,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
         children: <Widget>[
           Container(
             color: Colors.white,
-            height: MediaQuery.of(context).size.height * 0.42,
+            height: Get.height * 0.42,
             child: DrawerHeader(
               child: Center(
                   child:
@@ -90,7 +90,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                       if(user.hasData)
                         CircularProfileAvatar(
                           user.data.profile.isNotEmpty?user.data.profile:PocketShoppingDefaultAvatar,
-                          radius:  MediaQuery.of(context).size.height * 0.1,
+                          radius:  Get.height * 0.1,
                           backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
                           borderWidth: 5,  // sets border, default 0.0
                           initialsText: Text(
@@ -109,7 +109,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                         else
                          CircularProfileAvatar(
                           widget.user.profile.isNotEmpty?widget.user.profile:PocketShoppingDefaultAvatar,
-                          radius:  MediaQuery.of(context).size.height * 0.1,
+                          radius:  Get.height * 0.1,
                           backgroundColor: const Color.fromRGBO(245, 245, 245, 1),
                           borderWidth: 5,  // sets border, default 0.0
                           initialsText: Text(

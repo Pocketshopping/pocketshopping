@@ -102,7 +102,7 @@ class _AutomobileListState extends State<AutomobileList> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.15),
           child: AppBar(
               title: Text(widget.title==null?'${widget.user.merchant.bName} Automobiles':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -120,7 +120,7 @@ class _AutomobileListState extends State<AutomobileList> {
               elevation: 0.0,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(
-                    MediaQuery.of(context).size.height *
+                    Get.height *
                         0.1),
                 child: Container(
                     child: TextFormField(
@@ -234,7 +234,7 @@ class _AutomobileListState extends State<AutomobileList> {
                         child: Text(
                           'Empty',
                           style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                              fontSize: Get.height * 0.06),
                         ),
                       ),
                       SizedBox(
@@ -260,7 +260,7 @@ class _AutomobileListState extends State<AutomobileList> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -472,7 +472,13 @@ class Tracker extends StatelessWidget{
                                   if(result){
                                     Get.back();
                                     Utility.bottomProgressLoader(title: 'Automobile',body: 'Deleting $autoMobileName.....please wait');
-                                    var autoResult = await LogisticRepo.deleteAutomobile(data.autoID);
+                                    var autoResult = await LogisticRepo.deleteAutomobile(
+                                        data.autoID,
+                                      lid: user.merchant.mID,
+                                      bCount: data.autoType == 'MotorBike' ?(user.merchant.bikeCount-1):user.merchant.bikeCount,
+                                      cCount: data.autoType == 'Car' ?(user.merchant.carCount-1):user.merchant.carCount,
+                                      vCount: data.autoType == 'Van' ?(user.merchant.vanCount-1):user.merchant.vanCount,
+                                    );
                                     Get.back();
                                     if(autoResult){
                                       Utility.bottomProgressSuccess(title: 'Deleted',body: '$autoMobileName has been deleted');

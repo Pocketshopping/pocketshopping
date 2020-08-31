@@ -10,13 +10,14 @@ import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart'
 import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
+import 'package:pocketshopping/src/ui/shared/dynamicLinks.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:recase/recase.dart';
 
 //cleared
 class MerchantRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   static final Geoflutterfire geo = Geoflutterfire();
 
@@ -49,14 +50,18 @@ class MerchantRepo {
     var user;
     GeoFirePoint merchantLocation = geo.point(latitude: bGeopint.latitude, longitude: bGeopint.longitude);
     var temp = Utility.makeIndexList(bName);
+    temp.addAll(Utility.makeIndexList(bCategory));
+    if(bDelivery == 'Yes')
+    {temp.addAll(Utility.makeIndexList('Logistic'));}
+
     if(!adminUploaded)
       user = await UserRepo().getOne(uid: uid);
-    temp.addAll(Utility.makeIndexList(bCategory));
+
 
     try{
 
       bid = await databaseReference.collection("merchants").add({
-        'businessCreator': databaseReference.document('users/' + uid),
+        'businessCreator': databaseReference.doc('users/' + uid),
         'businessName': bName,
         'businessAdress': bAddress,
         'businessCategory': bCategory,
@@ -71,7 +76,7 @@ class MerchantRepo {
         'businessSocials': bSocial,
         'businessDescription': bDescription,
         'isBranch': isBranch,
-        'businessParent': databaseReference.document('merchants/' + bParent),
+        'businessParent': databaseReference.doc('merchants/' + bParent),
         'businessID': bID,
         'businessStatus': bStatus,
         'businessCountry': bCountry,
@@ -81,15 +86,19 @@ class MerchantRepo {
         'businessActive':true,
         'businessWallet':!adminUploaded?user.user.walletId:'',
         'index': temp,
+        'bikeCount':0,
+        'carCount':0,
+        'vanCount':0,
       });
 
       if(bid != null)
         if(!adminUploaded) {
-          await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.documentID);
-          await channelMaker(bid.documentID, uid);
-          await CustomerCareRepo.saveCustomerCare(bid.documentID, [CustomerCareLine(number: bTelephone,name:bName.headerCase ),
+          await UserRepo().upDate(uid: uid, role: 'admin', bid: bid.id);
+          await channelMaker(bid.id, uid);
+          await CustomerCareRepo.saveCustomerCare(bid.id, [CustomerCareLine(number: bTelephone,name:bName.headerCase ),
             if(bTelephone2.isNotEmpty)CustomerCareLine(number: bTelephone2,name:bName.headerCase ),
           ]);
+          await updateUrl(bid.id);
           await Utility.updateWallet(uid: user.user.walletId,cid: user.user.walletId,type: 3);
         }
 
@@ -98,13 +107,13 @@ class MerchantRepo {
     }
 
 
-    return bid.documentID;
+    return bid.id;
   }
 
 
   Future<void> channelMaker(String mid, String uid) async {
     String fcm = await _fcm.getToken();
-    await databaseReference.collection("channels").document(mid).setData({
+    await databaseReference.collection("channels").doc(mid).set({
       'Messaging': {uid: fcm},
       'Ordering': {uid: fcm},
       'Delivery&Pickup': {uid: fcm},
@@ -113,11 +122,11 @@ class MerchantRepo {
   }
 
   Future<void> categoryMaker(String category) async {
-    CollectionReference catRef = Firestore.instance.collection('categories');
+    CollectionReference catRef = FirebaseFirestore.instance.collection('categories');
     var document = await catRef
         .where('title', isEqualTo: category)
-        .getDocuments(source: Source.serverAndCache);
-    if (document.documents.isEmpty) {
+        .get(GetOptions(source: Source.serverAndCache));
+    if (document.docs.isEmpty) {
       catRef.add({'title': category, 'sort': 1});
     }
   }
@@ -125,26 +134,32 @@ class MerchantRepo {
 
 
   Future<Map<String, dynamic>> getOTP(String mid) async {
-    var document = await Firestore.instance
+    var document = await FirebaseFirestore.instance
         .collection('merchantsOTP')
-        .document(mid)
-        .get(source: Source.server);
+        .doc(mid)
+        .get(GetOptions(source: Source.server));
 
     if (document.exists) {
-      if (getDifference(document.data['createdAt']) > 60)
+      if (getDifference(document.data()['createdAt']) > 60)
         return {};
       else {
         Map<String, dynamic> collection = Map();
-        collection.addAll(document.data);
+        collection.addAll(document.data());
 
-        var temp = await document.data['merchant'].get(source: Source.serverAndCache);
-        collection.putIfAbsent('merchantID', () => temp.documentID);
+        var temp = await document.data()['merchant'].get(GetOptions(source: Source.serverAndCache));
+        collection.putIfAbsent('merchantID', () => temp.id);
         collection.addAll(temp.data);
         return collection;
       }
     } else {
       return {};
     }
+  }
+
+  static Future<String> updateUrl(String mid) async {
+    String url = (await DynamicLinks.createLinkWithParams({'merchant': '$mid'})).toString();
+    await FirebaseFirestore.instance.collection('merchants').doc(mid).update({'businessSocials':{'url':url}});
+    return url;
   }
 
   int getDifference(var created) {
@@ -158,20 +173,20 @@ class MerchantRepo {
 
   Future<bool> branchNameUnique(String mid, String branchName) async {
     try{
-      var document = await Firestore.instance
+      var document = await FirebaseFirestore.instance
           .collection('merchants')
           .where('businessParent',
-          isEqualTo: databaseReference.document('merchants/' + mid))
+          isEqualTo: databaseReference.doc('merchants/' + mid))
           .where('isBranch', isEqualTo: true)
           .where('branchUnique', isEqualTo: branchName)
-          .getDocuments(source: Source.server).timeout(
+          .get(GetOptions(source: Source.server)).timeout(
         Duration(seconds: TIMEOUT),
         onTimeout: () {
           throw Exception;
         },
       );
 
-      if (document.documents.length > 0)
+      if (document.docs.length > 0)
         return false;
       else
         return true;
@@ -182,12 +197,12 @@ class MerchantRepo {
   }
 
   Future<Map<String, dynamic>> getOne(String uid) async {
-    var document = await Firestore.instance
+    var document = await FirebaseFirestore.instance
         .collection('merchants')
         .where('uid', isEqualTo: uid)
-        .getDocuments(source: Source.serverAndCache);
+        .get(GetOptions(source: Source.serverAndCache));
 
-    return document.documents[0].data;
+    return document.docs[0].data();
   }
 
   static Future<Merchant> getMerchant(String mid,{int source=0}) async {
@@ -199,7 +214,7 @@ class MerchantRepo {
       try{
         try{
           if(source == 1) throw Exception;
-          var value = await Firestore.instance.document('merchants/$mid').get(source: Source.cache)
+          var value = await FirebaseFirestore.instance.doc('merchants/$mid').get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
           if(!value.exists){throw Exception;}
 
@@ -207,7 +222,7 @@ class MerchantRepo {
           return merchant;
         }
         catch(_){
-          var value = await Firestore.instance.document('merchants/$mid').get(source: Source.serverAndCache)
+          var value = await FirebaseFirestore.instance.doc('merchants/$mid').get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
           merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value));
           return merchant;
@@ -227,18 +242,18 @@ class MerchantRepo {
       try{
         try{
           if(source == 1) throw Exception;
-          var value = await Firestore.instance.collection('merchants').where('businessWallet',isEqualTo:mid )
-              .getDocuments(source: Source.serverAndCache)
+          var value = await FirebaseFirestore.instance.collection('merchants').where('businessWallet',isEqualTo:mid )
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(value.documents.isEmpty){throw Exception;}
-          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value.documents.last));
+          if(value.docs.isEmpty){throw Exception;}
+          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value.docs.last));
           return merchant;
         }
         catch(_){
-          var value = await Firestore.instance.collection('merchants').where('businessWallet',isEqualTo:mid )
-              .getDocuments(source: Source.serverAndCache)
+          var value = await FirebaseFirestore.instance.collection('merchants').where('businessWallet',isEqualTo:mid )
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value.documents.last));
+          merchant = Merchant.fromEntity(MerchantEntity.fromSnapshot(value.docs.last));
           return merchant;
         }
       }catch(_){
@@ -250,57 +265,57 @@ class MerchantRepo {
   static Future<List<Merchant>> getMyBusiness(String uid, Merchant lastDoc,{int source=0}) async {
 
     try{
-      var uRef = Firestore.instance.document('users/$uid');
+      var uRef = FirebaseFirestore.instance.doc('users/$uid');
       List<Merchant> tmp = List();
       var document;
 
       if (lastDoc == null) {
         try{
           if(source == 1) throw Exception;
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .orderBy('businessCreatedAt', descending: true)
               .where('businessCreator', isEqualTo: uRef)
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(document.documents.isEmpty){throw Exception;}
+          if(document.docs.isEmpty){throw Exception;}
         }
         catch(_){
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .orderBy('businessCreatedAt', descending: true)
               .where('businessCreator', isEqualTo: uRef)
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       } else {
         try{
           if(source == 1) throw Exception;
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .orderBy('businessCreatedAt', descending: true)
               .where('businessCreator', isEqualTo: uRef)
               .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(document.documents.isEmpty){throw Exception;}
+          if(document.docs.isEmpty){throw Exception;}
 
         }
         catch(_){
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .orderBy('businessCreatedAt', descending: true)
               .where('businessCreator', isEqualTo: uRef)
               .startAfter([DateTime.parse(lastDoc.bCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       }
-      document.documents.forEach((element) {
+      document.docs.forEach((element) {
         tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
       });
 
@@ -313,54 +328,54 @@ class MerchantRepo {
 
   static Future<List<Merchant>> searchMyBusiness(String uid, Merchant lastDoc,String key,{int source}) async {
     try{
-      var uRef = Firestore.instance.document('users/$uid');
+      var uRef = FirebaseFirestore.instance.doc('users/$uid');
       List<Merchant> tmp = List();
       var document;
 
       if (lastDoc == null) {
         try{
           if(source == 1) throw Exception;
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .where('businessCreator', isEqualTo: uRef)
               .where('index',arrayContains: key)
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(document.documents.isEmpty){throw Exception;}
+          if(document.docs.isEmpty){throw Exception;}
         }
         catch(_){
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .where('businessCreator', isEqualTo: uRef)
               .where('index',arrayContains: key)
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       } else {
         try{
           if(source == 1) throw Exception;
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .where('businessCreator', isEqualTo: uRef)
               .where('index',arrayContains: key)
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(document.documents.isEmpty){throw Exception;}
+          if(document.docs.isEmpty){throw Exception;}
         }
         catch(_){
-          document = await Firestore.instance
+          document = await FirebaseFirestore.instance
               .collection('merchants')
               .where('businessCreator', isEqualTo: uRef)
               .where('index',arrayContains: key)
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       }
-      document.documents.forEach((element) {
+      document.docs.forEach((element) {
         tmp.add(Merchant.fromEntity(MerchantEntity.fromSnapshot(element)));
       });
 
@@ -381,14 +396,14 @@ class MerchantRepo {
   }
 
   Future<Map<String, dynamic>> getAnyOne(String bID) async {
-    var document = await Firestore.instance
+    var document = await FirebaseFirestore.instance
         .collection('merchants')
         .where('businessID', isEqualTo: bID)
-        .getDocuments(source: Source.serverAndCache);
+        .get(GetOptions(source: Source.serverAndCache));
 
-    if (document.documents.length > 0) {
-      Map<String, dynamic> doc = document.documents[0].data;
-      doc.putIfAbsent('documentID', () => document.documents[0].documentID);
+    if (document.docs.length > 0) {
+      Map<String, dynamic> doc = document.docs[0].data();
+      doc.putIfAbsent('documentID', () => document.docs[0].id);
       return doc;
     } else
       return {};
@@ -396,34 +411,34 @@ class MerchantRepo {
 
   Future<DocumentSnapshot> getAnyOneUsingID(String mid) async {
     var document =
-        await Firestore.instance.collection('merchants').document(mid).get(source: Source.serverAndCache);
+        await FirebaseFirestore.instance.collection('merchants').doc(mid).get(GetOptions(source: Source.serverAndCache));
     return document;
   }
 
   Future<List<DocumentSnapshot>> getBranch(String mid) async {
-    var document = await Firestore.instance
+    var document = await FirebaseFirestore.instance
         .collection('merchants')
         .where('businessParent',
-            isEqualTo: databaseReference.document('merchants/' + mid))
+            isEqualTo: databaseReference.doc('merchants/' + mid))
         .where('isBranch', isEqualTo: true)
         .orderBy('businessCreatedAt', descending: false)
-        .getDocuments(source: Source.serverAndCache);
+        .get(GetOptions(source: Source.serverAndCache));
 
-    if (document.documents.length > 0) {
-      return document.documents;
+    if (document.docs.length > 0) {
+      return document.docs;
     } else
       return [];
   }
 
   Future<List<String>> getCategory(String category) async {
     List<String> suggestion = List();
-    var document = await Firestore.instance
+    var document = await FirebaseFirestore.instance
         .collection('categories')
         .where('title', isGreaterThanOrEqualTo: category)
         .where('title', isLessThan: category + 'z')
-        .getDocuments(source: Source.serverAndCache);
-    document.documents.forEach((element) {
-      suggestion.add(element.data['title']);
+        .get(GetOptions(source: Source.serverAndCache));
+    document.docs.forEach((element) {
+      suggestion.add(element.data()['title']);
     });
     // print(suggestion);
     return suggestion;
@@ -447,7 +462,7 @@ class MerchantRepo {
       'merchant':mid,
       'loggedAt':Timestamp.now(),
     });
-    if(bid.documentID.isNotEmpty)
+    if(bid.id.isNotEmpty)
       return true;
     else
       return false;
@@ -456,7 +471,7 @@ class MerchantRepo {
 
   static Future<Merchant> getNearByMerchant(Position mpos, String name) async {
     GeoFirePoint center = geo.point(latitude: mpos.latitude, longitude: mpos.longitude);
-    var collectionReference = Firestore.instance
+    var collectionReference = FirebaseFirestore.instance
         .collection('merchants')
         .where('businessName', isEqualTo: name)
         .limit(5);
@@ -486,7 +501,7 @@ class MerchantRepo {
           snackStyle: SnackStyle.GROUNDED,
         snackPosition: SnackPosition.TOP,
       ).show();
-      await Firestore.instance.collection('merchants').document(mid).updateData(data);
+      await FirebaseFirestore.instance.collection('merchants').doc(mid).update(data);
       Get.back();
       GetBar(
           title:'Updated',

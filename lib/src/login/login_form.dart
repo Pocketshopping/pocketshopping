@@ -57,7 +57,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state.isFailure) {
@@ -87,7 +87,7 @@ class _LoginFormState extends State<LoginForm> {
                       style: TextStyle(color: Colors.white),
                     ),
                     JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height * 0.05,
+                      fontSize: Get.height * 0.05,
                       color: Colors.white,
                     )
                   ],
@@ -137,7 +137,7 @@ class _LoginFormState extends State<LoginForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width * 0.02),
+                                        Get.width * 0.02),
                                     child:
                                 Center(
                                   child: Padding(
@@ -165,7 +165,7 @@ class _LoginFormState extends State<LoginForm> {
                                 'assets/images/blogo.png',
                                 fit: BoxFit.cover,
                                 height:
-                                    MediaQuery.of(context).size.height * 0.15,
+                                    Get.height * 0.15,
                               ),
                             ),
                             Container(
@@ -179,7 +179,7 @@ class _LoginFormState extends State<LoginForm> {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child: TextFormField(
                                 controller: _emailController,
                                 decoration: InputDecoration(
@@ -207,7 +207,7 @@ class _LoginFormState extends State<LoginForm> {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child:
                                 ValueListenableBuilder(
                                     valueListenable: _passwordEye,

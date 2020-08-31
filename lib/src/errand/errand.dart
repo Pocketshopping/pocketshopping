@@ -1,14 +1,25 @@
 import 'dart:async';
 
+import 'package:ant_icons/ant_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_place/google_place.dart';
 import 'package:location/location.dart' as loc;
+import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/errand/map.dart';
 import 'package:pocketshopping/src/errand/selectAuto.dart';
+import 'package:pocketshopping/src/geofence/repository/fenceRepo.dart';
+import 'package:pocketshopping/src/logistic/provider.dart';
+import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
+import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/fav/repository/favObj.dart';
+import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
@@ -20,7 +31,8 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 class Errand extends StatefulWidget {
   final Session user;
   final Position position;
-  Errand({this.user,this.position});
+  final Merchant logistic;
+  Errand({this.user,this.position,this.logistic});
 
   @override
   State<StatefulWidget> createState() => _ErrandState();
@@ -48,6 +60,8 @@ class _ErrandState extends State<Errand> {
   final slider = new PanelController();
   loc.Location location;
   StreamSubscription<loc.LocationData> geoStream;
+  final logisticList = ValueNotifier<List<Merchant>>([]);
+  final favourites = ValueNotifier<Favourite>(null);
 
   @override
   void initState() {
@@ -60,14 +74,16 @@ class _ErrandState extends State<Errand> {
     if(position != null){
       Utility.address(position).then((value) => source.text=value);
       sourcePosition.value = LatLng(position.latitude,position.longitude);
+      FenceRepo.nearByLogistic(position, null).then((value) => logisticList.value = value);
     }
 
-    location.changeSettings(accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
+    location.changeSettings(accuracy: loc.LocationAccuracy.high, interval: 60000);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
       position = Position(latitude: cLoc.latitude,longitude: cLoc.longitude);
       if (mounted) setState(() {});
       Utility.address(position).then((value) => source.text=value);
       sourcePosition.value = LatLng(position.latitude,position.longitude);
+      FenceRepo.nearByLogistic(position, null).then((value) => logisticList.value = value);
     });
 
     /*googlePlace.autocomplete.get('a',
@@ -87,6 +103,7 @@ class _ErrandState extends State<Errand> {
 
 
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    FavRepo.getFavourites(widget.user.user.uid, 'count',category: 'logistic').then((value) => favourites.value = value);
     Utility.locationAccess();
     super.initState();
 
@@ -251,28 +268,34 @@ class _ErrandState extends State<Errand> {
                                         children: [
                                           Row(
                                             children: [
-                                              GestureDetector(
-                                                child: IconButton(
+                                              Expanded(
+                                                flex: 0,
+                                                  child:
+                                                  GestureDetector(
+                                                    child: IconButton(
 
-                                                  icon: Icon(Icons.arrow_back_ios),
-                                                  onPressed: (){
-                                                    if (typing){
-                                                      isTyping.value=false;
-                                                      //destination.clear();
-                                                    }
-                                                    else {
-                                                      Get.back();
-                                                    }
-                                                  },
-                                                ),
+                                                      icon: Icon(Icons.arrow_back_ios),
+                                                      onPressed: (){
+                                                        if (typing){
+                                                          isTyping.value=false;
+                                                          //destination.clear();
+                                                        }
+                                                        else {
+                                                          Get.back();
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
                                               ),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Padding(
-                                                    padding: EdgeInsets.symmetric(vertical: 5),
-                                                    child: Text('Request For a Rider.',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),)
-                                                ),
-                                              ),
+                                              Expanded(
+                                                  child:Align(
+                                                    alignment: Alignment.centerLeft,
+                                                    child: Padding(
+                                                        padding: EdgeInsets.symmetric(vertical: 5),
+                                                        child: Text('Request For a ${widget.logistic != null?widget.logistic.bName:''} Rider.',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),)
+                                                    ),
+                                                  ),
+                                              )
                                             ],
                                           ),
                                           if(typing)
@@ -298,6 +321,7 @@ class _ErrandState extends State<Errand> {
                                                             prefix: GestureDetector(
                                                               onTap: ()async{
                                                                 source.clear();
+                                                                showButton.value = false;
                                                               },
                                                               child: Padding(
                                                                 padding: EdgeInsets.symmetric(horizontal: 5),
@@ -342,6 +366,8 @@ class _ErrandState extends State<Errand> {
                                                           onTap: (){
                                                             isTyping.value=true;
                                                             selected.value =1;
+                                                            showButton.value= source.text.isNotEmpty&&destination.text.isNotEmpty;
+                                                            autocomplete.value=[];
                                                           },
                                                         )
                                                     ),
@@ -382,6 +408,7 @@ class _ErrandState extends State<Errand> {
                                                             prefix: GestureDetector(
                                                               onTap: ()async{
                                                                 destination.clear();
+                                                                showButton.value = false;
                                                               },
                                                               child: Padding(
                                                                 padding: EdgeInsets.symmetric(horizontal: 5),
@@ -427,7 +454,8 @@ class _ErrandState extends State<Errand> {
                                                           onTap: (){
                                                             isTyping.value=true;
                                                             selected.value =2;
-
+                                                            showButton.value= source.text.isNotEmpty&&destination.text.isNotEmpty;
+                                                            autocomplete.value=[];
                                                           },
                                                         )
                                                     ),
@@ -470,7 +498,7 @@ class _ErrandState extends State<Errand> {
                                                     double distance =  await Geolocator().distanceBetween(sourcePosition.value.latitude, sourcePosition.value.longitude,
                                                         destinationPosition.value.latitude, destinationPosition.value.longitude);
                                                     if(distance > 0){
-                                                      Get.to(SelectAuto(
+                                                      /*Get.to(SelectAuto(
                                                         user: currentUser,
                                                         position: position,
                                                         source: sourcePosition.value,
@@ -481,7 +509,516 @@ class _ErrandState extends State<Errand> {
                                                       )).then((value) {
                                                         destination.clear();
                                                         isTyping.value=false;
-                                                      });
+                                                      });*/
+                                                      if(widget.logistic == null)
+                                                      Get.dialog(GestureDetector(
+                                                        onTap: (){Get.back();},
+                                                        child: Scaffold(
+                                                          backgroundColor: Colors.black.withOpacity(0.3),
+                                                          body: Center(
+                                                            child: Padding(
+                                                              padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                              child: Column(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  Container(
+                                                                    color: Colors.white,
+                                                                    child: Column(
+                                                                      children: [
+                                                                        Padding(
+                                                                          padding: EdgeInsets.symmetric(vertical: 10),
+                                                                          child: Text('Choose a Rider.',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                                                        ),
+                                                                        ListTile(
+                                                                          onTap: (){
+                                                                            Get.off(SelectAuto(
+                                                                              user: currentUser,
+                                                                              position: position,
+                                                                              source: sourcePosition.value,
+                                                                              destination: destinationPosition.value,
+                                                                              distance: (distance/1000).round(),
+                                                                              sourceAddress: source.text,
+                                                                              destinationAddress: destination.text,
+                                                                            )).then((value) {
+                                                                              destination.clear();
+                                                                              isTyping.value=false;
+                                                                            });
+                                                                          },
+                                                                          leading: CircleAvatar(
+                                                                            radius: 20,
+                                                                            child: Image.asset('assets/images/blogo.png'),
+                                                                            backgroundColor: Colors.white,
+
+                                                                          ),
+                                                                          title: Text('Let Pocketshopping choose for you'),
+                                                                          subtitle: Text('Pocketshooping algorithm will pick the closest rider'),
+                                                                        ),
+                                                                        const Divider(
+                                                                          thickness: 1,
+                                                                        ),
+                                                                        ListTile(
+                                                                          onTap: (){
+                                                                            Get.back();
+                                                                            Get.dialog(GestureDetector(
+                                                                              onTap: (){Get.back();},
+                                                                              child: Scaffold(
+                                                                                resizeToAvoidBottomPadding : false,
+                                                                                backgroundColor: Colors.black.withOpacity(0.3),
+                                                                                body: Center(
+                                                                                  child: Padding(
+                                                                                    padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                                                    child: Column(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        Container(
+                                                                                          color: Colors.white,
+                                                                                          height: Get.height*0.8,
+                                                                                          child: Column(
+                                                                                            children: [
+                                                                                              ListTile(
+                                                                                                  onTap: (){},
+                                                                                                  title: Text('Select Rider', style: TextStyle(fontSize: Get.height * 0.03),),
+                                                                                                  subtitle: Text('Please note this method might take more time. Select from list below.')//,
+                                                                                              ),
+                                                                                              Padding(
+                                                                                                padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
+                                                                                                child: TextFormField(
+                                                                                                  controller: null,
+                                                                                                  decoration: InputDecoration(
+                                                                                                    prefixIcon: Icon(Icons.search),
+                                                                                                    labelText: 'Search For Rider',
+                                                                                                    filled: true,
+                                                                                                    fillColor: Colors.grey.withOpacity(0.2),
+                                                                                                    focusedBorder: OutlineInputBorder(
+                                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                                                                                    ),
+                                                                                                    enabledBorder: UnderlineInputBorder(
+                                                                                                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                  autofocus: false,
+                                                                                                  enableSuggestions: true,
+                                                                                                  textInputAction: TextInputAction.done,
+                                                                                                  onChanged: (value) async{
+                                                                                                    if(value.isNotEmpty)
+                                                                                                    {
+                                                                                                      logisticList.value=null;
+                                                                                                      logisticList.value = await FenceRepo.searchNearByLogistic(position, value.toLowerCase().trim());
+
+                                                                                                    }
+                                                                                                    else{
+                                                                                                      logisticList.value=null;
+                                                                                                      logisticList.value = await FenceRepo.nearByLogistic(position, null);
+                                                                                                    }
+                                                                                                  },
+                                                                                                ),
+                                                                                              ),
+                                                                                              const SizedBox(height: 10,),
+                                                                                              Expanded(
+                                                                                                  child: ListView(
+                                                                                                    children: [
+                                                                                                      ValueListenableBuilder(
+                                                                                                        valueListenable: favourites,
+                                                                                                        builder: (i,Favourite fav,ii){
+                                                                                                          if(fav != null){
+                                                                                                            return Column(
+                                                                                                              children: [
+                                                                                                                Align(
+                                                                                                                  alignment: Alignment.centerLeft,
+                                                                                                                  child: Padding(
+                                                                                                                    padding: EdgeInsets.symmetric(horizontal: 20),
+                                                                                                                    child: Text('Favourite'),
+                                                                                                                  ),
+                                                                                                                ),
+                                                                                                                Column(
+                                                                                                                    children: List<Widget>.generate(fav.favourite.values.length, (index){
+                                                                                                                      return FutureBuilder(
+                                                                                                                        future: MerchantRepo.getMerchant(fav.favourite.values.toList(growable: false)[index].merchant),
+                                                                                                                        builder: (context,AsyncSnapshot<Merchant>merchant){
+                                                                                                                          if(merchant.connectionState == ConnectionState.waiting){
+                                                                                                                            return Container(
+                                                                                                                              height: 80,
+                                                                                                                              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                                                                                                              child: ListSkeleton(
+                                                                                                                                style: SkeletonStyle(
+                                                                                                                                  theme: SkeletonTheme.Light,
+                                                                                                                                  isShowAvatar: false,
+                                                                                                                                  barCount: 3,
+                                                                                                                                  colors: [
+                                                                                                                                    Colors.grey.withOpacity(0.5),
+                                                                                                                                    Colors.grey,
+                                                                                                                                    Colors.grey.withOpacity(0.5)
+                                                                                                                                  ],
+                                                                                                                                  isAnimation: true,
+                                                                                                                                ),
+                                                                                                                              ),
+                                                                                                                              alignment: Alignment.center,
+                                                                                                                            );
+                                                                                                                          }
+                                                                                                                          else if(merchant.hasError){return const SizedBox.shrink();}
+                                                                                                                          else{
+                                                                                                                            if(fav.favourite.isNotEmpty){
+                                                                                                                              return Column(
+                                                                                                                                children: [
+                                                                                                                                  Padding(
+                                                                                                                                      padding: EdgeInsets.symmetric(vertical: 5),
+                                                                                                                                      child: ListTile(
+                                                                                                                                        onTap: (){
+
+                                                                                                                                          Get.off(SelectAuto(
+                                                                                                                                            user: currentUser,
+                                                                                                                                            position: position,
+                                                                                                                                            source: sourcePosition.value,
+                                                                                                                                            destination: destinationPosition.value,
+                                                                                                                                            distance: (distance/1000).round(),
+                                                                                                                                            sourceAddress: source.text,
+                                                                                                                                            destinationAddress: destination.text,
+                                                                                                                                            logistic:merchant.data.mID,
+                                                                                                                                            bCount: merchant.data.bikeCount,
+                                                                                                                                            cCount: merchant.data.carCount,
+                                                                                                                                            vCount: merchant.data.vanCount,
+                                                                                                                                            logName: merchant.data.bName,
+                                                                                                                                          )).then((value) {
+                                                                                                                                            destination.clear();
+                                                                                                                                            isTyping.value=false;
+                                                                                                                                          });
+
+                                                                                                                                        },
+                                                                                                                                        leading: CircleAvatar(
+                                                                                                                                          radius: 30,
+                                                                                                                                          backgroundImage: NetworkImage(merchant.data.bPhoto.isNotEmpty?merchant.data.bPhoto:PocketShoppingDefaultCover),
+                                                                                                                                        ),
+                                                                                                                                        title: Text(merchant.data.bName),
+                                                                                                                                        subtitle: Column(
+                                                                                                                                          children: [
+                                                                                                                                            Row(
+                                                                                                                                              children: [
+                                                                                                                                                FutureBuilder(
+                                                                                                                                                  future: ReviewRepo.getRating(merchant.data.mID),
+                                                                                                                                                  builder: (context,AsyncSnapshot<Rating>snapshot){
+                                                                                                                                                    if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
+                                                                                                                                                    else if(snapshot.hasError)return const SizedBox.shrink();
+                                                                                                                                                    else {
+                                                                                                                                                      if(snapshot.hasData){
+                                                                                                                                                        if(snapshot.data != null){
+                                                                                                                                                          return RatingBar(
+                                                                                                                                                            onRatingUpdate: null,
+                                                                                                                                                            initialRating: snapshot.data.rating,
+                                                                                                                                                            minRating: 1,
+                                                                                                                                                            maxRating: 5,
+                                                                                                                                                            itemSize: Get.width * 0.05,
+                                                                                                                                                            direction: Axis.horizontal,
+                                                                                                                                                            allowHalfRating: true,
+                                                                                                                                                            ignoreGestures: true,
+                                                                                                                                                            itemCount: 5,
+                                                                                                                                                            //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                                                                                            itemBuilder: (context, _) => Icon(
+                                                                                                                                                              Icons.star,
+                                                                                                                                                              color: Colors.amber,
+                                                                                                                                                            ),
+                                                                                                                                                          );
+                                                                                                                                                        }
+                                                                                                                                                        else{
+                                                                                                                                                          return RatingBar(
+                                                                                                                                                            onRatingUpdate: null,
+                                                                                                                                                            initialRating: 3,
+                                                                                                                                                            minRating: 1,
+                                                                                                                                                            maxRating: 5,
+                                                                                                                                                            itemSize: Get.width * 0.05,
+                                                                                                                                                            direction: Axis.horizontal,
+                                                                                                                                                            allowHalfRating: true,
+                                                                                                                                                            ignoreGestures: true,
+                                                                                                                                                            itemCount: 5,
+                                                                                                                                                            //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                                                                                            itemBuilder: (context, _) => Icon(
+                                                                                                                                                              Icons.star,
+                                                                                                                                                              color: Colors.amber,
+                                                                                                                                                            ),
+                                                                                                                                                          );
+                                                                                                                                                        }
+                                                                                                                                                      }
+                                                                                                                                                      else{
+                                                                                                                                                        return RatingBar(
+                                                                                                                                                          onRatingUpdate: null,
+                                                                                                                                                          initialRating: 3,
+                                                                                                                                                          minRating: 1,
+                                                                                                                                                          maxRating: 5,
+                                                                                                                                                          itemSize: Get.width * 0.05,
+                                                                                                                                                          direction: Axis.horizontal,
+                                                                                                                                                          allowHalfRating: true,
+                                                                                                                                                          ignoreGestures: true,
+                                                                                                                                                          itemCount: 5,
+                                                                                                                                                          //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                                                                                          itemBuilder: (context, _) => Icon(
+                                                                                                                                                            Icons.star,
+                                                                                                                                                            color: Colors.amber,
+                                                                                                                                                          ),
+                                                                                                                                                        );
+                                                                                                                                                      }
+                                                                                                                                                    }
+                                                                                                                                                  },
+                                                                                                                                                ),
+                                                                                                                                              ],
+                                                                                                                                            ),
+                                                                                                                                            Row(
+                                                                                                                                              children: [
+                                                                                                                                                Expanded(child:
+                                                                                                                                                FutureBuilder(
+                                                                                                                                                    future: Utility.computeDistance(merchant.data.bGeoPoint['geopoint'],GeoPoint(position.latitude, position.longitude)),
+                                                                                                                                                    initialData: 0.1,
+                                                                                                                                                    builder: (context,AsyncSnapshot<double> distance){
+                                                                                                                                                      if(distance.hasData){
+                                                                                                                                                        return Text('${Utility.formatDistance(distance.data, 'You')}');
+                                                                                                                                                      }
+                                                                                                                                                      else{
+                                                                                                                                                        return const SizedBox.shrink();
+                                                                                                                                                      }
+                                                                                                                                                    })
+                                                                                                                                                )
+                                                                                                                                              ],
+                                                                                                                                            )
+                                                                                                                                          ],
+                                                                                                                                        ),
+                                                                                                                                        trailing:
+                                                                                                                                        (merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose))?
+                                                                                                                                        Icon(Icons.lock_open,color: Colors.green,)
+                                                                                                                                            :Icon(Icons.lock_outline,color: Colors.redAccent,),
+                                                                                                                                        enabled: (merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose)),
+                                                                                                                                      )
+                                                                                                                                  ),
+                                                                                                                                  Divider(thickness: 1,)
+                                                                                                                                ],
+                                                                                                                              );
+                                                                                                                            }
+                                                                                                                            else{
+                                                                                                                              return const SizedBox.shrink();
+                                                                                                                            }
+                                                                                                                          }
+                                                                                                                        },
+                                                                                                                      );
+                                                                                                                    }).toList(growable: false)
+                                                                                                                ),
+                                                                                                                const SizedBox(height: 30,),
+                                                                                                                Align(
+                                                                                                                  alignment: Alignment.centerLeft,
+                                                                                                                  child: Padding(
+                                                                                                                    padding: EdgeInsets.symmetric(horizontal: 20),
+                                                                                                                    child: Text('Others'),
+                                                                                                                  ),
+                                                                                                                ),
+                                                                                                              ],
+                                                                                                            );
+                                                                                                          }
+                                                                                                          else{return const SizedBox.shrink();}
+                                                                                                        },
+                                                                                                      ),
+
+                                                                                                      ValueListenableBuilder(
+                                                                                                          valueListenable: logisticList,
+                                                                                                          builder: (_,List<Merchant> logisticList,__){
+                                                                                                            if(logisticList != null)
+                                                                                                              if(logisticList.isNotEmpty)
+                                                                                                               return Column(
+                                                                                                                    children: List<Widget>.generate(logisticList.length, (index){
+                                                                                                                      return Column(
+                                                                                                                        children: [
+                                                                                                                          Padding(
+                                                                                                                              padding: EdgeInsets.symmetric(vertical: 5),
+                                                                                                                              child: ListTile(
+                                                                                                                                onTap: (){
+                                                                                                                                  Get.off(SelectAuto(
+                                                                                                                                    user: currentUser,
+                                                                                                                                    position: position,
+                                                                                                                                    source: sourcePosition.value,
+                                                                                                                                    destination: destinationPosition.value,
+                                                                                                                                    distance: (distance/1000).round(),
+                                                                                                                                    sourceAddress: source.text,
+                                                                                                                                    destinationAddress: destination.text,
+                                                                                                                                    logistic:logisticList[index].mID,
+                                                                                                                                    bCount: logisticList[index].bikeCount,
+                                                                                                                                    cCount: logisticList[index].carCount,
+                                                                                                                                    vCount: logisticList[index].vanCount,
+                                                                                                                                    logName: logisticList[index].bName,
+                                                                                                                                  )).then((value) {
+                                                                                                                                    destination.clear();
+                                                                                                                                    isTyping.value=false;
+                                                                                                                                  });
+                                                                                                                                },
+                                                                                                                                leading: CircleAvatar(
+                                                                                                                                  radius: 30,
+                                                                                                                                  backgroundImage: NetworkImage(logisticList[index].bPhoto.isNotEmpty?logisticList[index].bPhoto:PocketShoppingDefaultCover),
+                                                                                                                                ),
+                                                                                                                                title: Text(logisticList[index].bName),
+                                                                                                                                subtitle: Column(
+                                                                                                                                  children: [
+                                                                                                                                    Row(
+                                                                                                                                      children: [
+                                                                                                                                        FutureBuilder(
+                                                                                                                                          future: ReviewRepo.getRating(logisticList[index].mID),
+                                                                                                                                          builder: (context,AsyncSnapshot<Rating>snapshot){
+                                                                                                                                            if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
+                                                                                                                                            else if(snapshot.hasError)return const SizedBox.shrink();
+                                                                                                                                            else {
+                                                                                                                                              if(snapshot.hasData){
+                                                                                                                                                if(snapshot.data != null){
+                                                                                                                                                  return RatingBar(
+                                                                                                                                                    onRatingUpdate: null,
+                                                                                                                                                    initialRating: snapshot.data.rating,
+                                                                                                                                                    minRating: 1,
+                                                                                                                                                    maxRating: 5,
+                                                                                                                                                    itemSize: Get.width * 0.05,
+                                                                                                                                                    direction: Axis.horizontal,
+                                                                                                                                                    allowHalfRating: true,
+                                                                                                                                                    ignoreGestures: true,
+                                                                                                                                                    itemCount: 5,
+                                                                                                                                                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                                                                                    itemBuilder: (context, _) => Icon(
+                                                                                                                                                      Icons.star,
+                                                                                                                                                      color: Colors.amber,
+                                                                                                                                                    ),
+                                                                                                                                                  );
+                                                                                                                                                }
+                                                                                                                                                else{
+                                                                                                                                                  return RatingBar(
+                                                                                                                                                    onRatingUpdate: null,
+                                                                                                                                                    initialRating: 3,
+                                                                                                                                                    minRating: 1,
+                                                                                                                                                    maxRating: 5,
+                                                                                                                                                    itemSize: Get.width * 0.05,
+                                                                                                                                                    direction: Axis.horizontal,
+                                                                                                                                                    allowHalfRating: true,
+                                                                                                                                                    ignoreGestures: true,
+                                                                                                                                                    itemCount: 5,
+                                                                                                                                                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                                                                                    itemBuilder: (context, _) => Icon(
+                                                                                                                                                      Icons.star,
+                                                                                                                                                      color: Colors.amber,
+                                                                                                                                                    ),
+                                                                                                                                                  );
+                                                                                                                                                }
+                                                                                                                                              }
+                                                                                                                                              else{
+                                                                                                                                                return RatingBar(
+                                                                                                                                                  onRatingUpdate: null,
+                                                                                                                                                  initialRating: 3,
+                                                                                                                                                  minRating: 1,
+                                                                                                                                                  maxRating: 5,
+                                                                                                                                                  itemSize: Get.width * 0.05,
+                                                                                                                                                  direction: Axis.horizontal,
+                                                                                                                                                  allowHalfRating: true,
+                                                                                                                                                  ignoreGestures: true,
+                                                                                                                                                  itemCount: 5,
+                                                                                                                                                  //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                                                                                                  itemBuilder: (context, _) => Icon(
+                                                                                                                                                    Icons.star,
+                                                                                                                                                    color: Colors.amber,
+                                                                                                                                                  ),
+                                                                                                                                                );
+                                                                                                                                              }
+                                                                                                                                            }
+                                                                                                                                          },
+                                                                                                                                        ),
+                                                                                                                                      ],
+                                                                                                                                    ),
+                                                                                                                                    Row(
+                                                                                                                                      children: [
+
+                                                                                                                                        Expanded(child:
+                                                                                                                                        FutureBuilder(
+                                                                                                                                            future: Utility.computeDistance(logisticList[index].bGeoPoint['geopoint'],GeoPoint(position.latitude, position.longitude)),
+                                                                                                                                            initialData: 0.1,
+                                                                                                                                            builder: (context,AsyncSnapshot<double> distance){
+                                                                                                                                              if(distance.hasData){
+                                                                                                                                                return Text('${Utility.formatDistance(distance.data, 'You')}');
+                                                                                                                                              }
+                                                                                                                                              else{
+                                                                                                                                                return const SizedBox.shrink();
+                                                                                                                                              }
+                                                                                                                                            })
+                                                                                                                                        )
+                                                                                                                                      ],
+                                                                                                                                    )
+                                                                                                                                  ],
+                                                                                                                                ),
+                                                                                                                                trailing:
+                                                                                                                                (logisticList[index].bStatus == 1 && Utility.isOperational(logisticList[index].bOpen, logisticList[index].bClose))?
+                                                                                                                                Icon(Icons.lock_open,color: Colors.green,)
+                                                                                                                                    :Icon(Icons.lock_outline,color: Colors.redAccent,),
+                                                                                                                                enabled: (logisticList[index].bStatus == 1 && Utility.isOperational(logisticList[index].bOpen, logisticList[index].bClose)),
+                                                                                                                              )
+                                                                                                                          ),
+                                                                                                                          Divider(thickness: 1,)
+                                                                                                                        ],
+                                                                                                                      );
+                                                                                                                    }).toList(growable: false)
+                                                                                                                );
+                                                                                                              else
+                                                                                                                return Center(
+                                                                                                                    child: Padding(
+                                                                                                                      padding: EdgeInsets.symmetric(vertical: 20),
+                                                                                                                      child: Text('No Rider(s)'),
+                                                                                                                    )
+                                                                                                                );
+                                                                                                            else
+                                                                                                            return  Center(
+                                                                                                                  child: Padding(
+                                                                                                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                                                                                                    child: Text('Fetching Riders...Please wait'),
+                                                                                                                  )
+                                                                                                              );
+                                                                                                          })
+                                                                                                    ],
+                                                                                                  )
+                                                                                              )
+                                                                                            ],
+                                                                                          ),
+                                                                                        )
+                                                                                      ],
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ));
+                                                                          },
+                                                                          leading: CircleAvatar(
+                                                                            radius: 20,
+                                                                            child: Icon(Icons.person_outline),
+                                                                            backgroundColor: Colors.white,
+
+                                                                          ),
+                                                                          title: Text('I want choose for myself'),
+                                                                          subtitle: Text('please note this might take more time.'),
+                                                                          enabled: position != null,
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ));
+                                                      else{
+                                                        Get.off(SelectAuto(
+                                                          user: currentUser,
+                                                          position: position,
+                                                          source: sourcePosition.value,
+                                                          destination: destinationPosition.value,
+                                                          distance: (distance/1000).round(),
+                                                          sourceAddress: source.text,
+                                                          destinationAddress: destination.text,
+                                                          logistic:widget.logistic.mID,
+                                                          bCount: widget.logistic.bikeCount,
+                                                          cCount: widget.logistic.carCount,
+                                                          vCount: widget.logistic.vanCount,
+                                                          logName: widget.logistic.bName,
+                                                        )).then((value) {
+                                                          destination.clear();
+                                                          isTyping.value=false;
+                                                        });
+                                                      }
+
                                                     }
                                                     else{
                                                       Utility.infoDialogMaker("Source and Destination cannot be thesame.",title: 'Information');
@@ -507,7 +1044,7 @@ class _ErrandState extends State<Errand> {
                                         valueListenable: autocomplete,
                                         builder: (i,predictions,__){
                                           return Container(
-                                             child: ListView.builder(
+                                             child: predictions.isNotEmpty?ListView.builder(
                                                  itemBuilder: (context,index){
                                                    return ListTile(
                                                      leading: CircleAvatar(
@@ -521,29 +1058,132 @@ class _ErrandState extends State<Errand> {
                                                      onTap: () async{
                                                        FocusScope.of(context).requestFocus(FocusNode());
                                                        if(addressType.value == 2){
-                                                         isTypingDestination.value=true;
-                                                         DetailsResponse result = await googlePlace.details.get("${predictions[index].placeId}",);
-                                                         //print(result.result.geometry.location.lng);
-                                                         destination.text = ((predictions[index].description as String).contains('Nigeria')?(predictions[index].description as String).replaceFirst(', Nigeria', ''):(predictions[index].description as String));
-                                                         destinationPosition.value=LatLng(result.result.geometry.location.lat,result.result.geometry.location.lng);
-                                                         if(source.text.isNotEmpty)
-                                                           showButton.value = true;
-                                                         isTypingDestination.value=false;
+                                                         try{
+                                                           isTypingDestination.value=true;
+                                                           DetailsResponse result = await googlePlace.details.get("${predictions[index].placeId}",);
+                                                           //print(result.result.geometry.location.lng);
+                                                           if(result != null){
+                                                             destination.text = ((predictions[index].description as String).contains('Nigeria')?(predictions[index].description as String).replaceFirst(', Nigeria', ''):(predictions[index].description as String));
+                                                             destinationPosition.value=LatLng(result.result.geometry.location.lat,result.result.geometry.location.lng);
+                                                             if(source.text.isNotEmpty) showButton.value = true;
+                                                             isTypingDestination.value=false;
+                                                           }
+                                                           else{
+                                                             isTypingDestination.value=false;
+                                                             destination.text ="";
+                                                             showButton.value = false;
+                                                             Scaffold.of(
+                                                                 context)
+                                                               ..hideCurrentSnackBar()
+                                                               ..showSnackBar(
+                                                                   SnackBar(
+                                                                     content: Text(
+                                                                         'Error Picking Destination. Try again'),
+                                                                     backgroundColor:
+                                                                     Colors
+                                                                         .redAccent,
+                                                                     behavior:
+                                                                     SnackBarBehavior
+                                                                         .floating,
+                                                                   ));
+                                                           }
+
+                                                         }catch(e){
+
+                                                           isTypingDestination.value=false;
+                                                           destination.text ="";
+                                                           showButton.value = false;
+                                                           Scaffold.of(
+                                                               context)
+                                                             ..hideCurrentSnackBar()
+                                                             ..showSnackBar(
+                                                                 SnackBar(
+                                                                   content: Text(
+                                                                       'Error Picking Destination. Try again'),
+                                                                   backgroundColor:
+                                                                   Colors
+                                                                       .redAccent,
+                                                                   behavior:
+                                                                   SnackBarBehavior
+                                                                       .floating,
+                                                                 ));
+                                                         }
                                                        }
                                                        else if(addressType.value == 1){
-                                                         isTypingSource.value=true;
-                                                         DetailsResponse result = await googlePlace.details.get("${predictions[index].placeId}",);
-                                                         source.text = ((predictions[index].description as String).contains('Nigeria')?(predictions[index].description as String).replaceFirst(', Nigeria', ''):(predictions[index].description as String));
-                                                         sourcePosition.value=LatLng(result.result.geometry.location.lat,result.result.geometry.location.lng);
-                                                         if(destination.text.isNotEmpty)
-                                                           showButton.value = true;
-                                                         isTypingSource.value=false;
+                                                         try{
+                                                           isTypingSource.value=true;
+                                                           DetailsResponse result = await googlePlace.details.get("${predictions[index].placeId}",);
+                                                           if(result != null){
+                                                             source.text = ((predictions[index].description as String).contains('Nigeria')?(predictions[index].description as String).replaceFirst(', Nigeria', ''):(predictions[index].description as String));
+                                                             sourcePosition.value=LatLng(result.result.geometry.location.lat,result.result.geometry.location.lng);
+                                                             if(destination.text.isNotEmpty) showButton.value = true;
+                                                             isTypingSource.value=false;
+                                                           }
+                                                           else{
+                                                             isTypingSource.value=false;
+                                                             source.text = "";
+                                                             showButton.value = false;
+                                                             Scaffold.of(
+                                                                 context)
+                                                               ..hideCurrentSnackBar()
+                                                               ..showSnackBar(
+                                                                   SnackBar(
+                                                                     content: Text(
+                                                                         'Error Picking Source. Try again'),
+                                                                     backgroundColor:
+                                                                     Colors
+                                                                         .redAccent,
+                                                                     behavior:
+                                                                     SnackBarBehavior
+                                                                         .floating,
+                                                                   ));
+                                                           }
+                                                         }
+                                                         catch(e){
+                                                           isTypingSource.value=false;
+                                                           source.text = "";
+                                                           showButton.value = false;
+                                                           Scaffold.of(
+                                                               context)
+                                                             ..hideCurrentSnackBar()
+                                                             ..showSnackBar(
+                                                                 SnackBar(
+                                                                   content: Text(
+                                                                       'Error Picking Source. Try again'),
+                                                                   backgroundColor:
+                                                                   Colors
+                                                                       .redAccent,
+                                                                   behavior:
+                                                                   SnackBarBehavior
+                                                                       .floating,
+                                                                 ));
+                                                         }
                                                        }
                                                      },
                                                    );
                                                  },
                                                itemCount: predictions.length,
+                                             ):
+                                             Column(
+                                               mainAxisSize: MainAxisSize.min,
+                                               crossAxisAlignment: CrossAxisAlignment.start,
+                                               children: [
+                                                 Align(
+
+                                                   child: JumpingDotsProgressIndicator(
+                                                     fontSize: Get.height * 0.12,
+                                                     color: PRIMARYCOLOR,
+
+                                                   ),
+                                                   alignment: Alignment.topCenter,
+                                                 ),
+                                                 Center(
+                                                   child: Image.asset('assets/images/google.png',height: 100,width: 150,),
+                                                 ),
+                                               ],
                                              )
+
+
                                           );
                                         },
                                       )
@@ -580,7 +1220,7 @@ class _ErrandState extends State<Errand> {
                     },
                   ):Center(
                       child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        fontSize: Get.height * 0.12,
                         color: PRIMARYCOLOR,
                       ))
               )

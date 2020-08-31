@@ -89,8 +89,10 @@ class _MapWidgetState extends State<MapWidget> {
                   return mounted?
                   GoogleMap(
                     onMapCreated: (GoogleMapController controller){
-                      controller.setMapStyle(Utility.mapStyles);
-                      _controller.complete(controller);
+                      if(mounted){
+                        controller.setMapStyle(Utility.mapStyles);
+                        _controller.complete(controller);
+                      }
                       //showPinsOnMap();
                     },
                     initialCameraPosition: CameraPosition(

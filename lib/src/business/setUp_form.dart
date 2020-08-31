@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:country_code_picker/country_code_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fire;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -15,7 +15,6 @@ import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:recase/recase.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class BusinessSetupForm extends StatefulWidget {
   BusinessSetupForm({this.data,this.isAgent,this.agent});
@@ -35,7 +34,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
   final TextEditingController _addressController = TextEditingController();
 
   //final TextEditingController _categoryController = TextEditingController();
-  FirebaseUser currentUser;
+  fire.User currentUser;
   Timer _timer;
   int _start = 15;
   final bool auto = false;
@@ -61,7 +60,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     ];
     deliveria = [
       'No',
-      'Yes, I have my own delivery service',
+      'Yes',
     ];
     CategoryRepo.categoria().then((value) => setState(() {
           categoria = value;
@@ -80,7 +79,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return BlocListener<BusinessBloc, BusinessState>(
         listener: (context, state) {
       if (state.isSubmitting) {
@@ -92,11 +91,11 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
               SnackBar(
                 backgroundColor: Colors.white,
                 content: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
+                  width: Get.width,
+                  height: Get.height,
                   child: Container(
                     margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.1),
+                        top: Get.height * 0.1),
                     child: Center(
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,8 +103,8 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                       children: <Widget>[
                         Image.asset(
                           'assets/images/cloud-upload.gif',
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.4,
+                          width: Get.width,
+                          height: Get.height * 0.4,
                           fit: BoxFit.cover,
                         ),
                         Text(
@@ -126,11 +125,11 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
               SnackBar(
                 backgroundColor: Colors.white,
                 content: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
+                  width: Get.width,
+                  height: Get.height,
                   child: Container(
                     margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.1),
+                        top: Get.height * 0.1),
                     child: Center(
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,8 +137,8 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                       children: <Widget>[
                         Image.asset(
                           'assets/images/working.gif',
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.4,
+                          width: Get.width,
+                          height: Get.height * 0.4,
                           fit: BoxFit.cover,
                         ),
                         Text(
@@ -165,18 +164,18 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                 behavior: HitTestBehavior.opaque,
                 onVerticalDragStart: (_) => debugPrint("no can do!"),
                 child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
+                    width: Get.width,
+                    height: Get.height,
                     child: Container(
                       color: Colors.white,
                       child: Column(
                         children: [
                           Container(
                             margin: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height * 0.1),
+                                top: Get.height * 0.1),
                             padding: EdgeInsets.only(
-                              left: MediaQuery.of(context).size.height * 0.05,
-                              right: MediaQuery.of(context).size.height * 0.05,
+                              left: Get.height * 0.05,
+                              right: Get.height * 0.05,
                             ),
                             child: Center(
                                 child: Column(
@@ -185,9 +184,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                               children: <Widget>[
                                 Image.asset(
                                   'assets/images/completed.gif',
-                                  width: MediaQuery.of(context).size.width,
+                                  width: Get.width,
                                   height:
-                                      MediaQuery.of(context).size.height * 0.4,
+                                      Get.height * 0.4,
                                   fit: BoxFit.cover,
                                 ),
                                 Text(
@@ -221,7 +220,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   color: PRIMARYCOLOR,
                                   child: Padding(
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.height *
+                                        Get.height *
                                             0.02),
                                     child: Text(
                                       "DashBoard",
@@ -296,7 +295,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                   children: <Widget>[
                                 Container(
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Center(
                                       child: Text(
@@ -315,7 +314,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Center(
                                       child: Text(
@@ -337,7 +336,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: TextFormField(
                                     controller: _nameController,
                                     decoration: InputDecoration(
@@ -364,7 +363,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Row(children: <Widget>[
                                       Expanded(
@@ -411,7 +410,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: TextFormField(
                                     controller: _addressController,
                                     decoration: InputDecoration(
@@ -438,7 +437,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child:
                                         /*TypeAheadFormField(
@@ -482,7 +481,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                 },
                                 suggestionsBoxDecoration: SuggestionsBoxDecoration(
                                   constraints: BoxConstraints(
-                                    maxHeight: MediaQuery.of(context).size.height*0.2,
+                                    maxHeight: Get.height*0.2,
                                   ),
                                 ),
                                 autoFlipDirection: true,
@@ -522,7 +521,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         )
                                       ],
                                     )),
-                                if (state.category != 'Logistic' && false)
+                                if (state.category != 'Logistic' && widget.agent == null )
                                   Container(
                                     decoration: BoxDecoration(
                                       border: Border(
@@ -534,14 +533,14 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Column(
                                       children: <Widget>[
                                         Align(
                                             alignment: Alignment.centerLeft,
                                             child: Text(
-                                              "Will you offer delivery service",
+                                              "Do you have logistic service",
                                               style: TextStyle(
                                                   color: Colors.black54),
                                             )),
@@ -559,7 +558,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                                   ))
                                               .toList(),
                                           isExpanded: true,
-                                          hint: Text('Delivery Service'),
+                                          hint: Text('logistic Service'),
                                           decoration: InputDecoration(
                                               border: InputBorder.none),
                                           onChanged: (value) {
@@ -581,7 +580,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: CheckboxListTile(
                                     title: GestureDetector(
                                       onTap: () {
@@ -616,7 +615,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                           ),
                                         ),
                                         padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width *
+                                            Get.width *
                                                 0.02),
                                         child: Column(
                                           crossAxisAlignment:
@@ -712,7 +711,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     : Container(),
                                 Container(
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: !state.isSuccess
                                       ? Padding(
                                           padding: EdgeInsets.symmetric(
@@ -762,11 +761,11 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
     showModalBottomSheet(
         context: context,
         builder: (context) => BottomSheetTemplate(
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: Get.height * 0.6,
               opacity: 0.2,
               child: Container(
                 padding: EdgeInsets.all(
-                  MediaQuery.of(context).size.width * 0.05,
+                  Get.width * 0.05,
                 ),
                 child: Column(
                   children: <Widget>[
@@ -842,7 +841,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                 Icon(
                                   Icons.add_location,
                                   size:
-                                      MediaQuery.of(context).size.height * 0.1,
+                                      Get.height * 0.1,
                                   color: Colors.greenAccent,
                                 ),
                                 Text("start Capturing"),
@@ -900,18 +899,18 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                   behavior: HitTestBehavior.opaque,
                   onVerticalDragStart: (_) => debugPrint("no can do!"),
                   child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
+                      width: Get.width,
+                      height: Get.height,
                       child: Container(
                         color: Colors.white,
                         child: Column(
                           children: [
                             Container(
                               margin: EdgeInsets.only(
-                                  top: MediaQuery.of(context).size.height * 0.1),
+                                  top: Get.height * 0.1),
                               padding: EdgeInsets.only(
-                                left: MediaQuery.of(context).size.height * 0.05,
-                                right: MediaQuery.of(context).size.height * 0.05,
+                                left: Get.height * 0.05,
+                                right: Get.height * 0.05,
                               ),
                               child: Center(
                                   child: Column(
@@ -920,9 +919,9 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                     children: <Widget>[
                                       Image.asset(
                                         'assets/images/404.png',
-                                        width: MediaQuery.of(context).size.width,
+                                        width: Get.width,
                                         height:
-                                        MediaQuery.of(context).size.height * 0.4,
+                                        Get.height * 0.4,
                                         fit: BoxFit.cover,
                                       ),
                                       Text("Business can not be created!",
@@ -965,7 +964,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                             color: PRIMARYCOLOR,
                                             child: Padding(
                                               padding: EdgeInsets.all(
-                                                  MediaQuery.of(context).size.height *
+                                                  Get.height *
                                                       0.02),
                                               child: Text(
                                                 "Claim",
@@ -980,7 +979,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                             color: Colors.grey,
                                             child: Padding(
                                               padding: EdgeInsets.all(
-                                                  MediaQuery.of(context).size.height *
+                                                  Get.height *
                                                       0.02),
                                               child: Text(
                                                 "Close",

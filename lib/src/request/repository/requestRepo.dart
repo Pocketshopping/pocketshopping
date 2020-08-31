@@ -5,14 +5,14 @@ import 'package:pocketshopping/src/request/repository/requestObject.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 
 class RequestRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<String> save(dynamic request) async {
     try{
       DocumentReference bid;
       bid = await databaseReference.collection("request").add(request.toMap())
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return bid.documentID;
+      return bid.id;
     }
     catch(_){
       return '';
@@ -26,9 +26,9 @@ class RequestRepo {
           .orderBy('requestCreatedAt', descending: true)
           .where('requestReceiver', isEqualTo: uid)
           .where('requestCleared', isEqualTo: false)
-          .getDocuments(source: Source.server)
+          .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return Request.fromListSnap(docs.documents);
+      return Request.fromListSnap(docs.docs);
     }
     catch(_){
       return [];
@@ -41,9 +41,9 @@ class RequestRepo {
           .collection("request")
           .where('requestReceiver', isEqualTo: uid)
           .where('requestInitiatorID', isEqualTo: wid)
-          .getDocuments(source: Source.server)
+          .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return Request.fromListSnap(docs.documents);
+      return Request.fromListSnap(docs.docs);
     }
     catch(_){
       return [];
@@ -55,7 +55,7 @@ class RequestRepo {
       WriteBatch batch  =  databaseReference.batch();
       List<Request> requests = await getSpecific(uid, wid);
       requests.forEach((request) async{
-        batch.delete(databaseReference.collection("request").document(request.requestID));
+        batch.delete(databaseReference.collection("request").doc(request.requestID));
       });
       await batch.commit();
       return true;
@@ -69,8 +69,8 @@ class RequestRepo {
     try{
       await databaseReference
           .collection("request")
-          .document(requestID)
-          .updateData(
+          .doc(requestID)
+          .update(
           {'requestCleared': true, 'requestClearedAt': Timestamp.now()})
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
@@ -88,9 +88,9 @@ class RequestRepo {
         .where('requestReceiver', isEqualTo: uid)
         .where('requestCleared', isEqualTo: false)
         .where('requestAction', isEqualTo: "REMOVEWORK")
-        .getDocuments(source: Source.serverAndCache)
+        .get(GetOptions(source: Source.serverAndCache))
         .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-    return Request.fromListSnap(docs.documents);
+    return Request.fromListSnap(docs.docs);
   }
   catch(_){
     return [];

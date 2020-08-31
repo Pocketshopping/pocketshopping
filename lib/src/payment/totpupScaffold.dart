@@ -18,6 +18,7 @@ class TopUpScaffold extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
         backgroundColor: Colors.black.withOpacity(0.4),
         body: Center(
             child: Column(
@@ -39,7 +40,7 @@ class TopUpScaffold extends StatelessWidget{
                     title:  Text(
                       'ATM Card',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.025),
+                          fontSize: Get.height * 0.025),
                     ),
                     subtitle: Column(
                       children: <Widget>[
@@ -70,7 +71,7 @@ class TopUpScaffold extends StatelessWidget{
                     title:  Text(
                       'Personal Pocket',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.025),
+                          fontSize: Get.height * 0.025),
                     ),
                     subtitle: Column(
                       children: <Widget>[
@@ -111,7 +112,7 @@ class TopUpScaffold extends StatelessWidget{
                     title:  Text(
                       'Business Pocket',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.025),
+                          fontSize: Get.height * 0.025),
                     ),
                     subtitle: Column(
                       children: <Widget>[
@@ -154,7 +155,7 @@ class TopUpScaffold extends StatelessWidget{
                       title:  Text(
                         'Delivery Pocket',
                         style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.025),
+                            fontSize: Get.height * 0.025),
                       ),
                       subtitle: Column(
                         children: <Widget>[

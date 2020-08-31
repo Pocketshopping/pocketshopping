@@ -76,7 +76,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
             if(order.connectionState == ConnectionState.waiting){
               return Center(
                 child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ),
               );
@@ -89,7 +89,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
             }
             else{
               return FutureBuilder(
-                future: MerchantRepo.getMerchant(order.data.orderMerchant),
+                future: MerchantRepo.getMerchant(order.data.orderLogistic),
                 builder: (context, AsyncSnapshot<Merchant>merchant){
                   return FutureBuilder(
                     future: UserRepo.getOneUsingUID(order.data.customerID),
@@ -280,7 +280,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                                     ),
                                                                     color: PRIMARYCOLOR),
                                                                 padding: EdgeInsets.all(
-                                                                    MediaQuery.of(context).size.width * 0.02),
+                                                                    Get.width * 0.02),
                                                                 child:const Align(
                                                                   alignment: Alignment.centerLeft,
                                                                   child: const Text(
@@ -300,7 +300,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                                   ),
                                                                 ),
                                                                 padding: EdgeInsets.all(
-                                                                    MediaQuery.of(context).size.width * 0.02),
+                                                                    Get.width * 0.02),
                                                                 child: Align(
                                                                   alignment: Alignment.center,
                                                                   child: Text(
@@ -320,7 +320,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                                   ),
                                                                 ),
                                                                 padding: EdgeInsets.all(
-                                                                    MediaQuery.of(context).size.width * 0.02),
+                                                                    Get.width * 0.02),
                                                                 child: Align(
                                                                   alignment: Alignment.center,
                                                                   child: Text(
@@ -469,7 +469,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                           ),
                                                           color: PRIMARYCOLOR),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Align(
                                                         alignment: Alignment.centerLeft,
                                                         child: Text(
@@ -488,7 +488,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -511,7 +511,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -543,7 +543,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -579,7 +579,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                           ),
                                                           color: PRIMARYCOLOR),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: const Align(
                                                         alignment: Alignment.centerLeft,
                                                         child: const Text(
@@ -599,7 +599,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -621,7 +621,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -643,7 +643,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -665,7 +665,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -696,7 +696,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -715,7 +715,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width *
+                                                          Get.width *
                                                               0.02),
                                                       child: Row(
                                                         children: <Widget>[
@@ -739,7 +739,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width *
+                                                          Get.width *
                                                               0.02),
                                                       child: Row(
                                                         children: <Widget>[
@@ -764,7 +764,7 @@ class _LogisticErrandTrackerState extends State<LogisticErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -947,8 +947,8 @@ class _LoaderState extends State<Loader> {
                   current > 0 ? Column(
                     children: [
                       Container(
-                        //width: MediaQuery.of(context).size.width * 0.3,
-                        //height: MediaQuery.of(context).size.height * 0.18,
+                        //width: Get.width * 0.3,
+                        //height: Get.height * 0.18,
                           color: Colors.white,
                           child: CircularStepProgressIndicator(
                             totalSteps: total,

@@ -6,7 +6,7 @@ import 'package:pocketshopping/src/bank/repository/bankCode.dart';
 import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 
 class BankRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<List<BankCode>> getBankCode() async {
     final response = await http.get("${PaystackAPI}bank",
@@ -34,7 +34,7 @@ class BankRepo {
   }
 
   static Future<String> verifyBankAccount(String acctNumber,String bankCode) async {
-    print(bankCode);
+    //print(bankCode);
     final response = await http.get("${PaystackAPI}bank/resolve?account_number=$acctNumber&bank_code=$bankCode",
         headers: {
           'Content-Type': 'application/json',

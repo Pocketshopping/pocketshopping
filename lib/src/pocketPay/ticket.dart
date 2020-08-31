@@ -153,7 +153,7 @@ class _TicketWidgetState extends State<TicketWidget> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )

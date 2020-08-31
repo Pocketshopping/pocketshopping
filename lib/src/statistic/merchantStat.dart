@@ -52,7 +52,7 @@ class _MerchantStatisticState extends State<MerchantStatistic> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.15),
           child: AppBar(
               title: Text(widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -70,7 +70,7 @@ class _MerchantStatisticState extends State<MerchantStatistic> {
               elevation: 0.0,
               bottom: PreferredSize(
                   preferredSize: Size.fromHeight(
-                      MediaQuery.of(context).size.height *
+                      Get.height *
                           0.22),
                   child: Column(
                     children: [
@@ -130,7 +130,7 @@ class _MerchantStatisticState extends State<MerchantStatistic> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    JumpingDotsProgressIndicator(
-              fontSize: MediaQuery.of(context).size.height * 0.12,
+              fontSize: Get.height * 0.12,
             color: PRIMARYCOLOR,
             ),
                   Text('Generating report...please wait')
@@ -233,7 +233,7 @@ class _MerchantStatisticState extends State<MerchantStatistic> {
                   color: Colors.white,
                   child: Center(
                     child: JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height * 0.12,
+                      fontSize: Get.height * 0.12,
                       color: PRIMARYCOLOR,
                     ),
                   )
@@ -320,8 +320,8 @@ class TodayStat extends StatelessWidget{
           SizedBox(height: 50,),
           if(data['mostFiveItems'].isNotEmpty)
           SizedBox(
-                    height: MediaQuery.of(context).size.height*0.5,
-                    width: MediaQuery.of(context).size.width*1,
+                    height: Get.height*0.5,
+                    width: Get.width*1,
                     child: ItemPieChart(List.castFrom(data['mostFiveItems']),title: 'Most bought item today')
                     ,),
         ],
@@ -345,7 +345,7 @@ class YesterdayStat extends StatelessWidget{
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
               Text('Generating report...please wait')
@@ -435,8 +435,8 @@ class YesterdayStat extends StatelessWidget{
                   SizedBox(height: 50,),
                   if(snapshot.data['mostFiveItems'].isNotEmpty)
                   SizedBox(
-                    height: MediaQuery.of(context).size.height*0.5,
-                    width: MediaQuery.of(context).size.width*1,
+                    height: Get.height*0.5,
+                    width: Get.width*1,
                     child: ItemPieChart(List.castFrom(snapshot.data['mostFiveItems']),title: 'Most bought item yesterday')
                     ,),
                 ],
@@ -474,7 +474,7 @@ class ThirtyDaysStat extends StatelessWidget{
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ),
                 Text('Generating report...please wait')
@@ -564,21 +564,21 @@ class ThirtyDaysStat extends StatelessWidget{
                   SizedBox(height: 50,),
                   if(snapshot.data['weekDaysCount'].isNotEmpty)
                     SizedBox(
-                      height: MediaQuery.of(context).size.height*0.5,
-                      width: MediaQuery.of(context).size.width*1,
+                      height: Get.height*0.5,
+                      width: Get.width*1,
                       child: ItemBarChart(List.castFrom(snapshot.data['weekDaysCount']),)
                       ,),
                   SizedBox(height: 50,),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height*0.5,
-                    width: MediaQuery.of(context).size.width*1,
+                    height: Get.height*0.5,
+                    width: Get.width*1,
                     child: ItemLineChart(Map.castFrom(snapshot.data['growthChart']))
                     ,),
                   SizedBox(height: 50,),
                   if(snapshot.data['mostFiveItems'].isNotEmpty)
                   SizedBox(
-                    height: MediaQuery.of(context).size.height*0.5,
-                  width: MediaQuery.of(context).size.width*1,
+                    height: Get.height*0.5,
+                  width: Get.width*1,
                   child: ItemPieChart(List.castFrom(snapshot.data['mostFiveItems']),title: 'Most bought item (30 days)',)
                     ,),
                   SizedBox(height: 50,),

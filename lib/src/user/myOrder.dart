@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
 import 'package:pocketshopping/src/ui/shared/help.dart';
@@ -27,7 +28,7 @@ class _OrdersState extends State<MyOrders> {
       length: 2,
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.15), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,

@@ -64,7 +64,7 @@ class _StaffFormState extends State<StaffForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return WillPopScope(
         onWillPop: () async {
           if (isSubmitting)
@@ -131,7 +131,7 @@ class _StaffFormState extends State<StaffForm> {
                                           ),
                                         ),
                                         padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width *
+                                            Get.width *
                                                 0.02),
                                         child: TextFormField(
                                           controller: _staffController,
@@ -165,9 +165,10 @@ class _StaffFormState extends State<StaffForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child:Center(child: Text('Select Staff Previledge(s)'),)),
+                                      if(widget.session.merchant.bCategory != 'Logistic')
                                       Container(
                                         decoration: BoxDecoration(
                                           border: Border(
@@ -179,7 +180,7 @@ class _StaffFormState extends State<StaffForm> {
                                           ),
                                         ),
                                         padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width *
+                                            Get.width *
                                                 0.02),
                                         child: CheckboxListTile(
                                           title: Text(
@@ -203,11 +204,11 @@ class _StaffFormState extends State<StaffForm> {
                                           ),
                                         ),
                                         padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width *
+                                            Get.width *
                                                 0.02),
                                         child: CheckboxListTile(
                                           title: Text(
-                                              "Manages Logistics."),
+                                              "${widget.session.merchant.bCategory != 'Logistic'?'Manages Logistics':'Basic Staff'}."),
                                           value: this.logistic,
                                           onChanged: (bool value) {
                                             setState(() {
@@ -216,6 +217,7 @@ class _StaffFormState extends State<StaffForm> {
                                           },
                                         )
                                       ),
+                                      if(widget.session.merchant.bCategory != 'Logistic')
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -227,7 +229,7 @@ class _StaffFormState extends State<StaffForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
                                             title: Text(
@@ -240,7 +242,7 @@ class _StaffFormState extends State<StaffForm> {
                                             },
                                           )
                                       ),
-
+                                      if(widget.session.merchant.bCategory != 'Logistic')
                                       Container(
                                           decoration: BoxDecoration(
                                             border: Border(
@@ -252,7 +254,7 @@ class _StaffFormState extends State<StaffForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
                                             title: Text(
@@ -277,12 +279,12 @@ class _StaffFormState extends State<StaffForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: CheckboxListTile(
 
                                             title: Text(
-                                                "Managerial Role. Reserve all permission"),
+                                                "Managerial Role. Reserve all Previledge(s)"),
                                             value: this.managers,
                                             onChanged: (bool value) {
                                               setState(() {
@@ -307,13 +309,13 @@ class _StaffFormState extends State<StaffForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child:Text("Select staff permission.",style: TextStyle(color: Colors.red),)
                                 ),
                                       Container(
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: Padding(
                                               padding: EdgeInsets.symmetric(

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/fav/repository/faqRepo.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -25,7 +26,7 @@ class FaqWidget extends StatelessWidget {
                     if(snapshot.connectionState == ConnectionState.waiting){
                       return Center(
                         child: JumpingDotsProgressIndicator(
-                          fontSize: MediaQuery.of(context).size.height * 0.12,
+                          fontSize: Get.height * 0.12,
                           color: PRIMARYCOLOR,
                         ),
                       );
@@ -76,7 +77,7 @@ class FaqWidget extends StatelessWidget {
                                     child: Text(
                                       'Empty',
                                       style: TextStyle(
-                                          fontSize: MediaQuery.of(context).size.height * 0.06),
+                                          fontSize: Get.height * 0.06),
                                     ),
                                   ),
                                   SizedBox(

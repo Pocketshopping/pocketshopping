@@ -53,7 +53,7 @@ class _AgentFormState extends State<AgentForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return WillPopScope(
         onWillPop: () async {
           if (isSubmitting)
@@ -121,7 +121,7 @@ class _AgentFormState extends State<AgentForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TextFormField(
                                       controller: _agentController,
@@ -155,7 +155,7 @@ class _AgentFormState extends State<AgentForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TextFormField(
                                       controller: _limitController,
@@ -190,7 +190,7 @@ class _AgentFormState extends State<AgentForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Column(
                                       children: <Widget>[
@@ -231,6 +231,7 @@ class _AgentFormState extends State<AgentForm> {
                                           decoration: InputDecoration(
                                               border: InputBorder.none),
                                           onChanged: (value) {
+                                            if(mounted)
                                             setState(() {
                                               type = value;
                                               if (value != 'Select') {
@@ -272,7 +273,7 @@ class _AgentFormState extends State<AgentForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: !assigning
                                         ? Column(
@@ -312,6 +313,7 @@ class _AgentFormState extends State<AgentForm> {
                                                 decoration: InputDecoration(
                                                     border: InputBorder.none),
                                                 onChanged: (value) {
+                                                  if(mounted)
                                                   setState(() {
                                                     assigned = value;
                                                     //print(value);
@@ -333,7 +335,7 @@ class _AgentFormState extends State<AgentForm> {
                                   ),
                                   Container(
                                       padding: EdgeInsets.all(
-                                          MediaQuery.of(context).size.width *
+                                          Get.width *
                                               0.02),
                                       child: Padding(
                                           padding: EdgeInsets.symmetric(
@@ -342,6 +344,7 @@ class _AgentFormState extends State<AgentForm> {
                                           child: RaisedButton(
                                             onPressed: !isSubmitting ? () async{
                                                     if (_formKey.currentState.validate()) {
+                                                      if(mounted)
                                                       setState(() {isSubmitting = true;});
                                                       Utility.bottomProgressLoader(title: 'Rider',body: 'Adding new Rider please wait');
                                                       User agent = await UserRepo.getUserUsingWallet(_agentController.text);
@@ -391,6 +394,7 @@ class _AgentFormState extends State<AgentForm> {
                                                                 notificationType: 'WorkRequestResponse',
                                                                 data: {}
                                                             );
+                                                            if(mounted)
                                                             setState(() {isSubmitting = false;autoValidate = false;});
                                                             _agentController.clear();
                                                             Utility.bottomProgressSuccess(title: 'Rider', body: 'Work request has been sent to ${agent.fname} once confirmed,  ${agent.fname} will be activated as a Rider.');
@@ -398,22 +402,26 @@ class _AgentFormState extends State<AgentForm> {
                                                           else{
                                                             Get.back();
                                                             Utility.bottomProgressFailure(title: 'Rider',body: 'Error adding ${agent.fname}, check your connection and try again');
+                                                            if(mounted)
                                                             setState(() {isSubmitting = false;});
                                                           }
                                                         }
                                                         else if(agent.role == 'rider'){
                                                           Get.back();
                                                           Utility.bottomProgressFailure(title: 'Rider',body: 'Sorry. ${agent.fname} is a rider of another organization.',duration: 5);
+                                                          if(mounted)
                                                           setState(() {isSubmitting = false;});
                                                         }
                                                         else if(agent.role == 'staff'){
                                                           Get.back();
                                                           Utility.bottomProgressFailure(title: 'Staff',body: 'Sorry. ${agent.fname} is a staff of another organization.',duration: 5);
+                                                          if(mounted)
                                                           setState(() {isSubmitting = false;});
                                                         }
                                                         else{
                                                           Get.back();
                                                           Utility.bottomProgressFailure(title: 'Business Owner',body: 'Sorry. ${agent.fname} is a business owner. Can not be added as a rider',duration: 5);
+                                                          if(mounted)
                                                           setState(() {isSubmitting = false;});
                                                         }
 
@@ -422,9 +430,11 @@ class _AgentFormState extends State<AgentForm> {
                                                       else{
                                                         Get.back();
                                                         Utility.bottomProgressFailure(title: 'Invalid User',body: 'The ID you entered is not a valid user ID check the ID and try again.',duration: 5);
+                                                        if(mounted)
                                                         setState(() {isSubmitting = false;});
                                                       }
                                                     } else {
+                                                      if(mounted)
                                                       setState(() {
                                                         autoValidate = true;
                                                       });

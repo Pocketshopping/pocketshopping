@@ -48,7 +48,7 @@ class Favourite {
   static Favourite fromSnap(List<DocumentSnapshot> snap) {
     Map<String,FavItem> favourite={};
     snap.forEach(( value) {
-      favourite[value.data['merchant']]=FavItem.fromSnap(value);
+      favourite[value.data()['merchant']]=FavItem.fromSnap(value);
     });
     return Favourite(favourite: favourite,);
   }

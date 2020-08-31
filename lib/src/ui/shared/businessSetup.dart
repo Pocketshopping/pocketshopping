@@ -28,8 +28,8 @@ class BSetup extends StatelessWidget {
         child: Scaffold(
           body: Center(
             child: Container(
-                height: MediaQuery.of(context).size.height * 0.8,
-                width: MediaQuery.of(context).size.width * 0.9,
+                height: Get.height * 0.8,
+                width: Get.width * 0.9,
                 child: psHeadlessCard(
                     boxShadow: [
                       BoxShadow(
@@ -60,7 +60,7 @@ class BSetup extends StatelessWidget {
                               },
                               color: PRIMARYCOLOR,
                               child: Container(
-                                width: MediaQuery.of(context).size.width * 0.9,
+                                width: Get.width * 0.9,
                                 child: Center(
                                   child: Text(
                                     'Yes, I want to',
@@ -82,7 +82,7 @@ class BSetup extends StatelessWidget {
                                 //Get.back();
                               },
                               child: Container(
-                                width: MediaQuery.of(context).size.width * 0.9,
+                                width: Get.width * 0.9,
                                 child: Center(
                                   child: Text(
                                     'No',

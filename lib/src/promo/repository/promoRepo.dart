@@ -5,7 +5,7 @@ import 'package:pocketshopping/src/utility/utility.dart';
 
 //cleared
 class PromoRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
 
   static Future<List<Bonus>> getBonus(String recipient) async {
@@ -14,9 +14,9 @@ class PromoRepo {
       promos = await databaseReference.collection("promo")
           .where('recipient',isEqualTo: recipient)
           .where('status',isEqualTo: false)
-          .getDocuments(source: Source.server)
+          .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw Exception;});
-      return Bonus.fromListMap(promos.documents);
+      return Bonus.fromListMap(promos.docs);
     }
     catch(_){
       return [];
@@ -25,8 +25,8 @@ class PromoRepo {
 
   static Future<bool> claimBonus(String id) async {
     try{
-       await databaseReference.collection("promo").document(id)
-           .updateData({'status':true})
+       await databaseReference.collection("promo").doc(id)
+           .update({'status':true})
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
 
       return true;

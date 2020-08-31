@@ -103,7 +103,7 @@ class _PocketTransferState extends State<PocketTransfer> {
             }
             else{
               return wallet.data != null ? Container(
-                  height: MediaQuery.of(context).size.height,
+                  height: Get.height,
                   padding: EdgeInsets.symmetric(horizontal: 15),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

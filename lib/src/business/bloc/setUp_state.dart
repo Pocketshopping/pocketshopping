@@ -57,7 +57,7 @@ class BusinessState {
       code: '+234',
       position: null,
       isCapturing: 'NO',
-      delivery: 'Yes',
+      delivery: 'No',
       category: 'Restuarant',
       isUploading: false,
       isSubmitting: false,

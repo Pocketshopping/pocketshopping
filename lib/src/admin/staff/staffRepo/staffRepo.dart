@@ -8,13 +8,13 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class StaffRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<bool> save(Staff staff,Request request) async {
     try{
       DocumentReference bid;
       bid = await databaseReference.collection("staffs").add(staff.toMap()).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      await RequestRepo.save(request.copyWith(requestInitiatorID: bid.documentID));
+      await RequestRepo.save(request.copyWith(requestInitiatorID: bid.id));
       return true;
     }
     catch(_){
@@ -28,22 +28,22 @@ class StaffRepo {
       try{
         if(source == 1)
           throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .orderBy('startDate')
             .where('staffWorkPlace',isEqualTo: company)
-            .getDocuments(source: Source.cache).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)
+            .get(GetOptions(source: Source.serverAndCache)).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.docs.isEmpty)
           throw Exception;
-        return Staff.fromListSnap(document.documents);
+        return Staff.fromListSnap(document.docs);
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .orderBy('startDate')
             .where('staffWorkPlace',isEqualTo: company)
-            .getDocuments(source: Source.serverAndCache).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-        return Staff.fromListSnap(document.documents);
+            .get(GetOptions(source: Source.serverAndCache)).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        return Staff.fromListSnap(document.docs);
       }
     }
     catch(_){
@@ -57,59 +57,59 @@ class StaffRepo {
       try{
         if(source == 1)
           throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .orderBy('startDate')
             .where('staffWorkPlace',isEqualTo: company)
             .limit(10)
-            .getDocuments(source: Source.cache).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)
+            .get(GetOptions(source: Source.cache)).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.docs.isEmpty)
           throw Exception;
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .orderBy('startDate')
             .where('staffWorkPlace',isEqualTo: company)
             .limit(10)
-            .getDocuments(source: Source.serverAndCache).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+            .get(GetOptions(source: Source.serverAndCache)).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     } else {
       try{
         if(source == 1)
           throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .orderBy('startDate')
             .where('staffWorkPlace',isEqualTo: company)
             .startAfter([DateTime.parse(last.startDate.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.cache).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)
+            .get(GetOptions(source: Source.cache)).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.docs.isEmpty)
           throw Exception;
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .orderBy('startDate')
             .where('staffWorkPlace',isEqualTo: company)
             .startAfter([DateTime.parse(last.startDate.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.serverAndCache).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+            .get(GetOptions(source: Source.serverAndCache)).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     }
 
-    return Staff.fromListSnap(document.documents);
+    return Staff.fromListSnap(document.docs);
 
   }
 
   static Future<Staff> getOneStaff(String sid)async{
     DocumentSnapshot document;
     try{
-      document = await Firestore.instance
+      document = await FirebaseFirestore.instance
           .collection('staffs')
-          .document(sid)
-          .get(source: Source.server).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+          .doc(sid)
+          .get(GetOptions(source: Source.server)).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
 
       if(document != null && document.exists)
         return Staff.fromSnap(document);
@@ -128,55 +128,55 @@ class StaffRepo {
       try{
         if(source == 1)
           throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .where('staffWorkPlace', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .limit(10)
-            .getDocuments(source: Source.cache).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)
+            .get(GetOptions(source: Source.cache)).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.docs.isEmpty)
           throw Exception;
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .where('staffWorkPlace', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .limit(10)
-            .getDocuments(source: Source.serverAndCache).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+            .get(GetOptions(source: Source.serverAndCache)).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     } else {
       try{
         if(source == 1)
           throw Exception;
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .where('staffWorkPlace', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .startAfter([DateTime.parse(last.startDate.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.cache).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)
+            .get(GetOptions(source: Source.cache)).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+        if(document.docs.isEmpty)
           throw Exception;
       }
       catch(_){
-        document = await Firestore.instance
+        document = await FirebaseFirestore.instance
             .collection('staffs')
             .where('staffWorkPlace', isEqualTo: mID)
             .where('index', arrayContains: search.toLowerCase())
             .startAfter([DateTime.parse(last.startDate.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.serverAndCache);
+            .get(GetOptions(source: Source.serverAndCache));
       }
     }
 
-    return Staff.fromListSnap(document.documents);
+    return Staff.fromListSnap(document.docs);
   }
 
  static Future<bool> updateStaff(String sid,Map<String,dynamic>data)async{
     try{
-      await Firestore.instance
-          .collection('staffs').document(sid).updateData(data).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      await FirebaseFirestore.instance
+          .collection('staffs').doc(sid).update(data).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }catch(_){return false;}
   }
@@ -185,7 +185,7 @@ class StaffRepo {
     try{
       //,Request request
       if(staff.startDate != null){
-        await Firestore.instance.collection('staffs').document(staff.staffID).delete().timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+        await FirebaseFirestore.instance.collection('staffs').doc(staff.staffID).delete().timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         await UserRepo().upDate(role: 'user', uid: user.uid, bid: 'null');
         await Utility.updateWallet(uid: user.walletId,cid:staff.staffWorkPlaceWallet,type: 2 );
         //var doc = await RequestRepo.save(request);
@@ -202,7 +202,7 @@ class StaffRepo {
       else{
         bool deleted = await RequestRepo.deleteSpecific(staff.staff, staff.staffID);
         if(deleted)
-        await Firestore.instance.collection('staffs').document(staff.staffID).delete().timeout(Duration(seconds: TIMEOUT),onTimeout: (){return false;});
+        await FirebaseFirestore.instance.collection('staffs').doc(staff.staffID).delete().timeout(Duration(seconds: TIMEOUT),onTimeout: (){return false;});
 
       }
       return true;
@@ -233,7 +233,7 @@ class StaffRepo {
 
   static Future<bool> staffDecline(String staffID, String requestID) async {
     try {
-      //await databaseReference.collection('staffs').document(staffID).delete();
+      //await databaseReference.collection('staffs').doc(staffID).delete();
       await RequestRepo.clear(requestID);
       return true;
     }

@@ -38,7 +38,7 @@ class _PinChangerState extends State<PinChanger> {
     return Scaffold(
         backgroundColor: Colors.black54.withOpacity(0.3),
         body: Container(
-            height: MediaQuery.of(context).size.height,
+            height: Get.height,
             padding: EdgeInsets.symmetric(horizontal: 15),
             child: ListView(
               children: [
@@ -104,7 +104,7 @@ class _PinChangerState extends State<PinChanger> {
                                   obscuringCharacter: '*',
                                   maxLength: 4,
                                   maxLengthEnforced: true,
-                                  style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
+                                  style: TextStyle(fontSize: 30,letterSpacing: Get.width*0.2),
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
                                   onTap: (){
                                    stage.value = 0;
@@ -143,7 +143,7 @@ class _PinChangerState extends State<PinChanger> {
                                   obscuringCharacter: '*',
                                   maxLength: 4,
                                   maxLengthEnforced: true,
-                                  style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
+                                  style: TextStyle(fontSize: 30,letterSpacing: Get.width*0.2),
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
                                   onTap: (){
                                     stage.value = 1;
@@ -180,7 +180,7 @@ class _PinChangerState extends State<PinChanger> {
                                   inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
                                   onChanged: (value) {},
                                   obscuringCharacter: '*',
-                                  style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
+                                  style: TextStyle(fontSize: 30,letterSpacing: Get.width*0.2),
                                   maxLength: 4,
                                   maxLengthEnforced: true,
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,

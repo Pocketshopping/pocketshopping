@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,6 +21,7 @@ import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/logisticBucket.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/payment/topUpPocket.dart';
@@ -43,6 +45,8 @@ import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:pocketshopping/src/wallet/bloc/walletUpdater.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 import 'package:pocketshopping/src/wallet/repository/walletRepo.dart';
+import 'package:share/share.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 class StaffDashBoardScreen extends StatefulWidget {
@@ -65,6 +69,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
   final pWallet = ValueNotifier<Wallet>(null);
   final _agentNotifier = ValueNotifier<int>(0);
   StreamSubscription orders;
+  StreamSubscription bucket;
+  final _bucketCount = ValueNotifier<int>(0);
 
 
   @override
@@ -99,23 +105,64 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
         setState(() {});
       }
     });*/
-
-
     ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
-    Workmanager.cancelAll();
-
-
+    //Workmanager.cancelAll();
       if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances){
-        StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
-      } else{StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {setState(() {report.value = value;});});}
-
+        StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {if(mounted)setState(() {report.value = value??{};});});
+      } else{StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {if(mounted)setState(() {report.value = value??{};});});}
     LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {_agentNotifier.value = event;});
+
+    setMerchant().then((value) {
+      AndroidAlarmManager.initialize();
+      requestListenerWorker();
+    });
+    bucket = OrderRepo.logisticBucketCount(currentUser.merchant.mID).listen((event) {
+      if(mounted)
+      {
+        _bucketCount.value=event;
+      }
+
+    });
+
+/*    OrderRepo.getLogisticUnclaimedDelivery(currentUser.merchant.mID).then((value) => print(value));*/
+
     super.initState();
   }
 
   showBottom() {
     //GetBar(title: 'tdsd',messageText: Text('sdsd'),duration: Duration(seconds: 2),).show();
   }
+
+  Future<bool> setMerchant() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('merchant', currentUser.merchant.mID??"");
+    return true;
+  }
+
+  static Future<void> backgroundWorker()async{
+    //await Workmanager.cancelAll();
+    await Workmanager.registerPeriodicTask(
+        "AGENTLOCATIONUPDATE", "LocationUpdateTask",
+        constraints: Constraints(
+            networkType: NetworkType.connected,
+            requiresBatteryNotLow: false,
+            requiresCharging: false,
+            requiresDeviceIdle: false,
+            requiresStorageNotLow: false
+        ),
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+        frequency: Duration(minutes: 15),
+        tag: 'LocationUpdateTag',
+        inputData: {});
+
+  }
+
+  Future<void> requestListenerWorker()async{
+    await AndroidAlarmManager.cancel(requestWorkerID);
+    await AndroidAlarmManager.periodic(const Duration(minutes: 2), requestWorkerID, backgroundWorker, rescheduleOnReboot: true, exact: true,);
+  }
+
+
 
   void reloadMerchant({bool complete=false}){
     WalletRepo.getWallet(currentUser.merchant.bWallet).then((value) {
@@ -125,8 +172,8 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
       }
     });
     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances){
-      StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
-    } else{StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {setState(() {report.value = value;});});}
+      StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {if(mounted) setState(() {report.value = value;});});
+    } else{StatisticRepo.getTodayStat(currentUser.merchant.mID,currentUser.user.uid).then((value) {if(mounted) setState(() {report.value = value;});});}
     if(complete)
       BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
@@ -135,17 +182,19 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
   void dispose() {
     iosSubscription?.cancel();
     orders?.cancel();
+    bucket?.cancel();
+    _bucketCount?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
 
     return Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
@@ -169,6 +218,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
             color: Colors.white,
             child: CustomScrollView(
               slivers: <Widget>[
+
                 SliverList(
                     delegate: SliverChildListDelegate(
                       [
@@ -183,7 +233,10 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                         const SizedBox(height: 10,),
                         if(!currentUser.staff.parentAllowed)
                         Center(
-                          child: Text('Your account has deactivated by ${currentUser.merchant.bName} admin.',style: TextStyle(color: Colors.red),),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Text('Your account has been deactivated by ${currentUser.merchant.bName} admin.',style: TextStyle(color: Colors.red),),
+                          )
                         ),
                         const SizedBox(height: 10,),
                         if(!currentUser.staff.staffPermissions.managers && currentUser.staff.staffPermissions.sales)
@@ -192,10 +245,10 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                             padding: EdgeInsets.symmetric(horizontal: 20),
                             child: Card(
                               child: MenuItem(
-                                  MediaQuery.of(context).size.height*0.25,
+                                  Get.height*0.25,
                                   Icon(
                                     AntIcons.printer_outline,
-                                    size: MediaQuery.of(context).size.width * 0.3,
+                                    size: Get.width * 0.3,
                                     color: PRIMARYCOLOR.withOpacity(0.8),
                                   ),
                                   'Point of Sale',
@@ -209,17 +262,69 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                         )
                       ],
                     )),
+                if(!isLocked)
                 if(currentUser.staff.parentAllowed)
-                if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances || currentUser.staff.staffPermissions.sales)
+                  if(currentUser.staff.staffPermissions.logistic)
+                    SliverList(
+                        delegate: SliverChildListDelegate(
+                          [
+
+                            Center(
+                                child: SizedBox(
+                                    height: Get.height*0.3,
+                                    width: Get.width*0.6,
+                                    child: GestureDetector(onTap: ()async{
+                                      /*FlutterRingtonePlayer.playNotification();
+                              await FlutterRingtonePlayer.play(
+                                android: AndroidSounds.notification,
+                                ios: IosSounds.glass,
+                                looping: false, // Android only - API >= 28
+                                volume: 0.1, // Android only - API >= 28
+                                asAlarm: false, // Android only - all APIs
+                              );
+                              FlutterRingtonePlayer.stop();*/
+                                      Get.to(LogisticBucket(user: currentUser,),).then((value) => null);
+                                    },child: Card(
+                                      child: ValueListenableBuilder(
+                                        valueListenable: _bucketCount,
+                                        builder: (_,count,__){
+                                          return
+                                            Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text('$count',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(color:PRIMARYCOLOR,fontSize: 30),),
+                                                const Text('Request Bucket',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                                                const Text('click to view',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(color: PRIMARYCOLOR),),
+                                              ],
+
+                                            );
+                                        },
+                                      ),
+                                    )
+                                    )
+                                )
+                            ),
+                            const SizedBox(height: 20,)
+                          ],
+                        )),
+                if(currentUser.staff.parentAllowed)
+                if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances || currentUser.staff.staffPermissions.sales || currentUser.staff.staffPermissions.logistic)
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                     Container(
                       color: Colors.white,
-                      //margin:  MediaQuery.of(context).size.height*0.05,
+                      //margin:  Get.height*0.05,
                       margin: EdgeInsets.only(
                           left: marginLR * 0.01, right: marginLR * 0.01),
                       child: Column(
@@ -324,12 +429,13 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       ),
                     ),
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                   ],
                 )),
                 if(currentUser.staff.parentAllowed)
                 SliverGrid.count(crossAxisCount: 3, children: [
+                  if(currentUser.merchant.bCategory != 'Logistic')
                   if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.sales || currentUser.staff.staffPermissions.finances)
                   ValueListenableBuilder(
                     valueListenable: report,
@@ -378,6 +484,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       ):const SizedBox.shrink();
                     },
                   ),
+                  if(currentUser.merchant.bCategory != 'Logistic')
                   if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.sales || currentUser.staff.staffPermissions.finances)
                   ValueListenableBuilder(
                     valueListenable: report,
@@ -445,7 +552,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                               ),
                             ],
                           ),
-                          child: _report.isNotEmpty || _report == null ?Column(
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -458,9 +565,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(color: PRIMARYCOLOR),),
                             ],
-                          ):Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          )
                         ),
                       );
                     },
@@ -605,7 +710,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate([
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.02,
+                    height: Get.height * 0.02,
                   ),
                 ])),
                 SliverList(
@@ -632,12 +737,13 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                 SliverGrid.count(
                   crossAxisCount: 3,
                   children: [
+                    if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.sales)
                     MenuItem(
                       gridHeight,
                       Icon(
                         AntIcons.shop_outline,
-                        size: MediaQuery.of(context).size.width * 0.1,
+                        size: Get.width * 0.1,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       'Transactions',
@@ -647,12 +753,13 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                        isLocked: isLocked,
                       refresh: reloadMerchant,
                     ),
+                    if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers)
                     MenuItem(
                       gridHeight,
                       Icon(
                         AntIcons.printer_outline,
-                        size: MediaQuery.of(context).size.width * 0.1,
+                        size: Get.width * 0.1,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       'Point of Sale',
@@ -662,6 +769,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isLocked: isLocked,
                       refresh: reloadMerchant,
                     ),
+                    if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.products)
                     StreamBuilder(
                       stream: StockRepo.getOneStream(currentUser.merchant.mID),
@@ -670,7 +778,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                         return MenuItem(
                             gridHeight,
                             Icon(Icons.calendar_today,
-                                size: MediaQuery.of(context).size.width * 0.1,
+                                size: Get.width * 0.1,
                                 color: PRIMARYCOLOR.withOpacity(0.8)),
                             'Stock Manager',
                             border: PRIMARYCOLOR,
@@ -683,11 +791,12 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                         );
                       },
                     ),
+                    if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.products)
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.shopping_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Products',
                       border: PRIMARYCOLOR,
@@ -696,11 +805,12 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isLocked: isLocked,
                       refresh: reloadMerchant,
                     ),
+                    if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.finances)
                     MenuItem(
                         gridHeight,
                         Icon(AntIcons.pie_chart_outline,
-                            size: MediaQuery.of(context).size.width * 0.1,
+                            size: Get.width * 0.1,
                             color: PRIMARYCOLOR.withOpacity(0.8)),
                         'Report',
                         border: PRIMARYCOLOR,
@@ -714,7 +824,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(AntIcons.user,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Staffs',
                       border: PRIMARYCOLOR,
@@ -725,7 +835,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.deployment_unit,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketUnit',
                       border: PRIMARYCOLOR,
@@ -739,7 +849,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(AntIcons.history,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Withdrawal(s)',
                       border: PRIMARYCOLOR,
@@ -749,7 +859,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(Icons.thumb_up,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Reviews',
                       border: PRIMARYCOLOR,
@@ -763,7 +873,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.setting_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Settings',
                       border: PRIMARYCOLOR,
@@ -774,18 +884,58 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     /*MenuItem(
                       gridHeight,
                       Icon(AntIcons.home_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Branch',
                       border: PRIMARYCOLOR,
                       content: Text('hello'),
                     ),*/
-
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                      ValueListenableBuilder(
+                          valueListenable: _orderNotifier,
+                          builder: (_, orders,__){
+                            return
+                              MenuItem(
+                                gridHeight,
+                                Icon(AntIcons.shopping_outline,
+                                    size: Get.width * 0.1,
+                                    color: PRIMARYCOLOR.withOpacity(0.8)),
+                                'Current Deliveries',
+                                border: PRIMARYCOLOR,
+                                isBadged: true,
+                                isMultiMenu: false,
+                                openCount: orders.length,
+                                content: MyDelivery(orders: orders,user: currentUser,),
+                                isLocked: isLocked,
+                                refresh: reloadMerchant,
+                              );
+                          }),
+                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                    ValueListenableBuilder(
+                        valueListenable: _bucketCount,
+                        builder: (_, count,__){
+                          return
+                            MenuItem(
+                              gridHeight,
+                              Icon(AntIcons.bell_outline,
+                                  size: Get.width * 0.1,
+                                  color: PRIMARYCOLOR.withOpacity(0.8)),
+                              'Request',
+                              border: PRIMARYCOLOR,
+                              isBadged: true,
+                              isMultiMenu: false,
+                              openCount: count,
+                              content: LogisticBucket(user: currentUser,),
+                              refresh: reloadMerchant,
+                              isLocked: isLocked,
+                            );
+                        }),
+
+                    if(currentUser.staff.staffPermissions.managers || !currentUser.staff.staffPermissions.logistic)
                     MenuItem(
                       gridHeight,
                       Icon(MaterialIcons.check,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Clearance',
                       border: PRIMARYCOLOR,
@@ -796,11 +946,11 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isLocked: isLocked,
                       refresh: reloadMerchant,
                     ),
-                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                    if(currentUser.staff.staffPermissions.managers || !currentUser.staff.staffPermissions.logistic)
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pie_chart_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Logistic Report',
                       border: PRIMARYCOLOR,
@@ -811,31 +961,12 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isLocked: isLocked,
                       refresh: reloadMerchant,
                     ),
-                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
-                    ValueListenableBuilder(
-                        valueListenable: _orderNotifier,
-                        builder: (_, orders,__){
-                          return
-                            MenuItem(
-                              gridHeight,
-                              Icon(AntIcons.shopping_outline,
-                                  size: MediaQuery.of(context).size.width * 0.1,
-                                  color: PRIMARYCOLOR.withOpacity(0.8)),
-                              'Current Deliveries',
-                              border: PRIMARYCOLOR,
-                              isBadged: true,
-                              isMultiMenu: false,
-                              openCount: orders.length,
-                              content: MyDelivery(orders: orders,user: currentUser,),
-                              isLocked: isLocked,
-                              refresh: reloadMerchant,
-                            );
-                        }),
-                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+
+                    if(currentUser.staff.staffPermissions.managers || !currentUser.staff.staffPermissions.logistic)
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.car_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My AutoMobile(s)',
                       border: PRIMARYCOLOR,
@@ -844,11 +975,11 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                       isLocked: isLocked,
                       refresh: reloadMerchant,
                     ),
-                    if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.logistic)
+                    if(currentUser.staff.staffPermissions.managers || !currentUser.staff.staffPermissions.logistic)
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.user_add_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'My Rider(s)',
                       border: PRIMARYCOLOR,
@@ -861,7 +992,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.pushpin_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Rider Tracker',
                       border: PRIMARYCOLOR,
@@ -874,7 +1005,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.smile_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'PocketSense',
                       border: PRIMARYCOLOR,
@@ -889,7 +1020,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(AntIcons.customer_service_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Customer Care',
                       border: PRIMARYCOLOR,
@@ -902,7 +1033,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     MenuItem(
                       gridHeight,
                       Icon(Icons.help_outline,
-                          size: MediaQuery.of(context).size.width * 0.1,
+                          size: Get.width * 0.1,
                           color: PRIMARYCOLOR.withOpacity(0.8)),
                       'Help',
                       border: PRIMARYCOLOR,
@@ -916,10 +1047,37 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                 SliverList(
                     delegate: SliverChildListDelegate(
                   [
-                    Container(
-                      color: Colors.white,
-                      height: MediaQuery.of(context).size.height * 0.1,
-                    ),
+                    if(currentUser.merchant.bSocial.isNotEmpty)
+                      if(currentUser.merchant.bSocial['url'] != null)
+                        Column(
+                          children: [
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Center(
+                              child: Text('${currentUser.merchant.bName} Url'),
+                            ),
+                            Center(
+                              child: Text('${currentUser.merchant.bSocial['url']}',style: TextStyle(color: PRIMARYCOLOR,fontWeight: FontWeight.bold),),
+                            ),
+                            Center(
+                                child: FlatButton(
+                                  onPressed: (){
+                                    Share.share('${currentUser.merchant.bSocial['url']}');
+                                  },
+                                  color: PRIMARYCOLOR,
+                                  child: Text('Share Url',style: TextStyle(color: Colors.white),),
+                                )
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                        )
+                      else
+                        const SizedBox(
+                          height: 20,
+                        ),
                   ],
                 )),
               ],

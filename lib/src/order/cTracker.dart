@@ -78,7 +78,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
             if(order.connectionState == ConnectionState.waiting){
               return Center(
                 child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ),
               );
@@ -298,7 +298,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                               initialRating: review.data.rating,
                                                               minRating: 1,
                                                               maxRating: 5,
-                                                              itemSize: MediaQuery.of(context).size.width * 0.08,
+                                                              itemSize: Get.width * 0.08,
                                                               direction: Axis.horizontal,
                                                               allowHalfRating: true,
                                                               ignoreGestures: true,
@@ -347,7 +347,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           children: [
                                                             Center(
                                                               child: Text(
-                                                                'Rate ${merchant.data != null ? merchant.data.bName : ''}',
+                                                                'Rate the expirience',
                                                                 style: TextStyle(fontSize: 16),
                                                               ),
                                                             ),
@@ -369,7 +369,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                                 initialRating: 1,
                                                                 minRating: 1,
                                                                 maxRating: 5,
-                                                                itemSize: MediaQuery.of(context).size.width * 0.1,
+                                                                itemSize: Get.width * 0.1,
                                                                 direction: Axis.horizontal,
                                                                 allowHalfRating: true,
                                                                 itemCount: 5,
@@ -404,7 +404,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                               maxLengthEnforced: true,
                                                             ),
                                                             Container(
-                                                              width: MediaQuery.of(context).size.width,
+                                                              width: Get.width,
                                                               child: FlatButton(
                                                                 onPressed: () async{
                                                                   Utility.bottomProgressLoader(title: "Submitting review",body: "Submitting review to server");
@@ -417,6 +417,16 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                                     neutral: 0,
                                                                     negative: 0
                                                                   )
+                                                                  );
+                                                                   ReviewRepo.save(Review(text: _review.text, rating: rating.value, reviewed: order.data.orderLogistic,
+                                                                      reviewedAt: Timestamp.now(), reviewerId: order.data.customerID, reviewerName: order.data.orderCustomer.customerName),
+                                                                      rating: Rating(
+                                                                          id: order.data.orderLogistic,
+                                                                          rating: rating.value,
+                                                                          positive: 0,
+                                                                          neutral: 0,
+                                                                          negative: 0
+                                                                      )
                                                                   );
                                                                   Get.back();
 
@@ -504,7 +514,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                             ),
                                                           ),
                                                           padding: EdgeInsets.all(
-                                                              MediaQuery.of(context).size.width *
+                                                              Get.width *
                                                                   0.02),
                                                           child: Row(
                                                             children: <Widget>[
@@ -530,7 +540,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                             ),
                                                           ),
                                                           padding: EdgeInsets.all(
-                                                              MediaQuery.of(context).size.width *
+                                                              Get.width *
                                                                   0.02),
                                                           child: Row(
                                                             children: <Widget>[
@@ -554,7 +564,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                             ),
                                                           ),
                                                           padding: EdgeInsets.all(
-                                                              MediaQuery.of(context).size.width *
+                                                              Get.width *
                                                                   0.02),
                                                           child: Row(
                                                             children: <Widget>[
@@ -591,7 +601,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                             ),
                                                             color: PRIMARYCOLOR),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: const Align(
                                                           alignment: Alignment.centerLeft,
                                                           child: const Text(
@@ -610,7 +620,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -634,7 +644,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                             ),
                                                           ),
                                                           padding: EdgeInsets.all(
-                                                              MediaQuery.of(context).size.width * 0.02),
+                                                              Get.width * 0.02),
                                                           child: Row(
                                                             children: <Widget>[
                                                               const Expanded(
@@ -657,7 +667,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -680,7 +690,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -702,7 +712,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -725,7 +735,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -760,7 +770,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                             ),
                                                             color: PRIMARYCOLOR),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: const Align(
                                                           alignment: Alignment.centerLeft,
                                                           child: const Text(
@@ -845,7 +855,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -868,7 +878,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width *
+                                                            Get.width *
                                                                 0.02),
                                                         child: Row(
                                                           children: <Widget>[
@@ -893,7 +903,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -923,7 +933,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -970,7 +980,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                                       ),
                                                                       color: PRIMARYCOLOR),
                                                                   padding: EdgeInsets.all(
-                                                                      MediaQuery.of(context).size.width * 0.02),
+                                                                      Get.width * 0.02),
                                                                   child:const Align(
                                                                     alignment: Alignment.centerLeft,
                                                                     child: const Text(
@@ -992,7 +1002,7 @@ class _CustomerTrackerState extends State<CustomerTracker> {
                                                                           ),
                                                                         ),
                                                                         padding: EdgeInsets.all(
-                                                                            MediaQuery.of(context).size.width * 0.02),
+                                                                            Get.width * 0.02),
                                                                         child: Align(
                                                                             alignment: Alignment.center,
                                                                             child: Row(
@@ -1157,8 +1167,8 @@ class _LoaderState extends State<Loader> {
             current > 0 ? Column(
             children: [
               Container(
-                //width: MediaQuery.of(context).size.width * 0.3,
-                //height: MediaQuery.of(context).size.height * 0.18,
+                //width: Get.width * 0.3,
+                //height: Get.height * 0.18,
                   color: Colors.white,
                   child: CircularStepProgressIndicator(
                     totalSteps: total,

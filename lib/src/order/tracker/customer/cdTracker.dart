@@ -78,12 +78,6 @@ class _CustomerDeliveryTrackerWidgetState extends State<CustomerDeliveryTrackerW
   @override
   Widget build(BuildContext context) {
     return
-      WillPopScope(
-          onWillPop: () async {
-            return true;
-
-
-          },child:
       Scaffold(
           appBar: !widget.isActive?AppBar(
             elevation: 0.0,
@@ -111,7 +105,7 @@ class _CustomerDeliveryTrackerWidgetState extends State<CustomerDeliveryTrackerW
               if(order.connectionState == ConnectionState.waiting){
                 return Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 );
@@ -155,7 +149,7 @@ class _CustomerDeliveryTrackerWidgetState extends State<CustomerDeliveryTrackerW
                                     else{
                                       return Center(
                                         child: JumpingDotsProgressIndicator(
-                                          fontSize: MediaQuery.of(context).size.height * 0.12,
+                                          fontSize: Get.height * 0.12,
                                           color: PRIMARYCOLOR,
                                         ),
                                       );
@@ -163,7 +157,7 @@ class _CustomerDeliveryTrackerWidgetState extends State<CustomerDeliveryTrackerW
                                   }):
                                   Center(
                                     child: JumpingDotsProgressIndicator(
-                                      fontSize: MediaQuery.of(context).size.height * 0.12,
+                                      fontSize: Get.height * 0.12,
                                       color: PRIMARYCOLOR,
                                     ),
                                   )
@@ -249,7 +243,6 @@ class _CustomerDeliveryTrackerWidgetState extends State<CustomerDeliveryTrackerW
             },
           )
 
-      )
       );
   }
 }
@@ -269,16 +262,29 @@ class DeliverTrackerWidget extends StatelessWidget{
     return Column(
         children: <Widget>[
           SizedBox(height: 50,),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: 10, horizontal: 10),
-              child: Text('Status: ${order.data.status != 0 ? order.data.receipt.psStatus=='success'?'Completed':'Cancelled' : 'PROCESSING'}',
-                style: TextStyle(fontSize: 20),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  flex:0,
+                  child:  IconButton(
+                    onPressed: (){Get.back();},
+                    icon: Icon(Icons.arrow_back_ios),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 10),
+                      child: Text('Status: ${order.data.status != 0 ? order.data.receipt.psStatus=='success'?'Completed':'Cancelled' : 'PROCESSING'}',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
 
           (!order.data.orderConfirmation.isConfirmed && order.data.status == 0 && order.data.isAssigned) ||
               (order.data.orderMode.mode == 'Pickup' && !order.data.orderConfirmation.isConfirmed && order.data.status == 0)
@@ -461,7 +467,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                           initialRating: review.data.rating,
                           minRating: 1,
                           maxRating: 5,
-                          itemSize: MediaQuery.of(context).size.width * 0.08,
+                          itemSize: Get.width * 0.08,
                           direction: Axis.horizontal,
                           allowHalfRating: true,
                           ignoreGestures: true,
@@ -532,7 +538,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                                 initialRating: 1,
                                 minRating: 1,
                                 maxRating: 5,
-                                itemSize: MediaQuery.of(context).size.width * 0.1,
+                                itemSize: Get.width * 0.1,
                                 direction: Axis.horizontal,
                                 allowHalfRating: true,
                                 itemCount: 5,
@@ -567,7 +573,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                           maxLengthEnforced: true,
                         ),
                         Container(
-                          width: MediaQuery.of(context).size.width,
+                          width: Get.width,
                           child: FlatButton(
                             onPressed: () async{
                               Utility.bottomProgressLoader(title: "Submitting review",body: "Submitting review to server");
@@ -667,7 +673,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width *
+                          Get.width *
                               0.02),
                       child: Row(
                         children: <Widget>[
@@ -693,7 +699,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width *
+                          Get.width *
                               0.02),
                       child: Row(
                         children: <Widget>[
@@ -717,7 +723,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width *
+                          Get.width *
                               0.02),
                       child: Row(
                         children: <Widget>[
@@ -754,7 +760,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                           ),
                           color: PRIMARYCOLOR),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: const Align(
                         alignment: Alignment.centerLeft,
                         child: const Text(
@@ -773,7 +779,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Row(
                         children: <Widget>[
                           const Expanded(
@@ -797,7 +803,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                           ),
                         ),
                         padding: EdgeInsets.all(
-                            MediaQuery.of(context).size.width * 0.02),
+                            Get.width * 0.02),
                         child: Row(
                           children: <Widget>[
                             const Expanded(
@@ -820,7 +826,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Row(
                         children: <Widget>[
                           const Expanded(
@@ -843,7 +849,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Row(
                         children: <Widget>[
                           const Expanded(
@@ -865,7 +871,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Row(
                         children: <Widget>[
                           const Expanded(
@@ -888,7 +894,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Row(
                         children: <Widget>[
                           const Expanded(
@@ -923,7 +929,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                         ),
                         color: PRIMARYCOLOR),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: const Align(
                       alignment: Alignment.centerLeft,
                       child: const Text(
@@ -1008,7 +1014,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -1031,7 +1037,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width *
+                        Get.width *
                             0.02),
                     child: Row(
                       children: <Widget>[
@@ -1056,7 +1062,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -1086,7 +1092,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                       ),
                     ),
                     padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.02),
+                        Get.width * 0.02),
                     child: Row(
                       children: <Widget>[
                         const Expanded(
@@ -1106,6 +1112,56 @@ class DeliverTrackerWidget extends StatelessWidget{
                       ],
                     )),
               ])),
+
+          if(order.data.status == 0   && !(order.data as Order).isAssigned)
+            psHeadlessCard(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey,
+                    //offset: Offset(1.0, 0), //(x,y)
+                    blurRadius: 6.0,
+                  ),
+                ],
+                child:Container(
+                    color: Colors.red,
+                    child:
+                    FlatButton.icon(
+                      color: Colors.red,
+                      onPressed: (){
+                        Get.defaultDialog(
+                          title: 'Cancel',
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Are you sure you want to cancel'),
+                            ],
+                          ),
+                          cancel: FlatButton(
+                            onPressed: () {
+                              Get.back();
+                            },
+                            child: Text('No'),
+                          ),
+                          confirm: FlatButton(
+                            onPressed: ()async {
+                              Get.back();
+                              var result = cancel(order.data.docID,
+                                  Receipt.fromMap(order.data.receipt.copyWith(psStatus: "fail",
+                                      pRef: ' Order was cancelled by customer.').toMap()),
+                                  ""
+                              );
+
+                              //refreshOrder();
+                            },
+                            child: Text('Yes'),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.close,color: Colors.white,),
+                      label:  Text('Cancel Request',style: TextStyle(color: Colors.white),),
+                    )
+                )
+            ),
 
           FutureBuilder<List<CustomerCareLine>>(
             future: CustomerCareRepo.fetchCustomerCareLine((order.data.orderMode.mode=='Delivery'?order.data.orderLogistic:order.data.orderMerchant)),
@@ -1133,7 +1189,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                                   ),
                                   color: PRIMARYCOLOR),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child:const Align(
                                 alignment: Alignment.centerLeft,
                                 child: const Text(
@@ -1155,7 +1211,7 @@ class DeliverTrackerWidget extends StatelessWidget{
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width * 0.02),
+                                        Get.width * 0.02),
                                     child: Align(
                                         alignment: Alignment.center,
                                         child: Row(
@@ -1232,6 +1288,27 @@ class DeliverTrackerWidget extends StatelessWidget{
     }
     return isDone;
   }
+
+  bool cancel(String oid,Receipt receipt,String agent) {
+    bool isDone = true;
+    OrderRepo.cancel(oid,receipt,agent).catchError((onError) {
+      isDone = false;
+    });
+
+    if (isDone) {
+      GetBar(
+        title: 'Order Cancelled',
+        messageText: Text(
+          'The request has been cancelled. ',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+    }
+
+    return isDone;
+  }
 }
 
 
@@ -1297,8 +1374,8 @@ class _LoaderState extends State<Loader> {
                   current > 0 ? Column(
                     children: [
                       Container(
-                        //width: MediaQuery.of(context).size.width * 0.3,
-                        //height: MediaQuery.of(context).size.height * 0.18,
+                        //width: Get.width * 0.3,
+                        //height: Get.height * 0.18,
                           color: Colors.white,
                           child: CircularStepProgressIndicator(
                             totalSteps: total,

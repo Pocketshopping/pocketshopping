@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
@@ -106,8 +107,8 @@ class _TimerState extends State<TimerWidget> {
         ? Center(
             child: Container(
               alignment: Alignment.center,
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.8,
+              width: Get.width,
+              height: Get.height * 0.8,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -137,7 +138,7 @@ class _TimerState extends State<TimerWidget> {
                     child: Text(
                       'Confirming order from merchant',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.03),
+                          fontSize: Get.height * 0.03),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -145,7 +146,7 @@ class _TimerState extends State<TimerWidget> {
                     child: Text(
                       'please wait..',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.03),
+                          fontSize: Get.height * 0.03),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -156,19 +157,19 @@ class _TimerState extends State<TimerWidget> {
         : Center(
             child: Container(
               alignment: Alignment.center,
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.8,
+              width: Get.width,
+              height: Get.height * 0.8,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    width: MediaQuery.of(context).size.width * 0.3,
-                    height: MediaQuery.of(context).size.height * 0.18,
+                    width: Get.width * 0.3,
+                    height: Get.height * 0.18,
                     child: Icon(
                       Icons.close,
                       color: Colors.red,
-                      size: MediaQuery.of(context).size.height * 0.18,
+                      size: Get.height * 0.18,
                     ),
                   ),
                   Center(
@@ -176,7 +177,7 @@ class _TimerState extends State<TimerWidget> {
                       'Sorry we can not process this order because the merchant'
                       ' is unavailable',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.03),
+                          fontSize: Get.height * 0.03),
                       textAlign: TextAlign.center,
                     ),
                   ),

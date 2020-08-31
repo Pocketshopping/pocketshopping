@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 class AddBranch extends StatefulWidget {
@@ -39,7 +40,7 @@ class _AddBranchState extends State<AddBranch> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: Builder(
             builder: (ctx) => AppBar(

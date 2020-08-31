@@ -177,21 +177,21 @@ class Agent {
 
   static Agent fromSnap(DocumentSnapshot snap) {
     return Agent(
-      agent: snap.data['agent'],
-      autoType: snap.data['autoType'],
-      autoAssigned: snap.data['autoAssigned'],
-      agentCreatedAt: snap.data['agentCreatedAt'],
-      agentID: snap.documentID,
-      agentWorkPlace: snap.data['agentWorkPlace'],
-      startDate: snap.data['startDate'],
-      endDate: snap.data['endDate'],
-      agentBehaviour: snap.data['agentBehaviour'],
-      agentStatus: snap.data['agentStatus'],
-      workPlaceWallet: snap.data['workPlaceWallet'],
-      agentWallet: snap.data['agentWallet'],
-      limit: snap.data['limit']??10000,
-      name: snap.data['name'],
-      accepted: snap.data['accepted'],
+      agent: snap.data()['agent'],
+      autoType: snap.data()['autoType'],
+      autoAssigned: snap.data()['autoAssigned'],
+      agentCreatedAt: snap.data()['agentCreatedAt'],
+      agentID: snap.id,
+      agentWorkPlace: snap.data()['agentWorkPlace'],
+      startDate: snap.data()['startDate'],
+      endDate: snap.data()['endDate'],
+      agentBehaviour: snap.data()['agentBehaviour'],
+      agentStatus: snap.data()['agentStatus'],
+      workPlaceWallet: snap.data()['workPlaceWallet'],
+      agentWallet: snap.data()['agentWallet'],
+      limit: snap.data()['limit']??10000,
+      name: snap.data()['name'],
+      accepted: snap.data()['accepted'],
     );
   }
 

@@ -81,7 +81,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
     else{
       List<Merchant> data = List();
       GeoFirePoint center = geo.point(latitude: _position.latitude, longitude: _position.longitude);
-      var collectionReference = Firestore.instance
+      var collectionReference = FirebaseFirestore.instance
           .collection('merchants')
           .where('businessCategory', isEqualTo: category)
           .where('businessActive',isEqualTo: true)
@@ -125,7 +125,7 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
     else{
       List<Merchant> data = List();
       GeoFirePoint center = geo.point(latitude: _position.latitude, longitude: _position.longitude);
-      var collectionReference = Firestore.instance
+      var collectionReference = FirebaseFirestore.instance
           .collection('merchants')
           .where('businessActive',isEqualTo: true)
           .limit(20);

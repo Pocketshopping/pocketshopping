@@ -106,7 +106,7 @@ class _AgentListState extends State<AgentList> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.15),
           child: AppBar(
               title: Text(widget.title==null?'${widget.user.merchant.bName} Rider(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -124,7 +124,7 @@ class _AgentListState extends State<AgentList> {
               elevation: 0.0,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(
-                    MediaQuery.of(context).size.height *
+                    Get.height *
                         0.1),
                 child: Container(
                     child: TextFormField(
@@ -238,7 +238,7 @@ class _AgentListState extends State<AgentList> {
                         child: Text(
                           'Empty',
                           style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                              fontSize: Get.height * 0.06),
                         ),
                       ),
                       SizedBox(
@@ -264,7 +264,7 @@ class _AgentListState extends State<AgentList> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -424,7 +424,7 @@ class Clearance extends StatelessWidget{
               onTap: (){
                 Get.bottomSheet(builder: (context){
                   return Container(
-                    height: MediaQuery.of(context).size.height*0.35,
+                    height: Get.height*0.35,
                     color: Colors.white,
                     child: Column(
                       children: [

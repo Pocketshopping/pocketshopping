@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/credit_card_form.dart';
 import 'package:flutter_credit_card/credit_card_model.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 class ATMCard extends StatefulWidget {
@@ -38,14 +39,14 @@ class _ATMCardState extends State<ATMCard> {
   Widget build(BuildContext context) {
     // TODO: implement build
     return Container(
-        height: MediaQuery.of(context).size.height,
+        height: Get.height,
         child: Column(children: <Widget>[
           //
           Container(
-              height: MediaQuery.of(context).size.height * 0.3,
+              height: Get.height * 0.3,
               child: Column(
                 children: <Widget>[
-                  //SizedBox(height: MediaQuery.of(context).size.height*0.1,),
+                  //SizedBox(height: Get.height*0.1,),
                   CreditCardWidget(
                     cardBgColor: PRIMARYCOLOR,
                     cardNumber: cardNumber,
@@ -57,7 +58,7 @@ class _ATMCardState extends State<ATMCard> {
                 ],
               )),
           Container(
-            height: MediaQuery.of(context).size.height * 0.7,
+            height: Get.height * 0.7,
             child: ListView(
               children: <Widget>[
                 CreditCardForm(
@@ -73,13 +74,13 @@ class _ATMCardState extends State<ATMCard> {
                   },
                 ),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
+                  height: Get.height * 0.02,
                 ),
                 Image.asset('assets/images/paystack.png',
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    height: MediaQuery.of(context).size.height * 0.1),
+                    width: Get.width * 0.6,
+                    height: Get.height * 0.1),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * formHeight,
+                  height: Get.height * formHeight,
                 ),
               ],
             ),

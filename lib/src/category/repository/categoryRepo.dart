@@ -5,12 +5,12 @@ import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'mCategoryEntity.dart';
 
 class CategoryRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<String> save(dynamic pcategory) async {
     DocumentReference bid;
     bid = await databaseReference.collection("category").add(pcategory.toMap());
-    return bid.documentID;
+    return bid.id;
   }
 
   static Future<List<MCategory>> getAll({int source=0}) async {
@@ -21,10 +21,10 @@ class CategoryRepo {
      var docs = await databaseReference
          .collection("categories")
          .orderBy('categoryView', descending: true)
-         .getDocuments(source: Source.cache).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-     if(docs.documents.isNotEmpty){
+         .get(GetOptions(source: Source.cache)).timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
+     if(docs.docs.isNotEmpty){
        //print('category cache');
-       docs.documents.forEach((element) {categories.add(MCategory.fromEntity(MCategoryEntity.fromSnapshot(element)));});
+       docs.docs.forEach((element) {categories.add(MCategory.fromEntity(MCategoryEntity.fromSnapshot(element)));});
        return categories;
      }
      else
@@ -37,8 +37,8 @@ class CategoryRepo {
      var docs = await databaseReference
          .collection("categories")
          .orderBy('categoryView', descending: true)
-         .getDocuments(source: Source.serverAndCache);
-     docs.documents.forEach((element) {
+         .get(GetOptions(source: Source.serverAndCache));
+     docs.docs.forEach((element) {
        categories.add(MCategory.fromEntity(MCategoryEntity.fromSnapshot(element)));
      });
      return categories;
@@ -61,9 +61,9 @@ class CategoryRepo {
         .collection("delivery")
         .orderBy('sort')
         .where('enable', isEqualTo: true)
-        .getDocuments(source: Source.serverAndCache);
-    docs.documents.forEach((element) {
-      options.add(element.data['key']);
+        .get(GetOptions(source: Source.serverAndCache));
+    docs.docs.forEach((element) {
+      options.add(element.data()['key']);
     });
     return options;
   }

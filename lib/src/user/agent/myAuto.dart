@@ -390,7 +390,7 @@ class _MyAutoState extends State<MyAuto>{
                     onPressed: (){
                       Get.bottomSheet(builder: (context){
                         return Container(
-                          height: MediaQuery.of(context).size.height / 2 +
+                          height: Get.height / 2 +
                               MediaQuery.of(context).viewInsets.bottom,
                           color: Colors.white,
                           child: Column(
@@ -424,7 +424,7 @@ class _MyAutoState extends State<MyAuto>{
                                                     ),
                                                   ),
                                                   padding: EdgeInsets.all(
-                                                      MediaQuery.of(context).size.width *
+                                                      Get.width *
                                                           0.02),
                                                   child: TextFormField(
                                                     controller: _limitController,
@@ -535,8 +535,8 @@ class _MyAutoState extends State<MyAuto>{
                                         },
                                         isSelected: isSelected,
                                         constraints: BoxConstraints(
-                                            maxWidth: MediaQuery.of(context).size.width,
-                                            minWidth: MediaQuery.of(context).size.width*0.25
+                                            maxWidth: Get.width,
+                                            minWidth: Get.width*0.25
                                         ),
                                       );
                                     },
@@ -558,7 +558,7 @@ class _MyAutoState extends State<MyAuto>{
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child:  Column(
                                       children: <Widget>[
@@ -724,7 +724,7 @@ class _MyAutoState extends State<MyAuto>{
             else{
               return Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ));
             }
@@ -732,7 +732,7 @@ class _MyAutoState extends State<MyAuto>{
           else{
             return Center(
                 child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
           color: PRIMARYCOLOR,
           ));
           }

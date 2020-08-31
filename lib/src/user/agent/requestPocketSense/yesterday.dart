@@ -32,7 +32,8 @@ class _YesterdayMissesState extends State<YesterdayMisses> {
   void initState() {
 
     location = new Location();
-    location.changeSettings(accuracy: LocationAccuracy.navigation, distanceFilter: 10);
+
+    location.changeSettings(accuracy: LocationAccuracy.navigation, interval: 60000);
     location.getLocation().then((cLcc) => _currentLocationNotifier.value =cLcc);
     locStream = location.onLocationChanged.listen((LocationData cLoc) {
       _currentLocationNotifier.value= cLoc;

@@ -9,7 +9,7 @@ import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/withdrawal/repository/withdrawalObj.dart';
 
 class WithdrawalRepo {
-  final databaseReference = Firestore.instance;
+  final databaseReference = FirebaseFirestore.instance;
 
   static Future<List<Withdrawal>> withdrawReport({String wid}) async {
     DateTime dateTime=DateTime.now().subtract(Duration(days: 29));

@@ -5,7 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/agentLocUp.dart';
 
 class ErrandRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   static final Geoflutterfire geo = Geoflutterfire();
   static final double radius = 2;
@@ -15,7 +15,7 @@ class ErrandRepo {
 
   static Stream<List<AgentLocUp>> getNearByErrandRider(Position pos,) async* {
     GeoFirePoint center = geo.point(latitude: pos.latitude, longitude: pos.longitude);
-    var collectionReference = Firestore.instance
+    var collectionReference = FirebaseFirestore.instance
         .collection('agentLocationUpdate')
         .where('availability', isEqualTo: true)
         .where('pocket', isEqualTo: true)

@@ -200,7 +200,7 @@ class _SalesTransactionsState extends State<SalesTransactions> {
                             child: Text(
                               'Empty',
                               style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height * 0.06),
+                                  fontSize: Get.height * 0.06),
                             ),
                           ),
                           SizedBox(
@@ -226,7 +226,7 @@ class _SalesTransactionsState extends State<SalesTransactions> {
                         :
                     Center(
                       child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        fontSize: Get.height * 0.12,
                         color: PRIMARYCOLOR,
                       ),
                     )

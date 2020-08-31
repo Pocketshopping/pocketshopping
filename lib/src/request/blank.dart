@@ -62,7 +62,7 @@ class _BlankWorkplaceState extends State<BlankWorkplace> {
                   if(request.connectionState == ConnectionState.waiting){
                     return Center(
                       child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        fontSize: Get.height * 0.12,
                         color: PRIMARYCOLOR,
                       ),
                     );

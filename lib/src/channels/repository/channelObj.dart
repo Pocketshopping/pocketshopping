@@ -85,10 +85,10 @@ class Channels {
     bool shouldUpdateCashier = false;
     Map<String, dynamic> toUpdate = {};
 
-    Ordering = snap.data['Ordering'] as Map<String, dynamic>;
-    Messaging = snap.data['Messaging'] as Map<String, dynamic>;
-    Delivery = snap.data['Delivery&Pickup'] as Map<String, dynamic>;
-    Cashier = snap.data['Cashier'] as Map<String, dynamic>;
+    Ordering = snap.data()['Ordering'] as Map<String, dynamic>;
+    Messaging = snap.data()['Messaging'] as Map<String, dynamic>;
+    Delivery = snap.data()['Delivery&Pickup'] as Map<String, dynamic>;
+    Cashier = snap.data()['Cashier'] as Map<String, dynamic>;
 
     if (Ordering.containsKey(uid)) {
       Ordering.update(uid, (value) => newToken);
@@ -118,13 +118,13 @@ class Channels {
   static Channels fromSnap(DocumentSnapshot snap) {
     return Channels(
         oChannels:
-            (snap.data['Ordering'] as Map<String, dynamic>).values.toList(),
+            (snap.data()['Ordering'] as Map<String, dynamic>).values.toList(),
         mChannels:
-            (snap.data['Messaging'] as Map<String, dynamic>).values.toList(),
-        dChannels: (snap.data['Delivery&Pickup'] as Map<String, dynamic>)
+            (snap.data()['Messaging'] as Map<String, dynamic>).values.toList(),
+        dChannels: (snap.data()['Delivery&Pickup'] as Map<String, dynamic>)
             .values
             .toList(),
         cChannels:
-            (snap.data['Cashier'] as Map<String, dynamic>).values.toList());
+            (snap.data()['Cashier'] as Map<String, dynamic>).values.toList());
   }
 }

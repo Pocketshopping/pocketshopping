@@ -34,6 +34,7 @@ class Order {
   final List<String> index;
   final String customerDevice;
   final ErrandObj errand;
+  final String auto;
 
   Order({
       this.orderItem,
@@ -56,7 +57,8 @@ class Order {
       this.resolution,
       this.customerDevice,
       this.index,
-      this.errand
+      this.errand,
+      this.auto
       });
 
   Order copyWith({
@@ -81,7 +83,8 @@ class Order {
       String resolution,
       List<String> index,
       String customerDevice,
-      ErrandObj errand
+      ErrandObj errand,
+      String auto
       }) {
     return Order(
         orderItem: orderItem ?? this.orderItem,
@@ -104,7 +107,8 @@ class Order {
         resolution: resolution??this.resolution,
         customerDevice: customerDevice??this.customerDevice,
         index: index??this.index,
-        errand: errand??this.errand
+        errand: errand??this.errand,
+        auto: auto??this.auto
     );
   }
 
@@ -130,7 +134,7 @@ class Order {
       resolution.hashCode ^
       index.hashCode ^
       customerDevice.hashCode^
-      errand.hashCode;
+      errand.hashCode ^ auto.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -156,7 +160,7 @@ class Order {
           resolution == other.resolution &&
           index == other.index &&
           customerDevice == other.customerDevice &&
-          errand == other.errand;
+          errand == other.errand && auto == other.auto;
 
   Order update(
       {List<OrderItem> orderItem,
@@ -180,6 +184,7 @@ class Order {
       List<String> index,
       String customerDevice,
       ErrandObj errand,
+      String auto
       }) {
     return copyWith(
       orderItem: orderItem,
@@ -202,7 +207,8 @@ class Order {
       resolution: resolution,
       index: index,
       customerDevice: customerDevice,
-      errand: errand
+      errand: errand,
+      auto: auto
     );
   }
 
@@ -232,9 +238,10 @@ class Order {
       'potentials':potentials ?? [],
       'resolution':resolution ?? '',
       'index': await makeOrderIndex(),
-      'etc': orderMode.mode == 'Errand'? DateTime.now().add(Duration(minutes: 40)): DateTime.now().add(Duration(minutes: 5)),
+      'etc': orderMode.mode == 'Errand'? DateTime.now().add(Duration(minutes: 40)): orderLogistic.isNotEmpty?DateTime.now().add(Duration(minutes: 15)):DateTime.now().add(Duration(minutes: 5)),
       'customerDevice': await FirebaseMessaging().getToken(),
-      'errand':errand != null ? errand.toMap() : {}
+      'errand':errand != null ? errand.toMap() : {},
+      'auto':auto
     };
   }
   Future<List<String>> makeOrderIndex()async{
@@ -279,6 +286,7 @@ class Order {
         index: orderEntity.index,
         customerDevice: orderEntity.customerDevice,
         errand: orderEntity.errand,
+        auto:  orderEntity.auto,
         );
   }
 

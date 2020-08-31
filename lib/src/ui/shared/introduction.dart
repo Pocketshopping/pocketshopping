@@ -34,7 +34,7 @@ class _IntroductionState extends State<Introduction> {
       image: Center(
         child: Image.asset(
           'assets/images/blogo.png',
-          //height: MediaQuery.of(context).size.height * 0.4,
+          //height: Get.height * 0.4,
         ),
       ),
       decoration: PageDecoration(
@@ -55,7 +55,7 @@ class _IntroductionState extends State<Introduction> {
         image: Center(
           child: Image.asset(
             'assets/images/shopping.png',
-            //height: MediaQuery.of(context).size.height * 0.5,
+            //height: Get.height * 0.5,
           ),
         ),
         decoration: PageDecoration(
@@ -75,7 +75,7 @@ class _IntroductionState extends State<Introduction> {
         image: Center(
           child: Image.asset(
             'assets/images/erranIntro.png',
-            //height: MediaQuery.of(context).size.height * 0.4,
+            //height: Get.height * 0.4,
           ),
         ),
         decoration: PageDecoration(
@@ -96,7 +96,7 @@ class _IntroductionState extends State<Introduction> {
         image: Center(
           child: Image.asset(
             'assets/images/business.png',
-            //height: MediaQuery.of(context).size.height * 0.4,
+            //height: Get.height * 0.4,
           ),
         ),
         decoration: PageDecoration(
@@ -116,7 +116,7 @@ class _IntroductionState extends State<Introduction> {
         image: Center(
           child: Image.asset(
             'assets/images/payment.png',
-            //height: MediaQuery.of(context).size.height * 0.4,
+            //height: Get.height * 0.4,
           ),
         ),
         decoration: PageDecoration(

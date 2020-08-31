@@ -14,16 +14,16 @@ class UnitBottomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   double marginLR = MediaQuery.of(context).size.width;
+   double marginLR = Get.width;
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: Get.height * 0.4,
       child: Column(
         children: <Widget>[
           Row(
             children: [
               Expanded(
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.02,
+                  height: Get.height * 0.02,
                 ),
               )
             ],
@@ -67,7 +67,7 @@ class UnitBottomPage extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.add,
-                        size: MediaQuery.of(context).size.width * 0.16,
+                        size: Get.width * 0.16,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       Text('TopUp'),
@@ -92,7 +92,7 @@ class UnitBottomPage extends StatelessWidget {
                     children: [
                       Icon(
                         AntIcons.share_alt,
-                        size: MediaQuery.of(context).size.width * 0.16,
+                        size: Get.width * 0.16,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       Text('Transfer Unit'),
@@ -112,7 +112,7 @@ class UnitBottomPage extends StatelessWidget {
                     children: [
                       Icon(
                         AntIcons.history,
-                        size: MediaQuery.of(context).size.width * 0.16,
+                        size: Get.width * 0.16,
                         color: PRIMARYCOLOR.withOpacity(0.8),
                       ),
                       Text('Purchase History',textAlign: TextAlign.center,),

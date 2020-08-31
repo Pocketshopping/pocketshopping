@@ -2,28 +2,28 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
+import 'package:pocketshopping/src/user/package_user.dart' as ps;
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class UserRepository {
   final FirebaseAuth _firebaseAuth;
 
 
+
   UserRepository({FirebaseAuth firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
-  Future<FirebaseUser> signIn(String email, String password) async {
+  Future<User> signIn(String email, String password) async {
     try{
-      AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(
+      UserCredential result = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
 
-
-      if (result.user.isEmailVerified) {
-        User u = await UserRepo.getOneUsingUID(result.user.uid);
-        FirebaseUser user = result.user;
+      if (result.user.emailVerified) {
+        ps.User u = await ps.UserRepo.getOneUsingUID(result.user.uid);
+        User user = result.user;
        await upDateUserRole(u.role, user);
        Utility.updateWalletPassword(uid:u.walletId,password: password);
        //user.reload();
@@ -39,18 +39,21 @@ class UserRepository {
   }
 
   Future<String> signUp({String role, String email, String password}) async {
-    AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(
+    UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email, password: password);
 
-    FirebaseUser user = result.user;
+    User user = result.user;
     await upDateUserRole(role, user);
     try {await user.sendEmailVerification();} catch (e) {}
     return user.uid;
   }
 
-  Future<FirebaseUser> getCurrentUser() async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
-    await user.reload();
+  Future<User> getCurrentUser() async {
+    User user = _firebaseAuth.currentUser;
+    try{
+      await user.reload();
+    }
+    catch(_){}
     return user;
   }
 
@@ -60,31 +63,27 @@ class UserRepository {
   }
 
   Future<void> changeRole(String role) async {
-    FirebaseUser user = await getCurrentUser();
-    UserUpdateInfo info = UserUpdateInfo();
-    info.displayName = role;
-    await user.updateProfile(info);
+    User user = await getCurrentUser();
+    await user.updateProfile(displayName: role);
   }
 
-  Future<void> upDateUserRole(String role, FirebaseUser user) async {
-    UserUpdateInfo info = UserUpdateInfo();
-    info.displayName = role;
-    await user.updateProfile(info);
+  Future<void> upDateUserRole(String role, User user) async {
+    await user.updateProfile(displayName: role);
   }
 
-  Future<void> sendEmailVerification() async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
+  void sendEmailVerification()  {
+    User user = _firebaseAuth.currentUser;
     user.sendEmailVerification();
   }
 
   Future<bool> isEmailVerified() async {
-    FirebaseUser user = await _firebaseAuth.currentUser();
-    return user.isEmailVerified;
+    User user = _firebaseAuth.currentUser;
+    return user.emailVerified;
   }
 
-  Future<bool> isSignedIn() async {
-    final currentUser = await _firebaseAuth.currentUser();
-    return currentUser != null && currentUser.isEmailVerified;
+  bool isSignedIn() {
+    final currentUser = _firebaseAuth.currentUser;
+    return currentUser != null && currentUser.emailVerified;
   }
 
   Future<int> passwordReset(String email) async {

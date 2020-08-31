@@ -75,12 +75,12 @@ class DeliveryRequest {
 
   static DeliveryRequest fromSnapshot(DocumentSnapshot request) {
     return DeliveryRequest(
-      insertedAt: request.data['insertedAt'],
-      agent: request.data['agent'],
-      cordinate: (request.data['cordinate'] as Map<String, dynamic>)['geopoint'],
-      distance: request.data['distance'],
-      orderId: request.data['orderId'],
-      isMiss: request.data['isMiss'],
+      insertedAt: request.data()['insertedAt'],
+      agent: request.data()['agent'],
+      cordinate: (request.data()['cordinate'] as Map<String, dynamic>)['geopoint'],
+      distance: request.data()['distance'],
+      orderId: request.data()['orderId'],
+      isMiss: request.data()['isMiss'],
     );
   }
 

@@ -57,11 +57,11 @@ class MCategoryEntity extends Equatable {
   static MCategoryEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
     return MCategoryEntity(
-      snap.data['categoryName'],
-      snap.data['categoryURI'],
-      snap.data['categoryView'],
-      snap.documentID,
-      snap.data['desc'],
+      snap.data()['categoryName'],
+      snap.data()['categoryURI'],
+      snap.data()['categoryView'],
+      snap.id,
+      snap.data()['desc'],
     );
   }
 

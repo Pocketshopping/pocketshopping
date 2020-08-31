@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class BottomSheetTemplate extends StatelessWidget {
   final Widget child;
@@ -15,8 +16,8 @@ class BottomSheetTemplate extends StatelessWidget {
           Navigator.pop(context);
         },
         child: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
+            height: Get.height,
+            width: Get.width,
             color: Colors.transparent,
             alignment: Alignment.bottomCenter,
             child: ClipRRect(
@@ -28,7 +29,7 @@ class BottomSheetTemplate extends StatelessWidget {
                       color: Colors.white,
                     ),
                     height: height,
-                    width: MediaQuery.of(context).size.width,
+                    width: Get.width,
                     //
                     child: Column(
                       children: <Widget>[

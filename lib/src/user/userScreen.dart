@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bottom_navigation_badge/bottom_navigation_badge.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fire;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -24,13 +24,17 @@ import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:pocketshopping/src/user/merchant.dart';
 
 import 'bloc/user.dart';
 
 class UserScreen extends StatefulWidget {
   final UserRepository _userRepository;
+  final int route;
+  final String merchant;
 
-  UserScreen({Key key, @required UserRepository userRepository})
+  UserScreen({Key key, @required UserRepository userRepository,this.route=0,this.merchant})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -42,7 +46,7 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   int _selectedIndex;
   Color fabColor;
-  FirebaseUser currentUser;
+  fire.User currentUser;
   Stream<LocalNotification> _notificationsStream;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
@@ -55,22 +59,22 @@ class _UserScreenState extends State<UserScreen> {
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Icon(Icons.search),
-      title: Text('Places'),
+      label: 'Places',
     ),
     BottomNavigationBarItem(
-      title: Text('Favourite'),
+      label: 'Favourite',
       icon:Icon(Icons.favorite_border),
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('History'),
+      label: 'History',
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
         AssetImage("assets/images/blogo.png"),
         color: PRIMARYCOLOR,
       ),
-      title: Text('Pocket'),
+      label: 'Pocket',
     ),
   ];
 
@@ -94,10 +98,13 @@ class _UserScreenState extends State<UserScreen> {
       }
     });
 
-    SchedulerBinding.instance.addPostFrameCallback((_) async{
-      await requester();
-    });
+    SchedulerBinding.instance.addPostFrameCallback((_) async{await requester();});
     Utility.locationAccess();
+
+    if(widget.route > 0)
+      SchedulerBinding.instance.addPostFrameCallback((_) async{
+        Get.dialog(MerchantScreen(user: currentUser.uid ,merchant: widget.merchant,));
+      });
     Utility.stopAllService();
     super.initState();
   }
@@ -175,10 +182,11 @@ class _UserScreenState extends State<UserScreen> {
           Get.back();
         });*/
         break;
-      /*case 'WorkRequestCancelResponse':
+      /*
+      case 'WorkRequestCancelResponse':
         await requester(showNotification: false);
-        NotificationsBloc.instance.newNotification(null);*/
-        break;
+        NotificationsBloc.instance.newNotification(null);
+        break;*/
       case 'PocketTransferResponse':
         Utility.bottomProgressSuccess(
           title:payload['title'],
@@ -282,7 +290,7 @@ class _UserScreenState extends State<UserScreen> {
             return Scaffold(
               body: Center(
                   child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               )),
             );

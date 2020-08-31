@@ -72,9 +72,9 @@ class ProductCategory {
 
   static ProductCategory fromSnap(DocumentSnapshot snap) {
     return ProductCategory(
-      mid: snap.documentID??'',
-      productCategory: (snap.data['productCategory'] as List<String>)??[],
-      productInsertedAt: snap.data['productInsertedAt'],
+      mid: snap.id??'',
+      productCategory: (snap.data()['productCategory'] as List<String>)??[],
+      productInsertedAt: snap.data()['productInsertedAt'],
     );
   }
 }

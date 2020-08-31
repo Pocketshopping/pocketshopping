@@ -31,6 +31,9 @@ class MerchantEntity extends Equatable {
   final bool adminUploaded;
   final bool bActive;
   final String bWallet;
+  final int bikeCount;
+  final int carCount;
+  final int vanCount;
 
   const MerchantEntity(
       this.bName,
@@ -57,7 +60,11 @@ class MerchantEntity extends Equatable {
       this.bUnique,
       this.adminUploaded,
       this.bActive,
-      this.bWallet);
+      this.bWallet,
+      this.bikeCount,
+      this.carCount,
+      this.vanCount
+      );
 
   Map<String, Object> toJson() {
     return {
@@ -86,6 +93,9 @@ class MerchantEntity extends Equatable {
       'adminUploaded':adminUploaded,
       'bActive':bActive,
       'bWallet':bWallet,
+      'bikeCount':bikeCount,
+      'carCount':carCount,
+      'vanCount':vanCount
     };
   }
 
@@ -115,7 +125,10 @@ class MerchantEntity extends Equatable {
         bUnique,
         adminUploaded,
         bActive,
-        bWallet
+        bWallet,
+        bikeCount,
+        carCount,
+        vanCount,
       ];
 
   @override
@@ -149,38 +162,45 @@ class MerchantEntity extends Equatable {
       json['bUnique'] as String,
       json['adminUploaded'] as bool,
       json['bActive'] as bool,
-      json['bWallet'] as String
+      json['bWallet'] as String,
+      json['bikeCount'] as int,
+      json['carCount'] as int,
+      json['vanCount'] as int,
     );
   }
 
   static MerchantEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
+
     return MerchantEntity(
-      snap.data['businessName'],
-      snap.data['businessEmail'],
-      snap.data['businessTelephone'],
-      snap.data['businessTelephone2'],
-      snap.data['businessPhoto'],
-      snap.data['businessAdress'],
-      snap.data['businessCategory'],
-      snap.documentID,
-      snap.data['businessParent'],
-      snap.data['businessCountry'],
-      snap.data['businessID'],
-      snap.data['businessStatus'].runtimeType == int?snap.data['businessStatus']:1,
-      snap.data['businessSocial'],
-      snap.data['businessDescription'],
-      snap.data['businessDelivery'],
-      snap.data['businessCloseTime'],
-      snap.data['businessCreatedAt'],
-      snap.data['businessCreator'],
-      snap.data['businessGeopint'],
-      snap.data['isBranch'],
-      snap.data['businessOpenTime'],
-      snap.data['branchUnique'],
-      snap.data['adminUploaded']??false,
-      snap.data['businessActive']??true,
-      snap.data['businessWallet']??"",
+      snap.data()['businessName'],
+      snap.data()['businessEmail'],
+      snap.data()['businessTelephone'],
+      snap.data()['businessTelephone2'],
+      snap.data()['businessPhoto'],
+      snap.data()['businessAdress'],
+      snap.data()['businessCategory'],
+      snap.id,
+      snap.data()['businessParent'],
+      snap.data()['businessCountry'],
+      snap.data()['businessID'],
+      snap.data()['businessStatus'].runtimeType == int?snap.data()['businessStatus']:1,
+      Map.castFrom(snap.data()['businessSocials']),
+      snap.data()['businessDescription'],
+      snap.data()['businessDelivery'],
+      snap.data()['businessCloseTime'],
+      snap.data()['businessCreatedAt'],
+      snap.data()['businessCreator'],
+      snap.data()['businessGeopint'],
+      snap.data()['isBranch'],
+      snap.data()['businessOpenTime'],
+      snap.data()['branchUnique'],
+      snap.data()['adminUploaded']??false,
+      snap.data()['businessActive']??true,
+      snap.data()['businessWallet']??"",
+      snap.data()['bikeCount']??0,
+      snap.data()['carCount']??0,
+      snap.data()['vanCount']??0,
     );
   }
 
@@ -216,7 +236,10 @@ class MerchantEntity extends Equatable {
       'bCountry': bCountry,
       'adminUploaded':adminUploaded,
       'bActive':bActive,
-      'bWallet':bWallet
+      'bWallet':bWallet,
+      'bikeCount':bikeCount,
+      'carCount':carCount,
+      'vanCount':vanCount
     };
   }
 }

@@ -9,6 +9,7 @@ class FavItem {
   final String merchant;
   final String fid;
   final String uid;
+  final String category;
 
 
   FavItem({
@@ -18,6 +19,7 @@ class FavItem {
         this.merchant="",
         this.fid="",
         this.uid="",
+        this.category=""
         });
 
   FavItem copyWith({
@@ -26,18 +28,20 @@ class FavItem {
     String merchant,
     String fid,
     String uid,
+    String category
   }) {
     return FavItem(
       visitedAt: visitedAt ?? this.visitedAt,
       count: count ?? this.count,
       merchant: merchant??this.merchant,
       fid: fid??this.fid,
-      uid: uid??this.uid
+      uid: uid??this.uid,
+      category: category??this.category
     );
   }
 
   @override
-  int get hashCode => visitedAt.hashCode ^ count.hashCode ^ merchant.hashCode ^ fid.hashCode ^ uid.hashCode;
+  int get hashCode => visitedAt.hashCode ^ count.hashCode ^ merchant.hashCode ^ fid.hashCode ^ uid.hashCode ^category.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -48,7 +52,8 @@ class FavItem {
               count == other.count &&
               merchant == other.merchant &&
               fid == other.fid &&
-              uid == other.uid;
+              uid == other.uid &&
+              category == other.category;
 
   FavItem update({
     Timestamp visitedAt,
@@ -56,13 +61,15 @@ class FavItem {
     String merchant,
     String fid,
     String uid,
+    String category
   }) {
     return copyWith(
       visitedAt: visitedAt,
       count: count,
       merchant: merchant,
       fid: fid,
-      uid: uid
+      uid: uid,
+      category: category
 
     );
   }
@@ -78,17 +85,19 @@ class FavItem {
       'merchant':merchant,
       'visitedAt':Timestamp.now(),
       'fid':fid,
-      'uid':uid
+      'uid':uid,
+      'category':category
     };
   }
 
   static FavItem fromSnap(DocumentSnapshot snap) {
     return FavItem(
-        count: snap.data['count'],
-        visitedAt: snap.data['visitedAt'],
-        merchant: snap.data['merchant'],
-        uid: snap.data['uid'],
-      fid: snap.documentID
+        count: snap.data()['count'],
+        visitedAt: snap.data()['visitedAt'],
+        merchant: snap.data()['merchant'],
+        uid: snap.data()['uid'],
+        category: snap.data()['category'],
+      fid: snap.id
     );
   }
 

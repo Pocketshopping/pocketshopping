@@ -8,7 +8,7 @@ import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class TicketRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<bool> saveTicket({String customerID,String category, String complain}) async {
     //print(await ServerBloc.instance.getServerKey());

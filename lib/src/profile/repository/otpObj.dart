@@ -79,10 +79,10 @@ class Otp {
 
   static Otp fromMap(DocumentSnapshot snap) {
     return Otp(
-      id: snap.documentID,
-      otp: snap.data['otp'],
-      insertedAt: snap.data['insertedAt'],
-      isNew: snap.data['isNew'],
+      id: snap.id,
+      otp: snap.data()['otp'],
+      insertedAt: snap.data()['insertedAt'],
+      isNew: snap.data()['isNew'],
 
     );
   }

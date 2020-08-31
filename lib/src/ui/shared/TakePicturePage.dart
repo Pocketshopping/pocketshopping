@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
 class TakePicturePage extends StatefulWidget {
@@ -76,7 +77,7 @@ class _TakePicturePageState extends State<TakePicturePage> {
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height * 0.04),
+                  bottom: Get.height * 0.04),
               child: FloatingActionButton(
                 heroTag: "capture",
                 onPressed: () {
@@ -87,14 +88,14 @@ class _TakePicturePageState extends State<TakePicturePage> {
                 tooltip: 'capture',
                 child: Icon(
                   Icons.camera,
-                  size: MediaQuery.of(context).size.height * 0.05,
+                  size: Get.height * 0.05,
                 ),
               ),
             )),
         Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
-              padding: EdgeInsets.only( bottom: MediaQuery.of(context).size.height * 0.04,left: MediaQuery.of(context).size.height * 0.04),
+              padding: EdgeInsets.only( bottom: Get.height * 0.04,left: Get.height * 0.04),
               child: FloatingActionButton(
                 heroTag: "rotate",
                 onPressed: () async{
@@ -130,7 +131,7 @@ class _TakePicturePageState extends State<TakePicturePage> {
                 tooltip: 'change',
                 child: Icon(
                   Icons.camera_front,
-                  size: MediaQuery.of(context).size.height * 0.05,
+                  size: Get.height * 0.05,
                 ),
               ),
             )),

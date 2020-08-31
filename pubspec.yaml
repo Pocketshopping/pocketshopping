@@ -1,6 +1,6 @@
 name: pocketshopping
 description: Your shopping companion.
-version: 1.1.1+3
+version: 1.1.3+5
 
 
 dependencies:
@@ -13,42 +13,41 @@ dependencies:
   bottom_navigation_badge: ^1.0.3
   barcode_scan: ^2.0.1
   flutter_typeahead: ^1.8.0
-  badges: ^1.1.0
+  badges: ^1.1.1
   rflutter_alert: ^1.0.2
-  google_maps_flutter: ^0.5.24+1
-  flutter_polyline_points: ^0.1.0
+  google_maps_flutter: ^0.5.30
+  flutter_polyline_points: ^0.2.3
   flutter_rating_bar: ^3.0.1+1
-  camera: ^0.5.7+4
+  camera: ^0.5.8+5
   flutter_icons: ^1.0.0+1
-  dash_chat: ^1.0.16
   path_provider: ^1.6.5
   image_picker: ^0.6.2+3
   google_map_polyline: ^0.2.0+1
-  firebase_auth: ^0.15.5+2
-  firebase_messaging: ^6.0.12
-  firebase_storage: ^3.1.3
-  cloud_firestore: ^0.13.4+2
-  cloud_functions: ^0.4.2+3
-  introduction_screen: ^1.0.7
+  firebase_auth: ^0.18.0+1
+  firebase_messaging: ^7.0.0
+  firebase_storage: ^4.0.0
+  cloud_firestore: ^0.14.0+2
+  cloud_functions: ^0.6.0
+  introduction_screen: ^1.0.9
   datetime_picker_formfield: ^1.0.0
   geolocator: ^5.3.0
-  shared_preferences: ^0.5.6+3
-  firebase_core: ^0.4.0+9
+  shared_preferences: ^0.5.10
+  firebase_core: ^0.5.0
   country_code_picker: ^1.3.7
   transparent_image: ^1.0.0
   image_cropper: ^1.2.2
   flux_validator_dart: ^1.0.3
   month_picker_dialog: ^0.3.1
   recase: ^3.0.0
-  firebase_dynamic_links: ^0.5.0+11
-  share: ^0.6.3+6
-  rxdart: ^0.23.1
-  meta: ^1.1.6
-  equatable: ^1.0.0
+  firebase_dynamic_links: ^0.6.0
+  share: ^0.6.4+5
+  rxdart: ^0.24.1
+  meta: ^1.2.2
+  equatable: ^1.2.4
   flutter_bloc:
     path: ./packages/flutter_bloc
   devicelocale: ^0.2.3
-  geoflutterfire: ^2.1.0
+  geoflutterfire: ^2.2.1
   location: ^3.0.2
   carousel_pro: ^1.0.0
   geocoder: ^0.2.1
@@ -66,19 +65,18 @@ dependencies:
   motion_widget: ^1.0.2
   flutter_skeleton: ^0.1.0+1
   workmanager: ^0.2.3
-  flutter_local_notifications: ^1.4.3
+  flutter_local_notifications: ^1.4.4+4
   loadmore: ^1.0.4
   image_crop: ^0.3.2
   circular_profile_avatar: ^1.0.6
   ant_icons: ^1.0.0
   android_alarm_manager: ^0.4.5+11
   flutter_launcher_icons: ^0.7.5
-  google_place: ^0.3.2
+  google_place: ^0.3.3
   flutter_keyboard_visibility: ^3.2.1
   url_launcher: ^5.5.0
   sliding_up_panel: ^1.0.2
   charts_flutter: ^0.9.0
-  connectivity: ^0.4.9
   webview_flutter: ^0.3.22+1
 
 

@@ -7,7 +7,7 @@ import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/wallet/repository/walletObj.dart';
 
 class WalletRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<Wallet> getWallet(String wid,{String key=''}) async {
     //print(await ServerBloc.instance.getServerKey());

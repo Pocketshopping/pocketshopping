@@ -81,7 +81,7 @@ class _MyRadiusState extends State<MyRadius> {
       return Scaffold(
           resizeToAvoidBottomPadding : false,
           appBar: PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+            preferredSize: Size.fromHeight(Get.height *
                 0.08), // here the desired height
             child: AppBar(
               leading: BonusDrawerIcon(wallet: currentUser.user.walletId,
@@ -89,13 +89,13 @@ class _MyRadiusState extends State<MyRadius> {
               ),/*Showcase.withWidget(
                 key: _radiusOne,
                 //title: 'Menu.',
-                width: MediaQuery.of(context).size.width*0.9,
-                height:  MediaQuery.of(context).size.height*0.6,
+                width: Get.width*0.9,
+                height:  Get.height*0.6,
                 disableAnimation: true,
 
                 container: Container(
-                  width:  MediaQuery.of(context).size.width*0.9,
-                  //height: MediaQuery.of(context).size.height*0.6,
+                  width:  Get.width*0.9,
+                  //height: Get.height*0.6,
                   padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                   color: Colors.black.withOpacity(0.4),
                   child: Column(
@@ -152,13 +152,13 @@ class _MyRadiusState extends State<MyRadius> {
                 /*Showcase.withWidget(
                   key: __radiusTwo,
                   //title: 'Menu.',
-                  width: MediaQuery.of(context).size.width*0.9,
-                  height:  MediaQuery.of(context).size.height*0.6,
+                  width: Get.width*0.9,
+                  height:  Get.height*0.6,
                   disableAnimation: true,
 
                   container: Container(
-                      width:  MediaQuery.of(context).size.width*0.9,
-                      //height: MediaQuery.of(context).size.height*0.6,
+                      width:  Get.width*0.9,
+                      //height: Get.height*0.6,
                       padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                       color: Colors.black.withOpacity(0.4),
                       child: Column(
@@ -215,7 +215,7 @@ class _MyRadiusState extends State<MyRadius> {
                                   itemBuilder: (BuildContext context, int index) {
                                     return state.nearByMerchants[index].bCategory != 'Logistic'?Container(
                                         padding: EdgeInsets.symmetric(horizontal: 5),
-                                        width: MediaQuery.of(context).size.width*0.5,
+                                        width: Get.width*0.5,
                                         child: ReviewPlaceWidget(
                                           merchant: state.nearByMerchants[index],
                                           cPosition: GeoFirePoint(
@@ -313,7 +313,7 @@ class _MyRadiusState extends State<MyRadius> {
                             flex: 1,
                             child: Center(
                               child: JumpingDotsProgressIndicator(
-                                fontSize: MediaQuery.of(context).size.height * 0.12,
+                                fontSize: Get.height * 0.12,
                                 color: PRIMARYCOLOR,
                               ),
                             ),
@@ -398,12 +398,12 @@ class _MyRadiusState extends State<MyRadius> {
                                             onPressed: (){showSearch.value=true;},),/*Showcase.withWidget(
                                             key: _radiusThree,
                                             //title: 'Menu.',
-                                            width: MediaQuery.of(context).size.width*0.9,
-                                            height:  MediaQuery.of(context).size.height*0.6,
+                                            width: Get.width*0.9,
+                                            height:  Get.height*0.6,
                                             disableAnimation: true,
                                             container: Container(
-                                                width:  MediaQuery.of(context).size.width*0.9,
-                                                //height: MediaQuery.of(context).size.height*0.6,
+                                                width:  Get.width*0.9,
+                                                //height: Get.height*0.6,
                                                 padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                                                 color: Colors.black.withOpacity(0.4),
                                                 child: Column(

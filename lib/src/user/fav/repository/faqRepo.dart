@@ -8,7 +8,7 @@ import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 
 class FaqRepo {
-  final databaseReference = Firestore.instance;
+  final databaseReference = FirebaseFirestore.instance;
 
   static Future<List<Map<String,dynamic>>> faq() async {
     final response = await http.get("${WALLETAPI}faq/fetch?id=all",

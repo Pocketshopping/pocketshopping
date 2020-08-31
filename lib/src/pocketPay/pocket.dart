@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/pocketPay/history.dart';
 import 'package:pocketshopping/src/pocketPay/pocketMenu.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
@@ -27,7 +28,7 @@ class _PocketPayState extends State<PocketPay> {
       length: 2,
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.15), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,

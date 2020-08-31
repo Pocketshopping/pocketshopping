@@ -13,7 +13,6 @@ import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
-import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
@@ -43,6 +42,7 @@ class _RequestScreenState extends State<RequestScreen> {
     {
       isLoading=true;
       RequestRepo.getAll(widget.uid).then((value) {
+        if(mounted)
         setState(() {
           _requests.addAll(value);
           isLoading=false;
@@ -103,7 +103,7 @@ class _RequestScreenState extends State<RequestScreen> {
                             child: Text(
                               'Empty',
                               style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.height * 0.06),
+                                  fontSize: Get.height * 0.06),
                             ),
                           ),
                           SizedBox(
@@ -131,7 +131,7 @@ class _RequestScreenState extends State<RequestScreen> {
               ),
             ):Center(
               child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
             ),
@@ -327,9 +327,10 @@ class _RequestScreenState extends State<RequestScreen> {
   }
 
   processResponse(Request request, String response)async {
-    /*setState(() {
+    if(mounted)
+    setState(() {
       isSubmitting = true;
-    });*/
+    });
     GetBar(
       title: 'Response',
       messageText: Text(
@@ -354,6 +355,7 @@ class _RequestScreenState extends State<RequestScreen> {
       else{}
 
       if(result){
+        if(mounted)
         setState(() {
           _requests.removeWhere((element) => element.requestAction == 'WORKREQUEST');
           isSubmitting = false;
@@ -411,6 +413,7 @@ class _RequestScreenState extends State<RequestScreen> {
         Utility.bottomProgressFailure(title:'Response',
         body: 'Error responding, check your connection and try again',
         );
+        if(mounted)
         setState(() {
           isSubmitting = false;
         });
@@ -428,6 +431,7 @@ class _RequestScreenState extends State<RequestScreen> {
 
 
       if(result){
+        if(mounted)
         setState(() {
           _requests.removeWhere((element) => element == request);
           RequestBloc.instance.newCount(_requests.length);
@@ -435,6 +439,7 @@ class _RequestScreenState extends State<RequestScreen> {
         if (Get.isSnackbarOpen) {
           Get.back();
           Utility.bottomProgressSuccess(title:'Response',body: 'Work request has been declined.', );
+          if(mounted)
           setState(() {
             _requests.removeWhere((element) => element == request);
             isSubmitting = false;
@@ -443,6 +448,7 @@ class _RequestScreenState extends State<RequestScreen> {
       }
       else{
         Utility.bottomProgressFailure(title:'Response',body:  'Error responding, check your connection and try again',);
+        if(mounted)
         setState(() {
           isSubmitting = false;
         });

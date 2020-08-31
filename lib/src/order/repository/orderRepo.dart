@@ -16,7 +16,7 @@ import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class OrderRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<String> save(Order order) async {
     try{
@@ -27,7 +27,7 @@ class OrderRepo {
       {
         if(order.status == 1 && order.receipt.psStatus == 'success'){
           StatisticRepo.saveTransaction({
-            'oid':bid.documentID,
+            'oid':bid.id,
             'mid':order.orderMerchant,
             'sid':order.agent,
             'insertedAt':Timestamp.now(),
@@ -38,7 +38,7 @@ class OrderRepo {
           StockRepo.buyList(order.orderItem);
         }
 
-        return bid.documentID;
+        return bid.id;
       }
       else
         return '';
@@ -51,7 +51,7 @@ class OrderRepo {
 
   static Stream<Order> getOneSnapshot(String order)async* {
 
-    yield* databaseReference.collection("orders").document(order).snapshots().map((event)  {
+    yield* databaseReference.collection("orders").doc(order).snapshots().map((event)  {
       return Order.fromEntity(OrderEntity.fromSnapshot(event));
     });
   }
@@ -61,7 +61,7 @@ class OrderRepo {
     try{
       if(potentials.isEmpty)
      {
-       await databaseReference.collection("orders").document(order).updateData({
+       await databaseReference.collection("orders").doc(order).update({
          'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.','isAssigned':true,'status':1,'receipt.psStatus':'fail'})
            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
        await Utility.finalizePay(collectionID: collectionID,isSuccessful: false);
@@ -69,7 +69,7 @@ class OrderRepo {
 
      }
       else{
-        await databaseReference.collection("orders").document(order).updateData({
+        await databaseReference.collection("orders").doc(order).update({
           'potentials':potentials,'receipt.pRef':'Rider Currently unavailable.'})
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
@@ -82,14 +82,14 @@ class OrderRepo {
 
   static Future<bool> convertPotential({String orderId,
     String agentId,String logisticId,String agentName,
-    List<String> index,String agentWallet,String collectionId,String logisticWallet})async {
+    List<String> index,String agentWallet,String collectionId,String logisticWallet, bool isAssignedbyLogistics=false})async {
     try{
       Order order = await getOne(orderId);
       Merchant merchant = await MerchantRepo.getMerchant(order.orderMerchant);
       if(!order.isAssigned) {
         await databaseReference.collection("orders")
-            .document(orderId)
-            .updateData({
+            .doc(orderId)
+            .update({
           'agent': '$agentId',
           'orderLogistic': '$logisticId',
           'orderMode.deliveryMan': '$agentName',
@@ -101,7 +101,9 @@ class OrderRepo {
         await Utility.agentAccept(collectionID: collectionId,
             status: true,
             agent: agentWallet,
-            to: logisticWallet);
+            to: logisticWallet,
+          isAssignedbyLogistics: isAssignedbyLogistics
+        );
         if(order.orderMode.mode == 'Errand'){
           await setCurrentPathLine(CurrentPathLine(
               id: agentId,
@@ -144,7 +146,7 @@ class OrderRepo {
         .where('status',isEqualTo: 0)
         .where('etc',isLessThan: Timestamp.now())
         .snapshots().map((event)  {
-      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.docs));
     });
   }
 
@@ -157,7 +159,19 @@ class OrderRepo {
         .where('status',isEqualTo: 0)
         //.where('etc',isLessThan: Timestamp.now())
         .snapshots().map((event)  {
-      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.docs));
+    });
+  }
+
+  static Stream<List<Order>> getLogisticRequestBucket(String id)async* {
+
+    yield* databaseReference.collection("orders")
+        .where('orderLogistic',isEqualTo: id)
+        .where('isAssigned',isEqualTo: false)
+        .where('status',isEqualTo: 0)
+    //.where('etc',isLessThan: Timestamp.now())
+        .snapshots().map((event)  {
+      return Order.fromListEntity(OrderEntity.fromListSnapshot(event.docs));
     });
   }
 
@@ -174,9 +188,9 @@ class OrderRepo {
               .where("customerID", isEqualTo: uid)
               .where("status", isEqualTo: openOrClose)
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(snap.documents.isEmpty)throw Exception;
+          if(snap.docs.isEmpty)throw Exception;
         }
         catch(_){
           snap = await databaseReference
@@ -185,7 +199,7 @@ class OrderRepo {
               .where("customerID", isEqualTo: uid)
               .where("status", isEqualTo: openOrClose)
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       } else {
@@ -199,9 +213,9 @@ class OrderRepo {
               .startAfter(
               [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(snap.documents.isEmpty)throw Exception;
+          if(snap.docs.isEmpty)throw Exception;
         }
         catch(_){
           snap = await databaseReference
@@ -212,13 +226,13 @@ class OrderRepo {
               .startAfter(
               [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       }
 
       List<Order> orders = [];
-      snap.documents.forEach((doc) {
+      snap.docs.forEach((doc) {
         orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
       });
       if (orders.length > 0)
@@ -244,9 +258,9 @@ class OrderRepo {
               .where("customerID", isEqualTo: uid)
               .where("status", isEqualTo: 1)
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(snap.documents.isEmpty)throw Exception;
+          if(snap.docs.isEmpty)throw Exception;
         }
         catch(_){
           snap = await databaseReference
@@ -255,7 +269,7 @@ class OrderRepo {
               .where("customerID", isEqualTo: uid)
               .where("status", isEqualTo: 1)
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       } else {
@@ -269,9 +283,9 @@ class OrderRepo {
               .startAfter(
               [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(snap.documents.isEmpty)throw Exception;
+          if(snap.docs.isEmpty)throw Exception;
         }
         catch(_){
           snap = await databaseReference
@@ -282,13 +296,13 @@ class OrderRepo {
               .startAfter(
               [DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       }
 
       List<Order> orders = [];
-      snap.documents.forEach((doc) {
+      snap.docs.forEach((doc) {
         orders.add(Order.fromEntity(OrderEntity.fromSnapshot(doc)));
       });
       if (orders.length > 0)
@@ -303,7 +317,7 @@ class OrderRepo {
 
   static Future<void> confirm(Order oid, Confirmation confirmation,Receipt receipt,String agent,int fee,int distance,int unit) async {
     try{
-      await databaseReference.collection("orders").document(oid.docID).updateData({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()})
+      await databaseReference.collection("orders").doc(oid.docID).update({'orderConfirmation': confirmation.toMap(), 'status': 1,'receipt':receipt.toMap()})
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: true);
       await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalAmount: fee,totalDistance: distance,totalUnitUsed: unit);
@@ -328,7 +342,7 @@ class OrderRepo {
 
   static Future<void> cancel(String oid,Receipt receipt,String agent) async {
     try{
-      await databaseReference.collection("orders").document(oid).updateData({ 'status': 1,'receipt':receipt.toMap()});
+      await databaseReference.collection("orders").doc(oid).update({ 'status': 1,'receipt':receipt.toMap(),'isAssigned':true});
       await Utility.finalizePay(collectionID: receipt.collectionID,isSuccessful: false);
       await StatisticRepo.updateAgentStatistic(agent,totalOrderCount: 1,totalCancelled: 1);
       await LogisticRepo.makeAgentBusy(agent,isBusy: false);
@@ -341,13 +355,13 @@ class OrderRepo {
     try{
       try{
         if(source == 1)throw Exception;
-        var doc = await databaseReference.collection("orders").document(oid).get(source: Source.cache)
+        var doc = await databaseReference.collection("orders").doc(oid).get(GetOptions(source: Source.cache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
         if(!doc.exists)throw Exception;
         return Order.fromEntity(OrderEntity.fromSnapshot(doc));
       }
       catch(_){
-        var doc = await databaseReference.collection("orders").document(oid).get(source: Source.serverAndCache)
+        var doc = await databaseReference.collection("orders").doc(oid).get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         return Order.fromEntity(OrderEntity.fromSnapshot(doc));
       }
@@ -359,7 +373,7 @@ class OrderRepo {
 
   static Future<bool> review(String oid, Customer orderCustomer) async {
     try{
-      await databaseReference.collection("orders").document(oid).updateData({
+      await databaseReference.collection("orders").doc(oid).update({
         'orderCustomer': orderCustomer.toMap(),
       }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
@@ -371,7 +385,7 @@ class OrderRepo {
 
   static Future<bool> resolution(String oid, String resolution) async {
     try{
-      await databaseReference.collection("orders").document(oid).updateData({
+      await databaseReference.collection("orders").doc(oid).update({
         'resolution': resolution,
       }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
@@ -385,8 +399,8 @@ class OrderRepo {
     try{
       await databaseReference
           .collection("orders")
-          .document(oid)
-          .updateData({'status': 1})
+          .doc(oid)
+          .update({'status': 1})
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     }
     catch(_){}
@@ -400,7 +414,7 @@ class OrderRepo {
          .where('isAssigned',isEqualTo: true)
         .orderBy('orderCreatedAt',descending: true)
         .limit(50)
-         .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+         .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.docs));
 
     });
   }
@@ -412,7 +426,18 @@ class OrderRepo {
         .where('status',isEqualTo: 0)
         .where('isAssigned',isEqualTo: false)
         .limit(50)
-        .snapshots().map((event) {return event.documents.length;
+        .snapshots().map((event) {return event.docs.length;
+
+    });
+  }
+  static Stream<int> logisticBucketCount(String logistic) async* {
+    yield* databaseReference
+        .collection("orders")
+        .where('orderLogistic',isEqualTo: logistic)
+        .where('status',isEqualTo: 0)
+        .where('isAssigned',isEqualTo: false)
+        .limit(500)
+        .snapshots().map((event) {return event.docs.length;
 
     });
   }
@@ -425,7 +450,7 @@ class OrderRepo {
         .orderBy('orderCreatedAt',descending: true)
         .where('index',arrayContains: keyword)
         .limit(50)
-        .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.documents));
+        .snapshots().map((event) {return Order.fromListEntity(OrderEntity.fromListSnapshot(event.docs));
 
     });
   }
@@ -436,7 +461,7 @@ class OrderRepo {
         .where('$whose',isEqualTo: agentID)
         .where('orderCreatedAt',isGreaterThanOrEqualTo: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))
         .orderBy('orderCreatedAt',descending: true)
-        .snapshots().map((event) => event.documents.length);
+        .snapshots().map((event) => event.docs.length);
   }
 
   static Future<List<Order>> fetchCompletedOrder(String agentID, Order lastDoc,{String whose= 'agent',int source=0}) async {
@@ -448,32 +473,32 @@ class OrderRepo {
     if (lastDoc == null) {
       try{
         if(source == 1)throw Exception;
-        document = await Firestore.instance
+        document = await databaseReference
             .collection('orders')
         //.orderBy('status',descending: true)
             .orderBy('orderCreatedAt',descending: true)
             .where('$whose',isEqualTo: agentID)
             .where('status',isEqualTo: 1)
             .limit(10)
-            .getDocuments(source: Source.cache)
+            .get(GetOptions(source: Source.cache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)throw Exception;
+        if(document.docs.isEmpty)throw Exception;
       }
       catch(_){
-        document = await Firestore.instance
+        document = await databaseReference
             .collection('orders')
         //.orderBy('status',descending: true)
             .orderBy('orderCreatedAt',descending: true)
             .where('$whose',isEqualTo: agentID)
             .where('status',isEqualTo: 1)
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     } else {
       try{
         if(source == 1)throw Exception;
-        document = await Firestore.instance
+        document = await databaseReference
             .collection('orders')
         //.orderBy('status',descending: true)
             .orderBy('orderCreatedAt',descending: true)
@@ -481,12 +506,12 @@ class OrderRepo {
             .where('status',isEqualTo: 1)
             .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-        if(document.documents.isEmpty)throw Exception;
+        if(document.docs.isEmpty)throw Exception;
       }
       catch(_){
-        document = await Firestore.instance
+        document = await databaseReference
             .collection('orders')
         //.orderBy('status',descending: true)
             .orderBy('orderCreatedAt',descending: true)
@@ -494,12 +519,12 @@ class OrderRepo {
             .where('status',isEqualTo: 1)
             .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
     }
     //tmp.clear();
-    document.documents.forEach((element) {
+    document.docs.forEach((element) {
       tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
     });
     return tmp;
@@ -517,32 +542,32 @@ class OrderRepo {
       if (lastDoc == null) {
         try{
           if(source == 1)throw Exception;
-          document = await Firestore.instance
+          document = await databaseReference
               .collection('orders')
               .orderBy('orderCreatedAt',descending: true)
               .where('$whose',isEqualTo: id)
               .where('orderMerchant',isEqualTo: mid)
               .where('status',isEqualTo: 1)
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(document.documents.isEmpty)throw Exception;
+          if(document.docs.isEmpty)throw Exception;
         }
         catch(_){
-          document = await Firestore.instance
+          document = await databaseReference
               .collection('orders')
               .orderBy('orderCreatedAt',descending: true)
               .where('$whose',isEqualTo: id)
               .where('orderMerchant',isEqualTo: mid)
               .where('status',isEqualTo: 1)
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       } else {
         try{
           if(source == 1)throw Exception;
-          document = await Firestore.instance
+          document = await databaseReference
               .collection('orders')
               .orderBy('orderCreatedAt',descending: true)
               .where('$whose',isEqualTo: id)
@@ -550,12 +575,12 @@ class OrderRepo {
               .where('status',isEqualTo: 1)
               .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.cache)
+              .get(GetOptions(source: Source.cache))
               .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
-          if(document.documents.isEmpty)throw Exception;
+          if(document.docs.isEmpty)throw Exception;
         }
         catch(_){
-          document = await Firestore.instance
+          document = await databaseReference
               .collection('orders')
               .orderBy('orderCreatedAt',descending: true)
               .where('$whose',isEqualTo: id)
@@ -563,12 +588,12 @@ class OrderRepo {
               .where('status',isEqualTo: 1)
               .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
               .limit(10)
-              .getDocuments(source: Source.serverAndCache)
+              .get(GetOptions(source: Source.serverAndCache))
               .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         }
       }
       if(document != null){
-        document.documents.forEach((element) {
+        document.docs.forEach((element) {
           tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
         });
       }
@@ -585,27 +610,27 @@ class OrderRepo {
       var document;
 
       if (lastDoc == null) {
-        document = await Firestore.instance
+        document = await databaseReference
             .collection('orders')
             .orderBy('orderCreatedAt',descending: true)
             .where('orderMerchant',isEqualTo: mid)
             .where('status',isEqualTo: 1)
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       } else {
-        document = await Firestore.instance
+        document = await databaseReference
             .collection('orders')
             .orderBy('orderCreatedAt',descending: true)
             .where('orderMerchant',isEqualTo: mid)
             .where('status',isEqualTo: 1)
             .startAfter([DateTime.parse(lastDoc.orderCreatedAt.toDate().toString())])
             .limit(10)
-            .getDocuments(source: Source.serverAndCache)
+            .get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       }
       if(document != null){
-        document.documents.forEach((element) {
+        document.docs.forEach((element) {
           tmp.add(Order.fromEntity(OrderEntity.fromSnapshot(element)));
         });
       }
@@ -623,15 +648,15 @@ class OrderRepo {
 
     try{
       QuerySnapshot document;
-      document = await Firestore.instance
+      document = await databaseReference
           .collection('orders')
           .orderBy('orderCreatedAt',descending: true)
           .where('potentials',arrayContains: agentID)
           .where('status',isEqualTo: 0)
           .where('isAssigned',isEqualTo: false)
-          .getDocuments(source: Source.server)
+          .get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return document.documents.length;
+      return document.docs.length;
     }
     catch(_){
       return 0;
@@ -639,9 +664,31 @@ class OrderRepo {
     
   }
 
+  static Future<int> getLogisticUnclaimedDelivery(String logistic)async{
+
+    try{
+
+      QuerySnapshot document;
+      document = await databaseReference
+          .collection('orders')
+          .where('orderLogistic',isEqualTo: logistic)
+          .where('status',isEqualTo: 0)
+          .where('isAssigned',isEqualTo: false)
+          .get(GetOptions(source: Source.server))
+          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      /*if(document.docs.length>0)
+        Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');*/
+      return document.docs.length;
+    }
+    catch(_){
+      return 0;
+    }
+
+  }
+
   static Future<bool> setCurrentPathLine(CurrentPathLine cpl)async{
     try{
-      await Firestore.instance.collection('pathLine').document(cpl.id).setData(cpl.toMap())
+      await databaseReference.collection('pathLine').doc(cpl.id).set(cpl.toMap())
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
@@ -652,7 +699,7 @@ class OrderRepo {
 
   static Future<CurrentPathLine> getCurrentPathLine(String cpl)async{
     try{
-     var doc = await Firestore.instance.collection('pathLine').document(cpl).get(source: Source.server)
+     var doc = await databaseReference.collection('pathLine').doc(cpl).get(GetOptions(source: Source.server))
          .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return doc.exists?CurrentPathLine.fromSnap(doc):null;
     }
@@ -663,7 +710,7 @@ class OrderRepo {
 
   static Stream<CurrentPathLine> currentPathLineStream(String cpl)async*{
     try{
-      yield* Firestore.instance.collection('pathLine').document(cpl).snapshots().map((event) => CurrentPathLine.fromSnap(event));
+      yield* databaseReference.collection('pathLine').doc(cpl).snapshots().map((event) => CurrentPathLine.fromSnap(event));
     }
     catch(_){}
   }

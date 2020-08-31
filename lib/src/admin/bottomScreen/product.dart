@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/admin/package_admin.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
@@ -12,18 +13,18 @@ class ProductBottomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: Get.height * 0.4,
       width: marginLR,
       child: CustomScrollView(
         slivers: <Widget>[
           SliverList(
               delegate: SliverChildListDelegate([
             Container(
-              height: MediaQuery.of(context).size.height * 0.02,
+              height: Get.height * 0.02,
             ),
           ])),
           SliverList(
@@ -55,7 +56,7 @@ class ProductBottomPage extends StatelessWidget {
               height: gridHeight,
               icon: Icon(
                 Icons.add,
-                size: MediaQuery.of(context).size.width * 0.16,
+                size: Get.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Add New Product',
@@ -67,7 +68,7 @@ class ProductBottomPage extends StatelessWidget {
               height: gridHeight,
               icon: Icon(
                 MaterialIcons.arrow_drop_down_circle,
-                size: MediaQuery.of(context).size.width * 0.16,
+                size: Get.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Add Product From Pool',
@@ -77,7 +78,7 @@ class ProductBottomPage extends StatelessWidget {
               height: gridHeight,
               icon: Icon(
                 Icons.edit,
-                size: MediaQuery.of(context).size.width * 0.16,
+                size: Get.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Manage Product',

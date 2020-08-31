@@ -29,6 +29,9 @@ class Merchant {
   final bool adminUploaded;
   final bool bActive;
   final String bWallet;
+  final int bikeCount;
+  final int carCount;
+  final int vanCount;
 
   Merchant(
       {this.bName = "",
@@ -55,7 +58,10 @@ class Merchant {
       this.bUnique,
       this.adminUploaded,
       this.bActive,
-      this.bWallet
+      this.bWallet,
+      this.bikeCount=0,
+      this.carCount=0,
+      this.vanCount=0
       });
 
   Merchant copyWith({
@@ -83,7 +89,10 @@ class Merchant {
     String bCountry,
     bool adminUploaded,
     bool bActive,
-    String bWallet
+    String bWallet,
+    int bikeCount,
+    int carCount,
+    int vanCount
   }) {
     return Merchant(
       bName: bName ?? this.bName,
@@ -110,7 +119,10 @@ class Merchant {
       bCountry: bCountry ?? this.bCountry,
       adminUploaded: adminUploaded??this.adminUploaded,
       bActive: bActive??this.bActive,
-      bWallet: bWallet??this.bWallet
+      bWallet: bWallet??this.bWallet,
+      bikeCount: bikeCount??this.bikeCount,
+      carCount: carCount??this.carCount,
+      vanCount: vanCount??this.vanCount
     );
   }
 
@@ -140,7 +152,10 @@ class Merchant {
       bPhoto.hashCode ^
       adminUploaded.hashCode ^
       bActive.hashCode ^
-      bWallet.hashCode;
+      bWallet.hashCode ^
+      bikeCount.hashCode ^
+      carCount.hashCode ^
+      vanCount.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -171,7 +186,10 @@ class Merchant {
           bCountry == other.bCountry &&
           adminUploaded == other.adminUploaded &&
           bActive == other.bActive &&
-          bWallet == other.bWallet;
+          bWallet == other.bWallet &&
+          bikeCount == other.bikeCount &&
+          carCount == other.carCount &&
+          vanCount == other.vanCount;
 
   @override
   String toString() {
@@ -204,7 +222,12 @@ class Merchant {
         bUnique,
         adminUploaded,
         bActive,
-        bWallet);
+        bWallet,
+        bikeCount,
+        carCount,
+        vanCount,
+
+    );
   }
 
   static Merchant fromEntity(MerchantEntity merchant) {
@@ -233,8 +256,10 @@ class Merchant {
       bCountry: merchant.bCountry ?? '',
       adminUploaded: merchant.adminUploaded ?? false,
       bActive: merchant.bActive ?? true,
-      bWallet: merchant.bWallet ?? ""
-
+      bWallet: merchant.bWallet ?? "",
+      bikeCount:merchant.bikeCount??0,
+      carCount:merchant.carCount??0,
+       vanCount:merchant.vanCount??0
     );
   }
 

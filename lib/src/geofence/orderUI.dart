@@ -1,21 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:ant_icons/ant_icons.dart';
 import 'package:carousel_pro/carousel_pro.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_skeleton/flutter_skeleton.dart';
 import 'package:geocoder/geocoder.dart' as geocode;
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:loadmore/loadmore.dart';
 import 'package:location/location.dart' as loc;
 import 'package:pocketshopping/src/admin/product/product.dart';
 import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/channels/repository/channelObj.dart';
 import 'package:pocketshopping/src/channels/repository/channelRepo.dart';
+import 'package:pocketshopping/src/geofence/repository/fenceRepo.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/repository/cartObj.dart';
@@ -32,9 +37,12 @@ import 'package:pocketshopping/src/payment/topup.dart';
 import 'package:pocketshopping/src/pin/repository/pinRepo.dart';
 import 'package:pocketshopping/src/profile/pinSetter.dart';
 import 'package:pocketshopping/src/profile/pinTester.dart';
+import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
+import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/statistic/agentStatistic/deliveryRequest.dart';
 import 'package:pocketshopping/src/statistic/repository.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
+import 'package:pocketshopping/src/user/fav/repository/favObj.dart';
 import 'package:pocketshopping/src/user/fav/repository/favRepo.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
@@ -107,6 +115,10 @@ class _OrderUIState extends State<OrderUI> {
   final isLogged = ValueNotifier<bool>(false);
   String randomKey;
 
+
+  List<Merchant> logisticList;
+  Favourite favourite;
+
   @override
   void initState() {
     randomKey =randomAlphaNumeric(10);
@@ -133,7 +145,7 @@ class _OrderUIState extends State<OrderUI> {
     position = widget.initPosition;
     //Utility.getState(position).then((value) => print(value));
     location = new loc.Location();
-    location.changeSettings(accuracy: loc.LocationAccuracy.high, distanceFilter: 10);
+    location.changeSettings(accuracy: loc.LocationAccuracy.high, interval: 60000);
     geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
     position = Position(latitude: cLoc.latitude, longitude: cLoc.longitude, altitude: cLoc.altitude, accuracy: cLoc.accuracy);
     dist = await Geolocator().distanceBetween(cLoc.latitude, cLoc.longitude, widget.merchant.bGeoPoint['geopoint'].latitude, widget.merchant.bGeoPoint['geopoint'].longitude);
@@ -151,6 +163,9 @@ class _OrderUIState extends State<OrderUI> {
     });
     address(widget.initPosition).then((value) => null);
     if(!widget.merchant.adminUploaded) ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
+
+    FenceRepo.nearByLogistic(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,longitude: widget.merchant.bGeoPoint['geopoint'].longitude ), null,onlyLogistic: false).then((value) => logisticList = value);
+    FavRepo.getFavourites(widget.user.uid, 'count',category: 'logistic').then((value) => favourite = value);
     super.initState();
   }
 
@@ -180,10 +195,33 @@ class _OrderUIState extends State<OrderUI> {
       child: Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.transparent,
-          body: CarouselBottomSheetTemplate(
-              scrollable: scrollable,
-              height: MediaQuery.of(context).size.height * screenHeight,
-              child: stages())),
+          body:Container(
+          height: Get.height,
+        width: Get.width,
+        color: Colors.transparent,
+        alignment: Alignment.bottomCenter,
+        child: ClipRRect(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20)),
+            child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                ),
+                height: Get.height * screenHeight,
+                width: Get.width,
+                //
+                child: Column(
+                  children: [
+                    Expanded(child: stages())
+                  ],
+                )
+        )
+        )
+
+    )
+
+      ),
     );
   }
 
@@ -229,7 +267,7 @@ class _OrderUIState extends State<OrderUI> {
       }).then((value) => {if (mounted)setState(() {dETA = value.data * 1.0;})});
       return 0.0;
     }
-    catch(_){}
+    catch(_){return 0.0;}
   }
 
   Widget detailMaker() {
@@ -646,7 +684,7 @@ class _OrderUIState extends State<OrderUI> {
   Widget payDone() {
     return paydone
         ? Container(
-            height: MediaQuery.of(context).size.height * 0.8,
+            height: Get.height * 0.8,
             child: Column(
               children: <Widget>[
                 Expanded(
@@ -664,7 +702,7 @@ class _OrderUIState extends State<OrderUI> {
                             'Order successfully placed',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.04),
+                                    Get.height * 0.04),
                           ),
                           SizedBox(
                             height: 10,
@@ -673,7 +711,7 @@ class _OrderUIState extends State<OrderUI> {
                             '${_start}s',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.05),
+                                    Get.height * 0.05),
                           ),
                         ],
                       ),
@@ -682,10 +720,10 @@ class _OrderUIState extends State<OrderUI> {
             ),
           )
         : Container(
-            height: MediaQuery.of(context).size.height * 0.8,
+            height: Get.height * 0.8,
             child: Center(
               child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
             ),
@@ -696,19 +734,19 @@ class _OrderUIState extends State<OrderUI> {
     return Center(
       child: Container(
         alignment: Alignment.center,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.8,
+        width: Get.width,
+        height: Get.height * 0.8,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
-              width: MediaQuery.of(context).size.width * 0.3,
-              height: MediaQuery.of(context).size.height * 0.18,
+              width: Get.width * 0.3,
+              height: Get.height * 0.18,
               child: Icon(
                 Icons.close,
                 color: Colors.red,
-                size: MediaQuery.of(context).size.height * 0.18,
+                size: Get.height * 0.18,
               ),
             ),
             Center(
@@ -719,7 +757,7 @@ class _OrderUIState extends State<OrderUI> {
                     child: Text(
                       '$payerror',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.height * 0.025),
+                          fontSize: Get.height * 0.025),
                       textAlign: TextAlign.center,
                     )
                   )
@@ -796,7 +834,6 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
-              orderLogistic: '',
             );
           });
         else setState(() {
@@ -856,7 +893,7 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
-             orderLogistic: '',
+             //orderLogistic: '',
             );
         });
         else setState(() {
@@ -897,7 +934,7 @@ class _OrderUIState extends State<OrderUI> {
               status: 0,
               orderID: '',
               docID: '',
-              orderLogistic: '',
+              //orderLogistic: '',
             );
           });
 
@@ -923,7 +960,8 @@ class _OrderUIState extends State<OrderUI> {
 
     }
 
-    FavRepo.save(widget.user.uid, widget.merchant.mID);
+    FavRepo.save(widget.user.uid, widget.merchant.mID,'merchant');
+    if(order.orderLogistic.isNotEmpty) FavRepo.save(widget.user.uid, order.orderLogistic,'logistic');
     //});
   }
 
@@ -1024,7 +1062,7 @@ class _OrderUIState extends State<OrderUI> {
                   child: Text(
                     'Error communicating with server. Check internet and try again',
                     style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.025,
+                      fontSize: Get.height * 0.025,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -1036,7 +1074,7 @@ class _OrderUIState extends State<OrderUI> {
                 child: Text(
                   'Proceed with method of payment to complete order',
                   style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.height * 0.025,
+                    fontSize: Get.height * 0.025,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -1046,7 +1084,7 @@ class _OrderUIState extends State<OrderUI> {
                 margin: EdgeInsets.only(bottom: 20),
                 child: Text(
                   'Pay With',
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),),
+                  style: TextStyle(fontSize: Get.height * 0.03),),
               ):const SizedBox.shrink(),
               _wallet != null?
               ListTile(
@@ -1118,7 +1156,7 @@ class _OrderUIState extends State<OrderUI> {
                 title:  Text(
                   'Pocketshopping',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.025),
+                      fontSize: Get.height * 0.025),
                 ),
                 subtitle: Column(
                   children: <Widget>[
@@ -1174,7 +1212,7 @@ class _OrderUIState extends State<OrderUI> {
                 title:  Text(
                   'ATM Card',
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.025),
+                      fontSize: Get.height * 0.025),
                 ),
                 subtitle: const Text('Choose this if you want to pay with ATM Card(instant payment).'),
                 trailing: const Icon(Icons.arrow_forward_ios),
@@ -1222,7 +1260,7 @@ class _OrderUIState extends State<OrderUI> {
                 ),
                 title: Text(
                   mode == 'Delivery' ? 'pay on Delivery' : 'Cash',
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+                  style: TextStyle(fontSize: Get.height * 0.025),
                 ),
                 subtitle: Text(mode == 'Delivery'
                     ? 'Choose this if you want to pay on delivery.'
@@ -1251,8 +1289,8 @@ class _OrderUIState extends State<OrderUI> {
       child: Column(
         children: <Widget>[
           SizedBox(
-              height: MediaQuery.of(context).size.height * 0.4,
-              width: MediaQuery.of(context).size.width,
+              height: Get.height * 0.4,
+              width: Get.width,
               child: Carousel(
                 images: widget.payload.pPhoto.isNotEmpty
                     ? List<NetworkImage>.generate(widget.payload.pPhoto.length,
@@ -1267,7 +1305,7 @@ class _OrderUIState extends State<OrderUI> {
           Text(
             widget.payload.pName,
             style:
-                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025,fontWeight: FontWeight.bold),
+                TextStyle(fontSize: Get.height * 0.025,fontWeight: FontWeight.bold),
           ),
           SizedBox(
             height: 5,
@@ -1275,7 +1313,7 @@ class _OrderUIState extends State<OrderUI> {
           Text(
             '@ $CURRENCY ${widget.payload.pPrice.toString()}',
             style:
-                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.025),
+                TextStyle(fontSize: Get.height * 0.025),
           ),
           SizedBox(
             height: 5,
@@ -1359,8 +1397,12 @@ class _OrderUIState extends State<OrderUI> {
                           ]),
                           orderAmount: widget.payload.pPrice * orderCount);
                       stage = 'FAROPTION';
+                      _address.text = deliveryAddress;
+                      _contact.text = widget.user.telephone;
                       screenHeight = 0.8;
                     });
+                    deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
+                    deliveryCut(dist != null ? dist : widget.distance * 1000);
                   },
                   child: Text(
                     'Next ($CURRENCY ${widget.payload.pPrice * orderCount})',
@@ -1383,7 +1425,7 @@ class _OrderUIState extends State<OrderUI> {
       screenHeight = 0.8;
     });
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
           Expanded(
@@ -1466,7 +1508,7 @@ class _OrderUIState extends State<OrderUI> {
                                   '${widget.payload[index].item.pPrice}',
                                   style: TextStyle(
                                       fontSize:
-                                          MediaQuery.of(context).size.height *
+                                          Get.height *
                                               0.025),
                                 ),
                               ),
@@ -1589,7 +1631,12 @@ class _OrderUIState extends State<OrderUI> {
                           orderItem: OrderItem.fromCartList(widget.payload),
                           orderAmount: Utility.sum(widget.payload));
                       stage = 'FAROPTION';
+                      _address.text = deliveryAddress;
+                      _contact.text = widget.user.telephone;
+                      screenHeight = 0.8;
                     });
+                    deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
+                    deliveryCut(dist != null ? dist : widget.distance * 1000);
                   },
                   child: Text(
                     'Next ($CURRENCY ${Utility.sum(widget.payload)})',
@@ -1616,6 +1663,9 @@ class _OrderUIState extends State<OrderUI> {
         break;
       case 'OVERVIEW':
         return stageThree();
+        break;
+      case 'LOGISTIC':
+        return stageLogistic();
         break;
       case 'CHECKOUT':
         return stageFour();
@@ -1645,7 +1695,7 @@ class _OrderUIState extends State<OrderUI> {
   Widget stageThree() {
     //print(order.orderMode.address);
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
           Row(
@@ -1655,7 +1705,8 @@ class _OrderUIState extends State<OrderUI> {
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: IconButton(
                   onPressed: () {
-                    stage = 'FAROPTION';
+                    stage = 'LOGISTIC';
+                    screenHeight = 0.9;
                     setState(() {});
                   },
                   icon: Icon(Icons.arrow_back),
@@ -1677,11 +1728,11 @@ class _OrderUIState extends State<OrderUI> {
             child: Text(
               'Preview',
               style: TextStyle(
-                  fontSize: MediaQuery.of(context).size.height * 0.03),
+                  fontSize: Get.height * 0.03),
             ),
           ),
           Container(
-              height: MediaQuery.of(context).size.height * 0.55,
+              height: Get.height * 0.55,
               child: SingleChildScrollView(
                 child: Column(
                   children: <Widget>[
@@ -1696,7 +1747,7 @@ class _OrderUIState extends State<OrderUI> {
                           'Item(s)',
                           style: TextStyle(
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.025,
+                                  Get.height * 0.025,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -1716,7 +1767,7 @@ class _OrderUIState extends State<OrderUI> {
                           'Details(s)',
                           style: TextStyle(
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.025,
+                                  Get.height * 0.025,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -1731,7 +1782,7 @@ class _OrderUIState extends State<OrderUI> {
               )),
           Expanded(
             child: Container(
-                width: MediaQuery.of(context).size.width,
+                width: Get.width,
                 color: PRIMARYCOLOR,
                 child: Center(
                   child: FlatButton(
@@ -1748,7 +1799,7 @@ class _OrderUIState extends State<OrderUI> {
                           tableNumber: '',
 
                         ),
-                        orderETA: (dETA.round()+300)<1800?1800:(dETA.round()+300),
+                        orderETA: order.orderLogistic.isEmpty?(dETA.round()+300)<1800?1800:(dETA.round()+300):((dETA.round()+300)<1800?1800:(dETA.round()+300)+1800),
                         orderConfirmation: Confirmation(
                           isConfirmed: false,
                           confirmOTP: randomAlphaNumeric(6),
@@ -1756,11 +1807,11 @@ class _OrderUIState extends State<OrderUI> {
                         agent:'',
                         resolution: '',
                         isAssigned: false,
-                        potentials:  await nearByAgent(),
+                        potentials:  order.orderLogistic.isEmpty?await nearByAgent():[],
                         status: 0,
                         orderID: '',
                         docID: '',
-                        orderLogistic:'',
+                        //orderLogistic:'',
                       );
                       if(dCut>250 && dETA > 5){
                       stage = 'CHECKOUT';
@@ -1784,7 +1835,7 @@ class _OrderUIState extends State<OrderUI> {
       //screenHeight = 0.8;
     //});
     return Container(
-      child: Column(
+      child: ListView(
         children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1813,24 +1864,23 @@ class _OrderUIState extends State<OrderUI> {
           ),
            Column(
                   children: <Widget>[
-                    Container(
+                    /*Container(
                       margin: EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(width: 2))),
                       child: Text(
-                        'How do you want it?',
+                        'Delivery Details',
                         style: TextStyle(
-                            fontSize:
-                                MediaQuery.of(context).size.height * 0.03),
+                            fontSize: Get.height * 0.03),
                       ),
                     ),
                     Divider(
                       height: 2,
                       color: Colors.grey,
-                    ),
+                    ),*/
                     ListTile(
                             onTap: () {
-                              _address.text = deliveryAddress;
+                              /*_address.text = deliveryAddress;
                               _contact.text = widget.user.telephone;
 
                               if (homeDelivery){
@@ -1843,19 +1893,19 @@ class _OrderUIState extends State<OrderUI> {
 
                               if (mounted) setState(() {});
                               deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
-                              deliveryCut(dist != null ? dist : widget.distance * 1000);
+                              deliveryCut(dist != null ? dist : widget.distance * 1000);*/
                             },
                             leading: CircleAvatar(
                               child: Image.asset('assets/images/delivery-man.jpg'),
                               radius: 30,
                               backgroundColor: Colors.white,
                             ),
-                            title: Text('Delivery', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.03),
-                            ),
+                            title: Text('Delivery', style: TextStyle(fontSize: Get.height * 0.03),),
                             subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Text('Choose this if you want your order delivered to you.'),
-                                homeDelivery
+                                Text('Your Delivery Details'),
+                                /*homeDelivery
                                     ? true
                                         ? Form(
                                             key: _formKey,
@@ -2072,7 +2122,7 @@ class _OrderUIState extends State<OrderUI> {
                                                       padding: EdgeInsets.symmetric(
                                                               vertical: 10,
                                                               horizontal: 15),
-                                                      //width: MediaQuery.of(context).size.width,
+                                                      //width: Get.width,
                                                       color: PRIMARYCOLOR,
                                                       child: Center(
                                                         child: emptyAgent != null?
@@ -2101,10 +2151,10 @@ class _OrderUIState extends State<OrderUI> {
                                               color: PRIMARYCOLOR,
                                             ),
                                           )
-                                    : Container()
+                                    : Container()*/
                               ],
                             ),
-                            trailing: IconButton(
+                            /*trailing: IconButton(
                               onPressed: () {
                                 homeDelivery = homeDelivery ? false : true;
                                 setState(() {});
@@ -2112,13 +2162,247 @@ class _OrderUIState extends State<OrderUI> {
                               icon: !homeDelivery
                                   ? Icon(Icons.arrow_forward_ios)
                                   : Icon(Icons.close),
-                            ),
+                            ),*/
                           ),
-                    Divider(
+                    Padding(
+                        padding:EdgeInsets.symmetric(horizontal: 15),
+                      child: Column(
+                        children: <Widget>[
+                           Form(
+                            key: _formKey,
+                            child: Column(
+                              children: <Widget>[
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value.isEmpty) {
+                                      return 'Your mobile number';
+                                    } else if (value.length <=
+                                        11) {
+                                      return 'Valid Mobile number please';
+                                    }
+                                    return null;
+                                  },
+                                  controller: _contact,
+                                  decoration: InputDecoration(
+                                    prefixIcon:
+                                    Icon(Icons.call),
+                                    labelText: 'Contact Telephone',
+                                    filled: true,
+                                    fillColor: Colors.grey
+                                        .withOpacity(0.2),
+                                    focusedBorder:
+                                    OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.white
+                                              .withOpacity(
+                                              0.3)),
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.white
+                                              .withOpacity(
+                                              0.3)),
+                                    ),
+                                  ),
+                                  autovalidate: mobile,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      mobile = true;
+                                    });
+                                  },
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value.isEmpty) {
+                                      return 'Your address';
+                                    }
+                                    return null;
+                                  },
+                                  controller: _address,
+                                  decoration: InputDecoration(
+                                    prefixIcon:
+                                    Icon(Icons.place),
+                                    labelText: 'Delivery Address',
+                                    filled: true,
+                                    fillColor: Colors.grey.withOpacity(0.2),
+                                    focusedBorder:
+                                    OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.white
+                                              .withOpacity(
+                                              0.3)),
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.white
+                                              .withOpacity(
+                                              0.3)),
+                                    ),
+                                  ),
+                                  textInputAction:
+                                  TextInputAction.done,
+                                  autovalidate: contact,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      userChange = true;
+                                      contact = true;
+                                    });
+                                  },
+                                  maxLines: 3,
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                               // if (widget.merchant.bCategory != 'Restuarant')
+                                  Container(
+                                    color: Colors.grey
+                                        .withOpacity(0.2),
+                                    padding:
+                                    EdgeInsets.symmetric(
+                                        vertical: 5,
+                                        horizontal: 5),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Align(
+                                            alignment: Alignment
+                                                .centerLeft,
+                                            child: Text(
+                                              "Mode",
+                                              style: TextStyle(
+                                                  color: Colors
+                                                      .black54),
+                                            )),
+                                        DropdownButtonFormField<
+                                            String>(
+                                          value: type,
+                                          items: ['MotorBike', 'Car', 'Van']
+                                              .map((label) =>
+                                              DropdownMenuItem(
+                                                child: Text(
+                                                  label,
+                                                  style: TextStyle(
+                                                      color:
+                                                      Colors.black54),
+                                                ),
+                                                value:
+                                                label,
+                                              ))
+                                              .toList(),
+                                          isExpanded: true,
+                                          hint: Text('Mode'),
+                                          decoration:
+                                          InputDecoration(
+                                              border:
+                                              InputBorder
+                                                  .none),
+                                          onChanged: (value) {
+                                            type = value;
+                                            emptyAgent = false;
+                                            setState(() {});
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                SizedBox(height: 10,),
+                                if(emptyAgent != null)
+                                  if(emptyAgent)
+                                    const Center(
+                                      child: Text('No rider within reach... Try again later',textAlign: TextAlign.center,style: TextStyle(color: Colors.red),),
+                                    ),
+                                SizedBox(height: 10,),
+                                FlatButton(
+                                    onPressed: ()  {
+                                      if (_formKey.currentState
+                                          .validate()) {
+                                        setState(() {
+                                          emptyAgent=null;
+                                          stage = 'LOGISTIC';
+                                          screenHeight = 0.9;
+                                          scrollable=false;});
+
+                                        /*LogisticRepo.getNearByAgent(
+                                            Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                                                longitude: widget.merchant.bGeoPoint['geopoint'].longitude), type).then((value) {
+                                          if(value.isNotEmpty){
+                                            stage = 'OVERVIEW';
+                                            mode = 'Delivery';
+                                            order = order.update(
+                                              orderMode: OrderMode(
+                                                mode: mode,
+                                                coordinate: GeoPoint(
+                                                    position.latitude,
+                                                    position.longitude),
+                                                address: _address.text,
+                                              ),
+                                              orderCustomer:
+                                              Customer(
+                                                customerName: widget
+                                                    .user.fname,
+                                                customerReview: '',
+                                                customerTelephone:
+                                                _contact.text,
+                                              ),
+                                              customerID: widget.user.uid,
+                                            );
+                                            screenHeight = 0.8;
+                                            homeDelivery =false;
+                                            emptyAgent = false;
+                                          }
+                                          else {
+                                            emptyAgent = true;
+
+                                            if (!isLogged.value) {
+                                              StatisticRepo
+                                                  .saveDeliveryRequest(
+                                                  DeliveryRequest(
+                                                      isMiss: true,
+                                                      agent: '',
+                                                      distance: 0,
+                                                      orderId: '',
+                                                      cordinate: GeoPoint(
+                                                          (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint'].latitude,
+                                                          (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint'].longitude)
+                                                  ));
+                                              isLogged.value = true;
+                                            }
+                                          }
+                                          //print(value);
+                                          setState(() {});
+                                        });*/
+
+                                      }
+                                    },
+                                    child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 10,
+                                            horizontal: 15),
+                                        //width: Get.width,
+                                        color: PRIMARYCOLOR,
+                                        child: Center(
+                                          child: Text('Submit', style: TextStyle(color: Colors.white),)
+                                        )
+                                    )
+                                )
+                              ],
+                            ),
+                          )
+
+                        ],
+                      ),
+                    ),
+
+                    /*Divider(
                       height: 2,
                       color: Colors.grey,
-                    ),
-                    ListTile(
+                    ),*/
+                    /*ListTile(
                       onTap: () {
                         stage = 'OVERVIEW';
                         mode = 'Pickup';
@@ -2146,7 +2430,7 @@ class _OrderUIState extends State<OrderUI> {
                         'PickUp',
                         style: TextStyle(
                             fontSize:
-                            MediaQuery.of(context).size.height * 0.03),
+                            Get.height * 0.03),
                       ),
                       subtitle: !widget.merchant.adminUploaded?Text('Unavailable',style: TextStyle(color: Colors.red),)
                           :
@@ -2155,7 +2439,7 @@ class _OrderUIState extends State<OrderUI> {
                         icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                       enabled: false,
-                    )
+                    )*/
                     /*ListTile(
                       onTap: () {
                         stage = 'OVERVIEW';
@@ -2184,7 +2468,7 @@ class _OrderUIState extends State<OrderUI> {
                         'PickUp',
                         style: TextStyle(
                             fontSize:
-                                MediaQuery.of(context).size.height * 0.03),
+                                Get.height * 0.03),
                       ),
                       subtitle: !widget.merchant.adminUploaded?Text('Choose this if you want to pickup your order.')
                           :
@@ -2193,11 +2477,11 @@ class _OrderUIState extends State<OrderUI> {
                         icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                       enabled:!widget.merchant.adminUploaded ,
-                    )*/,
-                    Divider(
+                    )*/
+                    /*Divider(
                       height: 2,
                       color: Colors.grey,
-                    ),
+                    ),*/
                   ],
                 )
               /*: 'Restuarant' == widget.merchant.bCategory
@@ -2211,7 +2495,7 @@ class _OrderUIState extends State<OrderUI> {
                             'How do you want it?',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.03),
+                                    Get.height * 0.03),
                           ),
                         ),
                         Divider(
@@ -2245,7 +2529,7 @@ class _OrderUIState extends State<OrderUI> {
                             'Take Away',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.03),
+                                    Get.height * 0.03),
                           ),
                           subtitle: !widget.merchant.adminUploaded?
                           Text('Choose this if you do not want to take your order away.')
@@ -2288,7 +2572,7 @@ class _OrderUIState extends State<OrderUI> {
                             'Serve Me',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.03),
+                                    Get.height * 0.03),
                           ),
                           subtitle: Column(
                             children: <Widget>[
@@ -2372,7 +2656,7 @@ class _OrderUIState extends State<OrderUI> {
                         'Buy Now',
                         style: TextStyle(
                             fontSize:
-                                MediaQuery.of(context).size.height * 0.03),
+                                Get.height * 0.03),
                       ),
                       subtitle: !widget.merchant.adminUploaded?Text('Choose this if you want to buy this item.')
                           :
@@ -2386,6 +2670,685 @@ class _OrderUIState extends State<OrderUI> {
       ),
     );
   }
+
+  Widget stageLogistic() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: IconButton(
+                onPressed: () {
+                  stage = 'FAROPTION';
+                  screenHeight = 0.8;
+                  setState(() {});
+                },
+                icon: Icon(Icons.arrow_back),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Text('Choose A Rider',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: IconButton(
+                onPressed: () {
+                  Get.back();
+                },
+                icon: Icon(Icons.close),
+              ),
+            ),
+          ],
+        ),
+        FutureBuilder(
+          future: LogisticRepo.getNearByAgent(
+              Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                  longitude: widget.merchant.bGeoPoint['geopoint'].longitude), type),
+          initialData: <String>[],
+          builder: (context,AsyncSnapshot<List<String>> snapshot){
+            if(snapshot.hasData){
+              if(snapshot.data.isEmpty){
+                if (!isLogged.value) {
+                  StatisticRepo
+                      .saveDeliveryRequest(
+                      DeliveryRequest(
+                          isMiss: true,
+                          agent: '',
+                          distance: 0,
+                          orderId: '',
+                          cordinate: GeoPoint(
+                              (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint'].latitude,
+                              (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint'].longitude)
+                      ));
+                      isLogged.value = true;
+                    }
+              }
+            }
+            return ListTile(
+              onTap: (){
+                if(snapshot.hasData){
+                  if(snapshot.data.isNotEmpty){
+                    stage = 'OVERVIEW';
+                    mode = 'Delivery';
+                    order = order.update(
+                      orderMode: OrderMode(
+                        mode: mode,
+                        coordinate: GeoPoint(
+                            position.latitude,
+                            position.longitude),
+                        address: _address.text,
+                      ),
+                      orderCustomer:
+                      Customer(
+                        customerName: widget
+                            .user.fname,
+                        customerReview: '',
+                        customerTelephone:
+                        _contact.text,
+                      ),
+                      customerID: widget.user.uid,
+                      orderLogistic: '',
+                    );
+                    screenHeight = 0.8;
+                    setState(() {});
+                  }
+                  else{
+                    Utility.infoDialogMaker('Unavailable',title: '');
+                  }
+                }
+              },
+              leading: CircleAvatar(
+                child: Icon(Icons.computer),
+                radius: 30,
+                backgroundColor: Colors.white,
+              ),
+              title: Text('Automatic', style: TextStyle(fontSize: Get.height * 0.03),),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if(snapshot.connectionState == ConnectionState.waiting)
+                    Text('Initializing. Please wait')
+                  else if(snapshot.hasError)
+                    Text('Unavailable.',style: TextStyle(color: Colors.red))
+                  else
+                    if(snapshot.data.isNotEmpty)
+                      Text('Let Pocketshopping choose a rider for you \n(${snapshot.data.length } rider(s) close to ${widget.merchant.bName}).',style: TextStyle(color: Colors.green))
+                    else
+                      Text('Unavailable.',style: TextStyle(color: Colors.red),)
+                ],
+              )//,
+            );
+
+
+          },
+        ),
+        Divider(
+          height: 1,
+          color: Colors.grey,
+        ),
+        ListTile(
+            onTap: (){},
+            leading: CircleAvatar(
+              child: Icon(AntIcons.tool),
+              radius: 30,
+              backgroundColor: Colors.white,
+            ),
+            title: Text('Manual', style: TextStyle(fontSize: Get.height * 0.03),),
+            subtitle: Text('Please note this method might take more time. Select from list below.')//,
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
+          child: TextFormField(
+            controller: null,
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              labelText: 'Search For Rider',
+              filled: true,
+              fillColor: Colors.grey.withOpacity(0.2),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+              ),
+            ),
+            autofocus: false,
+            enableSuggestions: true,
+            textInputAction: TextInputAction.done,
+            onChanged: (value) async{
+              if(value.isNotEmpty)
+                {
+                  setState(() {logisticList=null;});
+                  logisticList = await FenceRepo.searchNearByLogistic(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,longitude: widget.merchant.bGeoPoint['geopoint'].longitude ), value.toLowerCase().trim(),);
+                  setState(() {});
+                }
+              else{
+                setState(() {logisticList=null;});
+                logisticList = await FenceRepo.nearByLogistic(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,longitude: widget.merchant.bGeoPoint['geopoint'].longitude ), null,onlyLogistic: false);
+                setState(() {});
+              }
+            },
+          ),
+        ),
+        const SizedBox(height: 10,),
+        Expanded(
+          child: ListView(
+            children: [
+
+              if(favourite != null)
+                Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text('Favourite'),
+                      ),
+                    ),
+                    Column(
+                        children: List<Widget>.generate(favourite.favourite.values.length, (index){
+                          return FutureBuilder(
+                            future: MerchantRepo.getMerchant(favourite.favourite.values.toList(growable: false)[index].merchant),
+                            builder: (context,AsyncSnapshot<Merchant>merchant){
+                              if(merchant.connectionState == ConnectionState.waiting){
+                                return Container(
+                                  height: 80,
+                                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                  child: ListSkeleton(
+                                    style: SkeletonStyle(
+                                      theme: SkeletonTheme.Light,
+                                      isShowAvatar: false,
+                                      barCount: 3,
+                                      colors: [
+                                        Colors.grey.withOpacity(0.5),
+                                        Colors.grey,
+                                        Colors.grey.withOpacity(0.5)
+                                      ],
+                                      isAnimation: true,
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                );
+                              }
+                              else if(merchant.hasError){return const SizedBox.shrink();}
+                              else{
+                                if(favourite.favourite.isNotEmpty){
+                                  return Column(
+                                    children: [
+                                      Padding(
+                                          padding: EdgeInsets.symmetric(vertical: 5),
+                                          child: ListTile(
+                                            onTap: (){
+                                              if(type == "MotorBike"){
+                                                if(merchant.data.bikeCount > 0){
+                                                  stage = 'OVERVIEW';
+                                                  mode = 'Delivery';
+                                                  order = order.update(
+                                                      orderMode: OrderMode(
+                                                        mode: mode,
+                                                        coordinate: GeoPoint(
+                                                            position.latitude,
+                                                            position.longitude),
+                                                        address: _address.text,
+                                                      ),
+                                                      orderCustomer:
+                                                      Customer(
+                                                        customerName: widget
+                                                            .user.fname,
+                                                        customerReview: '',
+                                                        customerTelephone:
+                                                        _contact.text,
+                                                      ),
+                                                      customerID: widget.user.uid,
+                                                      orderLogistic: merchant.data.mID,
+                                                      auto: 'MotorBike'
+                                                  );
+                                                  screenHeight = 0.8;
+                                                  setState(() {});
+                                                }
+                                                else{
+                                                  Utility.infoDialogMaker(
+                                                    "${merchant.data.bName} does not have a delivery motorbike at the moment",
+                                                  );
+                                                }
+                                              }
+                                              else if(type == "Car"){
+                                                if(merchant.data.carCount > 0){
+                                                  stage = 'OVERVIEW';
+                                                  mode = 'Delivery';
+                                                  order = order.update(
+                                                      orderMode: OrderMode(
+                                                        mode: mode,
+                                                        coordinate: GeoPoint(
+                                                            position.latitude,
+                                                            position.longitude),
+                                                        address: _address.text,
+                                                      ),
+                                                      orderCustomer:
+                                                      Customer(
+                                                        customerName: widget
+                                                            .user.fname,
+                                                        customerReview: '',
+                                                        customerTelephone:
+                                                        _contact.text,
+                                                      ),
+                                                      customerID: widget.user.uid,
+                                                      orderLogistic: merchant.data.mID,
+                                                      auto: 'Car'
+                                                  );
+                                                  screenHeight = 0.8;
+                                                  setState(() {});
+                                                }
+                                                else{
+                                                  Utility.infoDialogMaker(
+                                                    "${merchant.data.bName} does not have a delivery car at the moment",
+                                                  );
+                                                }
+                                              }
+                                              else if(type == "Van"){
+                                                if(merchant.data.vanCount > 0){
+                                                  stage = 'OVERVIEW';
+                                                  mode = 'Delivery';
+                                                  order = order.update(
+                                                      orderMode: OrderMode(
+                                                        mode: mode,
+                                                        coordinate: GeoPoint(
+                                                            position.latitude,
+                                                            position.longitude),
+                                                        address: _address.text,
+                                                      ),
+                                                      orderCustomer:
+                                                      Customer(
+                                                        customerName: widget
+                                                            .user.fname,
+                                                        customerReview: '',
+                                                        customerTelephone:
+                                                        _contact.text,
+                                                      ),
+                                                      customerID: widget.user.uid,
+                                                      orderLogistic: merchant.data.mID,
+                                                      auto: 'Van'
+                                                  );
+                                                  screenHeight = 0.8;
+                                                  setState(() {});
+                                                }
+                                                else{
+                                                  Utility.infoDialogMaker(
+                                                    "${merchant.data.bName} does not have a delivery van at the moment",
+                                                  );
+                                                }
+                                              }
+
+                                            },
+                                            leading: CircleAvatar(
+                                              radius: 30,
+                                              backgroundImage: NetworkImage(merchant.data.bPhoto.isNotEmpty?merchant.data.bPhoto:PocketShoppingDefaultCover),
+                                            ),
+                                            title: Text(merchant.data.bName),
+                                            subtitle: Column(
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    FutureBuilder(
+                                                      future: ReviewRepo.getRating(merchant.data.mID),
+                                                      builder: (context,AsyncSnapshot<Rating>snapshot){
+                                                        if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
+                                                        else if(snapshot.hasError)return const SizedBox.shrink();
+                                                        else {
+                                                          if(snapshot.hasData){
+                                                            if(snapshot.data != null){
+                                                              return RatingBar(
+                                                                onRatingUpdate: null,
+                                                                initialRating: snapshot.data.rating,
+                                                                minRating: 1,
+                                                                maxRating: 5,
+                                                                itemSize: Get.width * 0.05,
+                                                                direction: Axis.horizontal,
+                                                                allowHalfRating: true,
+                                                                ignoreGestures: true,
+                                                                itemCount: 5,
+                                                                //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                itemBuilder: (context, _) => Icon(
+                                                                  Icons.star,
+                                                                  color: Colors.amber,
+                                                                ),
+                                                              );
+                                                            }
+                                                            else{
+                                                              return RatingBar(
+                                                                onRatingUpdate: null,
+                                                                initialRating: 3,
+                                                                minRating: 1,
+                                                                maxRating: 5,
+                                                                itemSize: Get.width * 0.05,
+                                                                direction: Axis.horizontal,
+                                                                allowHalfRating: true,
+                                                                ignoreGestures: true,
+                                                                itemCount: 5,
+                                                                //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                itemBuilder: (context, _) => Icon(
+                                                                  Icons.star,
+                                                                  color: Colors.amber,
+                                                                ),
+                                                              );
+                                                            }
+                                                          }
+                                                          else{
+                                                            return RatingBar(
+                                                              onRatingUpdate: null,
+                                                              initialRating: 3,
+                                                              minRating: 1,
+                                                              maxRating: 5,
+                                                              itemSize: Get.width * 0.05,
+                                                              direction: Axis.horizontal,
+                                                              allowHalfRating: true,
+                                                              ignoreGestures: true,
+                                                              itemCount: 5,
+                                                              //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                              itemBuilder: (context, _) => Icon(
+                                                                Icons.star,
+                                                                color: Colors.amber,
+                                                              ),
+                                                            );
+                                                          }
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Expanded(child:
+                                                    FutureBuilder(
+                                                        future: Utility.computeDistance(merchant.data.bGeoPoint['geopoint'],widget.merchant.bGeoPoint['geopoint']),
+                                                        initialData: 0.1,
+                                                        builder: (context,AsyncSnapshot<double> distance){
+                                                          if(distance.hasData){
+                                                            return Text('${Utility.formatDistance(distance.data, '${widget.merchant.bName}')}');
+                                                          }
+                                                          else{
+                                                            return const SizedBox.shrink();
+                                                          }
+                                                        })
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                            trailing:
+                                            (merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose))?
+                                            Icon(Icons.lock_open,color: Colors.green,)
+                                                :Icon(Icons.lock_outline,color: Colors.redAccent,),
+                                            enabled: (merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose)),
+                                          )
+                                      ),
+                                      Divider(thickness: 1,)
+                                    ],
+                                  );
+                                }
+                                else{
+                                  return const SizedBox.shrink();
+                                }
+                              }
+                            },
+                          );
+                        }).toList(growable: false)
+                    ),
+                    const SizedBox(height: 30,),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text('Others'),
+                      ),
+                    ),
+                  ],
+                ),
+
+              if(logisticList != null)
+                if(logisticList.isNotEmpty)
+                  Column(
+                      children: List<Widget>.generate(logisticList.length, (index){
+                        return Column(
+                          children: [
+                            Padding(
+                                padding: EdgeInsets.symmetric(vertical: 5),
+                                child: ListTile(
+                                  onTap: (){
+                                    if(type == "MotorBike"){
+                                      if(logisticList[index].bikeCount > 0){
+                                        stage = 'OVERVIEW';
+                                        mode = 'Delivery';
+                                        order = order.update(
+                                          orderMode: OrderMode(
+                                            mode: mode,
+                                            coordinate: GeoPoint(
+                                                position.latitude,
+                                                position.longitude),
+                                            address: _address.text,
+                                          ),
+                                          orderCustomer:
+                                          Customer(
+                                            customerName: widget
+                                                .user.fname,
+                                            customerReview: '',
+                                            customerTelephone:
+                                            _contact.text,
+                                          ),
+                                          customerID: widget.user.uid,
+                                          orderLogistic: logisticList[index].mID,
+                                            auto: 'MotorBike'
+                                        );
+                                        screenHeight = 0.8;
+                                        setState(() {});
+                                      }
+                                      else{
+                                        Utility.infoDialogMaker(
+                                          "${logisticList[index].bName} does not have a delivery motorbike at the moment",
+                                        );
+                                      }
+                                    }
+                                    else if(type == "Car"){
+                                      if(logisticList[index].carCount > 0){
+                                        stage = 'OVERVIEW';
+                                        mode = 'Delivery';
+                                        order = order.update(
+                                          orderMode: OrderMode(
+                                            mode: mode,
+                                            coordinate: GeoPoint(
+                                                position.latitude,
+                                                position.longitude),
+                                            address: _address.text,
+                                          ),
+                                          orderCustomer:
+                                          Customer(
+                                            customerName: widget
+                                                .user.fname,
+                                            customerReview: '',
+                                            customerTelephone:
+                                            _contact.text,
+                                          ),
+                                          customerID: widget.user.uid,
+                                          orderLogistic: logisticList[index].mID,
+                                            auto: 'Car'
+                                        );
+                                        screenHeight = 0.8;
+                                        setState(() {});
+                                      }
+                                      else{
+                                        Utility.infoDialogMaker(
+                                          "${logisticList[index].bName} does not have a delivery car at the moment",
+                                        );
+                                      }
+                                    }
+                                    else if(type == "Van"){
+                                      if(logisticList[index].vanCount > 0){
+                                        stage = 'OVERVIEW';
+                                        mode = 'Delivery';
+                                        order = order.update(
+                                          orderMode: OrderMode(
+                                            mode: mode,
+                                            coordinate: GeoPoint(
+                                                position.latitude,
+                                                position.longitude),
+                                            address: _address.text,
+                                          ),
+                                          orderCustomer:
+                                          Customer(
+                                            customerName: widget
+                                                .user.fname,
+                                            customerReview: '',
+                                            customerTelephone:
+                                            _contact.text,
+                                          ),
+                                          customerID: widget.user.uid,
+                                          orderLogistic: logisticList[index].mID,
+                                          auto: 'Van'
+                                        );
+                                        screenHeight = 0.8;
+                                        setState(() {});
+                                      }
+                                      else{
+                                        Utility.infoDialogMaker(
+                                          "${logisticList[index].bName} does not have a delivery van at the moment",
+                                        );
+                                      }
+                                    }
+
+                                  },
+                                  leading: CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: NetworkImage(logisticList[index].bPhoto.isNotEmpty?logisticList[index].bPhoto:PocketShoppingDefaultCover),
+                                  ),
+                                  title: Text(logisticList[index].bName),
+                                  subtitle: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          FutureBuilder(
+                                            future: ReviewRepo.getRating(logisticList[index].mID),
+                                            builder: (context,AsyncSnapshot<Rating>snapshot){
+                                              if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
+                                              else if(snapshot.hasError)return const SizedBox.shrink();
+                                              else {
+                                                if(snapshot.hasData){
+                                                  if(snapshot.data != null){
+                                                    return RatingBar(
+                                                      onRatingUpdate: null,
+                                                      initialRating: snapshot.data.rating,
+                                                      minRating: 1,
+                                                      maxRating: 5,
+                                                      itemSize: Get.width * 0.05,
+                                                      direction: Axis.horizontal,
+                                                      allowHalfRating: true,
+                                                      ignoreGestures: true,
+                                                      itemCount: 5,
+                                                      //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                      itemBuilder: (context, _) => Icon(
+                                                        Icons.star,
+                                                        color: Colors.amber,
+                                                      ),
+                                                    );
+                                                  }
+                                                  else{
+                                                    return RatingBar(
+                                                      onRatingUpdate: null,
+                                                      initialRating: 3,
+                                                      minRating: 1,
+                                                      maxRating: 5,
+                                                      itemSize: Get.width * 0.05,
+                                                      direction: Axis.horizontal,
+                                                      allowHalfRating: true,
+                                                      ignoreGestures: true,
+                                                      itemCount: 5,
+                                                      //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                      itemBuilder: (context, _) => Icon(
+                                                        Icons.star,
+                                                        color: Colors.amber,
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                                else{
+                                                  return RatingBar(
+                                                    onRatingUpdate: null,
+                                                    initialRating: 3,
+                                                    minRating: 1,
+                                                    maxRating: 5,
+                                                    itemSize: Get.width * 0.05,
+                                                    direction: Axis.horizontal,
+                                                    allowHalfRating: true,
+                                                    ignoreGestures: true,
+                                                    itemCount: 5,
+                                                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                    itemBuilder: (context, _) => Icon(
+                                                      Icons.star,
+                                                      color: Colors.amber,
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(child:
+                                          FutureBuilder(
+                                              future: Utility.computeDistance(logisticList[index].bGeoPoint['geopoint'],widget.merchant.bGeoPoint['geopoint']),
+                                              initialData: 0.1,
+                                              builder: (context,AsyncSnapshot<double> distance){
+                                                if(distance.hasData){
+                                                  return Text('${Utility.formatDistance(distance.data, '${widget.merchant.bName}')}');
+                                                }
+                                                else{
+                                                  return const SizedBox.shrink();
+                                                }
+                                              })
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  trailing:
+                                  (logisticList[index].bStatus == 1 && Utility.isOperational(logisticList[index].bOpen, logisticList[index].bClose))?
+                                  Icon(Icons.lock_open,color: Colors.green,)
+                                      :Icon(Icons.lock_outline,color: Colors.redAccent,),
+                                  enabled: (logisticList[index].bStatus == 1 && Utility.isOperational(logisticList[index].bOpen, logisticList[index].bClose)),
+                                )
+                            ),
+                            Divider(thickness: 1,)
+                          ],
+                        );
+                      }).toList(growable: false)
+                  )
+                else
+                  Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text('No Rider(s)'),
+                      )
+                  )
+              else
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Text('Fetching Riders...Please wait'),
+                  )
+                )
+            ],
+          )
+        )
+      ],
+    );
+  }
+
 
   void startTimer() {
     const oneSec = const Duration(seconds: 1);
@@ -2442,17 +3405,17 @@ class _OrderUIState extends State<OrderUI> {
         ? Center(
             child: Container(
               alignment: Alignment.center,
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.8,
+              width: Get.width,
+              height: Get.height * 0.8,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                      width: MediaQuery.of(context).size.width * 0.3,
-                      height: MediaQuery.of(context).size.height * 0.18,
+                      width: Get.width * 0.3,
+                      height: Get.height * 0.18,
                       child: JumpingDotsProgressIndicator(
-                        fontSize: MediaQuery.of(context).size.height * 0.12,
+                        fontSize: Get.height * 0.12,
                         color: PRIMARYCOLOR,
                       )),
                   Center(
@@ -2462,11 +3425,11 @@ class _OrderUIState extends State<OrderUI> {
                           'Placing Order please wait..',
                           style: TextStyle(
                               fontSize:
-                                  MediaQuery.of(context).size.height * 0.025),
+                                  Get.height * 0.025),
                           textAlign: TextAlign.center,
                         )),
                   ),
-                  if(false)
+                 /* if(false)
                   Center(
                     child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 10),
@@ -2483,18 +3446,18 @@ class _OrderUIState extends State<OrderUI> {
                             'Cancel.',
                             style: TextStyle(
                                 fontSize:
-                                MediaQuery.of(context).size.height * 0.025),
+                                Get.height * 0.025),
                             textAlign: TextAlign.center,
                           )
                         )
                     ),
-                  ),
+                  ),*/
                 ],
               ),
             ),
           )
         : Container(
-            height: MediaQuery.of(context).size.height * 0.8,
+            height: Get.height * 0.8,
             child: Column(
               children: <Widget>[
                 Expanded(
@@ -2512,7 +3475,7 @@ class _OrderUIState extends State<OrderUI> {
                             'Order successfully placed',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.04),
+                                    Get.height * 0.04),
                           ),
                           SizedBox(
                             height: 10,
@@ -2521,7 +3484,7 @@ class _OrderUIState extends State<OrderUI> {
                             '${_start}s',
                             style: TextStyle(
                                 fontSize:
-                                    MediaQuery.of(context).size.height * 0.05),
+                                    Get.height * 0.05),
                           ),
                         ],
                       ),
@@ -2544,13 +3507,21 @@ class _OrderUIState extends State<OrderUI> {
         });
         return false;
         break;
-      case 'OVERVIEW':
+      case 'LOGISTIC':
         setState(() {
           screenHeight = 0.8;
           stage = 'FAROPTION';
         });
         return false;
         break;
+      case 'OVERVIEW':
+        setState(() {
+          screenHeight = 0.9;
+          stage = 'LOGISTIC';
+        });
+        return false;
+        break;
+
       case 'CHECKOUT':
         setState(() {
           screenHeight = 0.8;

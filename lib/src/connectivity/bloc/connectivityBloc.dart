@@ -1,3 +1,4 @@
+/*
 import 'package:connectivity/connectivity.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -26,3 +27,4 @@ class ConnectivityBloc {
     _connectivityStreamController?.close();
   }
 }
+*/

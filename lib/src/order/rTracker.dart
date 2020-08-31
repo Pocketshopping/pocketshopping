@@ -78,7 +78,7 @@ class _RiderTrackerState extends State<RiderTracker> {
             if(order.connectionState == ConnectionState.waiting){
               return Center(
                 child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ),
               );
@@ -268,14 +268,14 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                       child: Column(
                                                         children: [
                                                           Center(
-                                                            child: const Text('Your Review'),
+                                                            child: const Text('Review'),
                                                           ),
                                                           RatingBar(
                                                             onRatingUpdate: (rate){},
                                                             initialRating: review.data.rating,
                                                             minRating: 1,
                                                             maxRating: 5,
-                                                            itemSize: MediaQuery.of(context).size.width * 0.08,
+                                                            itemSize: Get.width * 0.08,
                                                             direction: Axis.horizontal,
                                                             allowHalfRating: true,
                                                             ignoreGestures: true,
@@ -310,7 +310,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                               ),
 
 
-                                            if(order.data.orderCustomer.customerReview.isEmpty && order.data.status == 1 && order.data.receipt.psStatus != 'fail')
+                                            /*if(order.data.orderCustomer.customerReview.isEmpty && order.data.status == 1 && order.data.receipt.psStatus != 'fail')
                                               Container(
                                                   child: psHeadlessCard(
                                                       boxShadow: [
@@ -346,7 +346,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                                   initialRating: 1,
                                                                   minRating: 1,
                                                                   maxRating: 5,
-                                                                  itemSize: MediaQuery.of(context).size.width * 0.1,
+                                                                  itemSize: Get.width * 0.1,
                                                                   direction: Axis.horizontal,
                                                                   allowHalfRating: true,
                                                                   itemCount: 5,
@@ -381,7 +381,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                             maxLengthEnforced: true,
                                                           ),
                                                           Container(
-                                                            width: MediaQuery.of(context).size.width,
+                                                            width: Get.width,
                                                             child: FlatButton(
                                                               onPressed: () async{
                                                                 Utility.bottomProgressLoader(title: "Submitting review",body: "Submitting review to server");
@@ -420,7 +420,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ],
                                                       )
                                                   )
-                                              ),
+                                              ),*/
 
                                             if(merchant.hasData)
                                             psHeadlessCard(
@@ -444,7 +444,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                           color: PRIMARYCOLOR),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Align(
                                                         alignment: Alignment.centerLeft,
                                                         child: Text(
@@ -463,7 +463,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -486,7 +486,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -509,7 +509,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -533,7 +533,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             Expanded(
@@ -595,7 +595,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                             ),
                                                             color: PRIMARYCOLOR),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: const Align(
                                                           alignment: Alignment.centerLeft,
                                                           child: const Text(
@@ -614,7 +614,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -638,7 +638,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                             ),
                                                           ),
                                                           padding: EdgeInsets.all(
-                                                              MediaQuery.of(context).size.width * 0.02),
+                                                              Get.width * 0.02),
                                                           child: Row(
                                                             children: <Widget>[
                                                               const Expanded(
@@ -661,7 +661,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -684,7 +684,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -706,7 +706,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -729,7 +729,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width * 0.02),
+                                                            Get.width * 0.02),
                                                         child: Row(
                                                           children: <Widget>[
                                                             const Expanded(
@@ -753,7 +753,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                             ),
                                                           ),
                                                           padding: EdgeInsets.all(
-                                                              MediaQuery.of(context).size.width * 0.02),
+                                                              Get.width * 0.02),
                                                           child: Row(
                                                             children: <Widget>[
                                                               Expanded(
@@ -813,7 +813,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                           ),
                                                           color: PRIMARYCOLOR),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: const Align(
                                                         alignment: Alignment.centerLeft,
                                                         child: const Text(
@@ -897,7 +897,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -920,7 +920,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width *
+                                                          Get.width *
                                                               0.02),
                                                       child: Row(
                                                         children: <Widget>[
@@ -945,7 +945,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -975,7 +975,7 @@ class _RiderTrackerState extends State<RiderTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -1296,8 +1296,8 @@ class _LoaderState extends State<Loader> {
                   current > 0 ? Column(
                     children: [
                       Container(
-                        //width: MediaQuery.of(context).size.width * 0.3,
-                        //height: MediaQuery.of(context).size.height * 0.18,
+                        //width: Get.width * 0.3,
+                        //height: Get.height * 0.18,
                           color: Colors.white,
                           child: CircularStepProgressIndicator(
                             totalSteps: total,

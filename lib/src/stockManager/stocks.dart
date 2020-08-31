@@ -48,7 +48,7 @@ class StockManager extends StatelessWidget{
           if(snapshot.connectionState == ConnectionState.waiting){
             return Center(
                 child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ));
           }
@@ -207,7 +207,7 @@ class StockManager extends StatelessWidget{
                         child: Text(
                           'Empty',
                           style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                              fontSize: Get.height * 0.06),
                         ),
                       ),
                       SizedBox(

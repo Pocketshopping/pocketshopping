@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 
@@ -21,7 +22,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+        preferredSize: Size.fromHeight(Get.height *
             0.1), // here the desired height
         child: AppBar(
           centerTitle: true,

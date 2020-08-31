@@ -4,12 +4,12 @@ import 'package:pocketshopping/src/profile/repository/otpObj.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 
 class PinRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<bool> save(Pin pin,String wid) async {
 
     try {
-      await databaseReference.collection("wallet").document(wid).setData(pin.toMap())
+      await databaseReference.collection("wallet").doc(wid).set(pin.toMap())
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
@@ -22,7 +22,7 @@ class PinRepo {
   static Future<bool> saveOtp(Otp otp) async {
 
     try {
-      await databaseReference.collection("otp").document(otp.id).setData(otp.toMap())
+      await databaseReference.collection("otp").doc(otp.id).set(otp.toMap())
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return true;
     }
@@ -34,7 +34,7 @@ class PinRepo {
 
     try {
       DocumentSnapshot doc;
-      doc = await databaseReference.collection("otp").document(wid).get(source: Source.server)
+      doc = await databaseReference.collection("otp").doc(wid).get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       Otp otp = Otp.fromMap(doc);
       return otp.isNew?otp:null;
@@ -44,13 +44,13 @@ class PinRepo {
   }
 
   static Stream<Otp> getOtpStream(String wid) {
-    return databaseReference.collection("otp").document(wid).snapshots().map((event) => event.exists?Otp.fromMap(event):null);
+    return databaseReference.collection("otp").doc(wid).snapshots().map((event) => event.exists?Otp.fromMap(event):null);
   }
 
   static Future<bool> fetchPin(String pin,String wid) async {
 
     try {
-      var docs = await databaseReference.collection("wallet").document(wid).get(source: Source.server)
+      var docs = await databaseReference.collection("wallet").doc(wid).get(GetOptions(source: Source.server))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       if(docs.exists){
         return Pin.fromSnap(docs).pin == Pin.hash(pin);
@@ -62,7 +62,7 @@ class PinRepo {
   }
 
   static Future<bool> isSet(String wid) async {
-    var docs = await databaseReference.collection("wallet").document(wid).get(source: Source.server)
+    var docs = await databaseReference.collection("wallet").doc(wid).get(GetOptions(source: Source.server))
         .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
     return docs.exists;
   }

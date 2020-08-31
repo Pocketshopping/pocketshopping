@@ -57,7 +57,7 @@ class Promo extends StatelessWidget {
                   {
                     return Center(
                         child: JumpingDotsProgressIndicator(
-                          fontSize: MediaQuery.of(context).size.height * 0.12,
+                          fontSize: Get.height * 0.12,
                           color: PRIMARYCOLOR,
                         ));
                   }
@@ -84,14 +84,14 @@ class Promo extends StatelessWidget {
                                   Stack(
                                     children: [
                                       SizedBox(
-                                        height: MediaQuery.of(context).size.height * 0.3,
-                                        width: MediaQuery.of(context).size.width * 0.8,
+                                        height: Get.height * 0.3,
+                                        width: Get.width * 0.8,
                                         child: Image.asset('assets/images/gift.jpg',),
                                       ),
                                       Container(
                                         color: Colors.white.withOpacity(0.8),
-                                        height: MediaQuery.of(context).size.height * 0.3,
-                                        width: MediaQuery.of(context).size.width * 0.8,
+                                        height: Get.height * 0.3,
+                                        width: Get.width * 0.8,
                                         child: Center(
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(horizontal: 10),
@@ -150,7 +150,7 @@ class Promo extends StatelessWidget {
                                 child: Text(
                                   'Empty',
                                   style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.height * 0.06),
+                                      fontSize: Get.height * 0.06),
                                 ),
                               ),
                               SizedBox(

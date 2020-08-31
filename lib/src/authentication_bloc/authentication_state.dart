@@ -33,7 +33,7 @@ class Uninitialized extends AuthenticationState {
 }
 
 class Authenticated extends AuthenticationState {
-  final FirebaseUser user;
+  final User user;
 
   const Authenticated(this.user);
 
@@ -60,7 +60,7 @@ class Unauthenticated extends AuthenticationState {
 class VerifyAccount extends AuthenticationState {}
 
 class SetupBusiness extends AuthenticationState {
-  final FirebaseUser user;
+  final User user;
 
   const SetupBusiness(this.user);
 
@@ -72,7 +72,7 @@ class SetupBusiness extends AuthenticationState {
 }
 
 class DLink extends AuthenticationState {
-  final FirebaseUser user;
+  final User user;
   final Uri link;
 
   const DLink(this.user, this.link);

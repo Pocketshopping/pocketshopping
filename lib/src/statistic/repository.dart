@@ -14,14 +14,14 @@ import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class StatisticRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
   static final Geoflutterfire geo = Geoflutterfire();
 
   static Future<String> saveDeliveryRequest(DeliveryRequest deliveryRequest) async {
     DocumentReference bid;
     bid = await databaseReference.collection("deliveryRequest").add(deliveryRequest.toMap())
         .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-    return bid.documentID;
+    return bid.id;
   }
 
 /*  static Future<void> saveAgentStatistic(AgentStatistic agentStatistic) async {
@@ -47,7 +47,7 @@ class StatisticRepo {
          totalCancelled: totalCancelled,
          totalAmount: totalAmount,
        );
-       await databaseReference.collection("agentStatistic").document(id).setData(
+       await databaseReference.collection("agentStatistic").doc(id).set(
            agentStatistic.toMap())
            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
      }
@@ -60,7 +60,7 @@ class StatisticRepo {
          totalCancelled: isExisting.totalCancelled + totalCancelled,
          totalAmount: isExisting.totalAmount + totalAmount,
        );
-       await databaseReference.collection("agentStatistic").document(id).updateData(
+       await databaseReference.collection("agentStatistic").doc(id).update(
            agentStatistic.toMap())
            .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
      }
@@ -81,7 +81,7 @@ class StatisticRepo {
       //print(day);
       GeoFirePoint center =
       geo.point(latitude: mpos.latitude, longitude: mpos.longitude);
-      var collectionReference = Firestore.instance
+      var collectionReference = FirebaseFirestore.instance
           .collection('deliveryRequest')
           .where('isMiss', isEqualTo: true)
           .limit(500);
@@ -103,7 +103,7 @@ class StatisticRepo {
   static Future<AgentStatistic> getAgentStatistic(String agent) async {
     try{
       DocumentSnapshot doc;
-      doc = await databaseReference.collection("agentStatistic").document(agent).get(source: Source.serverAndCache)
+      doc = await databaseReference.collection("agentStatistic").doc(agent).get(GetOptions(source: Source.serverAndCache))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){Utility.noInternet(); throw HttpException;});
       return doc.exists?AgentStatistic.fromSnapshot(doc):null;
     }
@@ -117,7 +117,7 @@ class StatisticRepo {
       DocumentReference bid;
       bid = await databaseReference.collection("transactions")
           .add(data).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      return bid.documentID;
+      return bid.id;
     }
     catch(_){
       return '';
@@ -150,8 +150,8 @@ class StatisticRepo {
               'end':todayEnd
             }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
       }
-      //print(Map.castFrom(data.data));
-      return Map.castFrom(data.data);
+      //print(Map.castFrom(data.data()));
+      return Map.castFrom(data.data());
     }
     catch(_){
       return null;
@@ -323,7 +323,7 @@ class StatisticRepo {
             }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
       }
 
-      return Map.castFrom(data.data);
+      return Map.castFrom(data.data());
     }
     catch(_){
       return null;
@@ -344,8 +344,8 @@ class StatisticRepo {
               'thirty':thirty,
             }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
 
-       //print(Map.castFrom(data.data));
-      return Map.castFrom(data.data);
+       //print(Map.castFrom(data.data()));
+      return Map.castFrom(data.data());
     }
     catch(_){
       return null;

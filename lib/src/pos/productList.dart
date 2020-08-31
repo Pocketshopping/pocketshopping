@@ -57,6 +57,7 @@ class _ProductListState extends State<ProductList> {
       _finish=value.length == 10?false:true;
       empty = value.isEmpty;
       if(mounted)
+        if(mounted)
         setState((){ });
     });
     WalletRepo.getWallet(widget.user.merchant.bWallet).then((wallet) {
@@ -128,7 +129,7 @@ class _ProductListState extends State<ProductList> {
           backgroundColor: Color.fromRGBO(255, 255, 255, 1),
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(
-                MediaQuery.of(context).size.height *
+                Get.height *
                     0.22),
             child: AppBar(
                 title: Text(widget.title==null?'${widget.user.merchant.bName} Product(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -146,7 +147,7 @@ class _ProductListState extends State<ProductList> {
                 elevation: 0.0,
                 bottom: PreferredSize(
                   preferredSize: Size.fromHeight(
-                      MediaQuery.of(context).size.height *
+                      Get.height *
                           0.22),
                   child: Column(
                     children: [
@@ -171,6 +172,7 @@ class _ProductListState extends State<ProductList> {
                           decoration: InputDecoration(
                               border: InputBorder.none),
                           onChanged: (value) {
+                            if(mounted)
                             setState(() {
                             selectedCategory = value;
                             list.clear();
@@ -439,7 +441,7 @@ class _ProductListState extends State<ProductList> {
                                             _cartItem.add(cartItem);
                                             _count.value=1;
                                           }
-
+                                        if(mounted)
                                         setState(() {});
                                       }
                                     },
@@ -553,7 +555,7 @@ class _ProductListState extends State<ProductList> {
                           child: Text(
                             'Empty',
                             style: TextStyle(
-                                fontSize: MediaQuery.of(context).size.height * 0.06),
+                                fontSize: Get.height * 0.06),
                           ),
                         ),
                         SizedBox(
@@ -579,7 +581,7 @@ class _ProductListState extends State<ProductList> {
                       :
                   Center(
                     child: JumpingDotsProgressIndicator(
-                      fontSize: MediaQuery.of(context).size.height * 0.12,
+                      fontSize: Get.height * 0.12,
                       color: PRIMARYCOLOR,
                     ),
                   )
@@ -665,7 +667,7 @@ class _ProductListState extends State<ProductList> {
                 color: Colors.white,
                 child: Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -685,6 +687,7 @@ class _ProductListState extends State<ProductList> {
   }
 
   Future<void> _refresh() async {
+    if(mounted)
     setState(() {
       list.clear();
     });
@@ -695,6 +698,7 @@ class _ProductListState extends State<ProductList> {
 
 
   cartOps() {
+    if(mounted)
     setState(() {});
   }
 

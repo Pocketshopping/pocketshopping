@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class BottomSheetTemplate extends StatelessWidget {
   final Widget child;
@@ -19,8 +20,8 @@ class BottomSheetTemplate extends StatelessWidget {
           Navigator.pop(context);
         },
         child: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
+            height: Get.height,
+            width: Get.width,
             color: Colors.transparent,
             alignment: Alignment.bottomCenter,
             child: ClipRRect(
@@ -32,14 +33,14 @@ class BottomSheetTemplate extends StatelessWidget {
                       color: color,
                     ),
                     height: height,
-                    width: MediaQuery.of(context).size.width,
+                    width: Get.width,
                     //
                     child: Column(
                       children: <Widget>[
                         Container(
                           color: color,
                           alignment: Alignment.topRight,
-                          height: MediaQuery.of(context).size.width * 0.05,
+                          height: Get.width * 0.05,
                           child: FlatButton(
                               onPressed: () => {Navigator.pop(context)},
                               child: Icon(Icons.close)),
@@ -80,8 +81,8 @@ class CarouselBottomSheetTemplate extends StatelessWidget {
           //Navigator.pop(context);
         },
         child: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
+            height: Get.height,
+            width: Get.width,
             color: Colors.transparent,
             alignment: Alignment.bottomCenter,
             child: ClipRRect(
@@ -93,22 +94,12 @@ class CarouselBottomSheetTemplate extends StatelessWidget {
                       color: color,
                     ),
                     height: height,
-                    width: MediaQuery.of(context).size.width,
+                    width: Get.width,
                     //
-                    child: Column(
-                      children: <Widget>[
-                        Expanded(
-                            flex: 1,
-                            child: CustomScrollView(
-                                physics: scrollable
-                                    ? AlwaysScrollableScrollPhysics()
-                                    : NeverScrollableScrollPhysics(),
-                                slivers: <Widget>[
-                                  SliverList(
-                                      delegate:
-                                          SliverChildListDelegate([child]))
-                                ])),
-                      ],
-                    )))));
+                    child: child)
+            )
+
+        )
+    );
   }
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
 import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/fav/faq.dart';
 import 'package:pocketshopping/src/user/fav/fav.dart';
+import 'package:pocketshopping/src/user/merchant.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
 class Favourite extends StatefulWidget {
@@ -31,7 +34,7 @@ class _FavouriteState extends State<Favourite> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.15), // here the desired height
           child: AppBar(
             leading: BonusDrawerIcon(wallet: currentUser.user.walletId,

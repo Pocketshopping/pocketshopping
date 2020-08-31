@@ -74,14 +74,14 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
     return Scaffold(
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.15), // here the desired height
           child: AppBar(
             elevation: 0.0,
             backgroundColor: Colors.white,
             centerTitle: true,
             bottom: PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+            preferredSize: Size.fromHeight(Get.height *
               0.2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -114,6 +114,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                         isSelected[i] = i == index;
                       }
                       loading =true;
+                      if(mounted)
                       setState(() {});
                       var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
                           pNumber: page,from: from.toString(),to: to.toString(),type: index == 0 ?'credit':'debit');
@@ -121,12 +122,13 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                       loading =false;
                       _finish=result.length == 20?false:true;
                       empty = result.isEmpty;
+                      if(mounted)
                       setState(() {});
                     },
                     isSelected: isSelected,
                     constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width*0.35,
-                        minWidth: MediaQuery.of(context).size.width*0.35),
+                        maxWidth: Get.width*0.35,
+                        minWidth: Get.width*0.35),
                   ),
                 ),
                 Row(
@@ -157,6 +159,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                                                   initialDateTime: to,
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     to = newDateTime;
+                                                    if(mounted)
                                                     setState(() {});
                                                   },
                                                 ),
@@ -171,6 +174,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                                                 onPressed: ()async{
                                                   Get.back();
                                                   loading =true;
+                                                  if(mounted)
                                                   setState(() {});
                                                   var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
                                                       pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit');
@@ -178,6 +182,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                                                   loading =false;
                                                   _finish=result.length == 20?false:true;
                                                   empty = result.isEmpty;
+                                                  if(mounted)
                                                   setState(() {});
                                                 },
                                                 color: PRIMARYCOLOR,
@@ -220,6 +225,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                                                   onDateTimeChanged: (DateTime newDateTime) {
                                                     // Do something
                                                     from = newDateTime;
+                                                    if(mounted)
                                                     setState(() {});
                                                   },
                                                 ),
@@ -234,6 +240,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                                                 onPressed: ()async{
                                                   Get.back();
                                                   loading =true;
+                                                  if(mounted)
                                                   setState(() {});
                                                   var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
                                                       pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit');
@@ -241,6 +248,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                                                   loading =false;
                                                   _finish=result.length == 20?false:true;
                                                   empty = result.isEmpty;
+                                                  if(mounted)
                                                   setState(() {});
                                                 },
                                                 color: PRIMARYCOLOR,
@@ -330,7 +338,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -348,6 +356,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
 
   Future<void> _refresh() async {
     loading =true;
+    if(mounted)
     setState(() {});
     var result = await Utility.pocketHistory(pocket: widget.user.user.walletId,
         pNumber: page,from: from.toString(),to: to.toString(),type: isSelected[0]?'credit':'debit');
@@ -355,6 +364,7 @@ class _PocketHistoryState extends State<PocketHistoryWidget> {
     loading =false;
     _finish=result.length == 20?false:true;
     empty = result.isEmpty;
+    if(mounted)
     setState(() {});
   }
 }

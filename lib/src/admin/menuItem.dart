@@ -47,7 +47,7 @@ class MenuItem extends StatelessWidget {
             isMultiMenu
                 ? Get.bottomSheet(
                 builder: (context) => BottomSheetTemplate(
-                  height: MediaQuery.of(context).size.height * 0.4,
+                  height: Get.height * 0.4,
                   child: Container(
                     child: content != null ? content : Container(),
                   ),

@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
 import 'package:pocketshopping/src/ui/constant/appColor.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
@@ -40,7 +41,7 @@ class VerifyAccountWidget  extends StatelessWidget{
                         ),
                       ),
                       padding: EdgeInsets.all(
-                          MediaQuery.of(context).size.width * 0.02),
+                          Get.width * 0.02),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [

@@ -46,6 +46,7 @@ const int CACHE_TIME_OUT = 5;
 const String PaystackAPI = 'https://api.paystack.co/';
 const String googleAPIKey = 'AIzaSyDWhKPubZYbSnuCUcOHyYptuQsXQYRDdSc';
 const int requestWorkerID = 369;
+const int merchantWorkerID = 963;
 const String ABOUTUS = """ 
 Pocketshopping is a platform that powers SME’s using special business analysis algorithm, flexible and fast delivery, tracking of logistics to ensure proper delivery of products and services Pocketshopping has identified the growing need of people seeking to shop and to get their goods delivered to them with ease and in shorter time intervals than the current systems, the platform is built to help customers to purchase goods and services anytime, anywhere. Utilizing a location-based algorithm it filters the closest business around the customer and help them to purchase at the comfort of their home and get their order delivered to them with the help of our delivery agents in no time.
 """;

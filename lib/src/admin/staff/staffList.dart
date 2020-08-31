@@ -32,7 +32,6 @@ class StaffList extends StatefulWidget {
 
 class _StaffListState extends State<StaffList> {
   int get count => list.length;
-
   List<Staff> list = [];
   bool _finish;
   bool loading;
@@ -71,12 +70,8 @@ class _StaffListState extends State<StaffList> {
         if(mounted)
           if(value.isNotEmpty)
             setState((){
-
               list.addAll(value);
-              if(list.length >= 10)
-                _finish=false;
-              else
-                _finish=true;
+              _finish=!(list.length >= 10);
             });
           else
             setState(() {
@@ -90,11 +85,9 @@ class _StaffListState extends State<StaffList> {
           if(value.isNotEmpty)
             setState((){
               list.addAll(value);
-              if(list.length >= 10)
-                _finish=false;
-              else
-                _finish=true;
-            });else
+              _finish=!(list.length >= 10);
+            });
+          else
             setState(() {
               _finish=true;
               empty=true;
@@ -110,7 +103,7 @@ class _StaffListState extends State<StaffList> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.15),
           child: AppBar(
               title: Text(widget.title==null?'${widget.user.merchant.bName} Staff(s)':widget.title,style: TextStyle(color: PRIMARYCOLOR),),
@@ -128,7 +121,7 @@ class _StaffListState extends State<StaffList> {
               elevation: 0.0,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(
-                    MediaQuery.of(context).size.height *
+                    Get.height *
                         0.1),
                 child: Container(
                     child: TextFormField(
@@ -242,7 +235,7 @@ class _StaffListState extends State<StaffList> {
                         child: Text(
                           'Empty',
                           style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.height * 0.06),
+                              fontSize: Get.height * 0.06),
                         ),
                       ),
                       SizedBox(
@@ -268,7 +261,7 @@ class _StaffListState extends State<StaffList> {
                     :
                 Center(
                   child: JumpingDotsProgressIndicator(
-                    fontSize: MediaQuery.of(context).size.height * 0.12,
+                    fontSize: Get.height * 0.12,
                     color: PRIMARYCOLOR,
                   ),
                 )
@@ -294,7 +287,7 @@ class _StaffListState extends State<StaffList> {
                               )
                           ).then((value) async{
                             await _refresh();
-                            print('ssdsdsds');
+                            //print('ssdsdsds');
                           });
                         },
                         icon: Icon(Icons.add,color: Colors.white,),
@@ -428,7 +421,7 @@ class Clearance extends StatelessWidget{
               onTap: (){
                 Get.bottomSheet(builder: (context){
                   return Container(
-                    height: MediaQuery.of(context).size.height*0.35,
+                    height: Get.height*0.35,
                     color: Colors.white,
                     child: Column(
                       children: [

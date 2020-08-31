@@ -2,7 +2,6 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
-import 'package:random_string/random_string.dart';
 
 class ItemLineChart extends StatelessWidget {
   final Map<String,dynamic> data;

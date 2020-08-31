@@ -54,7 +54,7 @@ class _ProductFormState extends State<ProductForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return BlocListener<ProductBloc, ProductState>(listener: (context, state) {
       if (state.isSubmitting) {
         if (state.isUploading) {
@@ -65,11 +65,11 @@ class _ProductFormState extends State<ProductForm> {
               SnackBar(
                 backgroundColor: Colors.white,
                 content: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
+                  width: Get.width,
+                  height: Get.height,
                   child: Container(
                     margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.1),
+                        top: Get.height * 0.1),
                     child: Center(
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -77,8 +77,8 @@ class _ProductFormState extends State<ProductForm> {
                       children: <Widget>[
                         Image.asset(
                           'assets/images/cloud-upload.gif',
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.4,
+                          width: Get.width,
+                          height: Get.height * 0.4,
                           fit: BoxFit.cover,
                         ),
                         Text(
@@ -99,11 +99,11 @@ class _ProductFormState extends State<ProductForm> {
               SnackBar(
                 backgroundColor: Colors.white,
                 content: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
+                  width: Get.width,
+                  height: Get.height,
                   child: Container(
                     margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.1),
+                        top: Get.height * 0.1),
                     child: Center(
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -111,8 +111,8 @@ class _ProductFormState extends State<ProductForm> {
                       children: <Widget>[
                         Image.asset(
                           'assets/images/working.gif',
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.4,
+                          width: Get.width,
+                          height: Get.height * 0.4,
                           fit: BoxFit.cover,
                         ),
                         Text(
@@ -141,18 +141,18 @@ class _ProductFormState extends State<ProductForm> {
             SnackBar(
               backgroundColor: Colors.white,
               content: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
+                  width: Get.width,
+                  height: Get.height,
                   child: Container(
                     color: Colors.white,
                     child: Column(
                       children: [
                         Container(
                           margin: EdgeInsets.only(
-                              top: MediaQuery.of(context).size.height * 0.1),
+                              top: Get.height * 0.1),
                           padding: EdgeInsets.only(
-                            left: MediaQuery.of(context).size.height * 0.05,
-                            right: MediaQuery.of(context).size.height * 0.05,
+                            left: Get.height * 0.05,
+                            right: Get.height * 0.05,
                           ),
                           child: Center(
                               child: Column(
@@ -161,9 +161,9 @@ class _ProductFormState extends State<ProductForm> {
                             children: <Widget>[
                               Image.asset(
                                 'assets/images/completed.gif',
-                                width: MediaQuery.of(context).size.width,
+                                width: Get.width,
                                 height:
-                                    MediaQuery.of(context).size.height * 0.4,
+                                    Get.height * 0.4,
                                 fit: BoxFit.cover,
                               ),
                               Text(
@@ -191,7 +191,7 @@ class _ProductFormState extends State<ProductForm> {
                                 color: PRIMARYCOLOR,
                                 child: Padding(
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.height *
+                                      Get.height *
                                           0.02),
                                   child: Text(
                                     "New Product",
@@ -285,7 +285,7 @@ class _ProductFormState extends State<ProductForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: TextFormField(
                                     controller: _nameController,
                                     decoration: InputDecoration(
@@ -313,7 +313,7 @@ class _ProductFormState extends State<ProductForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: TextFormField(
                                     controller: _priceController,
                                     decoration: InputDecoration(
@@ -344,7 +344,7 @@ class _ProductFormState extends State<ProductForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TypeAheadFormField(
                                       textFieldConfiguration:
@@ -411,7 +411,7 @@ class _ProductFormState extends State<ProductForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: TextFormField(
                                     controller: _descriptionController,
                                     decoration: InputDecoration(
@@ -435,7 +435,7 @@ class _ProductFormState extends State<ProductForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: TextFormField(
                                     controller: _stockController,
                                     decoration: InputDecoration(
@@ -460,7 +460,7 @@ class _ProductFormState extends State<ProductForm> {
                                       ),
                                     ),
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: TypeAheadFormField(
                                       textFieldConfiguration:
@@ -520,7 +520,7 @@ class _ProductFormState extends State<ProductForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: Column(
                                     children: <Widget>[
                                       Text(
@@ -529,7 +529,7 @@ class _ProductFormState extends State<ProductForm> {
                                       ),
                                       SizedBox(
                                         height:
-                                            MediaQuery.of(context).size.height *
+                                            Get.height *
                                                 0.02,
                                       ),
                                       Center(
@@ -579,7 +579,7 @@ class _ProductFormState extends State<ProductForm> {
                                     ),
                                   ),
                                   padding: EdgeInsets.all(
-                                      MediaQuery.of(context).size.width * 0.02),
+                                      Get.width * 0.02),
                                   child: Column(
                                     children: <Widget>[
                                       Text(
@@ -716,7 +716,7 @@ class _ProductFormState extends State<ProductForm> {
                                 ),
                                 Container(
                                     padding: EdgeInsets.all(
-                                        MediaQuery.of(context).size.width *
+                                        Get.width *
                                             0.02),
                                     child: Padding(
                                         padding: EdgeInsets.symmetric(

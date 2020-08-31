@@ -131,15 +131,15 @@ class AutoMobile {
 
   static AutoMobile fromSnap(DocumentSnapshot snap) {
     return AutoMobile(
-        autoPlateNumber: (snap.data['autoPlateNumber']),
-        autoModelNumber: (snap.data['autoModelNumber']),
-        autoType: (snap.data['autoType']),
-        autoName: (snap.data['autoName']),
-        autoLogistic: snap.data['autoLogistic'],
-        autoID: snap.documentID,
-        autoAssigned: snap.data['autoAssigned'],
-        assignedTo: snap.data['assignedTo'],
-        autoAddedAt: snap.data['autoAddedAt'],
+        autoPlateNumber: (snap.data()['autoPlateNumber']),
+        autoModelNumber: (snap.data()['autoModelNumber']),
+        autoType: (snap.data()['autoType']),
+        autoName: (snap.data()['autoName']),
+        autoLogistic: snap.data()['autoLogistic'],
+        autoID: snap.id,
+        autoAssigned: snap.data()['autoAssigned'],
+        assignedTo: snap.data()['assignedTo'],
+        autoAddedAt: snap.data()['autoAddedAt'],
     );
 
   }

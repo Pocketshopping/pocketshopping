@@ -5,15 +5,15 @@ import 'package:pocketshopping/src/ui/constant/constants.dart';
 
 
 class CustomerCareRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
 
   static Future<bool> saveCustomerCare(String mid,List<CustomerCareLine> customerCareLine) async {
     try{
       await databaseReference
           .collection("customerCare")
-          .document(mid)
-          .setData(CustomerCareLine.toBigMap(customerCareLine));
+          .doc(mid)
+          .set(CustomerCareLine.toBigMap(customerCareLine));
       return true;
     }
     catch(_){return false;}
@@ -24,8 +24,8 @@ class CustomerCareRepo {
     try{
       await databaseReference
           .collection("customerCare")
-          .document(mid)
-          .setData(CustomerCareLine.toBigMap(customerCareLine));
+          .doc(mid)
+          .set(CustomerCareLine.toBigMap(customerCareLine));
       return true;
     }
     catch(_){return false;}
@@ -36,8 +36,8 @@ class CustomerCareRepo {
     try{
       await databaseReference
           .collection("customerCare")
-          .document(mid)
-          .updateData({'$number': FieldValue.delete()});
+          .doc(mid)
+          .update({'$number': FieldValue.delete()});
       return true;
     }
     catch(_){return false;}
@@ -48,9 +48,9 @@ class CustomerCareRepo {
   static Stream<List<CustomerCareLine>> fetchMyCustomerCareLine(String company) async* {
     yield* databaseReference
         .collection("customerCare")
-        .document(company)
+        .doc(company)
         .snapshots().map((event) {
-      return event.exists?CustomerCareLine.fromMap(event.data):[];
+      return event.exists?CustomerCareLine.fromMap(event.data()):[];
     });
   }
 
@@ -68,10 +68,10 @@ class CustomerCareRepo {
         List<CustomerCareLine> temp=[];
         var data =  await databaseReference
             .collection("customerCare")
-            .document(company).get(source: Source.cache)
+            .doc(company).get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: CACHE_TIME_OUT),onTimeout: (){throw Exception;});
         if(!data.exists){throw Exception;}
-        temp.addAll(CustomerCareLine.fromMap(data.data));
+        temp.addAll(CustomerCareLine.fromMap(data.data()));
 
         if(temp.length<4)
           return temp;
@@ -84,9 +84,9 @@ class CustomerCareRepo {
         List<CustomerCareLine> temp=[];
         var data =  await databaseReference
             .collection("customerCare")
-            .document(company).get(source: Source.serverAndCache)
+            .doc(company).get(GetOptions(source: Source.serverAndCache))
             .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-        temp.addAll(CustomerCareLine.fromMap(data.data));
+        temp.addAll(CustomerCareLine.fromMap(data.data()));
 
         if(temp.length<4)
           return temp;

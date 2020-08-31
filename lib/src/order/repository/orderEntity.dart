@@ -33,6 +33,7 @@ class OrderEntity extends Equatable {
   final List<String> index;
   final String customerDevice;
   final ErrandObj errand;
+  final String auto;
 
   const OrderEntity(
       this.orderItem,
@@ -55,7 +56,8 @@ class OrderEntity extends Equatable {
       this.potentials,
       this.index,
       this.customerDevice,
-      this.errand
+      this.errand,
+      this.auto,
       );
 
   Map<String, Object> toJson() {
@@ -80,7 +82,8 @@ class OrderEntity extends Equatable {
       'potentials':potentials,
       'index':index,
       'customerDevice':customerDevice,
-      'errand':errand
+      'errand':errand,
+      'auto':auto
     };
   }
 
@@ -106,7 +109,8 @@ class OrderEntity extends Equatable {
         potentials,
         index,
         customerDevice,
-        errand
+        errand,
+        auto
       ];
 
   @override
@@ -136,34 +140,36 @@ class OrderEntity extends Equatable {
         json['potentials'] as List,
         json['index'] as List,
         json['customerDevice'] as String,
-      json['errand'] as ErrandObj,
+        json['errand'] as ErrandObj,
+        json['auto'] as String,
     );
   }
 
   static OrderEntity fromSnapshot(DocumentSnapshot snap) {
     //print(snap.data);
     return OrderEntity(
-        OrderItem.fromListMap(snap.data['orderItem']),
-        snap.data['orderAmount'],
-        Customer.fromMap(snap.data['orderCustomer']),
-        snap.data['orderMerchant'],
-        snap.data['orderCreatedAt'],
-        OrderMode.fromMap(snap.data['orderMode']),
-        snap.data['orderETA'],
-        Receipt.fromMap(snap.data['receipt']),
-        snap.data['status'],
-        snap.data['orderID'],
-        snap.documentID,
-        Confirmation.fromMap(snap.data['orderConfirmation']),
-        snap.data['customerID'],
-        snap.data['agent'],
-        snap.data['orderLogistic'],
-        snap.data['isAssigned'],
-        snap.data['resolution'],
-        List.castFrom(snap.data['potentials']),
-       List.castFrom(snap.data['index']),
-       snap.data['customerDevice'],
-        ErrandObj.fromMap(snap.data['errand'])??null,
+        OrderItem.fromListMap(snap.data()['orderItem']),
+        snap.data()['orderAmount'],
+        Customer.fromMap(snap.data()['orderCustomer']),
+        snap.data()['orderMerchant'],
+        snap.data()['orderCreatedAt'],
+        OrderMode.fromMap(snap.data()['orderMode']),
+        snap.data()['orderETA'],
+        Receipt.fromMap(snap.data()['receipt']),
+        snap.data()['status'],
+        snap.data()['orderID'],
+        snap.id,
+        Confirmation.fromMap(snap.data()['orderConfirmation']),
+        snap.data()['customerID'],
+        snap.data()['agent'],
+        snap.data()['orderLogistic'],
+        snap.data()['isAssigned'],
+        snap.data()['resolution'],
+        List.castFrom(snap.data()['potentials']),
+       List.castFrom(snap.data()['index']),
+       snap.data()['customerDevice'],
+        ErrandObj.fromMap(snap.data()['errand'])??null,
+      snap.data()['auto'],
     );
   }
 
@@ -195,7 +201,8 @@ class OrderEntity extends Equatable {
       'potentials':potentials,
       'index':index,
       'customerDevice':customerDevice,
-      'errand':errand
+      'errand':errand,
+      'auto':auto
     };
   }
 }

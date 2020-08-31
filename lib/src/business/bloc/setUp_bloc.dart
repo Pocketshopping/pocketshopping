@@ -76,6 +76,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     yield state.update(
       isAddressValid: Validators.isValidAddress(address),
     );
+    //Validators.isValidAddress(address)
   }
 
   Stream<BusinessState> _mapCaptureChangedToState() async* {

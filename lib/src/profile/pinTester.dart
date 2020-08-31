@@ -34,7 +34,7 @@ class _PinTesterState extends State<PinTester> {
     return Scaffold(
         backgroundColor: Colors.black54.withOpacity(0.4),
         body: Container(
-            height: MediaQuery.of(context).size.height,
+            height: Get.height,
             padding: EdgeInsets.symmetric(horizontal: 15),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -114,10 +114,10 @@ class _PinTesterState extends State<PinTester> {
                                   obscuringCharacter: '*',
                                   maxLength: 4,
                                   maxLengthEnforced: true,
-                                  style: TextStyle(fontSize: 30,letterSpacing: MediaQuery.of(context).size.width*0.2),
+                                  style: TextStyle(fontSize: 30,letterSpacing: Get.width*0.2),
                                   buildCounter: (BuildContext context, { int currentLength, int maxLength, bool isFocused }) => null,
                                   onTap: (){
-                                    print('tapped');
+                                    //print('tapped');
                                   },
                                 )
                               ],

@@ -7,12 +7,12 @@ import 'package:pocketshopping/src/ui/constant/ui_constants.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 
 class StockRepo {
-  static final databaseReference = Firestore.instance;
+  static final databaseReference = FirebaseFirestore.instance;
 
   static Future<bool> save(Stock stock) async {
     try{
-      await databaseReference.collection("productStock").document(stock.productID).setData(stock.toMap()).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
-      await databaseReference.collection('products').document(stock.productID).updateData({'productStockCount':stock.stockCount,'isManaging':stock.isManaging});
+      await databaseReference.collection("productStock").doc(stock.productID).set(stock.toMap()).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
+      await databaseReference.collection('products').doc(stock.productID).update({'productStockCount':stock.stockCount,'isManaging':stock.isManaging});
       return true;
     }
     catch(_){
@@ -27,7 +27,7 @@ class StockRepo {
           .where('company',isEqualTo: company)
           .where('stockCount',isLessThan: 10)
           .where('isManaging',isEqualTo: true)
-          .snapshots().map((event) => event.documents.isNotEmpty?Stock.fromListSnap(event.documents):[]);
+          .snapshots().map((event) => event.docs.isNotEmpty?Stock.fromListSnap(event.docs):[]);
     }
     catch(_){
       yield* null;
@@ -37,8 +37,8 @@ class StockRepo {
   static Future<Stock> getOne(String sid) async {
     try{
       var docs = await databaseReference
-          .collection("productStock").document(sid)
-          .get(source: Source.serverAndCache)
+          .collection("productStock").doc(sid)
+          .get(GetOptions(source: Source.serverAndCache))
           .timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       return Stock.fromSnap(docs);
     }
@@ -50,14 +50,14 @@ class StockRepo {
   static Future<bool> reStock(Stock old, int newCount,String stockedBy) async {
     try{
       await databaseReference
-          .collection("productStock").document(old.productID).updateData({
+          .collection("productStock").doc(old.productID).update({
         'restockedBy':stockedBy,
         'restockedAt':Timestamp.now(),
         'stockCount':(old.stockCount + newCount),
         'lastRestockCount':newCount
       }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       await databaseReference.collection('products')
-          .document(old.productID).updateData({'productStockCount':(old.stockCount + newCount)});
+          .doc(old.productID).update({'productStockCount':(old.stockCount + newCount)});
       return true;
     }
     catch(_){
@@ -68,11 +68,11 @@ class StockRepo {
   static Future<bool> changeStatus(String sid,{bool isManaging=true}) async {
     try{
       await databaseReference
-          .collection("productStock").document(sid).updateData({
+          .collection("productStock").doc(sid).update({
         'isManaging':isManaging,
       }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
       await databaseReference.collection('products')
-          .document(sid).updateData({'isManaging':isManaging});
+          .doc(sid).update({'isManaging':isManaging});
       return true;
     }
     catch(_){
@@ -83,7 +83,7 @@ class StockRepo {
   static Future<bool> changeName(String sid,String product) async {
     try{
       await databaseReference
-          .collection("productStock").document(sid).updateData({
+          .collection("productStock").doc(sid).update({
         'product':product,
         'index': Utility.makeIndexList(product)
       }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
@@ -99,12 +99,12 @@ class StockRepo {
       Stock stock = await getOne(sid);
       if(stock.isManaging && stock.stockCount > 0){
         await databaseReference
-            .collection("productStock").document(sid).updateData({
+            .collection("productStock").doc(sid).update({
           'stockCount':(stock.stockCount-count),
           'frequency':(stock.frequency +count),
         }).timeout(Duration(seconds: TIMEOUT),onTimeout: (){throw Exception;});
         await databaseReference.collection('products')
-            .document(sid).updateData({'productStockCount':(stock.stockCount-count)});
+            .doc(sid).update({'productStockCount':(stock.stockCount-count)});
       }
 
       return true;
@@ -127,7 +127,7 @@ class StockRepo {
     /*try{
       WriteBatch batch  =  databaseReference.batch();
       sid.forEach((request) async{
-        batch.updateData(databaseReference.collection("productStock").document(request), {
+        batch.update(databaseReference.collection("productStock").doc(request), {
           'stockCount':FieldValue.increment(-1),
           'frequency':FieldValue.increment(1),
         });

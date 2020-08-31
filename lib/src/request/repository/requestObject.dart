@@ -129,16 +129,16 @@ class Request {
 
   static Request fromSnap(DocumentSnapshot snap) {
     return Request(
-        requestAction: (snap.data['requestAction']),
-        requestBody: (snap.data['requestBody']),
-        requestCleared: (snap.data['requestCleared']),
-        requestCreatedAt: (snap.data['requestCreatedAt']),
-        requestInitiator: snap.data['requestInitiator'],
-        requestID: snap.documentID,
-        requestInitiatorID: snap.data['requestInitiatorID'],
-        requestClearedAt: snap.data['requestClearedAt'],
-        requestReceiver: snap.data['requestReceiver'],
-        requestTitle: snap.data['requestTitle']);
+        requestAction: (snap.data()['requestAction']),
+        requestBody: (snap.data()['requestBody']),
+        requestCleared: (snap.data()['requestCleared']),
+        requestCreatedAt: (snap.data()['requestCreatedAt']),
+        requestInitiator: snap.data()['requestInitiator'],
+        requestID: snap.id,
+        requestInitiatorID: snap.data()['requestInitiatorID'],
+        requestClearedAt: snap.data()['requestClearedAt'],
+        requestReceiver: snap.data()['requestReceiver'],
+        requestTitle: snap.data()['requestTitle']);
   }
 
   static List<Request> fromListSnap(List<DocumentSnapshot> snap) {

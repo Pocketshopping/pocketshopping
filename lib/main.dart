@@ -3,7 +3,8 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -16,11 +17,11 @@ import 'package:get/get.dart' as _get;
 import 'package:pocketshopping/src/admin/product/bloc/categoryBloc.dart';
 import 'package:pocketshopping/src/admin/product/bloc/refreshBloc.dart';
 import 'package:pocketshopping/src/authentication_bloc/authentication_bloc.dart';
-import 'package:pocketshopping/src/connectivity/bloc/connectivityBloc.dart';
 import 'package:pocketshopping/src/geofence/bloc/geofenceRefreshBloc.dart';
 import 'package:pocketshopping/src/login/login.dart';
 import 'package:pocketshopping/src/logistic/locationUpdate/locRepo.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
+import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/repository/user_repository.dart';
 import 'package:pocketshopping/src/server/bloc/serverBloc.dart';
 import 'package:pocketshopping/src/server/bloc/sessionBloc.dart';
@@ -80,8 +81,10 @@ void main()async{
   Workmanager.initialize(callbackDispatcher, isInDebugMode: false);
   notificationAppLaunchDetails = await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
   BlocSupervisor.delegate = SimpleBlocDelegate();
-  final UserRepository userRepository = UserRepository();
+  await Firebase.initializeApp();
+  final UserRepository userRepository = UserRepository(firebaseAuth: FirebaseAuth.instance);
   await _createNotificationChannel('PocketShopping','PocketShopping','default notification channel for pocketshopping');
+
 
 /*  IsolateNameServer.registerPortWithName(
     port.sendPort,
@@ -163,62 +166,82 @@ Future<void> _createNotificationChannel(String id, String name,
 
 void callbackDispatcher() {
   Workmanager.executeTask((task, inputData)async{
+
     if(task == "LocationUpdateTask"){
       try{
+        await Firebase.initializeApp();
         final prefs = await SharedPreferences.getInstance();
         bool enable = await Geolocator().isLocationServiceEnabled();
         final FirebaseMessaging _fcm = FirebaseMessaging();
+        await _fcm.autoInitEnabled();
         GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
-        if(enable){
-          if(permit == GeolocationStatus.granted){
-            Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation,locationPermissionLevel: GeolocationPermission.locationAlways);
-            if(position != null){
-              String fcmToken = await _fcm.getToken();
-              Geoflutterfire geo = Geoflutterfire();
-              GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
-              await LocRepo.update({
-                'agentParent':prefs.getString('agentParent'),
-                'wallet':prefs.getString('wallet'),
-                'agentID':prefs.getString('agentID'),
-                'agentLocation':agentLocation.data,
-                'agentAutomobile':prefs.getString('agentAutomobile'),
-                'agentName':prefs.getString('agentName'),
-                'agentTelephone':prefs.getString('agentTelephone'),
-                'availability':prefs.getBool('availability'),
-                'pocket':true,
-                'parent':true,
-                'remitted':true,
-                'busy':false,
-                'device':fcmToken,
-                'UpdatedAt':Timestamp.now(),
-                'address':await Utility.address(position),
-                'workPlaceWallet':prefs.getString('workPlaceWallet'),
-                'profile':prefs.getString('profile'),
-                'limit':prefs.getInt('limit'),
-                'index':Utility.makeIndexList(prefs.getString('agentName')),
-                'autoAssigned':prefs.getBool('autoAssigned'),
-              });
+        String currentMerchant = prefs.getString('merchant');
+        if(currentMerchant.isEmpty){
+          if(enable){
+            if(permit == GeolocationStatus.granted){
+              Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation,locationPermissionLevel: GeolocationPermission.locationAlways);
+              if(position != null){
+                String fcmToken = await FirebaseMessaging().getToken();
+                Geoflutterfire geo = Geoflutterfire();
+                GeoFirePoint agentLocation = geo.point(latitude: position.latitude, longitude: position.longitude);
+                await LocRepo.update({
+                  'agentParent':prefs.getString('agentParent'),
+                  'wallet':prefs.getString('wallet'),
+                  'agentID':prefs.getString('agentID'),
+                  'agentLocation':agentLocation.data,
+                  'agentAutomobile':prefs.getString('agentAutomobile'),
+                  'agentName':prefs.getString('agentName'),
+                  'agentTelephone':prefs.getString('agentTelephone'),
+                  'availability':prefs.getBool('availability'),
+                  'pocket':true,
+                  'parent':true,
+                  'remitted':true,
+                  'busy':false,
+                  'device':fcmToken,
+                  'UpdatedAt':Timestamp.now(),
+                  'address':await Utility.address(position),
+                  'workPlaceWallet':prefs.getString('workPlaceWallet'),
+                  'profile':prefs.getString('profile'),
+                  'limit':prefs.getInt('limit'),
+                  'index':Utility.makeIndexList(prefs.getString('agentName')),
+                  'autoAssigned':prefs.getBool('autoAssigned'),
+                });
+              }
+            }
+            else{
+              await Utility.localNotifier("PocketShopping", "Permission", 'Permission', 'Grant Location Access to PocketShopping');
             }
           }
           else{
-            Utility.localNotifier("PocketShopping", "PocketShopping", 'Permission', 'Grant Location Access to PocketShopping');
+            await Utility.localNotifier("PocketShopping", "Location", 'Location', 'Enable Location');
           }
         }
         else{
-          Utility.localNotifier("PocketShopping", "PocketShopping", 'Location', 'Enable Location');
+
+          int count = await OrderRepo.getLogisticUnclaimedDelivery(currentMerchant);
+
+
+          if(count>0)
+           {
+             //debugPrint('ewewvxc xzczx $currentMerchant ($count)');
+             await Utility.localNotifier("PocketShopping", "PocketShopping", "Request", 'There is a Delivery request in request bucket. check it out');
+           }
+
         }
       }catch(_){//debugPrint(_);
       }
     }
-    /*else if(task  == 'DeliveryRequestUpdateTask'){
+   /* else if(task  == 'LogisticRequestUpdateTask'){
      try{
        final prefs = await SharedPreferences.getInstance();
-       String currentAgent = prefs.getString('rider');
-       int count = await OrderRepo.getUnclaimedDelivery(currentAgent);
+       String currentMerchant = prefs.getString('merchant');
+       int count = await OrderRepo.getLogisticUnclaimedDelivery(currentMerchant);
        if(count>0)
-         Utility.localNotifier("PocketShopping", "PocketShopping",
-             "Delivery Request", 'New Delivery request. view dashboard to accept');
-     }catch(_){debugPrint(_);}
+         Utility.localNotifier("PocketShopping", "PocketShopping", "Delivery Request", 'There is a Delivery request in request bucket. check it out');
+       debugPrint(count.toString());
+     }catch(_){
+
+     }
     }*/
     return true;
   });
@@ -257,7 +280,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home:Splash(userRepository:widget._userRepository,),
       defaultTransition: _get.Transition.rightToLeftWithFade,
-      transitionDuration: Duration(milliseconds: 500),
+      //transitionDuration: Duration(milliseconds: 500),
     );
   }
   initConfigure() {
@@ -306,27 +329,21 @@ class App extends StatefulWidget {
 
 class AppState extends State<App> {
 
-
-  StreamSubscription<ConnectivityResult> subscription;
   @override
   void initState() {
-    handleDynamicLinks();
-    (Connectivity().checkConnectivity()).then((value) => ConnectivityBloc.instance.newStatus(value));
-    subscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-     ConnectivityBloc.instance.newStatus(result);
-
-     //Get.snackbar('network', '${result.index}');
-    });
     SessionBloc.instance.addSession(widget._userRepository);
     ProductRefreshBloc.instance.addNextRefresh(DateTime.now());
     GeofenceRefreshBloc.instance.addNextRefresh(DateTime.now());
     CategoryBloc.instance.addNewCategory([]);
+    handleDynamicLinks();
+    /*widget._userRepository.getCurrentUser().then((value) {
+      print('${value.displayName}');
+    });*/
     super.initState();
   }
 
   @override
   void dispose() {
-    subscription?.cancel();
     super.dispose();
   }
 
@@ -354,7 +371,7 @@ class AppState extends State<App> {
                         Center(child: Image.asset('assets/images/blogo.png'),),
                         Center(child:
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 5),
+                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 15),
                           child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                         )
                         ),
@@ -378,7 +395,7 @@ class AppState extends State<App> {
                         Center(child: Image.asset('assets/images/blogo.png'),),
                         Center(child:
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 5),
+                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 15),
                           child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                         )
                         ),
@@ -406,7 +423,7 @@ class AppState extends State<App> {
                 Center(child: Image.asset('assets/images/blogo.png'),),
                 Center(child:
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20,horizontal: 5),
+                  padding: EdgeInsets.symmetric(vertical: 20,horizontal: 15),
                   child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                 )
                 ),
@@ -428,12 +445,16 @@ class AppState extends State<App> {
               return BlocBuilder<AuthenticationBloc, AuthenticationState>(
               builder: (context, state) {
 
+
           if (state is Started) return LoadingScreen();
-          if (state is Uninitialized) return Introduction(userRepository: widget._userRepository,linkdata: state.link,);
+          if (state is Uninitialized) {
+            //print('Uninitialized');
+            return Introduction(userRepository: widget._userRepository,linkdata: state.link,);}
           if (state is Unauthenticated)return LoginScreen(userRepository: widget._userRepository,linkdata: state.link,);
 
 
           if (state is Authenticated) {
+            //print(state.props[1]);
           if (state.user.displayName == 'user')
           return UserScreen(userRepository: widget._userRepository);
           else if (state.user.displayName == 'admin')
@@ -446,7 +467,19 @@ class AppState extends State<App> {
           return LoginScreen(userRepository: widget._userRepository);
           }
           if (state is DLink) {
-          //print(state.props[1]);
+            //print(state.props[1]);
+
+            if (state.user.displayName == 'user')
+              return UserScreen(userRepository: widget._userRepository,merchant: (state.props[1] as Uri).queryParameters['merchant'],route: 1,);
+            else if (state.user.displayName == 'admin')
+              return AdminScreen(userRepository: widget._userRepository,merchant: (state.props[1] as Uri).queryParameters['merchant'],route: 1,);
+            else if (state.user.displayName == 'staff')
+              return StaffScreen(userRepository: widget._userRepository,merchant: (state.props[1] as Uri).queryParameters['merchant'],route: 1,);
+            else if (state.user.displayName == 'rider')
+              return RiderScreen(userRepository: widget._userRepository,merchant: (state.props[1] as Uri).queryParameters['merchant'],route: 1,);
+            else
+              return LoginScreen(userRepository: widget._userRepository,);
+
           }
           if(state is SetupBusiness)return BSetup(userRepository: widget._userRepository,);
           if (state is VerifyAccount)return VerifyAccountWidget();

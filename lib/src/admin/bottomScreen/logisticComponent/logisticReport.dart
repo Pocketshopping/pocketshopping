@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/admin/bottomScreen/bottomSheetMenuItem.dart';
 import 'package:pocketshopping/src/logistic/agentCompany/agentList.dart';
 import 'package:pocketshopping/src/logistic/vehicle/newVehicle.dart';
@@ -12,17 +13,17 @@ class LogisticReportBottomPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
-    double gridHeight = MediaQuery.of(context).size.height * 0.1;
+    double marginLR = Get.width;
+    double gridHeight = Get.height * 0.1;
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: Get.height * 0.4,
       width: marginLR,
       child: CustomScrollView(
         slivers: <Widget>[
           SliverList(
               delegate: SliverChildListDelegate([
                 Container(
-                  height: MediaQuery.of(context).size.height * 0.02,
+                  height: Get.height * 0.02,
                 ),
               ])),
           SliverList(
@@ -54,7 +55,7 @@ class LogisticReportBottomPage extends StatelessWidget {
                 height: gridHeight,
                 icon: Icon(
                   Icons.show_chart,
-                  size: MediaQuery.of(context).size.width * 0.16,
+                  size: Get.width * 0.16,
                   color: PRIMARYCOLOR.withOpacity(0.8),
                 ),
                 title: 'General Report',
@@ -65,7 +66,7 @@ class LogisticReportBottomPage extends StatelessWidget {
               height: gridHeight,
               icon: Icon(
                 Icons.person_pin,
-                size: MediaQuery.of(context).size.width * 0.16,
+                size: Get.width * 0.16,
                 color: PRIMARYCOLOR.withOpacity(0.8),
               ),
               title: 'Agent Report',

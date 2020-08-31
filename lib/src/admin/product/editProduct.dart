@@ -77,7 +77,7 @@ class _EditProductFormState extends State<EditProductForm> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
       return WillPopScope(
           onWillPop: () async {
                Get.back(result: 'Refresh');
@@ -87,7 +87,7 @@ class _EditProductFormState extends State<EditProductForm> {
           child: Scaffold(
               appBar: PreferredSize(
                   preferredSize: Size.fromHeight(
-                      MediaQuery.of(context).size.height *
+                      Get.height *
                           0.08),
                   child: AppBar(
                     title: Text('Product Settings',style: TextStyle(color: PRIMARYCOLOR),),
@@ -138,7 +138,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -166,7 +166,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                       await ProductRepo.updateProduct(widget.product.pID,
                                                           {
                                                             'productName':_nameController.text.sentenceCase,
-                                                            'index': await ProductRepo.makeIndexList(_nameController.text,widget.product.mID.documentID, widget.product.pCategory,widget.product.pGroup),
+                                                            'index': await ProductRepo.makeIndexList(_nameController.text,widget.product.mID.id, widget.product.pCategory,widget.product.pGroup),
                                                           });
 
                                                     setState(() {
@@ -206,7 +206,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                               children: [
                                                 Expanded(
@@ -270,7 +270,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                               ),
                                             ),
                                             padding: EdgeInsets.all(
-                                                MediaQuery.of(context).size.width *
+                                                Get.width *
                                                     0.02),
                                             child:
                                           Row(
@@ -373,7 +373,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child:
                                             Row(
                                               children: [
@@ -436,7 +436,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child:
                                             Row(
                                               children: [
@@ -496,7 +496,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                               ),
                                             ),
                                             padding: EdgeInsets.all(
-                                                MediaQuery.of(context).size.width *
+                                                Get.width *
                                                     0.02),
                                             child:
                                           Row(
@@ -596,7 +596,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                               ),
                                             ),
                                             padding: EdgeInsets.all(
-                                                MediaQuery.of(context).size.width *
+                                                Get.width *
                                                     0.02),
                                             child:
                                             Column(
@@ -645,8 +645,8 @@ class _EditProductFormState extends State<EditProductForm> {
                                               },
                                               isSelected: isSelected,
                                               constraints: BoxConstraints(
-                                                  maxWidth: MediaQuery.of(context).size.width,
-                                                  minWidth: MediaQuery.of(context).size.width*0.25
+                                                  maxWidth: Get.width,
+                                                  minWidth: Get.width*0.25
                                               ),
                                             ),
                                             )
@@ -664,7 +664,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Column(
                                             children: <Widget>[
                                               Text(
@@ -809,7 +809,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                         /*!working?
                                         Container(
                                             padding: EdgeInsets.all(
-                                                MediaQuery.of(context).size.width *
+                                                Get.width *
                                                     0.02),
                                             child: Center(
                                                 child: FlatButton.icon(

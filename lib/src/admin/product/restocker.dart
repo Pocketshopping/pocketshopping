@@ -57,7 +57,7 @@ class ReStock extends StatelessWidget {
                   if(stock.connectionState == ConnectionState.waiting){
                     return Center(
                         child: JumpingDotsProgressIndicator(
-                          fontSize: MediaQuery.of(context).size.height * 0.12,
+                          fontSize: Get.height * 0.12,
                           color: PRIMARYCOLOR,
                         ));
                   }
@@ -107,7 +107,7 @@ class ReStock extends StatelessWidget {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child: Row(
                               children: <Widget>[
                                 Expanded(
@@ -177,7 +177,7 @@ class ReStock extends StatelessWidget {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child:Row(
                               children: [
                                 Expanded(
@@ -201,7 +201,7 @@ class ReStock extends StatelessWidget {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child:Row(
                                 children: [
                                   Expanded(
@@ -225,7 +225,7 @@ class ReStock extends StatelessWidget {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child:Row(
                                 children: [
                                   Expanded(
@@ -249,7 +249,7 @@ class ReStock extends StatelessWidget {
                               ),
                             ),
                             padding: EdgeInsets.all(
-                                MediaQuery.of(context).size.width * 0.02),
+                                Get.width * 0.02),
                             child:Row(
                               children: [
                                 Expanded(
@@ -271,7 +271,7 @@ class ReStock extends StatelessWidget {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child:Column(
                                 children: [
                                   Form(

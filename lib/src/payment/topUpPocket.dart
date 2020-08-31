@@ -51,11 +51,31 @@ class _TopUpPocketState extends State<TopUpPocket> {
   Widget build(BuildContext context) {
     return WillPopScope(onWillPop: _willPopScope,child:
     Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(
+            Get.height *
+                0.08),
+        child: AppBar(
+          title: Text('TopUp',style: TextStyle(color: PRIMARYCOLOR),),
+          centerTitle: true,
+          backgroundColor: Color.fromRGBO(255, 255, 255, 1),
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          elevation: 0.0,
+        ),
+      ),
       backgroundColor: Colors.white,
       body: Container(
           child: paying?Center(
             child: JumpingDotsProgressIndicator(
-              fontSize: MediaQuery.of(context).size.height * 0.12,
+              fontSize: Get.height * 0.12,
               color: PRIMARYCOLOR,
             ),
           ):manager()
@@ -76,7 +96,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
           children: [
             Center(
               child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               ),
             ),
@@ -106,7 +126,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
       children: [
         Center(child:
         Image.asset('assets/images/topup.gif',
-          height: MediaQuery.of(context).size.height*0.4,
+          height: Get.height*0.4,
         )
         ),
         Center(child:
@@ -135,7 +155,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
                           ),
                         ),
                       ),
-                      padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
+                      padding: EdgeInsets.all(Get.width * 0.02),
                       child:Center(child: Text('Enter the amount you want to TopUp'),)),
                   Container(
                     decoration: BoxDecoration(
@@ -147,7 +167,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
                         ),
                       ),
                     ),
-                    padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
+                    padding: EdgeInsets.all(Get.width * 0.02),
                     child: TextFormField(
                       controller: _amount,
                       decoration: InputDecoration(
@@ -266,19 +286,19 @@ class _TopUpPocketState extends State<TopUpPocket> {
     return Center(
       child: Container(
         alignment: Alignment.center,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.8,
+        width: Get.width,
+        height: Get.height * 0.8,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
-              width: MediaQuery.of(context).size.width * 0.3,
-              height: MediaQuery.of(context).size.height * 0.18,
+              width: Get.width * 0.3,
+              height: Get.height * 0.18,
               child: Icon(
                 Icons.close,
                 color: Colors.red,
-                size: MediaQuery.of(context).size.height * 0.18,
+                size: Get.height * 0.18,
               ),
             ),
             Center(
@@ -289,7 +309,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
                       child: Text(
                         '$payerror',
                         style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.height * 0.025),
+                            fontSize: Get.height * 0.025),
                         textAlign: TextAlign.center,
                       )
                   )
@@ -314,7 +334,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
 
   Widget paySuccess(){
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: Get.height * 0.8,
       child: Column(
         children: <Widget>[
           Expanded(
@@ -331,7 +351,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
                     Text('Your pocket has been credited with ${_amount.text} Unit(s)',
                       style: TextStyle(
                           fontSize:
-                          MediaQuery.of(context).size.height * 0.04),
+                          Get.height * 0.04),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(
@@ -341,7 +361,7 @@ class _TopUpPocketState extends State<TopUpPocket> {
                       '${_start}s',
                       style: TextStyle(
                           fontSize:
-                          MediaQuery.of(context).size.height * 0.05),
+                          Get.height * 0.05),
                     ),
                   ],
                 ),

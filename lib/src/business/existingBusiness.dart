@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 
 class ExistingBusiness extends StatefulWidget {
@@ -12,7 +13,7 @@ class _ExistingBusinessState extends State<ExistingBusiness> {
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+          preferredSize: Size.fromHeight(Get.height *
               0.1), // here the desired height
           child: AppBar(
             centerTitle: true,
@@ -39,7 +40,7 @@ class _ExistingBusinessState extends State<ExistingBusiness> {
                   SliverList(
                       delegate: SliverChildListDelegate([
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: Get.height * 0.02,
                     ),
                     psCard(
                       color: PRIMARYCOLOR,
@@ -66,7 +67,7 @@ class _ExistingBusinessState extends State<ExistingBusiness> {
                                 ),
                               ),
                               padding: EdgeInsets.all(
-                                  MediaQuery.of(context).size.width * 0.02),
+                                  Get.width * 0.02),
                               child: Text(
                                 "To create a branch you need to request for branch link from the exisiting"
                                 " business, once recieved you can create branch by visiting the link."

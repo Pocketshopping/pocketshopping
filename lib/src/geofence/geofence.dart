@@ -72,7 +72,7 @@ class _GeoFenceState extends State<GeoFence> {
         backgroundColor: Color.fromRGBO(255, 255, 255, 1),
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.22),
           child: AppBar(
               title: Text('Pocketshopping',style: TextStyle(color: PRIMARYCOLOR),),
@@ -89,7 +89,7 @@ class _GeoFenceState extends State<GeoFence> {
               elevation: 0.0,
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(
-                    MediaQuery.of(context).size.height *
+                    Get.height *
                         0.15),
                 child: Column(
                   children: [
@@ -152,7 +152,7 @@ class _GeoFenceState extends State<GeoFence> {
                         if(snapShot.connectionState == ConnectionState.waiting){
                           return Center(
                             child: JumpingDotsProgressIndicator(
-                              fontSize: MediaQuery.of(context).size.height * 0.12,
+                              fontSize: Get.height * 0.12,
                               color: PRIMARYCOLOR,
                             ),
                           );
@@ -163,7 +163,7 @@ class _GeoFenceState extends State<GeoFence> {
                                 children: [
                                   Center(
                                     child: Image.asset('assets/images/gpsError.png',
-                                      height:MediaQuery.of(context).size.height*0.3,
+                                      height:Get.height*0.3,
                                     ),
                                   ),
                                   Padding(
@@ -191,7 +191,7 @@ class _GeoFenceState extends State<GeoFence> {
                                 itemBuilder: (BuildContext context, int index) {
                                   return Container(
                                       padding: EdgeInsets.symmetric(horizontal:10,vertical: 5),
-                                      width: MediaQuery.of(context).size.width*0.5,
+                                      width: Get.width*0.5,
                                       child: PlaceWidget(
                                         merchant: snapShot.data[index],
                                         cPosition: GeoFirePoint(
@@ -223,7 +223,7 @@ class _GeoFenceState extends State<GeoFence> {
                           else{
                             return Center(
                               child: JumpingDotsProgressIndicator(
-                                fontSize: MediaQuery.of(context).size.height * 0.12,
+                                fontSize: Get.height * 0.12,
                                 color: PRIMARYCOLOR,
                               ),
                             );
@@ -248,7 +248,7 @@ class _GeoFenceState extends State<GeoFence> {
                         if(snapShot.connectionState == ConnectionState.waiting){
                           return Center(
                             child: JumpingDotsProgressIndicator(
-                              fontSize: MediaQuery.of(context).size.height * 0.12,
+                              fontSize: Get.height * 0.12,
                               color: PRIMARYCOLOR,
                             ),
                           );
@@ -259,7 +259,7 @@ class _GeoFenceState extends State<GeoFence> {
                                 children: [
                                   Center(
                                     child: Image.asset('assets/images/gpsError.png',
-                                      height:MediaQuery.of(context).size.height*0.3,
+                                      height:Get.height*0.3,
                                     ),
                                   ),
                                   Padding(
@@ -287,7 +287,7 @@ class _GeoFenceState extends State<GeoFence> {
                                 itemBuilder: (BuildContext context, int index) {
                                   return Container(
                                       padding: EdgeInsets.symmetric(vertical: 5),
-                                      //width: MediaQuery.of(context).size.width*0.5,
+                                      //width: Get.width*0.5,
                                       child: OneProduct(product: snapShot.data[index],user: widget.user.user,position: posit,
                                         distance: 1.0,)
                                   );
@@ -314,7 +314,7 @@ class _GeoFenceState extends State<GeoFence> {
                           else{
                             return Center(
                               child: JumpingDotsProgressIndicator(
-                                fontSize: MediaQuery.of(context).size.height * 0.12,
+                                fontSize: Get.height * 0.12,
                                 color: PRIMARYCOLOR,
                               ),
                             );
@@ -351,9 +351,9 @@ class OneProduct extends StatelessWidget{
   
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
+    double height = Get.height;
     return FutureBuilder(
-        future: MerchantRepo.getMerchant(product.mID.documentID),
+        future: MerchantRepo.getMerchant(product.mID.id),
     builder: (context,AsyncSnapshot<Merchant>merchant){
           return Container(
       //height: height*0.22,

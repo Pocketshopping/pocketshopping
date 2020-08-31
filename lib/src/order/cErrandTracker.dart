@@ -9,9 +9,11 @@ import 'package:pocketshopping/src/business/business.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareObj.dart';
 import 'package:pocketshopping/src/customerCare/repository/customerCareRepo.dart';
 import 'package:pocketshopping/src/order/repository/confirmation.dart';
+import 'package:pocketshopping/src/order/repository/customer.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/order/repository/receipt.dart';
 import 'package:pocketshopping/src/review/repository/ReviewRepo.dart';
+import 'package:pocketshopping/src/review/repository/rating.dart';
 import 'package:pocketshopping/src/review/repository/reviewObj.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
@@ -105,7 +107,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
             if(order.connectionState == ConnectionState.waiting){
               return Center(
                 child: JumpingDotsProgressIndicator(
-                  fontSize: MediaQuery.of(context).size.height * 0.12,
+                  fontSize: Get.height * 0.12,
                   color: PRIMARYCOLOR,
                 ),
               );
@@ -144,6 +146,14 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         style: TextStyle(fontSize: 20),
                                                       ),
                                                     ),
+                                                    if(order.data.status == 0 && !order.data.isAssigned )
+                                                      Expanded(
+                                                        flex:0,
+                                                        child:  IconButton(
+                                                          onPressed: (){Get.back();},
+                                                          icon: Icon(Icons.arrow_back_ios),
+                                                        ),
+                                                      ),
                                                     if(order.data.status == 0 && !order.data.isAssigned )
                                                     Expanded(
                                                       child:  Text('Task not yet accepted.',
@@ -240,7 +250,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                       ),
                                                       Container(
                                                         child: JumpingDotsProgressIndicator(
-                                                          fontSize: MediaQuery.of(context).size.height * 0.08,
+                                                          fontSize: Get.height * 0.08,
                                                           color: PRIMARYCOLOR,
                                                         ),
                                                       ),
@@ -301,7 +311,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                             initialRating: review.data.rating,
                                                             minRating: 1,
                                                             maxRating: 5,
-                                                            itemSize: MediaQuery.of(context).size.width * 0.08,
+                                                            itemSize: Get.width * 0.08,
                                                             direction: Axis.horizontal,
                                                             allowHalfRating: true,
                                                             ignoreGestures: true,
@@ -334,6 +344,145 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
 
                                                   )
                                               ),
+                                            if(order.data.orderCustomer.customerReview.isEmpty && order.data.status == 1 && order.data.receipt.psStatus != 'fail')
+                                            FutureBuilder(
+                                              future: MerchantRepo.getMerchant(order.data.orderLogistic),
+                                                builder:(_,AsyncSnapshot<Merchant>merchant){
+                                                if(merchant.hasData){
+                                                  if(merchant.data != null){
+                                                    return
+                                                      Container(
+                                                          child: psHeadlessCard(
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors.grey,
+                                                                  //offset: Offset(1.0, 0), //(x,y)
+                                                                  blurRadius: 6.0,
+                                                                ),
+                                                              ],
+                                                              child: Column(
+                                                                children: [
+                                                                  Center(
+                                                                    child: Text(
+                                                                      'Rate the expirience',
+                                                                      style: TextStyle(fontSize: 16),
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    height: 10,
+                                                                  ),
+                                                                  const Center(
+                                                                    child: const Text(
+                                                                      'click star to increase rate',
+                                                                    ),
+                                                                  ),
+                                                                  ValueListenableBuilder(
+                                                                      valueListenable: rating,
+                                                                      builder: (_,double rate,__){
+                                                                        return RatingBar(
+                                                                          onRatingUpdate: (rate) {
+                                                                            rating.value = rate;
+                                                                          },
+                                                                          initialRating: 1,
+                                                                          minRating: 1,
+                                                                          maxRating: 5,
+                                                                          itemSize: Get.width * 0.1,
+                                                                          direction: Axis.horizontal,
+                                                                          allowHalfRating: true,
+                                                                          itemCount: 5,
+                                                                          itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                                          itemBuilder: (context, _) => Icon(
+                                                                            Icons.star,
+                                                                            color: Colors.amber,
+                                                                          ),
+                                                                        );
+                                                                      }
+                                                                  ),
+
+                                                                  TextFormField(
+                                                                    controller: _review,
+                                                                    decoration: InputDecoration(
+                                                                      labelText: 'Your Review',
+                                                                      filled: true,
+                                                                      fillColor: Colors.grey.withOpacity(0.2),
+                                                                      focusedBorder: OutlineInputBorder(
+                                                                        borderSide: BorderSide(
+                                                                            color: Colors.white.withOpacity(0.3)),
+                                                                      ),
+                                                                      enabledBorder: UnderlineInputBorder(
+                                                                        borderSide: BorderSide(
+                                                                            color: Colors.white.withOpacity(0.3)),
+                                                                      ),
+                                                                    ),
+                                                                    keyboardType: TextInputType.text,
+                                                                    autofocus: false,
+                                                                    maxLines: 5,
+                                                                    maxLength: 120,
+                                                                    maxLengthEnforced: true,
+                                                                  ),
+                                                                  Container(
+                                                                    width: Get.width,
+                                                                    child: FlatButton(
+                                                                      onPressed: () async{
+                                                                        Utility.bottomProgressLoader(title: "Submitting review",body: "Submitting review to server");
+                                                                        String rid = await ReviewRepo.save(Review(text: _review.text, rating: rating.value, reviewed: merchant.data.mID,
+                                                                            reviewedAt: Timestamp.now(), reviewerId: order.data.customerID, reviewerName: order.data.orderCustomer.customerName),
+                                                                            rating: Rating(
+                                                                                id: merchant.data.mID,
+                                                                                rating: rating.value,
+                                                                                positive: 0,
+                                                                                neutral: 0,
+                                                                                negative: 0
+                                                                            )
+                                                                        );
+                                                                        Get.back();
+
+                                                                        if(rid.isNotEmpty){
+                                                                          var result = await OrderRepo
+                                                                              .review(
+                                                                              order.data.docID,
+                                                                              Customer(
+                                                                                customerName:
+                                                                                order.data.orderCustomer.customerName,
+                                                                                customerTelephone: order.data
+                                                                                    .orderCustomer.customerTelephone,
+                                                                                customerReview: rid,
+                                                                              ));
+                                                                          if(result)
+                                                                            Utility.bottomProgressSuccess(title:"Submitting review",body: "Review Submitted successfully. Thank you" );
+                                                                          else
+                                                                            Utility.bottomProgressFailure(title:"Submitting review",body: "Error Encountered." );
+                                                                        }
+                                                                        else{
+                                                                          Utility.bottomProgressFailure(title:"Submitting review",body: "Error Encountered." );
+                                                                        }
+
+                                                                      },
+                                                                      child: Text(
+                                                                        'Submit',
+                                                                        style: TextStyle(color: Colors.white),
+                                                                      ),
+                                                                      color: PRIMARYCOLOR,
+                                                                    ),
+                                                                  ),
+                                                                  const Padding(
+                                                                    padding:
+                                                                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                                                    child: const Text('Your review is very important to us.'),
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          )
+                                                      );
+                                                  }
+                                                  else{
+                                                    return const SizedBox.shrink();
+                                                  }
+                                                }
+                                                else{
+                                                  return const SizedBox.shrink();
+                                                }
+                                                }),
 
                                             psHeadlessCard(
                                                 boxShadow: [
@@ -357,7 +506,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width *
+                                                            Get.width *
                                                                 0.02),
                                                         child: Row(
                                                           children: <Widget>[
@@ -377,7 +526,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width *
+                                                            Get.width *
                                                                 0.02),
                                                         child: Row(
                                                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -404,7 +553,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width *
+                                                            Get.width *
                                                                 0.02),
                                                         child: Row(
                                                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -441,7 +590,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                           ),
                                                         ),
                                                         padding: EdgeInsets.all(
-                                                            MediaQuery.of(context).size.width *
+                                                            Get.width *
                                                                 0.02),
                                                         child: Row(
                                                           children: <Widget>[
@@ -476,7 +625,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                           ),
                                                           color: PRIMARYCOLOR),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: const Align(
                                                         alignment: Alignment.centerLeft,
                                                         child: const Text(
@@ -496,7 +645,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -518,7 +667,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -540,7 +689,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -562,7 +711,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -593,7 +742,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           Expanded(
@@ -612,7 +761,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width *
+                                                          Get.width *
                                                               0.02),
                                                       child: Row(
                                                         children: <Widget>[
@@ -636,7 +785,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width *
+                                                          Get.width *
                                                               0.02),
                                                       child: Row(
                                                         children: <Widget>[
@@ -661,7 +810,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                         ),
                                                       ),
                                                       padding: EdgeInsets.all(
-                                                          MediaQuery.of(context).size.width * 0.02),
+                                                          Get.width * 0.02),
                                                       child: Row(
                                                         children: <Widget>[
                                                           const Expanded(
@@ -708,7 +857,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                                     ),
                                                                     color: PRIMARYCOLOR),
                                                                 padding: EdgeInsets.all(
-                                                                    MediaQuery.of(context).size.width * 0.02),
+                                                                    Get.width * 0.02),
                                                                 child:const Align(
                                                                   alignment: Alignment.centerLeft,
                                                                   child: const Text(
@@ -730,7 +879,7 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
                                                                         ),
                                                                       ),
                                                                       padding: EdgeInsets.all(
-                                                                          MediaQuery.of(context).size.width * 0.02),
+                                                                          Get.width * 0.02),
                                                                       child: Align(
                                                                           alignment: Alignment.center,
                                                                           child: Row(
@@ -805,6 +954,28 @@ class _CustomerErrandTrackerState extends State<CustomerErrandTracker> {
     return isDone;
   }
 
+  bool cancel(String oid,Receipt receipt,String agent) {
+    bool isDone = true;
+    OrderRepo.cancel(oid,receipt,agent).catchError((onError) {
+      isDone = false;
+    });
+
+    if (isDone) {
+      GetBar(
+        title: 'Order Cancelled',
+        messageText: Text(
+          'The request has been cancelled. '
+              ' improve our service',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 10),
+        backgroundColor: PRIMARYCOLOR,
+      ).show();
+    }
+
+    return isDone;
+  }
+
 
 /*Future<void> confirmNotifier({String fcm,}) async {
     //print('team meeting');
@@ -859,7 +1030,7 @@ class Loader extends StatelessWidget{
     return Column(children: [
       if(rider != null)
       CircleAvatar(
-        radius: MediaQuery.of(context).size.width*0.25,
+        radius: Get.width*0.25,
         backgroundColor: Colors.grey.withOpacity(0.2),
         backgroundImage: NetworkImage(rider.profile.isNotEmpty?rider.profile:PocketShoppingDefaultAvatar),
       ),

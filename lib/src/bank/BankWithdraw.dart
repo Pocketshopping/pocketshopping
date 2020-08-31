@@ -38,7 +38,7 @@ class _BankWithdrawState extends State<BankWithdraw> {
     return Scaffold(
         backgroundColor: Colors.black54.withOpacity(0.3),
         body: Container(
-            height: MediaQuery.of(context).size.height,
+            height: Get.height,
             padding: EdgeInsets.symmetric(horizontal: 15),
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -47,7 +47,7 @@ class _AgentTrackerState extends State<AgentTracker> {
     return Scaffold(
         appBar:PreferredSize(
           preferredSize: Size.fromHeight(
-              MediaQuery.of(context).size.height *
+              Get.height *
                   0.15),
           child: AppBar(
               title: Text('${widget.agent.agentName}',style: TextStyle(color: PRIMARYCOLOR),),
@@ -64,7 +64,7 @@ class _AgentTrackerState extends State<AgentTracker> {
               elevation: 0.0,
             bottom: PreferredSize(
                 preferredSize: Size.fromHeight(
-                    MediaQuery.of(context).size.height *
+                    Get.height *
                         0.5),
                 child:Column(
                   children: [

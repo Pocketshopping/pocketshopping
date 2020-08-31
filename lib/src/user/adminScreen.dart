@@ -3,9 +3,11 @@ import 'dart:convert';
 
 import 'package:ant_icons/ant_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fire;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:pocketshopping/src/user/merchant.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -27,14 +29,17 @@ import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 
+
 import 'bloc/user.dart';
 
 
 
 class AdminScreen extends StatefulWidget {
   final UserRepository _userRepository;
+  final int route;
+  final String merchant;
 
-  AdminScreen({Key key, @required UserRepository userRepository})
+  AdminScreen({Key key, @required UserRepository userRepository,this.route=0,this.merchant})
       : assert(userRepository != null),
         _userRepository = userRepository,
         super(key: key);
@@ -45,7 +50,7 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   int _selectedIndex;
-  FirebaseUser currentUser;
+  fire.User currentUser;
   final FirebaseMessaging _fcm = FirebaseMessaging();
   StreamSubscription iosSubscription;
   String userName;
@@ -55,26 +60,26 @@ class _AdminScreenState extends State<AdminScreen> {
   List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
     const BottomNavigationBarItem(
       icon: Icon(AntIcons.shop_outline),
-      title: Text('DashBoard'),
+      label: 'DashBoard',
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.search),
-      title: Text('Places'),
+      label: 'Places',
     ),
     const BottomNavigationBarItem(
-      title: Text('Favourite'),
+      label: 'Favourite',
       icon: Icon(Icons.favorite_border),
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.folder_open),
-      title: Text('History'),
+      label: 'History',
     ),
     const BottomNavigationBarItem(
       icon: ImageIcon(
           AssetImage("assets/images/blogo.png"),
           color: PRIMARYCOLOR,
         ),
-      title: Text('Pocket'),
+      label: 'Pocket',
     ),
   ];
 
@@ -92,8 +97,13 @@ class _AdminScreenState extends State<AdminScreen> {
       }
     });
 
-    Utility.stopAllService();
+    //Utility.stopAllService();
+    if(widget.route > 0)
+      SchedulerBinding.instance.addPostFrameCallback((_) async{
+        Get.dialog(MerchantScreen(user: currentUser.uid ,merchant: widget.merchant,));
+      });
     Utility.locationAccess();
+    Utility.stopAllService();
     super.initState();
   }
 
@@ -214,7 +224,8 @@ class _AdminScreenState extends State<AdminScreen> {
         child: BlocBuilder<UserBloc, UserState>(builder: (context, state) {
           if (state is UserLoaded) {
             userName = state.user.user.fname;
-            return state.user.merchant != null ?Scaffold(
+            return state.user.merchant != null ?
+            Scaffold(
               drawer: DrawerScreen(
                 userRepository: widget._userRepository,
                 user: state.user.user,
@@ -271,7 +282,7 @@ class _AdminScreenState extends State<AdminScreen> {
             return Scaffold(
               body:  Center(
                   child: JumpingDotsProgressIndicator(
-                fontSize: MediaQuery.of(context).size.height * 0.12,
+                fontSize: Get.height * 0.12,
                 color: PRIMARYCOLOR,
               )),
             );
@@ -374,8 +385,8 @@ class _ResolutionState extends State<Resolution> {
             child: Container(
               alignment: Alignment.center,
               color: Colors.white,
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.height * 0.7,
+              width: Get.width * 0.9,
+              height: Get.height * 0.7,
               child: Column(
                 children: [
                   Expanded(
@@ -547,7 +558,7 @@ class _ResolutionState extends State<Resolution> {
                   Expanded(
                     flex: 0,
                     child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
+                      width: Get.width * 0.9,
                       color: PRIMARYCOLOR,
                       child: FlatButton(
                         color: PRIMARYCOLOR,

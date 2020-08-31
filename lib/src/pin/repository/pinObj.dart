@@ -58,7 +58,7 @@ class Pin {
 
   static Pin fromSnap(DocumentSnapshot snap) {
     return Pin(
-        pin: (snap.data['pin']));
+        pin: (snap.data()['pin']));
 
   }
 

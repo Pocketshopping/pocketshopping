@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:dash_chat/dash_chat.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -47,7 +46,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
   FocusNode _telephone2Focus = FocusNode();
 
 
-  final format = DateFormat("HH:mm");
+  //final format = DateFormat("HH:mm");
   Session currentUser;
   bool _nameEnabler;
   bool _addressEnabler;
@@ -91,7 +90,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
 
   @override
   Widget build(BuildContext context) {
-    double marginLR = MediaQuery.of(context).size.width;
+    double marginLR = Get.width;
     return WillPopScope(
         onWillPop: () async {
           Get.back(result: 'Refresh');
@@ -101,7 +100,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
         child: Scaffold(
           appBar: PreferredSize(
               preferredSize: Size.fromHeight(
-                  MediaQuery.of(context).size.height *
+                  Get.height *
                       0.08),
               child: AppBar(
                 title: Text('Business Settings',style: TextStyle(color: PRIMARYCOLOR),),
@@ -153,7 +152,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -177,10 +176,13 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   child: _nameEnabler?FlatButton(
                                                     onPressed: ()async{
                                                       if(_nameController.text.isNotEmpty){
+                                                        List<String> temp = Utility.makeIndexList(_nameController.text);
+                                                        temp.addAll(Utility.makeIndexList(widget.session.merchant.bCategory));
+                                                        if(widget.session.merchant.bDelivery == 'Yes') {temp.addAll(Utility.makeIndexList('Logistic'));}
                                                         await MerchantRepo.update(widget.session.merchant.mID,
                                                             {
-                                                              'businessName':_nameController.text.headerCase,
-                                                              'index': Utility.makeIndexList(_nameController.text),
+                                                              'businessName':_nameController.text.sentenceCase,
+                                                              'index': temp,
                                                             });
                                                         setState(() {
                                                           _nameEnabler=false;
@@ -217,7 +219,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -280,7 +282,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -344,12 +346,12 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child:
                                           Row(
                                             children: [
                                               Expanded(
-                                                child: DateTimeField(
+                                                child: /*DateTimeField(
                                                   controller: _openController,
                                                   decoration: InputDecoration(
                                                     labelText: "Opening Time",
@@ -366,6 +368,29 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                         TimeOfDay.fromDateTime(currentValue ?? DateTime.now()));
                                                     return DateTimeField.convert(time);
                                                   },
+                                                )*/
+                                                Column(
+
+                                                  children: [
+                                                    Align(
+                                                      alignment: Alignment.centerLeft,
+                                                      child: Padding(
+                                                        padding: EdgeInsets.symmetric(horizontal: 5,vertical: 10),
+                                                        child: Text('Opening Time'),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      height: 100,
+                                                      child:CupertinoDatePicker(
+                                                        mode: CupertinoDatePickerMode.time,
+                                                        use24hFormat: true,
+                                                        initialDateTime: DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,
+                                                            int.tryParse(widget.session.merchant.bOpen.split(':')[0]), int.tryParse(widget.session.merchant.bOpen.split(':')[1])),
+                                                        onDateTimeChanged: (DateTime newDateTime) {
+                                                          _openController.text = '${newDateTime.hour}:${newDateTime.minute}';
+                                                        },
+                                                      ),),
+                                                  ],
                                                 )
                                               ),
                                               !working?
@@ -412,12 +437,36 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child:
                                           Row(
                                             children: [
                                               Expanded(
-                                                  child: DateTimeField(
+                                                  child:Column(
+                                                    children: [
+                                                      Align(
+                                                        alignment: Alignment.centerLeft,
+                                                        child: Padding(
+                                                          padding: EdgeInsets.symmetric(horizontal: 5,vertical: 10),
+                                                          child: Text('Closing Time'),
+                                                        ),
+                                                      ),
+
+                                                      Container(
+                                                        height: 100,
+
+                                                        child:CupertinoDatePicker(
+                                                          mode: CupertinoDatePickerMode.time,
+                                                          initialDateTime: DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day,
+                                                              int.tryParse(widget.session.merchant.bClose.split(':')[0]), int.tryParse(widget.session.merchant.bClose.split(':')[1])),
+                                                          use24hFormat: true,
+                                                          onDateTimeChanged: (DateTime newDateTime) {
+                                                            _closeController.text = '${newDateTime.hour}:${newDateTime.minute}';
+                                                          },
+                                                        ),),
+                                                    ],
+                                                  )
+                                            /*DateTimeField(
                                                     controller: _closeController,
                                                     decoration: InputDecoration(
                                                         labelText: "Closing Time",
@@ -435,7 +484,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                           TimeOfDay.fromDateTime(currentValue ?? DateTime.now()));
                                                       return DateTimeField.convert(time);
                                                     },
-                                                  )
+                                                  )*/
                                               ),
                                               !working?
                                               Expanded(
@@ -480,7 +529,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -543,7 +592,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -606,7 +655,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width * 0.02),
+                                              Get.width * 0.02),
                                           child: Row(
                                             children: [
                                               Expanded(
@@ -670,7 +719,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                             ),
                                           ),
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child:
                                           Column(
@@ -718,8 +767,8 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                   },
                                                   isSelected: isSelected,
                                                   constraints: BoxConstraints(
-                                                      maxWidth: MediaQuery.of(context).size.width,
-                                                      minWidth: MediaQuery.of(context).size.width*0.25
+                                                      maxWidth: Get.width,
+                                                      minWidth: Get.width*0.25
                                                   ),
                                                 ),
                                                 )
@@ -737,7 +786,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                           ),
                                         ),
                                         padding: EdgeInsets.all(
-                                            MediaQuery.of(context).size.width * 0.02),
+                                            Get.width * 0.02),
                                         child: Column(
                                           children: <Widget>[
                                             Text(
@@ -884,7 +933,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                           widget.session.merchant.bActive?
                                       Container(
                                           padding: EdgeInsets.all(
-                                              MediaQuery.of(context).size.width *
+                                              Get.width *
                                                   0.02),
                                           child: Center(
                                               child: FlatButton.icon(
@@ -926,7 +975,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                           )):
                                           Container(
                                               padding: EdgeInsets.all(
-                                                  MediaQuery.of(context).size.width *
+                                                  Get.width *
                                                       0.02),
                                               child: Center(
                                                   child: FlatButton.icon(
