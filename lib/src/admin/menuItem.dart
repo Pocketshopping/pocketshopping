@@ -46,7 +46,7 @@ class MenuItem extends StatelessWidget {
           if(!isLocked){
             isMultiMenu
                 ? Get.bottomSheet(
-                builder: (context) => BottomSheetTemplate(
+                BottomSheetTemplate(
                   height: Get.height * 0.4,
                   child: Container(
                     child: content != null ? content : Container(),

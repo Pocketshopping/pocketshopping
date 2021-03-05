@@ -9,7 +9,7 @@ import 'package:pocketshopping/src/category/repository/categoryRepo.dart';
 import 'package:pocketshopping/src/geofence/package_geofence.dart';
 
 class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
-  Geolocator geolocator = Geolocator();
+
   StreamSubscription _positionSubscription;
   StreamSubscription _merchantSubscription;
   final Geoflutterfire geo = Geoflutterfire();
@@ -155,26 +155,26 @@ class GeoFenceBloc extends Bloc<GeoFenceEvent, GeoFenceState> {
         nearByMerchants: state.nearByMerchants,
         currentPosition: state.currentPosition);
     try {
-      _positionSubscription?.cancel();
-
-
+      //_positionSubscription?.cancel();
       if(state.currentPosition == null){
-        geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation).then((value)
+        getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation,).then((value)
             {
-              if(category != 'All')
-                add(FetchNearByMerchant(position: value, category: category));
-              else
-                add(FetchAllNearByMerchant(position: value));
+              try{
+                if(category != 'All')
+                  add(FetchNearByMerchant(position: value, category: category));
+                else
+                  add(FetchAllNearByMerchant(position: value));
+              }
+              catch(e){}
             }
 
         );
       }
 
       try{
-        _positionSubscription = geolocator
-            .getPositionStream(LocationOptions(
-            accuracy: LocationAccuracy.bestForNavigation,
-            timeInterval: 60000))
+        _positionSubscription = getPositionStream(
+            desiredAccuracy: LocationAccuracy.bestForNavigation,
+            timeInterval: 60000,)
             .listen((position) {
           if(category != 'All')
             add(FetchNearByMerchant(position: position, category: category));

@@ -40,52 +40,71 @@ class _ATMCardState extends State<ATMCard> {
     // TODO: implement build
     return Container(
         height: Get.height,
-        child: Column(children: <Widget>[
-          //
-          Container(
-              height: Get.height * 0.3,
-              child: Column(
-                children: <Widget>[
-                  //SizedBox(height: Get.height*0.1,),
-                  CreditCardWidget(
-                    cardBgColor: PRIMARYCOLOR,
-                    cardNumber: cardNumber,
-                    expiryDate: expiryDate,
-                    cardHolderName: cardHolderName,
-                    cvvCode: cvvCode,
-                    showBackView: isCvvFocused,
-                  )
-                ],
-              )),
-          Container(
-            height: Get.height * 0.7,
-            child: ListView(
-              children: <Widget>[
-                CreditCardForm(
-                  themeColor: PRIMARYCOLOR,
-                  onCreditCardModelChange: onCreditCardModelChange,
-                  formAction: (){
-                    widget.onPressed({'card':cardNumber.replaceAll(' ', ""),'expiry':expiryDate,'cvv':cvvCode,'name':cardHolderName});
-                  },
-                  fieldListner: () {
-                    setState(() {
-                      formHeight = 0.5;
-                    });
-                  },
+        child: Stack(
+          children: [
+            Column(children: <Widget>[
+              //
+              Container(
+                  height: Get.height * 0.3,
+                  child: Column(
+                    children: <Widget>[
+                      //SizedBox(height: Get.height*0.1,),
+                      CreditCardWidget(
+                        cardBgColor: PRIMARYCOLOR,
+                        cardNumber: cardNumber,
+                        expiryDate: expiryDate,
+                        cardHolderName: cardHolderName,
+                        cvvCode: cvvCode,
+                        showBackView: isCvvFocused,
+                      )
+                    ],
+                  )),
+              Container(
+                height: Get.height * 0.7,
+                child: ListView(
+                  children: <Widget>[
+                    CreditCardForm(
+                      themeColor: PRIMARYCOLOR,
+                      onCreditCardModelChange: onCreditCardModelChange,
+                      formAction: (){
+                        widget.onPressed({'card':cardNumber.replaceAll(' ', ""),'expiry':expiryDate,'cvv':cvvCode,'name':cardHolderName});
+                      },
+                      fieldListner: () {
+                        setState(() {
+                          formHeight = 0.5;
+                        });
+                      },
+                    ),
+                    SizedBox(
+                      height: Get.height * 0.02,
+                    ),
+                    Image.asset('assets/images/paystack.png',
+                        width: Get.width * 0.6,
+                        height: Get.height * 0.1),
+                    SizedBox(
+                      height: Get.height * formHeight,
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: Get.height * 0.02,
+              ),
+            ]),
+            Positioned(
+              top: 3,
+              left: 5,
+              child: Center(
+
+                child: CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.white,
+                  child: IconButton(
+                    onPressed: (){Get.back();},
+                    icon: Icon(Icons.arrow_back_ios,color: PRIMARYCOLOR,),
+                  ),
                 ),
-                Image.asset('assets/images/paystack.png',
-                    width: Get.width * 0.6,
-                    height: Get.height * 0.1),
-                SizedBox(
-                  height: Get.height * formHeight,
-                ),
-              ],
+              )
             ),
-          ),
-        ]));
+          ],
+        ));
   }
 
   void onCreditCardModelChange(CreditCardModel creditCardModel) {

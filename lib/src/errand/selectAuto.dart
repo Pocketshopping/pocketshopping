@@ -31,6 +31,7 @@ class SelectAuto extends StatefulWidget {
   final int cCount;
   final int vCount;
   final String logName;
+  final bool canCheck;
   SelectAuto({this.user,
     this.position,
     this.source,
@@ -42,7 +43,8 @@ class SelectAuto extends StatefulWidget {
     this.bCount =0,
     this.vCount = 0,
     this.cCount =0,
-    this.logName
+    this.logName,
+    this.canCheck = false,
   });
 
   @override
@@ -200,6 +202,9 @@ class _SelectAutoState extends State<SelectAuto> {
                                                   sourceAddress: widget.sourceAddress,
                                                   destinationAddress: widget.destinationAddress,
                                                   logistic:widget.logistic,
+                                                  canCheck: widget.canCheck,
+                                                  logisticName: widget.logName,
+                                                  agents: (snapshot.where((element) => element.agentAutomobile == 'MotorBike')).toList(growable: false)??[],
 
                                                 ));
                                               }
@@ -210,7 +215,17 @@ class _SelectAutoState extends State<SelectAuto> {
                                             ),
 
                                             title: Text('MotorBike',style: TextStyle(fontSize: 18),),
-                                            subtitle: Text('Select this if you want a motorBike.'),
+                                            subtitle: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text('Select this if you want a motorBike.'),
+                                                snapshot.isEmpty?
+                                                Text('${widget.logName}')
+                                                :
+                                                const SizedBox.shrink()
+                                              ],
+                                            ),
                                             trailing: amount[0] != 0?
                                             Text('$CURRENCY${amount[0]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),):
                                             CircularProgressIndicator()
@@ -236,6 +251,9 @@ class _SelectAutoState extends State<SelectAuto> {
                                                   sourceAddress: widget.sourceAddress,
                                                   destinationAddress: widget.destinationAddress,
                                                   logistic:widget.logistic,
+                                                  canCheck: widget.canCheck,
+                                                  logisticName: widget.logName,
+                                                  agents: (snapshot.where((element) => element.agentAutomobile == 'Car')).toList(growable: false)??[],
                                                 ));
                                             },
                                             leading: CircleAvatar(
@@ -243,7 +261,17 @@ class _SelectAutoState extends State<SelectAuto> {
                                               backgroundColor: Colors.white,
                                             ),
                                             title: Text('Car',style: TextStyle(fontSize: 18),),
-                                            subtitle: Text('Select this if you want a Car.'),
+                                            subtitle: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text('Select this if you want a Car.'),
+                                                snapshot.isEmpty?
+                                                Text('${widget.logName}')
+                                                    :
+                                                const SizedBox.shrink()
+                                              ],
+                                            ),
                                               trailing: amount[1] != 0?
                                               Text('$CURRENCY${amount[1]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),):
                                               CircularProgressIndicator()
@@ -269,6 +297,9 @@ class _SelectAutoState extends State<SelectAuto> {
                                                   sourceAddress: widget.sourceAddress,
                                                   destinationAddress: widget.destinationAddress,
                                                   logistic:widget.logistic,
+                                                  canCheck: widget.canCheck,
+                                                  logisticName: widget.logName,
+                                                  agents: (snapshot.where((element) => element.agentAutomobile == 'Van')).toList(growable: false)??[],
                                                 ));
                                             },
                                             leading: CircleAvatar(
@@ -276,7 +307,17 @@ class _SelectAutoState extends State<SelectAuto> {
                                               backgroundColor: Colors.white,
                                             ),
                                             title: Text('Van/Truck',style: TextStyle(fontSize: 18),),
-                                            subtitle: Text('Select this if you want a Van/Truck.'),
+                                            subtitle: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text('Select this if you want a Van/Truck.'),
+                                                snapshot.isEmpty?
+                                                Text('${widget.logName}')
+                                                    :
+                                                const SizedBox.shrink()
+                                              ],
+                                            ),
                                               trailing: amount[2] != 0?
                                               Text('$CURRENCY${amount[2]}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),):
                                               CircularProgressIndicator()

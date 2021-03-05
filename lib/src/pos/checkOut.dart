@@ -87,7 +87,7 @@ class _PosCheckOutState extends State<PosCheckOut> {
                   }
                   else {
                     ack(device: payload['fcm']);
-                    Position position = await Geolocator().getCurrentPosition(
+                    Position position = await getCurrentPosition(
                         desiredAccuracy: LocationAccuracy.best);
                     String currentAddress = await Utility.address(position);
                     String collectionId = await Utility.initializePosPay(
@@ -744,8 +744,8 @@ class _PosCheckOutState extends State<PosCheckOut> {
                 onTap: () async {
                   if(mounted)
                   setState(() {stage=3;});
-                  Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-                  String currentAddress = await Utility.address(position);
+                  Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+                  String currentAddress = (await Utility.address(position))??"Unknown";
                   String collectionId= await Utility.initializePosPay(
                     from: widget.session.merchant.bWallet,
                     to: widget.session.merchant.bWallet,

@@ -35,7 +35,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   Stream<UserState> _mapLoadUserToState(LoadUser event) async* {
     _userSubscription?.cancel();
     var user = await _userRepository.getOne(uid: event.uid);
-    add(UserUpdated(user));
+    try {
+      add(UserUpdated(user));
+    } catch (_) {}
   }
 
   Stream<UserState> _mapAddUserToState(AddUser event) async* {

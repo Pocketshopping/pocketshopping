@@ -175,7 +175,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                   border: InputBorder.none),
                               keyboardType: TextInputType.text,
                               autocorrect: false,
-                              autovalidate: true,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                               validator: (_) {
                                 return !state.isNameValid
                                     ? 'Invalid Name'
@@ -201,7 +201,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                   hintText: 'Email', border: InputBorder.none),
                               keyboardType: TextInputType.emailAddress,
                               autocorrect: false,
-                              autovalidate: true,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                               validator: (_) {
                                 return state.isNewUser
                                     ? !state.isEmailValid
@@ -248,7 +248,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.phone,
                                     autocorrect: false,
-                                    autovalidate: true,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                     validator: (_) {
                                       return !state.isTelephoneValid
                                           ? 'Invalid Telephone'
@@ -286,7 +286,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                     border: InputBorder.none),
                                 obscureText: !passwordEye,
                                 autocorrect: false,
-                                autovalidate: true,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
                                 validator: (_) {
                                   return !state.isPasswordValid
                                       ? 'Weak Password'
@@ -324,7 +324,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                           border: InputBorder.none),
                                       obscureText: !cpasswordEye,
                                       autocorrect: false,
-                                      autovalidate: true,
+                                      autovalidateMode: AutovalidateMode.onUserInteraction,
                                       validator: (_) {
                                         return !state.isConfirmPasswordValid
                                             ? 'Confirm Password not thesame with password'
@@ -459,6 +459,7 @@ class _RegisterFormState extends State<RegisterForm> {
     _passwordEye.value = false;
     _registerBloc.add(
       Submitted(
+        cPassword: _confirmPasswordController.text,
         email: _emailController.text,
         password: _passwordController.text,
         name: _nameController.text,

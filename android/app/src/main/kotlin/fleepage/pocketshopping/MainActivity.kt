@@ -1,24 +1,27 @@
 package fleepage.pocketshopping
 
-import android.os.Bundle
-import android.os.PersistableBundle
+//import android.os.Bundle
+//import android.os.PersistableBundle
+//import androidx.core.content.ContextCompat.getSystemService
+//import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+//import androidx.core.content.ContextCompat.getSystemService
+//import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+//import android.util.Log
+//import io.flutter.plugin.common.MethodCall
+//import androidx.core.content.ContextCompat.getSystemService
+//import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+//import android.net.Uri
+
 import co.paystack.android.PaystackSdk
 import io.flutter.embedding.android.FlutterActivity
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import co.paystack.android.model.Card
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import android.net.Uri
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.MethodCall
+import co.paystack.android.Transaction
 import io.flutter.plugin.common.MethodChannel
 import co.paystack.android.Paystack
 import co.paystack.android.model.Charge
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import android.util.Log
-import co.paystack.android.Transaction
+
+
 
 
 
@@ -27,12 +30,10 @@ class MainActivity: FlutterActivity() {
     private val CHANNEL = "fleepage.pocketshopping"
 
 
-    fun  DisplayHello():String{
-        return "hello dude"
-    }
+    
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        PaystackSdk.initialize(getApplicationContext())
+        PaystackSdk.initialize(applicationContext)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
                 .setMethodCallHandler { call, result ->
                     //if (call.method=="CardVerify"){ }
@@ -52,8 +53,8 @@ class MainActivity: FlutterActivity() {
                                 // This is called only after transaction is deemed successful.
                                 // Retrieve the transaction, and send its reference to your server
                                 // for verification.
-                                //result.success(transaction.reference)
-                                //charge.reference = transaction.reference
+                                // result.success(transaction.reference)
+                                // charge.reference = transaction.reference
                                 val response:MutableMap<String,String> = mutableMapOf()
                                 response["error"]=""
                                 response["reference"]=transaction.reference
@@ -66,6 +67,10 @@ class MainActivity: FlutterActivity() {
                                 // error occurs with OTP, you should still verify on server.
                                 //result.success(transaction.reference)
                                 //print("fail")
+                                /*val response:MutableMap<String,String> = mutableMapOf()
+                                response["error"]=""
+                                response["reference"]=transaction.reference
+                                result.success(response)*/
                             }
 
                             override fun onError(error: Throwable, transaction: Transaction) {

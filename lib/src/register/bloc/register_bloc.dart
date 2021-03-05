@@ -70,7 +70,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       yield* _mapCountryCodeChangedToState(event.country);
     } else if (event is Submitted) {
       yield* _mapFormSubmittedToState(event.email, event.password, event.name,
-          event.telephone, event.referral);
+          event.telephone, event.referral, event.cPassword);
     }
   }
 
@@ -83,27 +83,13 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   }
 
   Stream<RegisterState> _mapEmailChangedToState(String email) async* {
-    bool isEmailValid = Validators.isValidEmail(email);
-    if (isEmailValid) {
-      bool isNew = await UserRepo().isNew(email);
-      yield state.update(
-        isEmailValid: Validators.isValidEmail(email),
-        isNewUser: isNew,
-      );
-    } else {
-      yield state.update(
-        isEmailValid: Validators.isValidEmail(email),
-        isNewUser: true,
-      );
-    }
+    yield state.update(isEmailValid: Validators.isValidEmail(email),isNewUser: true);
   }
 
-  Stream<RegisterState> _mapConfirmPasswordChangedToState(
-      String password) async* {
-    yield state.update(
-      isConfirmPasswordValid:
-          Validators.isValidConfirmPassword(password, state.password),
-    );
+  Stream<RegisterState> _mapConfirmPasswordChangedToState(String password) async* {
+    yield state.update(isConfirmPasswordValid: true,);
+    print(password);
+    //Validators.isValidConfirmPassword(password, state.password)
   }
 
   Stream<RegisterState> _mapPasswordChangedToState(String password) async* {
@@ -132,34 +118,48 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     String name,
     String telephone,
     String referral,
+    String cPassword
   ) async* {
     yield RegisterState.loading(code: state.code);
     try {
-      var wID = await makeWallet(name, email, telephone, referral,password);
-      if (wID.isNotEmpty) {
-        var uid = await _userRepository.signUp(role: 'user', email: email, password: password,);
-        if(uid != null){
-          User user = User(
-            uid,
-            fname: name,
-            email: email,
-            telephone: state.code + (telephone.substring(1)),
-            bid: FirebaseFirestore.instance.doc('merchants/null'),
-            behaviour: FirebaseFirestore.instance.doc('userBehaviour/null'),
-            profile: PocketShoppingDefaultAvatar,
-            role: "user",
-            defaultAddress: '',
-            country: 'NG',//await Utility.getCountryCode(),
-            walletId: wID,
-          );
-          await UserRepo().save(user);
-          SharedPreferences prefs= await SharedPreferences.getInstance();
-          if(!prefs.containsKey('uid'))prefs.setString('uid', 'loggedInBefore');
-          yield RegisterState.success();
+      bool isComfirmedPassword = Validators.isValidConfirmPassword(cPassword, password);
+      if(isComfirmedPassword){
+        bool isNew = await UserRepo().isNew(email);
+        if(isNew){
+          var wID = await makeWallet(name, email, telephone, referral,password);
+          if (wID.isNotEmpty) {
+            var uid = await _userRepository.signUp(role: 'user', email: email, password: password,);
+            if(uid != null){
+              User user = User(
+                uid,
+                fname: name,
+                email: email,
+                telephone: state.code + (telephone.substring(1)),
+                bid: FirebaseFirestore.instance.doc('merchants/null'),
+                behaviour: FirebaseFirestore.instance.doc('userBehaviour/null'),
+                profile: PocketShoppingDefaultAvatar,
+                role: "user",
+                defaultAddress: '',
+                country: 'NG',//await Utility.getCountryCode(),
+                walletId: wID,
+              );
+              await UserRepo().save(user);
+              SharedPreferences prefs= await SharedPreferences.getInstance();
+              if(!prefs.containsKey('uid'))prefs.setString('uid', 'loggedInBefore');
+              yield RegisterState.success();
+            }
+            else RegisterState.failure(code: state.code, password: password);
+          }
+          else {yield RegisterState.failure(code: state.code, password: password);}
         }
-        else RegisterState.failure(code: state.code);}
-      else {yield RegisterState.failure(code: state.code);}
-    } catch (_) {yield RegisterState.failure(code: state.code);}
+        else{
+          yield RegisterState.failure(code: state.code, isNew: isNew, password: password);
+        }
+      }
+      else{
+        yield RegisterState.failure(code: state.code, isComfirmed: isComfirmedPassword, password: password);
+      }
+    } catch (_) {yield RegisterState.failure(code: state.code, password: password);}
   }
 
   Future<String> makeWallet(String name, String email, String telephone, String refferal,String password) async {

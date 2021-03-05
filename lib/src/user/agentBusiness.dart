@@ -169,7 +169,7 @@ class _AgentBusinessState extends State<AgentBusiness> {
                 return ListTile(
                   onTap: (){
                     if(!Get.isBottomSheetOpen)
-                    Get.bottomSheet(builder: (context)=>
+                    Get.bottomSheet(
                         admin.BottomSheetTemplate(
                           height: Get.height * 0.25,
                           child: Container(

@@ -131,8 +131,7 @@ class _PocketMenuState extends State<PocketMenu> {
                       Expanded(
                         child:GestureDetector(
                           onTap: (){
-                            Get.bottomSheet(builder: (context){
-                              return Container(
+                            Get.bottomSheet(Container(
                                 color: Colors.white,
                                 height: Get.height*0.3,
                                 child: Column(
@@ -301,8 +300,7 @@ class _PocketMenuState extends State<PocketMenu> {
                                     ),
                                   ],
                                 ),
-                              );
-                            }).then((value) => null);
+                              )).then((value) => null);
                           },
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),

@@ -71,6 +71,7 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
   StreamSubscription orders;
   StreamSubscription bucket;
   final _bucketCount = ValueNotifier<int>(0);
+  final _stockManager = ValueNotifier<List<Stock>>([]);
 
 
   @override
@@ -88,6 +89,14 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
         _wallet = value;
         setState(() {});
       }
+    });
+
+    StockRepo.getOneStream(currentUser.merchant.mID).listen((event) {
+
+      try{
+        _stockManager.value = event;
+      }
+      catch(_){}
     });
 
     orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
@@ -771,11 +780,11 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                     ),
                     if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.products)
-                    StreamBuilder(
-                      stream: StockRepo.getOneStream(currentUser.merchant.mID),
-                      builder: (context,AsyncSnapshot<List<Stock>>snapshot){
-                        if(snapshot.hasData){StockBloc.instance.stocks(snapshot.data);}
-                        return MenuItem(
+                      ValueListenableBuilder(
+                        valueListenable: _stockManager,
+                        builder: (_,List<Stock>snapshot,__){
+                          if(snapshot.isNotEmpty){StockBloc.instance.stocks(snapshot);}
+                          return MenuItem(
                             gridHeight,
                             Icon(Icons.calendar_today,
                                 size: Get.width * 0.1,
@@ -784,13 +793,13 @@ class _StaffDashBoardScreenState extends State<StaffDashBoardScreen> {
                             border: PRIMARYCOLOR,
                             isBadged: true,
                             isMultiMenu: false,
-                            openCount: snapshot.hasData?snapshot.data.length:0,
+                            openCount: snapshot.isNotEmpty?snapshot.length:0,
                             content: StockManager(user: currentUser,),
                             isLocked: isLocked,
-                          refresh: reloadMerchant,
-                        );
-                      },
-                    ),
+                            refresh: reloadMerchant,
+                          );
+                        },
+                      ),
                     if(currentUser.merchant.bCategory != 'Logistic')
                     if(currentUser.staff.staffPermissions.managers || currentUser.staff.staffPermissions.products)
                     MenuItem(

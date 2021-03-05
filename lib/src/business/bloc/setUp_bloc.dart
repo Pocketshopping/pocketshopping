@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pocketshopping/src/business/business.dart';
@@ -10,7 +9,6 @@ import 'package:pocketshopping/src/ui/constant/constants.dart';
 import 'package:pocketshopping/src/validators.dart';
 
 class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
-  Geolocator geolocator = Geolocator();
   StreamSubscription _positionSubscription;
 
   @override
@@ -83,9 +81,9 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
     yield state.update(isCapturing: "YES");
     try {
       _positionSubscription?.cancel();
-      _positionSubscription = geolocator
-          .getPositionStream(LocationOptions(
-              accuracy: LocationAccuracy.bestForNavigation, timeInterval: 1000))
+      _positionSubscription =
+          getPositionStream(
+              desiredAccuracy: LocationAccuracy.bestForNavigation, timeInterval: 1000)
           .listen((position) {
         //print(position);
         add(CaptureUpdated(position));
@@ -149,7 +147,7 @@ class BusinessBloc extends Bloc<BusinessEvent, BusinessState> {
         bPhoto: PocketShoppingDefaultCover,
         bStatus: 1,
         bSocial: {},
-        bCountry: await Devicelocale.currentLocale,
+        bCountry: "NG",
         bParent: 'null',
         isBranch: false,
         uid: user.uid,

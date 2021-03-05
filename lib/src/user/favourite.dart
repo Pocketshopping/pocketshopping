@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:pocketshopping/src/ui/constant/constants.dart';
@@ -7,7 +6,6 @@ import 'package:pocketshopping/src/ui/shared/bonusDrawer.dart';
 import 'package:pocketshopping/src/ui/shared/help.dart';
 import 'package:pocketshopping/src/user/fav/faq.dart';
 import 'package:pocketshopping/src/user/fav/fav.dart';
-import 'package:pocketshopping/src/user/merchant.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 
 class Favourite extends StatefulWidget {

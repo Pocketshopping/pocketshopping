@@ -115,16 +115,16 @@ class _OrderUIState extends State<OrderUI> {
   final isLogged = ValueNotifier<bool>(false);
   String randomKey;
 
-
   List<Merchant> logisticList;
   Favourite favourite;
+  List<Merchant> subList;
 
   @override
   void initState() {
-    randomKey =randomAlphaNumeric(10);
+    randomKey = randomAlphaNumeric(10);
     agentDevice = "";
     payerror = "";
-    emptyAgent  = false;
+    emptyAgent = false;
     type = 'MotorBike';
     dCut = 0;
     dETA = 0.0;
@@ -143,17 +143,33 @@ class _OrderUIState extends State<OrderUI> {
     mode = '';
     paydone = false;
     position = widget.initPosition;
+    userChange = false;
     //Utility.getState(position).then((value) => print(value));
     location = new loc.Location();
-    location.changeSettings(accuracy: loc.LocationAccuracy.high, interval: 60000);
-    geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) async {
-    position = Position(latitude: cLoc.latitude, longitude: cLoc.longitude, altitude: cLoc.altitude, accuracy: cLoc.accuracy);
-    dist = await Geolocator().distanceBetween(cLoc.latitude, cLoc.longitude, widget.merchant.bGeoPoint['geopoint'].latitude, widget.merchant.bGeoPoint['geopoint'].longitude);
-    if (mounted) setState(() {});
-    await address(Position(latitude: cLoc.latitude, longitude: cLoc.longitude, altitude: cLoc.altitude, accuracy: cLoc.accuracy));
+    location.changeSettings(
+        accuracy: loc.LocationAccuracy.high, interval: 120000);
+    geoStream =
+        location.onLocationChanged.listen((loc.LocationData cLoc) async {
+      position = Position(
+          latitude: cLoc.latitude,
+          longitude: cLoc.longitude,
+          altitude: cLoc.altitude,
+          accuracy: cLoc.accuracy);
+      dist = distanceBetween(
+          cLoc.latitude,
+          cLoc.longitude,
+          widget.merchant.bGeoPoint['geopoint'].latitude,
+          widget.merchant.bGeoPoint['geopoint'].longitude);
+
+      await address(Position(
+          latitude: cLoc.latitude,
+          longitude: cLoc.longitude,
+          altitude: cLoc.altitude,
+          accuracy: cLoc.accuracy));
+      if (mounted) setState(() {});
     });
-    userChange = false;
-    WalletRepo.getWallet(widget.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
+    WalletRepo.getWallet(widget.user.walletId)
+        .then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
     _walletStream.listen((wallet) {
       if (mounted) {
@@ -162,29 +178,38 @@ class _OrderUIState extends State<OrderUI> {
       }
     });
     address(widget.initPosition).then((value) => null);
-    if(!widget.merchant.adminUploaded) ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
+    if (!widget.merchant.adminUploaded)
+      ChannelRepo.get(widget.merchant.mID).then((value) => channel = value);
+    FenceRepo.nearByLogistic(
+            Position(
+                latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
+            null,
+            onlyLogistic: false)
+        .then((value){
+          logisticList = value;
+          subList = logisticList.where((element) => (element.vanCount > 0 || element.bikeCount>0 || element.carCount>0)&&(element.bStatus == 1 &&
+              Utility.isOperational(
+                  element.bOpen,
+                  element.bClose))).toList(growable: false);
+        });
+    FavRepo.getFavourites(widget.user.uid, 'count', category: 'logistic')
+        .then((value) => favourite = value);
 
-    FenceRepo.nearByLogistic(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,longitude: widget.merchant.bGeoPoint['geopoint'].longitude ), null,onlyLogistic: false).then((value) => logisticList = value);
-    FavRepo.getFavourites(widget.user.uid, 'count',category: 'logistic').then((value) => favourite = value);
     super.initState();
   }
 
   Future<void> address(Position position) async {
-    try{
-      final coordinates = geocode.Coordinates(position.latitude, position.longitude);
-      var address = await geocode.Geocoder.local.findAddressesFromCoordinates(coordinates);
-      if (mounted)
-        setState(() {
-          List<String> temp = address.first.addressLine.split(',');
-          temp.removeLast();
-          deliveryAddress = temp.reduce((value, element) => value + ',' + element);
-          //if (deliveryAddress != _address.text && !userChange)
-          //homeDelivery = false;
-        });
-    }catch(_){
-      setState(() {
-        deliveryAddress = '';
-      });
+    try {
+      final coordinates =
+          geocode.Coordinates(position.latitude, position.longitude);
+      var address = await geocode.Geocoder.local
+          .findAddressesFromCoordinates(coordinates);
+      List<String> temp = address.first.addressLine.split(',');
+      temp.removeLast();
+      deliveryAddress = temp.reduce((value, element) => value + ',' + element);
+    } catch (_) {
+      deliveryAddress = '';
     }
   }
 
@@ -195,33 +220,25 @@ class _OrderUIState extends State<OrderUI> {
       child: Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.transparent,
-          body:Container(
-          height: Get.height,
-        width: Get.width,
-        color: Colors.transparent,
-        alignment: Alignment.bottomCenter,
-        child: ClipRRect(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20)),
-            child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                ),
-                height: Get.height * screenHeight,
-                width: Get.width,
-                //
-                child: Column(
-                  children: [
-                    Expanded(child: stages())
-                  ],
-                )
-        )
-        )
-
-    )
-
-      ),
+          body: Container(
+              height: Get.height,
+              width: Get.width,
+              color: Colors.transparent,
+              alignment: Alignment.bottomCenter,
+              child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20)),
+                  child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      height: Get.height * screenHeight,
+                      width: Get.width,
+                      //
+                      child: Column(
+                        children: [Expanded(child: stages())],
+                      ))))),
     );
   }
 
@@ -230,44 +247,59 @@ class _OrderUIState extends State<OrderUI> {
       scrollable = false;
       screenHeight = 1;
     });
-    return ATMCard(
-      onPressed:(Map<String,dynamic> details) {
-        setState(() {
-          stage = "PAY";
-        });
-        processPay('CARD',details);
-      }
-    );
+    return ATMCard(onPressed: (Map<String, dynamic> details) {
+      setState(() {
+        stage = "PAY";
+      });
+      processPay('CARD', details);
+    });
   }
 
   int deliveryCut(double distance) {
-   try{
-     CloudFunctions.instance
-         .getHttpsCallable(
-       functionName: "DeliveryCut",
-     ).call({'distance': distance}).then((value) => mounted ? setState(() {dCut = (value.data +((order.orderItem.fold(0, (previousValue, element) => previousValue + element.count)as int )*50) );}) : null);
-     return 1;
-   }
-   catch(_){
-     return 0;
-   }
+    try {
+      CloudFunctions.instance
+          .getHttpsCallable(
+        functionName: "DeliveryCut",
+      )
+          .call({'distance': distance}).then((value) => mounted
+              ? setState(() {
+                  dCut = (value.data +
+                      ((order.orderItem.fold(
+                              0,
+                              (previousValue, element) =>
+                                  previousValue + element.count) as int) *
+                          50));
+                })
+              : null);
+      return 1;
+    } catch (_) {
+      return 0;
+    }
   }
 
-  double deliveryETA(double distance, String type, double ttc, int server, double top) {
-    try{
+  double deliveryETA(
+      double distance, String type, double ttc, int server, double top) {
+    try {
       CloudFunctions.instance
           .getHttpsCallable(
         functionName: "ETA",
-      ).call({
+      )
+          .call({
         'distance': distance,
         'type': type,
         'ttc': ttc,
         'server': server,
         'top': top
-      }).then((value) => {if (mounted)setState(() {dETA = value.data * 1.0;})});
+      }).then((value) => {
+                if (mounted)
+                  setState(() {
+                    dETA = value.data * 1.0;
+                  })
+              });
+      return 0.0;
+    } catch (_) {
       return 0.0;
     }
-    catch(_){return 0.0;}
   }
 
   Widget detailMaker() {
@@ -283,7 +315,7 @@ class _OrderUIState extends State<OrderUI> {
                   const Expanded(
                     child: const Text('Item Total'),
                   ),
-                   Expanded(
+                  Expanded(
                     child: Center(
                       child: Text('$CURRENCY${order.orderAmount}'),
                     ),
@@ -294,7 +326,9 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
-              const SizedBox(height: 5,),
+              const SizedBox(
+                height: 5,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -312,7 +346,9 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
-              const SizedBox(height: 5,),
+              const SizedBox(
+                height: 5,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -336,7 +372,9 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
-              const SizedBox(height: 5,),
+              const SizedBox(
+                height: 5,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -354,7 +392,9 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
-              const SizedBox(height: 5,),
+              const SizedBox(
+                height: 5,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -372,7 +412,9 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
-              const SizedBox(height: 5,),
+              const SizedBox(
+                height: 5,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -390,7 +432,9 @@ class _OrderUIState extends State<OrderUI> {
                 height: 2,
                 color: Colors.grey.withOpacity(0.5),
               ),
-              const SizedBox(height: 5,),
+              const SizedBox(
+                height: 5,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -399,7 +443,8 @@ class _OrderUIState extends State<OrderUI> {
                   ),
                   Expanded(
                     child: Center(
-                      child: Text('~ ${(((dETA/60).round())+5)<30?30:(((dETA/60).round())+5)} minute'),
+                      child: Text(
+                          '~ ${(((dETA / 60).round()) + 5) < 30 ? 30 : (((dETA / 60).round()) + 5)} minute'),
                     ),
                   )
                 ],
@@ -577,8 +622,6 @@ class _OrderUIState extends State<OrderUI> {
     return minute + 1;
   }
 
-
-
   inHouseETA(double distance) {}
 
   List<Widget> itemMaker(dynamic payload) {
@@ -621,7 +664,8 @@ class _OrderUIState extends State<OrderUI> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   Expanded(
-                    child: Text(' ${payload.pName} @ $CURRENCY${payload.pPrice}'),
+                    child:
+                        Text(' ${payload.pName} @ $CURRENCY${payload.pPrice}'),
                   ),
                   Expanded(
                     child: Center(
@@ -700,18 +744,14 @@ class _OrderUIState extends State<OrderUI> {
                         children: <Widget>[
                           Text(
                             'Order successfully placed',
-                            style: TextStyle(
-                                fontSize:
-                                    Get.height * 0.04),
+                            style: TextStyle(fontSize: Get.height * 0.04),
                           ),
                           SizedBox(
                             height: 10,
                           ),
                           Text(
                             '${_start}s',
-                            style: TextStyle(
-                                fontSize:
-                                    Get.height * 0.05),
+                            style: TextStyle(fontSize: Get.height * 0.05),
                           ),
                         ],
                       ),
@@ -753,15 +793,13 @@ class _OrderUIState extends State<OrderUI> {
               child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10,horizontal: 15),
-                    child: Text(
-                      '$payerror',
-                      style: TextStyle(
-                          fontSize: Get.height * 0.025),
-                      textAlign: TextAlign.center,
-                    )
-                  )
-              ),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                      child: Text(
+                        '$payerror',
+                        style: TextStyle(fontSize: Get.height * 0.025),
+                        textAlign: TextAlign.center,
+                      ))),
             ),
             Center(
               child: FlatButton(
@@ -772,7 +810,10 @@ class _OrderUIState extends State<OrderUI> {
                   });
                 },
                 color: PRIMARYCOLOR,
-                child: const Text('Try Again',style: TextStyle(color: Colors.white),),
+                child: const Text(
+                  'Try Again',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             )
           ],
@@ -792,144 +833,123 @@ class _OrderUIState extends State<OrderUI> {
     return eta;
   }
 
-  processPay(String method,Map<String,dynamic> details ) async {
-    setState(() {screenHeight = 1;});
-    Map<String,String> reference;
-    details['email']=widget.user.email;
+  processPay(String method, Map<String, dynamic> details) async {
+    setState(() {
+      screenHeight = 1;
+    });
+    Map<String, String> reference;
+    details['email'] = widget.user.email;
     //Agent agent = await LogisticRepo.getOneAgentByUid(order.agent);
     //User agentAccount = await UserRepo.getOneUsingUID(agent.agent);
     var temp = details['expiry'].toString().split('/');
 
-    switch(method){
+    switch (method) {
       case 'CARD':
-        reference =Map.from(
-        await Utility.platform.invokeMethod('CardPay',
+        reference = Map.from(await Utility.platform.invokeMethod(
+            'CardPay',
             Map.from({
-              "card":(details['card'] as String),
-              "cvv":(details['cvv'] as String),
-              "month":int.parse(temp[0]),
-              "year":int.parse(temp[1]),
-              "amount":((dCut + order.orderAmount).round() + Utility.onePointFive((dCut + order.orderAmount).round())),
-              "email":(details['email'] as String),
-            }))
-    );
-    if (reference.isNotEmpty) {
-      var details = await Utility.fetchPaymentDetail(reference['reference']);
-      var status = jsonDecode(details.body)['data']['status'];
+              "card": (details['card'] as String),
+              "cvv": (details['cvv'] as String),
+              "month": int.parse(temp[0]),
+              "year": int.parse(temp[1]),
+              "amount": ((dCut + order.orderAmount).round() +
+                  Utility.onePointFive((dCut + order.orderAmount).round())),
+              "email": (details['email'] as String),
+            })));
+        if (reference.isNotEmpty) {
+          var details =
+              await Utility.fetchPaymentDetail(reference['reference']);
+          var status = jsonDecode(details.body)['data']['status'];
 
-      if (status == 'success') {
-        setState(() {  screenHeight = 0.8; stage = 'UPLOADING'; paydone = false;  });
-        var collectId = await Utility.initializePay(
-            deliveryFee: order.orderMode.fee.round(),
-            channelId: 1,
-            referenceID: reference['reference'],
-            amount: order.orderAmount.round(),
-            from: widget.user.walletId,
-            state: await Utility.getState(position) );
-        if(collectId != null)
-          setState(() {
-            order = order.update(
-              receipt: Receipt(reference: reference['reference'], psStatus: 'PENDING',type: method,collectionID: collectId,),
-              orderCreatedAt: Timestamp.now(),
-              status: 0,
-              orderID: '',
-              docID: '',
-            );
-          });
-        else setState(() {
-          screenHeight = 0.8;
-          stage = 'ERROR';
-          payerror = "Error encountered while placing Order.";
-        });
-        if(collectId != null) {
-          OrderRepo.save(order).then((value) =>
+          if (status == 'success') {
+            setState(() {
+              screenHeight = 0.8;
+              stage = 'UPLOADING';
+              paydone = false;
+            });
+            var collectId = await Utility.initializePay(
+                deliveryFee: order.orderMode.fee.round(),
+                channelId: 1,
+                referenceID: reference['reference'],
+                amount: order.orderAmount.round(),
+                from: widget.user.walletId,
+                state: await Utility.getState(position));
+            if (collectId != null)
               setState(() {
-                startTimer();
-                order = order.update(docID: value);
-                paydone = true;
-              }));
-          WalletRepo.getWallet(widget.user.walletId).
-          then((value) => WalletBloc.instance.newWallet(value));
+                order = order.update(
+                  receipt: Receipt(
+                    reference: reference['reference'],
+                    psStatus: 'PENDING',
+                    type: method,
+                    collectionID: collectId,
+                  ),
+                  orderCreatedAt: Timestamp.now(),
+                  status: 0,
+                  orderID: '',
+                  docID: '',
+                );
+              });
+            else
+              setState(() {
+                screenHeight = 0.8;
+                stage = 'ERROR';
+                payerror = "Error encountered while placing Order.";
+              });
+            if (collectId != null) {
+              OrderRepo.save(order).then((value) => setState(() {
+                    startTimer();
+                    order = order.update(docID: value);
+                    paydone = true;
+                  }));
+              WalletRepo.getWallet(widget.user.walletId)
+                  .then((value) => WalletBloc.instance.newWallet(value));
 
-          if(mode=='Delivery')await queryAgent();
-        }
-      } else {
-        //print('Important!!! $reference');
-        if (reference['error'].toString().isNotEmpty) {
-          setState(() {
-            screenHeight = 0.8;
-            stage = 'ERROR';
-            payerror = reference['error'].toString();
-          });
+              if (mode == 'Delivery') await queryAgent();
+            }
+          } else {
+            //print('Important!!! $reference');
+            if (reference['error'].toString().isNotEmpty) {
+              setState(() {
+                screenHeight = 0.8;
+                stage = 'ERROR';
+                payerror = reference['error'].toString();
+              });
+            } else {
+              setState(() {
+                screenHeight = 0.8;
+                stage = 'CHECKOUT';
+              });
+            }
+          }
         } else {
           setState(() {
             screenHeight = 0.8;
             stage = 'CHECKOUT';
           });
         }
-      }
-    } else {
-      setState(() {
-        screenHeight = 0.8;
-        stage = 'CHECKOUT';
-      });
-    }
         break;
       case 'CASH':
-        setState(() {  screenHeight = 0.8; stage = 'UPLOADING'; paydone = false;  });
+        setState(() {
+          screenHeight = 0.8;
+          stage = 'UPLOADING';
+          paydone = false;
+        });
         var collectId = await Utility.initializePay(
             deliveryFee: order.orderMode.fee.round(),
             channelId: 2,
             referenceID: "",
             amount: order.orderAmount.round(),
             from: widget.user.walletId,
-            state: await Utility.getState(position)
-        );
-        if(collectId != null)
-        setState(() {
-            order = order.update(
-              receipt: Receipt(reference: '', psStatus: 'PENDING',type: method,collectionID: collectId,),
-              orderCreatedAt: Timestamp.now(),
-              status: 0,
-              orderID: '',
-              docID: '',
-             //orderLogistic: '',
-            );
-        });
-        else setState(() {
-          screenHeight = 0.8;
-          stage = 'ERROR';
-          payerror = "Error encountered while placing Order.";
-        });
-      if(collectId != null) {
-          OrderRepo.save(order).then((value) =>
-              setState(() {
-                startTimer();
-                order = order.update(docID: value);
-                paydone = true;
-              }));
-          WalletRepo.getWallet(widget.user.walletId).
-          then((value) => WalletBloc.instance.newWallet(value));
-          if(mode=='Delivery')await queryAgent();
-        }
-        break;
-      case 'POCKET':
-        setState(() {  screenHeight = 0.8; stage = 'UPLOADING'; paydone = false;  });
-        var collectId = await Utility.initializePay(
-            deliveryFee: order.orderMode.fee.round(),
-            channelId: 3,
-            referenceID: "",
-            amount: order.orderAmount.round(),
-            from: widget.user.walletId,
-            state: await Utility.getState(position)
-        );
-        if(collectId != null) {
+            state: await Utility.getState(position));
+        if (collectId != null)
           setState(() {
             order = order.update(
-              receipt: Receipt(reference: '',
+              receipt: Receipt(
+                reference: '',
                 psStatus: 'PENDING',
                 type: method,
-                collectionID: collectId,),
+                collectionID: collectId,
+              ),
               orderCreatedAt: Timestamp.now(),
               status: 0,
               orderID: '',
@@ -937,36 +957,85 @@ class _OrderUIState extends State<OrderUI> {
               //orderLogistic: '',
             );
           });
-
-        }
-        else setState(() {
-          screenHeight = 0.8;
-          stage = 'ERROR';
-          payerror = "Error encountered while placing Order.";
-        });
-        if(collectId != null) {
-          OrderRepo.save(order).then((value) =>
-              setState(() {
+        else
+          setState(() {
+            screenHeight = 0.8;
+            stage = 'ERROR';
+            payerror = "Error encountered while placing Order.";
+          });
+        if (collectId != null) {
+          OrderRepo.save(order).then((value) => setState(() {
                 startTimer();
                 order = order.update(docID: value);
                 paydone = true;
               }));
-          WalletRepo.getWallet(widget.user.walletId).
-          then((value) => WalletBloc.instance.newWallet(value));
-
-          if(mode=='Delivery')await queryAgent();
+          WalletRepo.getWallet(widget.user.walletId)
+              .then((value) => WalletBloc.instance.newWallet(value));
+          if (mode == 'Delivery') await queryAgent();
         }
         break;
+      case 'POCKET':
+        setState(() {
+          screenHeight = 0.8;
+          stage = 'UPLOADING';
+          paydone = false;
+        });
+        var collectId = await Utility.initializePay(
+            deliveryFee: order.orderMode.fee.round(),
+            channelId: 3,
+            referenceID: "",
+            amount: order.orderAmount.round(),
+            from: widget.user.walletId,
+            state: await Utility.getState(position));
+        if (collectId != null) {
+          setState(() {
+            order = order.update(
+              receipt: Receipt(
+                reference: '',
+                psStatus: 'PENDING',
+                type: method,
+                collectionID: collectId,
+              ),
+              orderCreatedAt: Timestamp.now(),
+              status: 0,
+              orderID: '',
+              docID: '',
+              //orderLogistic: '',
+            );
+          });
+        } else
+          setState(() {
+            screenHeight = 0.8;
+            stage = 'ERROR';
+            payerror = "Error encountered while placing Order.";
+          });
+        if (collectId != null) {
+          OrderRepo.save(order).then((value) => setState(() {
+                startTimer();
+                order = order.update(docID: value);
+                paydone = true;
+              }));
+          WalletRepo.getWallet(widget.user.walletId)
+              .then((value) => WalletBloc.instance.newWallet(value));
 
+          if (mode == 'Delivery') await queryAgent();
+        }
+        break;
     }
 
-    FavRepo.save(widget.user.uid, widget.merchant.mID,'merchant');
-    if(order.orderLogistic.isNotEmpty) FavRepo.save(widget.user.uid, order.orderLogistic,'logistic');
+    FavRepo.save(widget.user.uid, widget.merchant.mID, 'merchant');
+    if (order.orderLogistic.isNotEmpty)
+      FavRepo.save(widget.user.uid, order.orderLogistic, 'logistic');
     //});
   }
 
-  Future<List<String>> nearByAgent({bool isDevice=false}) async{
-    var nearbyAgent = await LogisticRepo.getNearByAgent(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude, longitude: widget.merchant.bGeoPoint['geopoint'].longitude), type,isDevice: isDevice);
+  Future<List<String>> nearByAgent({bool isDevice = false}) async {
+    var nearbyAgent = await LogisticRepo.getNearByAgent(
+        Position(
+            latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+            longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
+        type,
+        isDevice: isDevice);
     return nearbyAgent;
   }
 
@@ -1057,7 +1126,7 @@ class _OrderUIState extends State<OrderUI> {
           ),
           Column(
             children: <Widget>[
-              if(_wallet == null)
+              if (_wallet == null)
                 Center(
                   child: Text(
                     'Error communicating with server. Check internet and try again',
@@ -1067,111 +1136,167 @@ class _OrderUIState extends State<OrderUI> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              _wallet != null?
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                margin: EdgeInsets.only(bottom: 20),
-                child: Text(
-                  'Proceed with method of payment to complete order',
-                  style: TextStyle(
-                    fontSize: Get.height * 0.025,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ):const SizedBox.shrink(),
-              _wallet != null?
-              Container(
-                margin: EdgeInsets.only(bottom: 20),
-                child: Text(
-                  'Pay With',
-                  style: TextStyle(fontSize: Get.height * 0.03),),
-              ):const SizedBox.shrink(),
-              _wallet != null?
-              ListTile(
-                onTap: () async {
-                  if (_wallet.walletBalance > (order.orderAmount+order.orderMode.fee)) {
-                    bool set = await PinRepo.isSet(widget.user.walletId);
-                    if(set)
-                      Get.dialog(PinTester(wallet: widget.user.walletId,callBackAction: ()async{
-                        setState(() {stage = 'PAY';});
-                        await processPay('POCKET',{});},));
-                    else
-                      {
+              _wallet != null
+                  ? Container(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      margin: EdgeInsets.only(bottom: 20),
+                      child: Text(
+                        'Proceed with method of payment to complete order',
+                        style: TextStyle(
+                          fontSize: Get.height * 0.025,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+              _wallet != null
+                  ? Container(
+                      margin: EdgeInsets.only(bottom: 20),
+                      child: Text(
+                        'Pay With',
+                        style: TextStyle(fontSize: Get.height * 0.03),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+              _wallet != null
+                  ? ListTile(
+                      onTap: () async {
+                        if (_wallet.walletBalance >
+                            (order.orderAmount + order.orderMode.fee)) {
+                          bool set = await PinRepo.isSet(widget.user.walletId);
+                          if (set)
+                            Get.dialog(PinTester(
+                              wallet: widget.user.walletId,
+                              callBackAction: () async {
+                                setState(() {
+                                  stage = 'PAY';
+                                });
+                                await processPay('POCKET', {});
+                              },
+                            ));
+                          else {
+                            Get.defaultDialog(
+                                title: 'Pocket PIN',
+                                content: Text(
+                                    'You need to setup pocket PIN before you can proceed with payment'),
+                                cancel: FlatButton(
+                                  onPressed: () {
+                                    Get.back();
+                                  },
+                                  child: Text('Cancel'),
+                                ),
+                                confirm: FlatButton(
+                                  onPressed: () async {
+                                    Get.back();
+                                    Get.dialog(PinSetter(
+                                      user: widget.user,
+                                      callBackAction: () async {
+                                        setState(() {
+                                          stage = 'PAY';
+                                        });
+                                        await processPay('POCKET', {});
+                                      },
+                                    ));
+                                  },
+                                  child: Text('Setup PIN'),
+                                ));
+                          }
+                        } else {
+                          Get.defaultDialog(
+                              title: 'TopUp',
+                              content: const Text(
+                                  'Do you want to TopUp your Pocket'),
+                              cancel: FlatButton(
+                                onPressed: () {
+                                  Get.back();
+                                },
+                                child: const Text('No'),
+                              ),
+                              confirm: FlatButton(
+                                onPressed: () {
+                                  Get.back();
+                                  Get.dialog(TopUp(
+                                    user: widget.user,
+                                  ));
+                                  //setState(() {
+                                  // stage = 'PAY';
+                                  // });
+                                },
+                                child: Text('Yes'),
+                              ));
+                        }
+                      },
+                      leading: CircleAvatar(
+                        child: Image.asset('assets/images/blogo.png'),
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                      ),
+                      title: Text(
+                        'Pocketshopping',
+                        style: TextStyle(fontSize: Get.height * 0.025),
+                      ),
+                      subtitle: Column(
+                        children: <Widget>[
+                          _wallet.walletBalance >
+                                  (order.orderAmount + order.orderMode.fee)
+                              ? Text(
+                                  'Choose this if you want to pay with pocket.')
+                              : Text('Insufficient Fund. Tap to Topup'),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        onPressed: () {},
+                        icon: Icon(Icons.arrow_forward_ios),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+              const Divider(
+                height: 2,
+                color: Colors.grey,
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              _wallet != null
+                  ? ListTile(
+                      onTap: () async {
+                        //await processPay('CARD');
                         Get.defaultDialog(
-                            title: 'Pocket PIN',
+                            title: 'Confirmation',
                             content: Text(
-                                'You need to setup pocket PIN before you can proceed with payment'),
+                                'Please Note that the agent will not be credited until you confirm the order. In a case where agent fails to deliver your pocketshopping account will be credited with the money.'),
                             cancel: FlatButton(
                               onPressed: () {
-
                                 Get.back();
-
-
                               },
-                              child: Text('Cancel'),
+                              child: Text('No'),
                             ),
                             confirm: FlatButton(
-                              onPressed: ()async {
+                              onPressed: () {
                                 Get.back();
-                                Get.dialog(PinSetter(user: widget.user,callBackAction: ()async{
-                                  setState(() {stage = 'PAY';});
-                                  await processPay('POCKET',{});},));
-
+                                setState(() {
+                                  screenHeight = 1;
+                                  stage = 'PAYCARD';
+                                });
                               },
-                              child: Text('Setup PIN'),
-                            )
-                        );
-                      }
-
-
-
-                  }
-                  else{
-                    Get.defaultDialog(
-                        title: 'TopUp',
-                        content: const Text('Do you want to TopUp your Pocket'),
-                        cancel: FlatButton(
-                          onPressed: () {
-                            Get.back();
-                          },
-                          child: const Text('No'),
-                        ),
-                        confirm: FlatButton(
-                          onPressed: () {
-                            Get.back();
-                            Get.dialog(TopUp(user: widget.user,));
-                            //setState(() {
-                            // stage = 'PAY';
-                            // });
-                          },
-                          child: Text('Yes'),
-                        ));
-                  }
-                },
-                leading: CircleAvatar(
-                  child:  Image.asset('assets/images/blogo.png'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title:  Text(
-                  'Pocketshopping',
-                  style: TextStyle(
-                      fontSize: Get.height * 0.025),
-                ),
-                subtitle: Column(
-                  children: <Widget>[
-                    _wallet.walletBalance > (order.orderAmount+order.orderMode.fee)
-                        ? Text(
-                            'Choose this if you want to pay with pocket.')
-                        : Text('Insufficient Fund. Tap to Topup'),
-                  ],
-                ),
-                trailing: IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
-              ):const SizedBox.shrink(),
-
+                              child: Text('Yes Pay'),
+                            ));
+                      },
+                      leading: CircleAvatar(
+                        child: Image.asset('assets/images/atm.png'),
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                      ),
+                      title: Text(
+                        'ATM Card',
+                        style: TextStyle(fontSize: Get.height * 0.025),
+                      ),
+                      subtitle: const Text(
+                          'Choose this if you want to pay with ATM Card(instant payment).'),
+                      trailing: const Icon(Icons.arrow_forward_ios),
+                    )
+                  : const SizedBox.shrink(),
               const Divider(
                 height: 2,
                 color: Colors.grey,
@@ -1179,97 +1304,49 @@ class _OrderUIState extends State<OrderUI> {
               const SizedBox(
                 height: 5,
               ),
-              _wallet != null?
-              ListTile(
-                onTap: () async {
-                  //await processPay('CARD');
-                  Get.defaultDialog(
-                      title: 'Confirmation',
-                      content: Text(
-                          'Please Note that the agent will not be credited until you confirm the order. In a case where agent fails to deliver your pocketshopping account will be credited with the money.'),
-                      cancel: FlatButton(
-                        onPressed: () {
-                          Get.back();
-                        },
-                        child: Text('No'),
+              _wallet != null
+                  ? ListTile(
+                      onTap: () async {
+                        //await processPay('CASH');
+                        Get.defaultDialog(
+                            title: 'Confirmation',
+                            content: const Text(
+                                'Do not hand cash over, without getting your order/purchase delivered pocketshopping will not be held responsible in such situation.'),
+                            cancel: FlatButton(
+                              onPressed: () {
+                                Get.back();
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            confirm: FlatButton(
+                              onPressed: () async {
+                                Get.back();
+                                setState(() {
+                                  stage = 'PAY';
+                                });
+                                await processPay('CASH', {});
+                              },
+                              child: Text('Ok'),
+                            ));
+                      },
+                      leading: CircleAvatar(
+                        child: Image.asset('assets/images/cash.png'),
+                        radius: 30,
+                        backgroundColor: Colors.white,
                       ),
-                      confirm: FlatButton(
-                        onPressed: () {
-                          Get.back();
-                          setState(() {
-                            screenHeight = 1;
-                            stage = 'PAYCARD';
-                          });
-                        },
-                        child: Text('Yes Pay'),
-                      ));
-                },
-                leading: CircleAvatar(
-                  child: Image.asset('assets/images/atm.png'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title:  Text(
-                  'ATM Card',
-                  style: TextStyle(
-                      fontSize: Get.height * 0.025),
-                ),
-                subtitle: const Text('Choose this if you want to pay with ATM Card(instant payment).'),
-                trailing: const Icon(Icons.arrow_forward_ios),
-              ):const SizedBox.shrink(),
-              const Divider(
-                height: 2,
-                color: Colors.grey,
-              ),
-              const SizedBox(
-                height: 5,
-              ),
-              _wallet != null?
-              ListTile(
-                onTap: () async {
-                  //await processPay('CASH');
-                  Get.defaultDialog(
-                      title: 'Confirmation',
-                      content: const Text(
-                          'Do not hand cash over, without getting your order/purchase delivered pocketshopping will not be held responsible in such situation.'),
-                      cancel: FlatButton(
-                        onPressed: () {
-
-                          Get.back();
-
-
-                        },
-                        child:const Text('Cancel'),
+                      title: Text(
+                        mode == 'Delivery' ? 'pay on Delivery' : 'Cash',
+                        style: TextStyle(fontSize: Get.height * 0.025),
                       ),
-                      confirm: FlatButton(
-                        onPressed: ()async {
-                          Get.back();
-                          setState(() {
-                            stage = 'PAY';
-                          });
-                          await processPay('CASH',{});
-                        },
-                        child: Text('Ok'),
-                      )
-                  );
-                },
-                leading: CircleAvatar(
-                  child:  Image.asset('assets/images/cash.png'),
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                ),
-                title: Text(
-                  mode == 'Delivery' ? 'pay on Delivery' : 'Cash',
-                  style: TextStyle(fontSize: Get.height * 0.025),
-                ),
-                subtitle: Text(mode == 'Delivery'
-                    ? 'Choose this if you want to pay on delivery.'
-                    : 'Choose this if you want to pay with cash.'),
-                trailing: IconButton(
-
-                  icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
-                ),
-              ):const SizedBox.shrink(),
+                      subtitle: Text(mode == 'Delivery'
+                          ? 'Choose this if you want to pay on delivery.'
+                          : 'Choose this if you want to pay with cash.'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.arrow_forward_ios),
+                        onPressed: () {},
+                      ),
+                    )
+                  : const SizedBox.shrink(),
               SizedBox(
                 height: 40,
               )
@@ -1304,16 +1381,15 @@ class _OrderUIState extends State<OrderUI> {
           ),
           Text(
             widget.payload.pName,
-            style:
-                TextStyle(fontSize: Get.height * 0.025,fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontSize: Get.height * 0.025, fontWeight: FontWeight.bold),
           ),
           SizedBox(
             height: 5,
           ),
           Text(
             '@ $CURRENCY ${widget.payload.pPrice.toString()}',
-            style:
-                TextStyle(fontSize: Get.height * 0.025),
+            style: TextStyle(fontSize: Get.height * 0.025),
           ),
           SizedBox(
             height: 5,
@@ -1348,20 +1424,18 @@ class _OrderUIState extends State<OrderUI> {
                     Container(
                       padding:
                           EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      child: Text('$orderCount ${widget.payload.pUnit.toString()}'),
+                      child: Text(
+                          '$orderCount ${widget.payload.pUnit.toString()}'),
                     ),
                     GestureDetector(
                       onTap: () {
                         setState(() {
-                          if((widget.payload as Product).isManaging)
-                            {
-                              if((widget.payload as Product).pStockCount > orderCount)
-                                orderCount += 1;
-                            }
-                            else
-                              {
-                                orderCount += 1;
-                              }
+                          if ((widget.payload as Product).isManaging) {
+                            if ((widget.payload as Product).pStockCount >
+                                orderCount) orderCount += 1;
+                          } else {
+                            orderCount += 1;
+                          }
                         });
                       },
                       child: Container(
@@ -1401,7 +1475,8 @@ class _OrderUIState extends State<OrderUI> {
                       _contact.text = widget.user.telephone;
                       screenHeight = 0.8;
                     });
-                    deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
+                    deliveryETA(dist != null ? dist : widget.distance * 1000,
+                        'Delivery', 0.0, 0, 0.0);
                     deliveryCut(dist != null ? dist : widget.distance * 1000);
                   },
                   child: Text(
@@ -1506,10 +1581,8 @@ class _OrderUIState extends State<OrderUI> {
                                 child: Text(
                                   '${widget.payload[index].item.pName} @ $CURRENCY'
                                   '${widget.payload[index].item.pPrice}',
-                                  style: TextStyle(
-                                      fontSize:
-                                          Get.height *
-                                              0.025),
+                                  style:
+                                      TextStyle(fontSize: Get.height * 0.025),
                                 ),
                               ),
                               SizedBox(
@@ -1559,16 +1632,22 @@ class _OrderUIState extends State<OrderUI> {
                                         ),
                                         GestureDetector(
                                           onTap: () {
-                                            if((widget.payload[index].item as Product).isManaging){
-                                              if((widget.payload[index].item as Product).pStockCount > widget.payload[index].count ){
-                                                widget.payload[index].count += 1;
+                                            if ((widget.payload[index].item
+                                                    as Product)
+                                                .isManaging) {
+                                              if ((widget.payload[index].item
+                                                          as Product)
+                                                      .pStockCount >
+                                                  widget.payload[index].count) {
+                                                widget.payload[index].count +=
+                                                    1;
                                                 widget.payload[index].total =
-                                                    widget.payload[index].count *
-                                                        widget.payload[index].item
-                                                            .pPrice;
+                                                    widget.payload[index]
+                                                            .count *
+                                                        widget.payload[index]
+                                                            .item.pPrice;
                                               }
-                                            }
-                                            else{
+                                            } else {
                                               widget.payload[index].count += 1;
                                               widget.payload[index].total =
                                                   widget.payload[index].count *
@@ -1635,7 +1714,8 @@ class _OrderUIState extends State<OrderUI> {
                       _contact.text = widget.user.telephone;
                       screenHeight = 0.8;
                     });
-                    deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
+                    deliveryETA(dist != null ? dist : widget.distance * 1000,
+                        'Delivery', 0.0, 0, 0.0);
                     deliveryCut(dist != null ? dist : widget.distance * 1000);
                   },
                   child: Text(
@@ -1677,8 +1757,8 @@ class _OrderUIState extends State<OrderUI> {
         return cardPage();
         break;
       //case 'REQUEST':
-        //return orderRequest();
-        //break;
+      //return orderRequest();
+      //break;
       case 'ERROR':
         return payError();
         break;
@@ -1727,8 +1807,7 @@ class _OrderUIState extends State<OrderUI> {
             margin: EdgeInsets.only(bottom: 10),
             child: Text(
               'Preview',
-              style: TextStyle(
-                  fontSize: Get.height * 0.03),
+              style: TextStyle(fontSize: Get.height * 0.03),
             ),
           ),
           Container(
@@ -1746,8 +1825,7 @@ class _OrderUIState extends State<OrderUI> {
                         child: Text(
                           'Item(s)',
                           style: TextStyle(
-                              fontSize:
-                                  Get.height * 0.025,
+                              fontSize: Get.height * 0.025,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -1766,8 +1844,7 @@ class _OrderUIState extends State<OrderUI> {
                         child: Text(
                           'Details(s)',
                           style: TextStyle(
-                              fontSize:
-                                  Get.height * 0.025,
+                              fontSize: Get.height * 0.025,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -1786,40 +1863,47 @@ class _OrderUIState extends State<OrderUI> {
                 color: PRIMARYCOLOR,
                 child: Center(
                   child: FlatButton(
-                    onPressed: ()async {
-
+                    onPressed: () async {
                       order = order.update(
                         orderMode: OrderMode(
                           mode: mode,
-                          coordinate: GeoPoint(position.latitude, position.longitude),
+                          coordinate:
+                              GeoPoint(position.latitude, position.longitude),
                           address: _address.text,
                           acceptedBy: '',
                           fee: dCut,
                           deliveryMan: '',
                           tableNumber: '',
-
                         ),
-                        orderETA: order.orderLogistic.isEmpty?(dETA.round()+300)<1800?1800:(dETA.round()+300):((dETA.round()+300)<1800?1800:(dETA.round()+300)+1800),
+                        orderETA: order.orderLogistic.isEmpty
+                            ? (dETA.round() + 300) < 1800
+                                ? 1800
+                                : (dETA.round() + 300)
+                            : ((dETA.round() + 300) < 1800
+                                ? 1800
+                                : (dETA.round() + 300) + 1800),
                         orderConfirmation: Confirmation(
                           isConfirmed: false,
                           confirmOTP: randomAlphaNumeric(6),
                         ),
-                        agent:'',
+                        agent: '',
                         resolution: '',
                         isAssigned: false,
-                        potentials:  order.orderLogistic.isEmpty?await nearByAgent():[],
+
                         status: 0,
                         orderID: '',
                         docID: '',
                         //orderLogistic:'',
                       );
-                      if(dCut>250 && dETA > 5){
-                      stage = 'CHECKOUT';
-                      setState(() {});
+                      if (dCut > 250 && dETA > 5) {
+                        stage = 'CHECKOUT';
+                        setState(() {});
                       }
                     },
                     child: Text(
-                      (dCut>250 && dETA > 5)?'Checkout ( $CURRENCY ${order.orderAmount + dCut} )':'Please wait...',
+                      (dCut > 250 && dETA > 5)
+                          ? 'Checkout ( $CURRENCY ${order.orderAmount + dCut} )'
+                          : 'Please wait...',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -1832,7 +1916,7 @@ class _OrderUIState extends State<OrderUI> {
 
   Widget stageTwo() {
     //setState(() {
-      //screenHeight = 0.8;
+    //screenHeight = 0.8;
     //});
     return Container(
       child: ListView(
@@ -1855,16 +1939,16 @@ class _OrderUIState extends State<OrderUI> {
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: IconButton(
                   onPressed: () {
-                   Get.back();
+                    Get.back();
                   },
                   icon: Icon(Icons.close),
                 ),
               ),
             ],
           ),
-           Column(
-                  children: <Widget>[
-                    /*Container(
+          Column(
+            children: <Widget>[
+              /*Container(
                       margin: EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(width: 2))),
@@ -1878,9 +1962,9 @@ class _OrderUIState extends State<OrderUI> {
                       height: 2,
                       color: Colors.grey,
                     ),*/
-                    ListTile(
-                            onTap: () {
-                              /*_address.text = deliveryAddress;
+              ListTile(
+                onTap: () {
+                  /*_address.text = deliveryAddress;
                               _contact.text = widget.user.telephone;
 
                               if (homeDelivery){
@@ -1894,18 +1978,21 @@ class _OrderUIState extends State<OrderUI> {
                               if (mounted) setState(() {});
                               deliveryETA(dist != null ? dist : widget.distance * 1000, 'Delivery', 0.0, 0, 0.0);
                               deliveryCut(dist != null ? dist : widget.distance * 1000);*/
-                            },
-                            leading: CircleAvatar(
-                              child: Image.asset('assets/images/delivery-man.jpg'),
-                              radius: 30,
-                              backgroundColor: Colors.white,
-                            ),
-                            title: Text('Delivery', style: TextStyle(fontSize: Get.height * 0.03),),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text('Your Delivery Details'),
-                                /*homeDelivery
+                },
+                leading: CircleAvatar(
+                  child: Image.asset('assets/images/delivery-man.jpg'),
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                ),
+                title: Text(
+                  'Delivery',
+                  style: TextStyle(fontSize: Get.height * 0.03),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Your Delivery Details'),
+                    /*homeDelivery
                                     ? true
                                         ? Form(
                                             key: _formKey,
@@ -2152,9 +2239,9 @@ class _OrderUIState extends State<OrderUI> {
                                             ),
                                           )
                                     : Container()*/
-                              ],
-                            ),
-                            /*trailing: IconButton(
+                  ],
+                ),
+                /*trailing: IconButton(
                               onPressed: () {
                                 homeDelivery = homeDelivery ? false : true;
                                 setState(() {});
@@ -2163,171 +2250,151 @@ class _OrderUIState extends State<OrderUI> {
                                   ? Icon(Icons.arrow_forward_ios)
                                   : Icon(Icons.close),
                             ),*/
-                          ),
-                    Padding(
-                        padding:EdgeInsets.symmetric(horizontal: 15),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15),
+                child: Column(
+                  children: <Widget>[
+                    Form(
+                      key: _formKey,
                       child: Column(
                         children: <Widget>[
-                           Form(
-                            key: _formKey,
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TextFormField(
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Your mobile number';
+                              } else if (value.length <= 11) {
+                                return 'Valid Mobile number please';
+                              }
+                              return null;
+                            },
+                            controller: _contact,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.call),
+                              labelText: 'Contact Telephone',
+                              filled: true,
+                              fillColor: Colors.grey.withOpacity(0.2),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.3)),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.3)),
+                              ),
+                            ),
+                            autovalidate: mobile,
+                            onChanged: (value) {
+                              setState(() {
+                                mobile = true;
+                              });
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TextFormField(
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Your address';
+                              }
+                              return null;
+                            },
+                            controller: _address,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.place),
+                              labelText: 'Delivery Address',
+                              filled: true,
+                              fillColor: Colors.grey.withOpacity(0.2),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.3)),
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.3)),
+                              ),
+                            ),
+                            textInputAction: TextInputAction.done,
+                            autovalidate: contact,
+                            onChanged: (value) {
+                              setState(() {
+                                userChange = true;
+                                contact = true;
+                              });
+                            },
+                            maxLines: 3,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          // if (widget.merchant.bCategory != 'Restuarant')
+                          Container(
+                            color: Colors.grey.withOpacity(0.2),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 5),
                             child: Column(
                               children: <Widget>[
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                TextFormField(
-                                  validator: (value) {
-                                    if (value.isEmpty) {
-                                      return 'Your mobile number';
-                                    } else if (value.length <=
-                                        11) {
-                                      return 'Valid Mobile number please';
-                                    }
-                                    return null;
-                                  },
-                                  controller: _contact,
-                                  decoration: InputDecoration(
-                                    prefixIcon:
-                                    Icon(Icons.call),
-                                    labelText: 'Contact Telephone',
-                                    filled: true,
-                                    fillColor: Colors.grey
-                                        .withOpacity(0.2),
-                                    focusedBorder:
-                                    OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.white
-                                              .withOpacity(
-                                              0.3)),
-                                    ),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.white
-                                              .withOpacity(
-                                              0.3)),
-                                    ),
-                                  ),
-                                  autovalidate: mobile,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      mobile = true;
-                                    });
-                                  },
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                TextFormField(
-                                  validator: (value) {
-                                    if (value.isEmpty) {
-                                      return 'Your address';
-                                    }
-                                    return null;
-                                  },
-                                  controller: _address,
-                                  decoration: InputDecoration(
-                                    prefixIcon:
-                                    Icon(Icons.place),
-                                    labelText: 'Delivery Address',
-                                    filled: true,
-                                    fillColor: Colors.grey.withOpacity(0.2),
-                                    focusedBorder:
-                                    OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.white
-                                              .withOpacity(
-                                              0.3)),
-                                    ),
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.white
-                                              .withOpacity(
-                                              0.3)),
-                                    ),
-                                  ),
-                                  textInputAction:
-                                  TextInputAction.done,
-                                  autovalidate: contact,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      userChange = true;
-                                      contact = true;
-                                    });
-                                  },
-                                  maxLines: 3,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                               // if (widget.merchant.bCategory != 'Restuarant')
-                                  Container(
-                                    color: Colors.grey
-                                        .withOpacity(0.2),
-                                    padding:
-                                    EdgeInsets.symmetric(
-                                        vertical: 5,
-                                        horizontal: 5),
-                                    child: Column(
-                                      children: <Widget>[
-                                        Align(
-                                            alignment: Alignment
-                                                .centerLeft,
+                                Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      "Mode",
+                                      style: TextStyle(color: Colors.black54),
+                                    )),
+                                DropdownButtonFormField<String>(
+                                  value: type,
+                                  items: ['MotorBike', 'Car', 'Van']
+                                      .map((label) => DropdownMenuItem(
                                             child: Text(
-                                              "Mode",
+                                              label,
                                               style: TextStyle(
-                                                  color: Colors
-                                                      .black54),
-                                            )),
-                                        DropdownButtonFormField<
-                                            String>(
-                                          value: type,
-                                          items: ['MotorBike', 'Car', 'Van']
-                                              .map((label) =>
-                                              DropdownMenuItem(
-                                                child: Text(
-                                                  label,
-                                                  style: TextStyle(
-                                                      color:
-                                                      Colors.black54),
-                                                ),
-                                                value:
-                                                label,
-                                              ))
-                                              .toList(),
-                                          isExpanded: true,
-                                          hint: Text('Mode'),
-                                          decoration:
-                                          InputDecoration(
-                                              border:
-                                              InputBorder
-                                                  .none),
-                                          onChanged: (value) {
-                                            type = value;
-                                            emptyAgent = false;
-                                            setState(() {});
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                SizedBox(height: 10,),
-                                if(emptyAgent != null)
-                                  if(emptyAgent)
-                                    const Center(
-                                      child: Text('No rider within reach... Try again later',textAlign: TextAlign.center,style: TextStyle(color: Colors.red),),
-                                    ),
-                                SizedBox(height: 10,),
-                                FlatButton(
-                                    onPressed: ()  {
-                                      if (_formKey.currentState
-                                          .validate()) {
-                                        setState(() {
-                                          emptyAgent=null;
-                                          stage = 'LOGISTIC';
-                                          screenHeight = 0.9;
-                                          scrollable=false;});
+                                                  color: Colors.black54),
+                                            ),
+                                            value: label,
+                                          ))
+                                      .toList(),
+                                  isExpanded: true,
+                                  hint: Text('Mode'),
+                                  decoration:
+                                      InputDecoration(border: InputBorder.none),
+                                  onChanged: (value) {
+                                    type = value;
+                                    emptyAgent = false;
+                                    setState(() {});
+                                  },
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          if (emptyAgent != null)
+                            if (emptyAgent)
+                              const Center(
+                                child: Text(
+                                  'No rider within reach... Try again later',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          FlatButton(
+                              onPressed: () {
+                                if (_formKey.currentState.validate()) {
+                                  setState(() {
+                                    emptyAgent = null;
+                                    stage = 'LOGISTIC';
+                                    screenHeight = 0.9;
+                                    scrollable = false;
+                                  });
 
-                                        /*LogisticRepo.getNearByAgent(
+                                  /*LogisticRepo.getNearByAgent(
                                             Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
                                                 longitude: widget.merchant.bGeoPoint['geopoint'].longitude), type).then((value) {
                                           if(value.isNotEmpty){
@@ -2377,32 +2444,30 @@ class _OrderUIState extends State<OrderUI> {
                                           setState(() {});
                                         });*/
 
-                                      }
-                                    },
-                                    child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 10,
-                                            horizontal: 15),
-                                        //width: Get.width,
-                                        color: PRIMARYCOLOR,
-                                        child: Center(
-                                          child: Text('Submit', style: TextStyle(color: Colors.white),)
-                                        )
-                                    )
-                                )
-                              ],
-                            ),
-                          )
-
+                                }
+                              },
+                              child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 15),
+                                  //width: Get.width,
+                                  color: PRIMARYCOLOR,
+                                  child: Center(
+                                      child: Text(
+                                    'Submit',
+                                    style: TextStyle(color: Colors.white),
+                                  ))))
                         ],
                       ),
-                    ),
+                    )
+                  ],
+                ),
+              ),
 
-                    /*Divider(
+              /*Divider(
                       height: 2,
                       color: Colors.grey,
                     ),*/
-                    /*ListTile(
+              /*ListTile(
                       onTap: () {
                         stage = 'OVERVIEW';
                         mode = 'Pickup';
@@ -2440,7 +2505,7 @@ class _OrderUIState extends State<OrderUI> {
                       ),
                       enabled: false,
                     )*/
-                    /*ListTile(
+              /*ListTile(
                       onTap: () {
                         stage = 'OVERVIEW';
                         mode = 'Pickup';
@@ -2478,13 +2543,13 @@ class _OrderUIState extends State<OrderUI> {
                       ),
                       enabled:!widget.merchant.adminUploaded ,
                     )*/
-                    /*Divider(
+              /*Divider(
                       height: 2,
                       color: Colors.grey,
                     ),*/
-                  ],
-                )
-              /*: 'Restuarant' == widget.merchant.bCategory
+            ],
+          )
+          /*: 'Restuarant' == widget.merchant.bCategory
                   ? Column(
                       children: <Widget>[
                         Container(
@@ -2628,7 +2693,7 @@ class _OrderUIState extends State<OrderUI> {
                         ),
                       ],
                     )*/
-                  /*: ListTile(
+          /*: ListTile(
                       onTap: () {
                         stage = 'OVERVIEW';
                         mode = 'Pickup';
@@ -2665,7 +2730,8 @@ class _OrderUIState extends State<OrderUI> {
                         icon: Icon(Icons.arrow_forward_ios), onPressed: () {  },
                       ),
                     enabled: !widget.merchant.adminUploaded,
-                    )*/,
+                    )*/
+          ,
         ],
       ),
     );
@@ -2691,7 +2757,10 @@ class _OrderUIState extends State<OrderUI> {
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
-                child: Text('Choose A Rider',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+                child: Text(
+                  'Choose A Rider',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
               ),
             ),
             Padding(
@@ -2707,84 +2776,97 @@ class _OrderUIState extends State<OrderUI> {
         ),
         FutureBuilder(
           future: LogisticRepo.getNearByAgent(
-              Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
-                  longitude: widget.merchant.bGeoPoint['geopoint'].longitude), type),
+              Position(
+                  latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                  longitude: widget.merchant.bGeoPoint['geopoint'].longitude),
+              type,
+              isDevice: false),
           initialData: <String>[],
-          builder: (context,AsyncSnapshot<List<String>> snapshot){
-            if(snapshot.hasData){
-              if(snapshot.data.isEmpty){
+          builder: (context, AsyncSnapshot<List<String>> snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data.isEmpty) {
                 if (!isLogged.value) {
-                  StatisticRepo
-                      .saveDeliveryRequest(
-                      DeliveryRequest(
-                          isMiss: true,
-                          agent: '',
-                          distance: 0,
-                          orderId: '',
-                          cordinate: GeoPoint(
-                              (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint'].latitude,
-                              (widget.merchant.bGeoPoint as Map<String, dynamic>)['geopoint'].longitude)
-                      ));
-                      isLogged.value = true;
-                    }
+                  StatisticRepo.saveDeliveryRequest(DeliveryRequest(
+                      isMiss: true,
+                      agent: '',
+                      distance: 0,
+                      orderId: '',
+                      cordinate: GeoPoint(
+                          (widget.merchant.bGeoPoint
+                                  as Map<String, dynamic>)['geopoint']
+                              .latitude,
+                          (widget.merchant.bGeoPoint
+                                  as Map<String, dynamic>)['geopoint']
+                              .longitude)));
+                  isLogged.value = true;
+                }
               }
             }
             return ListTile(
-              onTap: (){
-                if(snapshot.hasData){
-                  if(snapshot.data.isNotEmpty){
-                    stage = 'OVERVIEW';
-                    mode = 'Delivery';
-                    order = order.update(
-                      orderMode: OrderMode(
-                        mode: mode,
-                        coordinate: GeoPoint(
-                            position.latitude,
-                            position.longitude),
-                        address: _address.text,
-                      ),
-                      orderCustomer:
-                      Customer(
-                        customerName: widget
-                            .user.fname,
-                        customerReview: '',
-                        customerTelephone:
-                        _contact.text,
-                      ),
-                      customerID: widget.user.uid,
-                      orderLogistic: '',
-                    );
-                    screenHeight = 0.8;
-                    setState(() {});
-                  }
-                  else{
-                    Utility.infoDialogMaker('Unavailable',title: '');
-                  }
-                }
-              },
-              leading: CircleAvatar(
-                child: Icon(Icons.computer),
-                radius: 30,
-                backgroundColor: Colors.white,
-              ),
-              title: Text('Automatic', style: TextStyle(fontSize: Get.height * 0.03),),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if(snapshot.connectionState == ConnectionState.waiting)
-                    Text('Initializing. Please wait')
-                  else if(snapshot.hasError)
-                    Text('Unavailable.',style: TextStyle(color: Colors.red))
-                  else
-                    if(snapshot.data.isNotEmpty)
-                      Text('Let Pocketshopping choose a rider for you \n(${snapshot.data.length } rider(s) close to ${widget.merchant.bName}).',style: TextStyle(color: Colors.green))
-                    else
-                      Text('Unavailable.',style: TextStyle(color: Colors.red),)
-                ],
-              )//,
-            );
+                onTap: () {
 
-
+                  if (snapshot.hasData) {
+                    if (snapshot.data.isNotEmpty || subList.isNotEmpty) {
+                      List<String> _potentials = snapshot.data;
+                      _potentials.addAll(subList.map((e) => e.mID));
+                      stage = 'OVERVIEW';
+                      mode = 'Delivery';
+                      order = order.update(
+                        orderMode: OrderMode(
+                          mode: mode,
+                          coordinate:
+                              GeoPoint(position.latitude, position.longitude),
+                          address: _address.text,
+                        ),
+                        orderCustomer: Customer(
+                          customerName: widget.user.fname,
+                          customerReview: '',
+                          customerTelephone: _contact.text,
+                        ),
+                        potentials: _potentials ?? [],
+                        customerID: widget.user.uid,
+                        orderLogistic: '',
+                        auto: type,
+                      );
+                      screenHeight = 0.8;
+                      setState(() {});
+                    } else {
+                      Utility.infoDialogMaker('Unavailable', title: '');
+                    }
+                  }
+                },
+                leading: CircleAvatar(
+                  child: Icon(Icons.computer),
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                ),
+                title: Text(
+                  'Automatic',
+                  style: TextStyle(fontSize: Get.height * 0.03),
+                ),
+                subtitle: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          Text('Initializing. Please wait')
+                        else if (snapshot.hasError)
+                          Text('Unavailable.',
+                              style: TextStyle(color: Colors.red))
+                        else if (snapshot.data.isNotEmpty ||
+                              subList.isNotEmpty)
+                          Text(
+                              'Let Pocketshopping choose a rider for you \n(${subList.length > 10 ? (snapshot.data.length + 10) : (snapshot.data.length + subList.length)} rider(s) close to ${widget.merchant.bName}).',
+                              style: TextStyle(color: Colors.green))
+                        else
+                          Text(
+                            'Unavailable.',
+                            style: TextStyle(color: Colors.red),
+                          )
+                      ],
+                    )) //,
+                );
           },
         ),
         Divider(
@@ -2792,17 +2874,21 @@ class _OrderUIState extends State<OrderUI> {
           color: Colors.grey,
         ),
         ListTile(
-            onTap: (){},
+            onTap: () {},
             leading: CircleAvatar(
               child: Icon(AntIcons.tool),
               radius: 30,
               backgroundColor: Colors.white,
             ),
-            title: Text('Manual', style: TextStyle(fontSize: Get.height * 0.03),),
-            subtitle: Text('Please note this method might take more time. Select from list below.')//,
-        ),
+            title: Text(
+              'Manual',
+              style: TextStyle(fontSize: Get.height * 0.03),
+            ),
+            subtitle: Text(
+                'Please note this method might take more time. Select from list below.') //,
+            ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 5,horizontal: 15),
+          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
           child: TextFormField(
             controller: null,
             decoration: InputDecoration(
@@ -2820,27 +2906,48 @@ class _OrderUIState extends State<OrderUI> {
             autofocus: false,
             enableSuggestions: true,
             textInputAction: TextInputAction.done,
-            onChanged: (value) async{
-              if(value.isNotEmpty)
-                {
-                  setState(() {logisticList=null;});
-                  logisticList = await FenceRepo.searchNearByLogistic(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,longitude: widget.merchant.bGeoPoint['geopoint'].longitude ), value.toLowerCase().trim(),);
-                  setState(() {});
-                }
-              else{
-                setState(() {logisticList=null;});
-                logisticList = await FenceRepo.nearByLogistic(Position(latitude: widget.merchant.bGeoPoint['geopoint'].latitude,longitude: widget.merchant.bGeoPoint['geopoint'].longitude ), null,onlyLogistic: false);
+            onChanged: (value) async {
+              if (value.isNotEmpty) {
+                setState(() {
+                  logisticList = null;
+                  favourite = null;
+                });
+                logisticList = await FenceRepo.searchNearByLogistic(
+                  Position(
+                      latitude: widget.merchant.bGeoPoint['geopoint'].latitude,
+                      longitude:
+                          widget.merchant.bGeoPoint['geopoint'].longitude),
+                  value.toLowerCase().trim(),
+                );
+                setState(() {});
+              } else {
+                setState(() {
+                  logisticList = null;
+                });
+                logisticList = await FenceRepo.nearByLogistic(
+                    Position(
+                        latitude:
+                            widget.merchant.bGeoPoint['geopoint'].latitude,
+                        longitude:
+                            widget.merchant.bGeoPoint['geopoint'].longitude),
+                    null,
+                    onlyLogistic: false);
+                FavRepo.getFavourites(widget.user.uid, 'count',
+                        category: 'logistic')
+                    .then((value) => favourite = value);
                 setState(() {});
               }
             },
           ),
         ),
-        const SizedBox(height: 10,),
+        const SizedBox(
+          height: 10,
+        ),
         Expanded(
-          child: ListView(
-            children: [
-
-              if(favourite != null)
+            child: ListView(
+          children: [
+            if (favourite != null)
+              if (favourite.favourite.isNotEmpty)
                 Column(
                   children: [
                     Align(
@@ -2851,255 +2958,311 @@ class _OrderUIState extends State<OrderUI> {
                       ),
                     ),
                     Column(
-                        children: List<Widget>.generate(favourite.favourite.values.length, (index){
-                          return FutureBuilder(
-                            future: MerchantRepo.getMerchant(favourite.favourite.values.toList(growable: false)[index].merchant),
-                            builder: (context,AsyncSnapshot<Merchant>merchant){
-                              if(merchant.connectionState == ConnectionState.waiting){
-                                return Container(
-                                  height: 80,
-                                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                                  child: ListSkeleton(
-                                    style: SkeletonStyle(
-                                      theme: SkeletonTheme.Light,
-                                      isShowAvatar: false,
-                                      barCount: 3,
-                                      colors: [
-                                        Colors.grey.withOpacity(0.5),
-                                        Colors.grey,
-                                        Colors.grey.withOpacity(0.5)
-                                      ],
-                                      isAnimation: true,
-                                    ),
-                                  ),
-                                  alignment: Alignment.center,
-                                );
-                              }
-                              else if(merchant.hasError){return const SizedBox.shrink();}
-                              else{
-                                if(favourite.favourite.isNotEmpty){
-                                  return Column(
-                                    children: [
-                                      Padding(
-                                          padding: EdgeInsets.symmetric(vertical: 5),
-                                          child: ListTile(
-                                            onTap: (){
-                                              if(type == "MotorBike"){
-                                                if(merchant.data.bikeCount > 0){
-                                                  stage = 'OVERVIEW';
-                                                  mode = 'Delivery';
-                                                  order = order.update(
-                                                      orderMode: OrderMode(
-                                                        mode: mode,
-                                                        coordinate: GeoPoint(
-                                                            position.latitude,
-                                                            position.longitude),
-                                                        address: _address.text,
-                                                      ),
-                                                      orderCustomer:
-                                                      Customer(
-                                                        customerName: widget
-                                                            .user.fname,
-                                                        customerReview: '',
-                                                        customerTelephone:
+                        children: List<Widget>.generate(
+                            favourite.favourite.values.length, (index) {
+                      return FutureBuilder(
+                        future: MerchantRepo.getMerchant(favourite
+                            .favourite.values
+                            .toList(growable: false)[index]
+                            .merchant),
+                        builder: (context, AsyncSnapshot<Merchant> merchant) {
+                          if (merchant.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container(
+                              height: 80,
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 15),
+                              child: ListSkeleton(
+                                style: SkeletonStyle(
+                                  theme: SkeletonTheme.Light,
+                                  isShowAvatar: false,
+                                  barCount: 3,
+                                  colors: [
+                                    Colors.grey.withOpacity(0.5),
+                                    Colors.grey,
+                                    Colors.grey.withOpacity(0.5)
+                                  ],
+                                  isAnimation: true,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                            );
+                          } else if (merchant.hasError) {
+                            return const SizedBox.shrink();
+                          } else {
+                            if (favourite.favourite.isNotEmpty) {
+                              return Column(
+                                children: [
+                                  Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 5),
+                                      child: ListTile(
+                                        onTap: () {
+                                          if (type == "MotorBike") {
+                                            if (merchant.data.bikeCount > 0) {
+                                              stage = 'OVERVIEW';
+                                              mode = 'Delivery';
+                                              order = order.update(
+                                                  orderMode: OrderMode(
+                                                    mode: mode,
+                                                    coordinate: GeoPoint(
+                                                        position.latitude,
+                                                        position.longitude),
+                                                    address: _address.text,
+                                                  ),
+                                                  orderCustomer: Customer(
+                                                    customerName:
+                                                        widget.user.fname,
+                                                    customerReview: '',
+                                                    customerTelephone:
                                                         _contact.text,
-                                                      ),
-                                                      customerID: widget.user.uid,
-                                                      orderLogistic: merchant.data.mID,
-                                                      auto: 'MotorBike'
-                                                  );
-                                                  screenHeight = 0.8;
-                                                  setState(() {});
-                                                }
-                                                else{
-                                                  Utility.infoDialogMaker(
-                                                    "${merchant.data.bName} does not have a delivery motorbike at the moment",
-                                                  );
-                                                }
-                                              }
-                                              else if(type == "Car"){
-                                                if(merchant.data.carCount > 0){
-                                                  stage = 'OVERVIEW';
-                                                  mode = 'Delivery';
-                                                  order = order.update(
-                                                      orderMode: OrderMode(
-                                                        mode: mode,
-                                                        coordinate: GeoPoint(
-                                                            position.latitude,
-                                                            position.longitude),
-                                                        address: _address.text,
-                                                      ),
-                                                      orderCustomer:
-                                                      Customer(
-                                                        customerName: widget
-                                                            .user.fname,
-                                                        customerReview: '',
-                                                        customerTelephone:
+                                                  ),
+                                                  customerID: widget.user.uid,
+                                                  orderLogistic: merchant.data.mID,
+                                                  potentials:[merchant.data.mID],
+                                                  auto: 'MotorBike');
+                                              screenHeight = 0.8;
+                                              setState(() {});
+                                            } else {
+                                              Utility.infoDialogMaker(
+                                                "${merchant.data.bName} does not have a delivery motorbike at the moment",
+                                              );
+                                            }
+                                          } else if (type == "Car") {
+                                            if (merchant.data.carCount > 0) {
+                                              stage = 'OVERVIEW';
+                                              mode = 'Delivery';
+                                              order = order.update(
+                                                  orderMode: OrderMode(
+                                                    mode: mode,
+                                                    coordinate: GeoPoint(
+                                                        position.latitude,
+                                                        position.longitude),
+                                                    address: _address.text,
+                                                  ),
+                                                  orderCustomer: Customer(
+                                                    customerName:
+                                                        widget.user.fname,
+                                                    customerReview: '',
+                                                    customerTelephone:
                                                         _contact.text,
-                                                      ),
-                                                      customerID: widget.user.uid,
-                                                      orderLogistic: merchant.data.mID,
-                                                      auto: 'Car'
-                                                  );
-                                                  screenHeight = 0.8;
-                                                  setState(() {});
-                                                }
-                                                else{
-                                                  Utility.infoDialogMaker(
-                                                    "${merchant.data.bName} does not have a delivery car at the moment",
-                                                  );
-                                                }
-                                              }
-                                              else if(type == "Van"){
-                                                if(merchant.data.vanCount > 0){
-                                                  stage = 'OVERVIEW';
-                                                  mode = 'Delivery';
-                                                  order = order.update(
-                                                      orderMode: OrderMode(
-                                                        mode: mode,
-                                                        coordinate: GeoPoint(
-                                                            position.latitude,
-                                                            position.longitude),
-                                                        address: _address.text,
-                                                      ),
-                                                      orderCustomer:
-                                                      Customer(
-                                                        customerName: widget
-                                                            .user.fname,
-                                                        customerReview: '',
-                                                        customerTelephone:
+                                                  ),
+                                                  customerID: widget.user.uid,
+                                                  orderLogistic: merchant.data.mID,
+                                                  potentials:[merchant.data.mID],
+                                                  auto: 'Car');
+                                              screenHeight = 0.8;
+                                              setState(() {});
+                                            } else {
+                                              Utility.infoDialogMaker(
+                                                "${merchant.data.bName} does not have a delivery car at the moment",
+                                              );
+                                            }
+                                          } else if (type == "Van") {
+                                            if (merchant.data.vanCount > 0) {
+                                              stage = 'OVERVIEW';
+                                              mode = 'Delivery';
+                                              order = order.update(
+                                                  orderMode: OrderMode(
+                                                    mode: mode,
+                                                    coordinate: GeoPoint(
+                                                        position.latitude,
+                                                        position.longitude),
+                                                    address: _address.text,
+                                                  ),
+                                                  orderCustomer: Customer(
+                                                    customerName:
+                                                        widget.user.fname,
+                                                    customerReview: '',
+                                                    customerTelephone:
                                                         _contact.text,
-                                                      ),
-                                                      customerID: widget.user.uid,
-                                                      orderLogistic: merchant.data.mID,
-                                                      auto: 'Van'
-                                                  );
-                                                  screenHeight = 0.8;
-                                                  setState(() {});
-                                                }
-                                                else{
-                                                  Utility.infoDialogMaker(
-                                                    "${merchant.data.bName} does not have a delivery van at the moment",
-                                                  );
-                                                }
-                                              }
-
-                                            },
-                                            leading: CircleAvatar(
-                                              radius: 30,
-                                              backgroundImage: NetworkImage(merchant.data.bPhoto.isNotEmpty?merchant.data.bPhoto:PocketShoppingDefaultCover),
-                                            ),
-                                            title: Text(merchant.data.bName),
-                                            subtitle: Column(
+                                                  ),
+                                                  customerID: widget.user.uid,
+                                                  orderLogistic: merchant.data.mID,
+                                                  potentials:[merchant.data.mID],
+                                                  auto: 'Van');
+                                              screenHeight = 0.8;
+                                              setState(() {});
+                                            } else {
+                                              Utility.infoDialogMaker(
+                                                "${merchant.data.bName} does not have a delivery van at the moment",
+                                              );
+                                            }
+                                          }
+                                        },
+                                        leading: CircleAvatar(
+                                          radius: 30,
+                                          backgroundImage: NetworkImage(
+                                              merchant.data.bPhoto.isNotEmpty
+                                                  ? merchant.data.bPhoto
+                                                  : PocketShoppingDefaultCover),
+                                        ),
+                                        title: Text(merchant.data.bName),
+                                        subtitle: Column(
+                                          children: [
+                                            Row(
                                               children: [
-                                                Row(
-                                                  children: [
-                                                    FutureBuilder(
-                                                      future: ReviewRepo.getRating(merchant.data.mID),
-                                                      builder: (context,AsyncSnapshot<Rating>snapshot){
-                                                        if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
-                                                        else if(snapshot.hasError)return const SizedBox.shrink();
-                                                        else {
-                                                          if(snapshot.hasData){
-                                                            if(snapshot.data != null){
-                                                              return RatingBar(
-                                                                onRatingUpdate: null,
-                                                                initialRating: snapshot.data.rating,
-                                                                minRating: 1,
-                                                                maxRating: 5,
-                                                                itemSize: Get.width * 0.05,
-                                                                direction: Axis.horizontal,
-                                                                allowHalfRating: true,
-                                                                ignoreGestures: true,
-                                                                itemCount: 5,
-                                                                //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                                itemBuilder: (context, _) => Icon(
-                                                                  Icons.star,
-                                                                  color: Colors.amber,
-                                                                ),
-                                                              );
-                                                            }
-                                                            else{
-                                                              return RatingBar(
-                                                                onRatingUpdate: null,
-                                                                initialRating: 3,
-                                                                minRating: 1,
-                                                                maxRating: 5,
-                                                                itemSize: Get.width * 0.05,
-                                                                direction: Axis.horizontal,
-                                                                allowHalfRating: true,
-                                                                ignoreGestures: true,
-                                                                itemCount: 5,
-                                                                //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                                itemBuilder: (context, _) => Icon(
-                                                                  Icons.star,
-                                                                  color: Colors.amber,
-                                                                ),
-                                                              );
-                                                            }
-                                                          }
-                                                          else{
-                                                            return RatingBar(
-                                                              onRatingUpdate: null,
-                                                              initialRating: 3,
-                                                              minRating: 1,
-                                                              maxRating: 5,
-                                                              itemSize: Get.width * 0.05,
-                                                              direction: Axis.horizontal,
-                                                              allowHalfRating: true,
-                                                              ignoreGestures: true,
-                                                              itemCount: 5,
-                                                              //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                              itemBuilder: (context, _) => Icon(
-                                                                Icons.star,
-                                                                color: Colors.amber,
-                                                              ),
-                                                            );
-                                                          }
+                                                FutureBuilder(
+                                                  future: ReviewRepo.getRating(
+                                                      merchant.data.mID),
+                                                  builder: (context,
+                                                      AsyncSnapshot<Rating>
+                                                          snapshot) {
+                                                    if (snapshot
+                                                            .connectionState ==
+                                                        ConnectionState.waiting)
+                                                      return const SizedBox
+                                                          .shrink();
+                                                    else if (snapshot.hasError)
+                                                      return const SizedBox
+                                                          .shrink();
+                                                    else {
+                                                      if (snapshot.hasData) {
+                                                        if (snapshot.data !=
+                                                            null) {
+                                                          return RatingBar(
+                                                            onRatingUpdate:
+                                                                null,
+                                                            initialRating:
+                                                                snapshot.data
+                                                                    .rating,
+                                                            minRating: 1,
+                                                            maxRating: 5,
+                                                            itemSize:
+                                                                Get.width *
+                                                                    0.05,
+                                                            direction:
+                                                                Axis.horizontal,
+                                                            allowHalfRating:
+                                                                true,
+                                                            ignoreGestures:
+                                                                true,
+                                                            itemCount: 5,
+                                                            //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                            itemBuilder:
+                                                                (context, _) =>
+                                                                    Icon(
+                                                              Icons.star,
+                                                              color:
+                                                                  Colors.amber,
+                                                            ),
+                                                          );
+                                                        } else {
+                                                          return RatingBar(
+                                                            onRatingUpdate:
+                                                                null,
+                                                            initialRating: 3,
+                                                            minRating: 1,
+                                                            maxRating: 5,
+                                                            itemSize:
+                                                                Get.width *
+                                                                    0.05,
+                                                            direction:
+                                                                Axis.horizontal,
+                                                            allowHalfRating:
+                                                                true,
+                                                            ignoreGestures:
+                                                                true,
+                                                            itemCount: 5,
+                                                            //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                            itemBuilder:
+                                                                (context, _) =>
+                                                                    Icon(
+                                                              Icons.star,
+                                                              color:
+                                                                  Colors.amber,
+                                                            ),
+                                                          );
                                                         }
-                                                      },
-                                                    ),
-                                                  ],
+                                                      } else {
+                                                        return RatingBar(
+                                                          onRatingUpdate: null,
+                                                          initialRating: 3,
+                                                          minRating: 1,
+                                                          maxRating: 5,
+                                                          itemSize:
+                                                              Get.width * 0.05,
+                                                          direction:
+                                                              Axis.horizontal,
+                                                          allowHalfRating: true,
+                                                          ignoreGestures: true,
+                                                          itemCount: 5,
+                                                          //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                          itemBuilder:
+                                                              (context, _) =>
+                                                                  Icon(
+                                                            Icons.star,
+                                                            color: Colors.amber,
+                                                          ),
+                                                        );
+                                                      }
+                                                    }
+                                                  },
                                                 ),
-                                                Row(
-                                                  children: [
-                                                    Expanded(child:
-                                                    FutureBuilder(
-                                                        future: Utility.computeDistance(merchant.data.bGeoPoint['geopoint'],widget.merchant.bGeoPoint['geopoint']),
-                                                        initialData: 0.1,
-                                                        builder: (context,AsyncSnapshot<double> distance){
-                                                          if(distance.hasData){
-                                                            return Text('${Utility.formatDistance(distance.data, '${widget.merchant.bName}')}');
-                                                          }
-                                                          else{
-                                                            return const SizedBox.shrink();
-                                                          }
-                                                        })
-                                                    )
-                                                  ],
-                                                )
                                               ],
                                             ),
-                                            trailing:
-                                            (merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose))?
-                                            Icon(Icons.lock_open,color: Colors.green,)
-                                                :Icon(Icons.lock_outline,color: Colors.redAccent,),
-                                            enabled: (merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose)),
-                                          )
-                                      ),
-                                      Divider(thickness: 1,)
-                                    ],
-                                  );
-                                }
-                                else{
-                                  return const SizedBox.shrink();
-                                }
-                              }
-                            },
-                          );
-                        }).toList(growable: false)
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                    child: FutureBuilder(
+                                                        future: Utility
+                                                            .computeDistance(
+                                                                merchant.data
+                                                                        .bGeoPoint[
+                                                                    'geopoint'],
+                                                                widget.merchant
+                                                                        .bGeoPoint[
+                                                                    'geopoint']),
+                                                        initialData: 0.1,
+                                                        builder: (context,
+                                                            AsyncSnapshot<
+                                                                    double>
+                                                                distance) {
+                                                          if (distance
+                                                              .hasData) {
+                                                            return Text(
+                                                                '${Utility.formatDistance(distance.data, '${widget.merchant.bName}')}');
+                                                          } else {
+                                                            return const SizedBox
+                                                                .shrink();
+                                                          }
+                                                        }))
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                        trailing: (merchant.data.bStatus == 1 &&
+                                                Utility.isOperational(
+                                                    merchant.data.bOpen,
+                                                    merchant.data.bClose))
+                                            ? Icon(
+                                                Icons.lock_open,
+                                                color: Colors.green,
+                                              )
+                                            : Icon(
+                                                Icons.lock_outline,
+                                                color: Colors.redAccent,
+                                              ),
+                                        enabled: (merchant.data.bStatus == 1 &&
+                                            Utility.isOperational(
+                                                merchant.data.bOpen,
+                                                merchant.data.bClose)),
+                                      )),
+                                  Divider(
+                                    thickness: 1,
+                                  )
+                                ],
+                              );
+                            } else {
+                              return const SizedBox.shrink();
+                            }
+                          }
+                        },
+                      );
+                    }).toList(growable: false)),
+                    const SizedBox(
+                      height: 30,
                     ),
-                    const SizedBox(height: 30,),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
@@ -3109,246 +3272,248 @@ class _OrderUIState extends State<OrderUI> {
                     ),
                   ],
                 ),
-
-              if(logisticList != null)
-                if(logisticList.isNotEmpty)
-                  Column(
-                      children: List<Widget>.generate(logisticList.length, (index){
-                        return Column(
-                          children: [
-                            Padding(
-                                padding: EdgeInsets.symmetric(vertical: 5),
-                                child: ListTile(
-                                  onTap: (){
-                                    if(type == "MotorBike"){
-                                      if(logisticList[index].bikeCount > 0){
-                                        stage = 'OVERVIEW';
-                                        mode = 'Delivery';
-                                        order = order.update(
-                                          orderMode: OrderMode(
-                                            mode: mode,
-                                            coordinate: GeoPoint(
-                                                position.latitude,
-                                                position.longitude),
-                                            address: _address.text,
-                                          ),
-                                          orderCustomer:
-                                          Customer(
-                                            customerName: widget
-                                                .user.fname,
-                                            customerReview: '',
-                                            customerTelephone:
-                                            _contact.text,
-                                          ),
-                                          customerID: widget.user.uid,
-                                          orderLogistic: logisticList[index].mID,
-                                            auto: 'MotorBike'
-                                        );
-                                        screenHeight = 0.8;
-                                        setState(() {});
-                                      }
-                                      else{
-                                        Utility.infoDialogMaker(
-                                          "${logisticList[index].bName} does not have a delivery motorbike at the moment",
-                                        );
-                                      }
-                                    }
-                                    else if(type == "Car"){
-                                      if(logisticList[index].carCount > 0){
-                                        stage = 'OVERVIEW';
-                                        mode = 'Delivery';
-                                        order = order.update(
-                                          orderMode: OrderMode(
-                                            mode: mode,
-                                            coordinate: GeoPoint(
-                                                position.latitude,
-                                                position.longitude),
-                                            address: _address.text,
-                                          ),
-                                          orderCustomer:
-                                          Customer(
-                                            customerName: widget
-                                                .user.fname,
-                                            customerReview: '',
-                                            customerTelephone:
-                                            _contact.text,
-                                          ),
-                                          customerID: widget.user.uid,
-                                          orderLogistic: logisticList[index].mID,
-                                            auto: 'Car'
-                                        );
-                                        screenHeight = 0.8;
-                                        setState(() {});
-                                      }
-                                      else{
-                                        Utility.infoDialogMaker(
-                                          "${logisticList[index].bName} does not have a delivery car at the moment",
-                                        );
-                                      }
-                                    }
-                                    else if(type == "Van"){
-                                      if(logisticList[index].vanCount > 0){
-                                        stage = 'OVERVIEW';
-                                        mode = 'Delivery';
-                                        order = order.update(
-                                          orderMode: OrderMode(
-                                            mode: mode,
-                                            coordinate: GeoPoint(
-                                                position.latitude,
-                                                position.longitude),
-                                            address: _address.text,
-                                          ),
-                                          orderCustomer:
-                                          Customer(
-                                            customerName: widget
-                                                .user.fname,
-                                            customerReview: '',
-                                            customerTelephone:
-                                            _contact.text,
-                                          ),
-                                          customerID: widget.user.uid,
-                                          orderLogistic: logisticList[index].mID,
-                                          auto: 'Van'
-                                        );
-                                        screenHeight = 0.8;
-                                        setState(() {});
-                                      }
-                                      else{
-                                        Utility.infoDialogMaker(
-                                          "${logisticList[index].bName} does not have a delivery van at the moment",
-                                        );
-                                      }
-                                    }
-
-                                  },
-                                  leading: CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage: NetworkImage(logisticList[index].bPhoto.isNotEmpty?logisticList[index].bPhoto:PocketShoppingDefaultCover),
-                                  ),
-                                  title: Text(logisticList[index].bName),
-                                  subtitle: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          FutureBuilder(
-                                            future: ReviewRepo.getRating(logisticList[index].mID),
-                                            builder: (context,AsyncSnapshot<Rating>snapshot){
-                                              if(snapshot.connectionState == ConnectionState.waiting)return const SizedBox.shrink();
-                                              else if(snapshot.hasError)return const SizedBox.shrink();
-                                              else {
-                                                if(snapshot.hasData){
-                                                  if(snapshot.data != null){
-                                                    return RatingBar(
-                                                      onRatingUpdate: null,
-                                                      initialRating: snapshot.data.rating,
-                                                      minRating: 1,
-                                                      maxRating: 5,
-                                                      itemSize: Get.width * 0.05,
-                                                      direction: Axis.horizontal,
-                                                      allowHalfRating: true,
-                                                      ignoreGestures: true,
-                                                      itemCount: 5,
-                                                      //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                      itemBuilder: (context, _) => Icon(
-                                                        Icons.star,
-                                                        color: Colors.amber,
-                                                      ),
-                                                    );
-                                                  }
-                                                  else{
-                                                    return RatingBar(
-                                                      onRatingUpdate: null,
-                                                      initialRating: 3,
-                                                      minRating: 1,
-                                                      maxRating: 5,
-                                                      itemSize: Get.width * 0.05,
-                                                      direction: Axis.horizontal,
-                                                      allowHalfRating: true,
-                                                      ignoreGestures: true,
-                                                      itemCount: 5,
-                                                      //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                      itemBuilder: (context, _) => Icon(
-                                                        Icons.star,
-                                                        color: Colors.amber,
-                                                      ),
-                                                    );
-                                                  }
-                                                }
-                                                else{
-                                                  return RatingBar(
-                                                    onRatingUpdate: null,
-                                                    initialRating: 3,
-                                                    minRating: 1,
-                                                    maxRating: 5,
-                                                    itemSize: Get.width * 0.05,
-                                                    direction: Axis.horizontal,
-                                                    allowHalfRating: true,
-                                                    ignoreGestures: true,
-                                                    itemCount: 5,
-                                                    //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
-                                                    itemBuilder: (context, _) => Icon(
-                                                      Icons.star,
-                                                      color: Colors.amber,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            },
-                                          ),
-                                        ],
+            if (logisticList != null)
+              if (logisticList.isNotEmpty)
+                Column(
+                    children:
+                        List<Widget>.generate(logisticList.length, (index) {
+                  return Column(
+                    children: [
+                      Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5),
+                          child: ListTile(
+                            onTap: () {
+                              if (type == "MotorBike") {
+                                if (logisticList[index].bikeCount > 0) {
+                                  stage = 'OVERVIEW';
+                                  mode = 'Delivery';
+                                  order = order.update(
+                                      orderMode: OrderMode(
+                                        mode: mode,
+                                        coordinate: GeoPoint(position.latitude,
+                                            position.longitude),
+                                        address: _address.text,
                                       ),
-                                      Row(
-                                        children: [
-                                          Expanded(child:
-                                          FutureBuilder(
-                                              future: Utility.computeDistance(logisticList[index].bGeoPoint['geopoint'],widget.merchant.bGeoPoint['geopoint']),
-                                              initialData: 0.1,
-                                              builder: (context,AsyncSnapshot<double> distance){
-                                                if(distance.hasData){
-                                                  return Text('${Utility.formatDistance(distance.data, '${widget.merchant.bName}')}');
-                                                }
-                                                else{
-                                                  return const SizedBox.shrink();
-                                                }
-                                              })
-                                          )
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                  trailing:
-                                  (logisticList[index].bStatus == 1 && Utility.isOperational(logisticList[index].bOpen, logisticList[index].bClose))?
-                                  Icon(Icons.lock_open,color: Colors.green,)
-                                      :Icon(Icons.lock_outline,color: Colors.redAccent,),
-                                  enabled: (logisticList[index].bStatus == 1 && Utility.isOperational(logisticList[index].bOpen, logisticList[index].bClose)),
-                                )
+                                      orderCustomer: Customer(
+                                        customerName: widget.user.fname,
+                                        customerReview: '',
+                                        customerTelephone: _contact.text,
+                                      ),
+                                      customerID: widget.user.uid,
+                                      orderLogistic: logisticList[index].mID,
+                                      potentials:[logisticList[index].mID],
+                                      auto: 'MotorBike');
+                                  screenHeight = 0.8;
+                                  setState(() {});
+                                } else {
+                                  Utility.infoDialogMaker(
+                                    "${logisticList[index].bName} does not have a delivery motorbike at the moment",
+                                  );
+                                }
+                              } else if (type == "Car") {
+                                if (logisticList[index].carCount > 0) {
+                                  stage = 'OVERVIEW';
+                                  mode = 'Delivery';
+                                  order = order.update(
+                                      orderMode: OrderMode(
+                                        mode: mode,
+                                        coordinate: GeoPoint(position.latitude,
+                                            position.longitude),
+                                        address: _address.text,
+                                      ),
+                                      orderCustomer: Customer(
+                                        customerName: widget.user.fname,
+                                        customerReview: '',
+                                        customerTelephone: _contact.text,
+                                      ),
+                                      customerID: widget.user.uid,
+                                      orderLogistic: logisticList[index].mID,
+                                      potentials:[logisticList[index].mID],
+                                      auto: 'Car');
+                                  screenHeight = 0.8;
+                                  setState(() {});
+                                } else {
+                                  Utility.infoDialogMaker(
+                                    "${logisticList[index].bName} does not have a delivery car at the moment",
+                                  );
+                                }
+                              } else if (type == "Van") {
+                                if (logisticList[index].vanCount > 0) {
+                                  stage = 'OVERVIEW';
+                                  mode = 'Delivery';
+                                  order = order.update(
+                                      orderMode: OrderMode(
+                                        mode: mode,
+                                        coordinate: GeoPoint(position.latitude,
+                                            position.longitude),
+                                        address: _address.text,
+                                      ),
+                                      orderCustomer: Customer(
+                                        customerName: widget.user.fname,
+                                        customerReview: '',
+                                        customerTelephone: _contact.text,
+                                      ),
+                                      customerID: widget.user.uid,
+                                      orderLogistic: logisticList[index].mID,
+                                      potentials:[logisticList[index].mID],
+                                      auto: 'Van');
+                                  screenHeight = 0.8;
+                                  setState(() {});
+                                } else {
+                                  Utility.infoDialogMaker(
+                                    "${logisticList[index].bName} does not have a delivery van at the moment",
+                                  );
+                                }
+                              }
+                            },
+                            leading: CircleAvatar(
+                              radius: 30,
+                              backgroundImage: NetworkImage(
+                                  logisticList[index].bPhoto.isNotEmpty
+                                      ? logisticList[index].bPhoto
+                                      : PocketShoppingDefaultCover),
                             ),
-                            Divider(thickness: 1,)
-                          ],
-                        );
-                      }).toList(growable: false)
-                  )
-                else
-                  Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Text('No Rider(s)'),
+                            title: Text(logisticList[index].bName),
+                            subtitle: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    FutureBuilder(
+                                      future: ReviewRepo.getRating(
+                                          logisticList[index].mID),
+                                      builder: (context,
+                                          AsyncSnapshot<Rating> snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting)
+                                          return const SizedBox.shrink();
+                                        else if (snapshot.hasError)
+                                          return const SizedBox.shrink();
+                                        else {
+                                          if (snapshot.hasData) {
+                                            if (snapshot.data != null) {
+                                              return RatingBar(
+                                                onRatingUpdate: null,
+                                                initialRating:
+                                                    snapshot.data.rating,
+                                                minRating: 1,
+                                                maxRating: 5,
+                                                itemSize: Get.width * 0.05,
+                                                direction: Axis.horizontal,
+                                                allowHalfRating: true,
+                                                ignoreGestures: true,
+                                                itemCount: 5,
+                                                //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                itemBuilder: (context, _) =>
+                                                    Icon(
+                                                  Icons.star,
+                                                  color: Colors.amber,
+                                                ),
+                                              );
+                                            } else {
+                                              return RatingBar(
+                                                onRatingUpdate: null,
+                                                initialRating: 3,
+                                                minRating: 1,
+                                                maxRating: 5,
+                                                itemSize: Get.width * 0.05,
+                                                direction: Axis.horizontal,
+                                                allowHalfRating: true,
+                                                ignoreGestures: true,
+                                                itemCount: 5,
+                                                //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                                itemBuilder: (context, _) =>
+                                                    Icon(
+                                                  Icons.star,
+                                                  color: Colors.amber,
+                                                ),
+                                              );
+                                            }
+                                          } else {
+                                            return RatingBar(
+                                              onRatingUpdate: null,
+                                              initialRating: 3,
+                                              minRating: 1,
+                                              maxRating: 5,
+                                              itemSize: Get.width * 0.05,
+                                              direction: Axis.horizontal,
+                                              allowHalfRating: true,
+                                              ignoreGestures: true,
+                                              itemCount: 5,
+                                              //itemPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                                              itemBuilder: (context, _) => Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: FutureBuilder(
+                                            future: Utility.computeDistance(
+                                                logisticList[index]
+                                                    .bGeoPoint['geopoint'],
+                                                widget.merchant
+                                                    .bGeoPoint['geopoint']),
+                                            initialData: 0.1,
+                                            builder: (context,
+                                                AsyncSnapshot<double>
+                                                    distance) {
+                                              if (distance.hasData) {
+                                                return Text(
+                                                    '${Utility.formatDistance(distance.data, '${widget.merchant.bName}')}');
+                                              } else {
+                                                return const SizedBox.shrink();
+                                              }
+                                            }))
+                                  ],
+                                )
+                              ],
+                            ),
+                            trailing: (logisticList[index].bStatus == 1 &&
+                                    Utility.isOperational(
+                                        logisticList[index].bOpen,
+                                        logisticList[index].bClose))
+                                ? Icon(
+                                    Icons.lock_open,
+                                    color: Colors.green,
+                                  )
+                                : Icon(
+                                    Icons.lock_outline,
+                                    color: Colors.redAccent,
+                                  ),
+                            enabled: (logisticList[index].bStatus == 1 &&
+                                Utility.isOperational(logisticList[index].bOpen,
+                                    logisticList[index].bClose)),
+                          )),
+                      Divider(
+                        thickness: 1,
                       )
-                  )
+                    ],
+                  );
+                }).toList(growable: false))
               else
                 Center(
+                    child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text('No Rider(s)'),
+                ))
+            else
+              Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Text('Fetching Riders...Please wait'),
-                  )
-                )
-            ],
-          )
-        )
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Text('Fetching Riders...Please wait'),
+              ))
+          ],
+        ))
       ],
     );
   }
-
 
   void startTimer() {
     const oneSec = const Duration(seconds: 1);
@@ -3365,7 +3530,6 @@ class _OrderUIState extends State<OrderUI> {
               order: order.docID,
               user: widget.user,
             ));
-
           } else {
             _start = _start - 1;
           }
@@ -3373,7 +3537,6 @@ class _OrderUIState extends State<OrderUI> {
       ),
     );
   }
-
 
 /*  static Future<void> callback() async {
 
@@ -3398,8 +3561,6 @@ class _OrderUIState extends State<OrderUI> {
       rescheduleOnReboot: true,exact: true,);
   }*/
 
-
-
   Widget uploadingOrder() {
     return !paydone
         ? Center(
@@ -3423,13 +3584,11 @@ class _OrderUIState extends State<OrderUI> {
                         padding: EdgeInsets.symmetric(vertical: 10),
                         child: Text(
                           'Placing Order please wait..',
-                          style: TextStyle(
-                              fontSize:
-                                  Get.height * 0.025),
+                          style: TextStyle(fontSize: Get.height * 0.025),
                           textAlign: TextAlign.center,
                         )),
                   ),
-                 /* if(false)
+                  /* if(false)
                   Center(
                     child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 10),
@@ -3473,18 +3632,14 @@ class _OrderUIState extends State<OrderUI> {
                         children: <Widget>[
                           Text(
                             'Order successfully placed',
-                            style: TextStyle(
-                                fontSize:
-                                    Get.height * 0.04),
+                            style: TextStyle(fontSize: Get.height * 0.04),
                           ),
                           SizedBox(
                             height: 10,
                           ),
                           Text(
                             '${_start}s',
-                            style: TextStyle(
-                                fontSize:
-                                    Get.height * 0.05),
+                            style: TextStyle(fontSize: Get.height * 0.05),
                           ),
                         ],
                       ),
@@ -3557,7 +3712,6 @@ class _OrderUIState extends State<OrderUI> {
     }
   }
 
-
   Future<void> newOrderNotifier() async {
     //print('team meeting');
     await _fcm.requestNotificationPermissions(
@@ -3571,7 +3725,8 @@ class _OrderUIState extends State<OrderUI> {
         },
         body: jsonEncode(<String, dynamic>{
           'notification': <String, dynamic>{
-            'body': 'Hello. You have a new Delivery(${widget.merchant.bName}). Advance to your dashboard for details',
+            'body':
+                'Hello. You have a new Delivery(${widget.merchant.bName}). Advance to your dashboard for details',
             'title': 'New Delivery'
           },
           'priority': 'high',

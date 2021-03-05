@@ -98,6 +98,8 @@ class Submitted extends RegisterEvent {
   final String name;
   final String telephone;
   final String referral;
+  final String cPassword;
+
 
   const Submitted({
     @required this.email,
@@ -105,10 +107,11 @@ class Submitted extends RegisterEvent {
     @required this.name,
     @required this.telephone,
     @required this.referral,
+    @required this.cPassword,
   });
 
   @override
-  List<Object> get props => [email, password, name, telephone, referral];
+  List<Object> get props => [email, password, name, telephone, referral, cPassword];
 
   @override
   String toString() {

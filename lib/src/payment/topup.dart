@@ -55,7 +55,7 @@ class _TopUpState extends State<TopUp> {
         preferredSize: Size.fromHeight(
             Get.height *
                 0.08),
-        child: AppBar(
+        child: status == "INIT" ?AppBar(
           title: Text('TopUp',style: TextStyle(color: PRIMARYCOLOR),),
           centerTitle: true,
           backgroundColor: Color.fromRGBO(255, 255, 255, 1),
@@ -69,7 +69,7 @@ class _TopUpState extends State<TopUp> {
             },
           ),
           elevation: 0.0,
-        ),
+        ):const SizedBox.shrink(),
       ),
       backgroundColor: Colors.white,
       body: Container(
@@ -241,17 +241,33 @@ class _TopUpState extends State<TopUp> {
             if(widget.payType == "TOPUP")
               {
                 var status = jsonDecode(details.body)['data']['status'];
-                if(status != "abandoned")
+                if(status == "success")
                 result = await Utility.topUpWallet(reference['reference'],
                     widget.user.walletId, status, status == 'success'?1:2, jsonDecode(details.body)['data']['amount'], 1);
+                else {
+                  setState(() {
+                    paying = false;
+                    status = 'ERROR';
+                    payerror = "Transaction Failed Please ensure you have sufficient fun";
+                  });
+                }
               }
 
             else if(widget.payType == "TOPUPUNIT")
               {var status = jsonDecode(details.body)['data']['status'];
-              if(status != "abandoned")
-                result = await Utility.topUpUnit(reference['reference'],
-                    widget.user.walletId, status, status == 'success'?1:2, jsonDecode(details.body)['data']['amount'], 1);
-              LogisticRepo.revalidateAgentAllowance(widget.user.uid);
+              if(status == "success")
+                {
+                  result = await Utility.topUpUnit(reference['reference'],
+                      widget.user.walletId, status, status == 'success'?1:2, jsonDecode(details.body)['data']['amount'], 1);
+                  LogisticRepo.revalidateAgentAllowance(widget.user.uid);
+                }
+            else {
+                setState(() {
+                  paying = false;
+                  status = 'ERROR';
+                  payerror = "Transaction Failed Please ensure you have sufficient fun";
+                });
+            }
               }
 
 

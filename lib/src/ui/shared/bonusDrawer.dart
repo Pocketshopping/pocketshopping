@@ -70,9 +70,9 @@ class BonusDrawerIcon extends StatelessWidget {
                     shape: CircleBorder(),
                     child: Badge(
                       position: BadgePosition
-                          .topRight(
+                          .topEnd(
                           top: 1,
-                          right: 1),
+                          end: 1),
                       child: IconButton(
                         icon: Icon(
                           Icons.menu,

@@ -1446,12 +1446,11 @@ class _DeliveryTrackerWidgetState extends State<DeliveryTrackerWidget> {
   bool confirm(String oid, Confirmation confirmation,Receipt receipt){
     bool isDone = true;
     int unit = (_order.orderMode.fee * 0.1).round();
-    Geolocator().distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
-        _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude).then((value) {
-      OrderRepo.confirm(_order, confirmation,receipt,_order.agent,
-        _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
-        isDone = false;
-      });
+    double distance = distanceBetween(merchant.bGeoPoint['geopoint'].latitude, merchant.bGeoPoint['geopoint'].longitude,
+        _order.orderMode.coordinate.latitude, _order.orderMode.coordinate.longitude)??0;
+    OrderRepo.confirm(_order, confirmation,receipt,_order.agent,
+        _order.orderMode.fee,distance.round(),unit>100?100:unit).catchError((onError) {
+      isDone = false;
     });
 
 

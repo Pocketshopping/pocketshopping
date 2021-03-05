@@ -202,7 +202,9 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
                         padding: const EdgeInsets.all(5),
                         child: Text(
                           widget.cvvCode.isEmpty
-                              ? isAmex ? 'XXXX' : 'XXX'
+                              ? isAmex
+                                  ? 'XXXX'
+                                  : 'XXX'
                               : widget.cvvCode,
                           maxLines: 1,
                           style: widget.textStyle ?? defaultTextStyle,
@@ -319,7 +321,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
   /// A [List<String>] represents a range.
   /// i.e. ['51', '55'] represents the range of cards starting with '51' to those starting with '55'
   Map<CardType, Set<List<String>>> cardNumPatterns =
-  <CardType, Set<List<String>>>{
+      <CardType, Set<List<String>>>{
     CardType.visa: <List<String>>{
       <String>['4'],
     },

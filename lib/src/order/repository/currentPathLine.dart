@@ -60,7 +60,7 @@ class CurrentPathLine {
 
   Future<CurrentPathLine> proximityCheck(Position current)async{
     if(!hasVisitedSource){
-      double sourceDistance = await Geolocator().distanceBetween(current.latitude, current.longitude, source.latitude, source.longitude);
+      double sourceDistance = distanceBetween(current.latitude, current.longitude, source.latitude, source.longitude);
       if(sourceDistance <= 100){
         return visitedSource();
       }
@@ -68,7 +68,7 @@ class CurrentPathLine {
         return null;
     }
     else{
-      double destinationDistance = await Geolocator().distanceBetween(current.latitude, current.longitude, destination.latitude, destination.longitude);
+      double destinationDistance = distanceBetween(current.latitude, current.longitude, destination.latitude, destination.longitude);
       if(destinationDistance <= 100){
         return visitedDestination();
       }

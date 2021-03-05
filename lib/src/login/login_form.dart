@@ -187,7 +187,7 @@ class _LoginFormState extends State<LoginForm> {
                                   border: InputBorder.none,
                                 ),
                                 keyboardType: TextInputType.emailAddress,
-                                autovalidate: true,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
                                 autocorrect: false,
                                 validator: (_) {
                                   return !state.isEmailValid
@@ -226,7 +226,7 @@ class _LoginFormState extends State<LoginForm> {
                                           border: InputBorder.none,
                                         ),
                                         obscureText: !passwordEye,
-                                        autovalidate: true,
+                                        autovalidateMode: AutovalidateMode.onUserInteraction,
                                         autocorrect: false,
                                       );
 
@@ -325,7 +325,7 @@ class _LoginFormState extends State<LoginForm> {
                                                           ),
                                                           errorBorder: InputBorder.none,
                                                         ),
-                                                        autovalidate: true,
+                                                        autovalidateMode: AutovalidateMode.onUserInteraction,
                                                         autofocus: false,
                                                         textInputAction: TextInputAction.done,
                                                         keyboardType: TextInputType.emailAddress,

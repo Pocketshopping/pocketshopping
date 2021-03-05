@@ -20,12 +20,11 @@ import 'package:pocketshopping/src/request/repository/requestRepo.dart';
 import 'package:pocketshopping/src/request/request.dart';
 import 'package:pocketshopping/src/ui/package_ui.dart';
 import 'package:pocketshopping/src/user/favourite.dart';
+import 'package:pocketshopping/src/user/merchant.dart';
 import 'package:pocketshopping/src/user/myOrder.dart';
 import 'package:pocketshopping/src/user/package_user.dart';
 import 'package:pocketshopping/src/utility/utility.dart';
 import 'package:progress_indicators/progress_indicators.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:pocketshopping/src/user/merchant.dart';
 
 import 'bloc/user.dart';
 

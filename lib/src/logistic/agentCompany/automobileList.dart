@@ -339,8 +339,7 @@ class Tracker extends StatelessWidget{
   Widget build(BuildContext context) {
     return  ListTile(
         onTap: (){
-          Get.bottomSheet(builder: (context){
-            return Container(
+          Get.bottomSheet(Container(
               color: Colors.white,
               child: Column(
                 children: [
@@ -499,8 +498,7 @@ class Tracker extends StatelessWidget{
                   ),
                 ],
               )
-            );
-          }).then((value) {refresh();});
+            )).then((value) {refresh();});
         },
         leading: CircleAvatar(
           radius: 25,

@@ -159,11 +159,9 @@ class CustomerCare extends StatelessWidget {
       child: Center(
         child: FlatButton.icon(
           onPressed: (){
-            Get.bottomSheet(builder: (context){
-              return Container(
+            Get.bottomSheet(Container(
                 color: Colors.white,
-                height: Get.height / 2 +
-                    MediaQuery.of(context).viewInsets.bottom,
+                height: Get.height / 2,
                 child: Column(
                   children: [
                     const SizedBox(height: 20,),
@@ -254,8 +252,7 @@ class CustomerCare extends StatelessWidget {
 
                   ],
                 ),
-              );
-            },
+              ),
             isScrollControlled: true
             );
           },

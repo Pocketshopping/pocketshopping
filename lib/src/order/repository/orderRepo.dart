@@ -433,7 +433,7 @@ class OrderRepo {
   static Stream<int> logisticBucketCount(String logistic) async* {
     yield* databaseReference
         .collection("orders")
-        .where('orderLogistic',isEqualTo: logistic)
+        .where('potentials',arrayContains: logistic)
         .where('status',isEqualTo: 0)
         .where('isAssigned',isEqualTo: false)
         .limit(500)

@@ -73,7 +73,7 @@ class RegisterState {
     );
   }
 
-  factory RegisterState.failure({String code = '+234'}) {
+  factory RegisterState.failure({String code = '+234', bool isNew= true, bool isComfirmed = true, String password = ''}) {
     return RegisterState(
       isNameValid: true,
       isTelephoneValid: true,
@@ -81,9 +81,9 @@ class RegisterState {
       isPasswordValid: true,
       isAgreedValid: true,
       code: code,
-      password: '',
-      isConfirmPasswordValid: true,
-      isNewUser: true,
+      password: password,
+      isConfirmPasswordValid: isComfirmed,
+      isNewUser: isNew,
       isSubmitting: false,
       isSuccess: false,
       isFailure: true,

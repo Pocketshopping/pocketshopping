@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:ant_icons/ant_icons.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,6 +24,7 @@ import 'package:pocketshopping/src/logistic/agentCompany/automobileList.dart';
 import 'package:pocketshopping/src/logistic/provider.dart';
 import 'package:pocketshopping/src/notification/notification.dart';
 import 'package:pocketshopping/src/order/bloc/orderBloc.dart';
+import 'package:pocketshopping/src/order/logisticBucket.dart';
 import 'package:pocketshopping/src/order/repository/order.dart';
 import 'package:pocketshopping/src/order/repository/orderRepo.dart';
 import 'package:pocketshopping/src/payment/topUpPocket.dart';
@@ -51,7 +53,6 @@ import 'package:pocketshopping/src/withdrawal/withdrawalWidget.dart';
 import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:pocketshopping/src/order/logisticBucket.dart';
 
 
 
@@ -81,6 +82,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   final report = ValueNotifier<Map<String,dynamic>>({});
   final _agentNotifier = ValueNotifier<int>(0);
   final _bucketCount = ValueNotifier<int>(0);
+  final _stockManager = ValueNotifier<List<Stock>>([]);
   StreamSubscription bucket;
 
 
@@ -100,18 +102,35 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
       }
     });
 
+    StockRepo.getOneStream(currentUser.merchant.mID).listen((event) {
+
+      try{
+        _stockManager.value = event;
+      }
+      catch(_){}
+    });
+
+
     ChannelRepo.update(currentUser.merchant.mID, currentUser.user.uid);
     _isOperationalNotifier.value=currentUser.merchant.bStatus==1?true:false;
     orders = OrderRepo.agentOrder(currentUser.merchant.mID,whose: 'orderLogistic').listen((event) {
-      if(mounted)
-      {
-        _orderNotifier.value=[];
-        _orderNotifier.value=event;
+      try{
+        if(mounted)
+        {
+          _orderNotifier.value=[];
+          _orderNotifier.value=event;
+        }
+        OrderBloc.instance.newOrder(event);
       }
-      OrderBloc.instance.newOrder(event);
+      catch(_){}
     });
     LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {_agentNotifier.value = event;});
-    StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
+    StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {
+      try{
+        if(mounted)setState(() {report.value = value;});
+      }
+      catch(_){}
+    });
 
     /*WidgetsBinding.instance.addPostFrameCallback((_) =>
         ShowCaseWidget.of(context).startShowCase([_one,]));*/
@@ -177,7 +196,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   void reloadMerchant({bool complete=false}){
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     LogisticRepo.fetchMyAvailableAgents(currentUser.merchant.mID).listen((event) {_agentNotifier.value = event;});
-    StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {setState(() {report.value = value;});});
+    StatisticRepo.getTodayStat(currentUser.merchant.mID,'').then((value) {if (mounted)setState(() {report.value = value;});});
     if(complete)
     BlocProvider.of<UserBloc>(context).add(LoadUser(currentUser.user.uid));
   }
@@ -464,7 +483,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                 ),
                               ],
                             ),
-                            child: _report.isNotEmpty || _report == null?
+                            child: _report != null
+                              ?
                             Utility.isOperational(currentUser.merchant.bOpen, currentUser.merchant.bClose)?
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -694,10 +714,10 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       content: ProductList(user: currentUser,callBckActionType: 3,route: 1,),
                       refresh: reloadMerchant,
                     ),
-                    StreamBuilder(
-                      stream: StockRepo.getOneStream(currentUser.merchant.mID),
-                      builder: (context,AsyncSnapshot<List<Stock>>snapshot){
-                            if(snapshot.hasData){StockBloc.instance.stocks(snapshot.data);}
+                    ValueListenableBuilder(
+                      valueListenable: _stockManager,
+                      builder: (_,List<Stock>snapshot,__){
+                            if(snapshot.isNotEmpty){StockBloc.instance.stocks(snapshot);}
                             return MenuItem(
                               gridHeight,
                               Icon(Icons.calendar_today,
@@ -707,7 +727,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                               border: PRIMARYCOLOR,
                               isBadged: true,
                               isMultiMenu: false,
-                              openCount: snapshot.hasData?snapshot.data.length:0,
+                              openCount: snapshot.isNotEmpty?snapshot.length:0,
                               content: StockManager(user: currentUser,),
                               refresh: reloadMerchant,
                             );

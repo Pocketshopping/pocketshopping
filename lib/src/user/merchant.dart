@@ -35,7 +35,7 @@ class _MerchantScreen extends State<MerchantScreen> {
   final favrite = ValueNotifier<bool>(false);
   @override
   void initState() {
-    _position =  Geolocator().getPositionStream(LocationOptions(accuracy: LocationAccuracy.best,timeInterval: 1000)).listen((pos) {
+    _position =  getPositionStream(desiredAccuracy: LocationAccuracy.best,timeInterval: 1000).listen((pos) {
       position.value = pos;
     });
     super.initState();

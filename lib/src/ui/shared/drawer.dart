@@ -221,9 +221,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
                     shape: CircleBorder(),
                     child: Badge(
                       position: BadgePosition
-                          .topRight(
+                          .topEnd(
                           top: 1,
-                          right: 1),
+                          end: 1),
                       badgeContent: Text('$count',style: TextStyle(color: Colors.white)),
                       showBadge: count>0,
                       animationDuration:
@@ -290,10 +290,10 @@ class _DrawerScreenState extends State<DrawerScreen> {
                         elevation: 0.0,
                         shape: CircleBorder(),
                         child: Badge(
-                          position: BadgePosition
-                              .topRight(
+                          position: BadgePosition.topEnd(
+
                               top: 1,
-                              right: 1),
+                              end: 1),
                           badgeContent: Text('${snapshot.data.length}',style: TextStyle(color: Colors.white),),
                           showBadge: snapshot.data.length>0,
                           animationDuration:

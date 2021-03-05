@@ -150,8 +150,7 @@ class _ProfileState extends State<Profile> {
                               right: 0,
                               child: IconButton(
                                 onPressed: (){
-                                  Get.bottomSheet(builder: (context){
-                                    return Container(
+                                  Get.bottomSheet( Container(
                                       color: Colors.white,
                                       child: Column(
                                         children: [
@@ -175,8 +174,7 @@ class _ProfileState extends State<Profile> {
                                         ],
                                       ),
                                       height: Get.height*0.25,
-                                    );
-                                  });
+                                    ));
                                 },
                                 color: Colors.black54,
                                 icon: Icon(Icons.camera_alt,size: 40,),

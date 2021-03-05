@@ -388,8 +388,7 @@ class _MyAutoState extends State<MyAuto>{
                   color: Colors.greenAccent,
                   child: FlatButton(
                     onPressed: (){
-                      Get.bottomSheet(builder: (context){
-                        return Container(
+                      Get.bottomSheet(Container(
                           height: Get.height / 2 +
                               MediaQuery.of(context).viewInsets.bottom,
                           color: Colors.white,
@@ -696,8 +695,7 @@ class _MyAutoState extends State<MyAuto>{
                                   //:const SizedBox.shrink(),
                             ],
                           ),
-                        );
-                      },
+                        ),
                         isScrollControlled: true,
                       ).then((value) => null);
                     },

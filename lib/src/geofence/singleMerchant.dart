@@ -255,9 +255,9 @@ class _MerchantUIState extends State<MerchantUI> {
                                                                   Colors.white),
                                                         ),
                                                         position: BadgePosition
-                                                            .topRight(
+                                                            .topEnd(
                                                                 top: 1,
-                                                                right: 1),
+                                                                end: 1),
                                                         child: IconButton(
                                                           onPressed: () {
                                                             if (cart.length > 0)
@@ -305,8 +305,8 @@ class _MerchantUIState extends State<MerchantUI> {
                                                           color: Colors.white),
                                                     ),
                                                     position:
-                                                        BadgePosition.topRight(
-                                                            top: 1, right: 1),
+                                                        BadgePosition.topEnd(
+                                                            top: 1, end: 1),
                                                     child: IconButton(
                                                       onPressed: () {
                                                         if (cart.length > 0)

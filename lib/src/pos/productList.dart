@@ -599,21 +599,19 @@ class _ProductListState extends State<ProductList> {
               ),
 
               position:
-              BadgePosition.topRight(
-                  top: 1, right: 1),
+              BadgePosition.topEnd(
+                  top: 1, end: 1),
               child: IconButton(
                 onPressed: () {
                   //print(widget.user.merchant.bCategory== 'Restuarant' );
                   if(_cartItem.isNotEmpty)
-                  Get.bottomSheet(builder: (context){
-                    return Container(
+                  Get.bottomSheet(Container(
                       color: Colors.white,
                       child: PosCheckOut(payload: _cartItem,cartOps: cartOps,
                         isRestaurant: widget.user.merchant.bCategory == 'Restuarant',
                       session: widget.user,
                       )
-                    );
-                  },
+                    ),
                     isScrollControlled: true,
                     isDismissible: false,
                     enableDrag: false,

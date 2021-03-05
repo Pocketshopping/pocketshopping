@@ -153,7 +153,7 @@ Future<void> _createNotificationChannel(String id, String name,
     description,
     enableLights: true,
     playSound: true,
-    importance: Importance.High,
+    importance: Importance.high,
     enableVibration: true,
     showBadge: true,
 
@@ -171,15 +171,15 @@ void callbackDispatcher() {
       try{
         await Firebase.initializeApp();
         final prefs = await SharedPreferences.getInstance();
-        bool enable = await Geolocator().isLocationServiceEnabled();
+        bool enable = await isLocationServiceEnabled();
         final FirebaseMessaging _fcm = FirebaseMessaging();
         await _fcm.autoInitEnabled();
-        GeolocationStatus permit = await Geolocator().checkGeolocationPermissionStatus();
+        LocationPermission permit = await checkPermission();
         String currentMerchant = prefs.getString('merchant');
         if(currentMerchant.isEmpty){
           if(enable){
-            if(permit == GeolocationStatus.granted){
-              Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation,locationPermissionLevel: GeolocationPermission.locationAlways);
+            if(permit == LocationPermission.always || permit == LocationPermission.whileInUse){
+              Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation,);
               if(position != null){
                 String fcmToken = await FirebaseMessaging().getToken();
                 Geoflutterfire geo = Geoflutterfire();
@@ -304,7 +304,7 @@ class _MyAppState extends State<MyApp> {
         final notification = LocalNotification("notification", Map<String, dynamic>.from(message));
         NotificationsBloc.instance.newNotification(notification);
       },
-      onBackgroundMessage: myBackgroundMessageHandler,
+      //onBackgroundMessage: myBackgroundMessageHandler,
     );
   }
 
@@ -371,8 +371,8 @@ class AppState extends State<App> {
                         Center(child: Image.asset('assets/images/blogo.png'),),
                         Center(child:
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 15),
-                          child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
+                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+                          child: Text('Error connecting to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                         )
                         ),
                         Center(
@@ -395,8 +395,8 @@ class AppState extends State<App> {
                         Center(child: Image.asset('assets/images/blogo.png'),),
                         Center(child:
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 15),
-                          child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
+                          padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+                          child: Text('Error connecting to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                         )
                         ),
                         Center(
@@ -423,8 +423,8 @@ class AppState extends State<App> {
                 Center(child: Image.asset('assets/images/blogo.png'),),
                 Center(child:
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20,horizontal: 15),
-                  child: Text('Error communicating to server. Ensure you have internet connection',textAlign: TextAlign.center,),
+                  padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+                  child: Text('Error connecting to server. Ensure you have internet connection',textAlign: TextAlign.center,),
                 )
                 ),
                 Center(
@@ -497,8 +497,8 @@ class AppState extends State<App> {
                   Center(child:
 
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Text('Error communicating to server. Ensure you have internet connection',style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
+                      padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+                      child: Text('Error connecting to server. Ensure you have internet connection',style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
                     )
 
                     ,),

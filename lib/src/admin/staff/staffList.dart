@@ -419,8 +419,7 @@ class Clearance extends StatelessWidget{
         if(remit.hasData){
           return ListTile(
               onTap: (){
-                Get.bottomSheet(builder: (context){
-                  return Container(
+                Get.bottomSheet( Container(
                     height: Get.height*0.35,
                     color: Colors.white,
                     child: Column(
@@ -561,8 +560,7 @@ class Clearance extends StatelessWidget{
 
                       ],
                     ),
-                  );
-                }).then((value) {refresh();} );
+                  )).then((value) {refresh();} );
               },
               leading: CircleAvatar(
                 radius: 25,

@@ -81,13 +81,13 @@ class ErrandDirectionState extends State<ErrandDirection> {
 
     for (int i = 0; i < polylineCoordinates.length; i++) {
       if (polylineCoordinates[i] == polylineCoordinates.last) {
-        dist += await geoloc.Geolocator().distanceBetween(
+        dist +=  geoloc.distanceBetween(
             polylineCoordinates[i - 1].latitude,
             polylineCoordinates[i - 1].longitude,
             polylineCoordinates[i].latitude,
             polylineCoordinates[i].longitude);
       } else {
-        dist += await geoloc.Geolocator().distanceBetween(
+        dist +=  geoloc.distanceBetween(
             polylineCoordinates[i].latitude,
             polylineCoordinates[i].longitude,
             polylineCoordinates[i + 1].latitude,

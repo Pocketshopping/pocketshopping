@@ -994,12 +994,11 @@ class ErrandTracker extends StatelessWidget{
     bool isDone = true;
     int unit = (_order.orderMode.fee * 0.1).round();
 
-    Geolocator().distanceBetween(_order.errand.source.latitude, _order.errand.source.longitude,
-        _order.errand.destination.latitude, _order.errand.destination.longitude).then((value) {
-      OrderRepo.confirm(_order, confirmation,receipt,agent.agent,
-          _order.orderMode.fee,value.round(),unit>100?100:unit).catchError((onError) {
-        isDone = false;
-      });
+    double distance = distanceBetween(_order.errand.source.latitude, _order.errand.source.longitude,
+        _order.errand.destination.latitude, _order.errand.destination.longitude)??0;
+    OrderRepo.confirm(_order, confirmation,receipt,agent.agent,
+        _order.orderMode.fee,distance.round(),unit>100?100:unit).catchError((onError) {
+      isDone = false;
     });
 
 

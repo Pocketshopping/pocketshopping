@@ -914,8 +914,8 @@ class Utility {
     var shared = await SharedPreferences.getInstance();
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       '$channelID', '$channel', '$channel',
-      importance: Importance.Default,
-      priority: Priority.High,
+      importance: Importance.defaultImportance,
+      priority: Priority.high,
       ticker: 'ticker',
       icon: 'app_icon',
       ongoing: true,
@@ -924,8 +924,7 @@ class Utility {
       playSound: true,
     );
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-    var platformChannelSpecifics = NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    var platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics, iOS: iOSPlatformChannelSpecifics);
 
     if(shared.containsKey('notification')){
       if(shared.getBool("notification")){
@@ -1066,14 +1065,19 @@ class Utility {
   }
 
  static Future<String> address(Position position) async {
-    final coordinates = Coordinates(position.latitude, position.longitude);
-    var address = await Geocoder.local.findAddressesFromCoordinates(coordinates);
-    var generatedAddress='';
-    List<String> temp = address.first.addressLine.split(',');
-    temp.removeLast();
-    temp.removeLast();
-    generatedAddress = temp.reduce((value, element) => value + ',' + element);
-    return generatedAddress;
+    try{
+      final coordinates = Coordinates(position.latitude, position.longitude);
+      var address = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+      var generatedAddress='';
+      List<String> temp = address.first.addressLine.split(',');
+      temp.removeLast();
+      temp.removeLast();
+      generatedAddress = temp.reduce((value, element) => value + ',' + element);
+      return generatedAddress;
+    }
+    catch(_){
+      return "";
+    }
   }
 
 
@@ -1353,7 +1357,7 @@ class Utility {
   }
 
   static Future<double> computeDistance(GeoPoint start, GeoPoint end) async{
-    return await Geolocator().distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude);
+    return distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude);
   }
 
   static String formatDistance(double dist, String bName) {

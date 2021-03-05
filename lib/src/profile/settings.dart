@@ -83,8 +83,7 @@ class _SettingsState extends State<Settings> {
                       if(isSet.hasData){
                         return ListTile(
                           onTap: (){
-                            Get.bottomSheet(builder: (context){
-                              return  Column(
+                            Get.bottomSheet(Column(
                                 mainAxisSize: MainAxisSize.min,
                                   children: [
                                     if(!isSet.data)
@@ -160,8 +159,7 @@ class _SettingsState extends State<Settings> {
                                         ),
                                       ),
                                   ],
-                                );
-                            }).then((value) => null);
+                                )).then((value) => null);
                           },
                           leading: CircleAvatar(
                             radius: 25,
@@ -186,8 +184,7 @@ class _SettingsState extends State<Settings> {
                         if(wallet.hasData){
                           return ListTile(
                             onTap: (){
-                              Get.bottomSheet(builder: (context){
-                                return  Column(
+                              Get.bottomSheet( Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     if(wallet.data.accountNumber.isEmpty)
@@ -251,8 +248,7 @@ class _SettingsState extends State<Settings> {
                                         ),
                                       ),
                                   ],
-                                );
-                              }).then((value) => null);
+                                )).then((value) => null);
                             },
                             leading: CircleAvatar(
                               radius: 25,
@@ -334,7 +330,7 @@ class _SettingsState extends State<Settings> {
                                               ),
                                               errorBorder: InputBorder.none,
                                             ),
-                                            autovalidate: true,
+                                            autovalidateMode: AutovalidateMode.onUserInteraction,
                                             autofocus: false,
                                             enabled: false,
                                             textInputAction: TextInputAction.done,

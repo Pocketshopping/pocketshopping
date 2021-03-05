@@ -133,6 +133,7 @@ class StatisticRepo {
       if(sid.isNotEmpty){
         data = await CloudFunctions.instance.getHttpsCallable(
           functionName: "staffOneDayGeneralStat",
+
         ).call(
             {'mID': mid,
               'sID':sid,
@@ -150,10 +151,11 @@ class StatisticRepo {
               'end':todayEnd
             }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
       }
-      //print(Map.castFrom(data.data()));
-      return Map.castFrom(data.data());
+
+      return Map.castFrom(data.data);
     }
     catch(_){
+      //throw _;
       return null;
     }
   }
@@ -323,7 +325,7 @@ class StatisticRepo {
             }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
       }
 
-      return Map.castFrom(data.data());
+      return Map.castFrom(data.data);
     }
     catch(_){
       return null;
@@ -345,7 +347,7 @@ class StatisticRepo {
             }).timeout(Duration(seconds: 120),onTimeout: (){return null;});
 
        //print(Map.castFrom(data.data()));
-      return Map.castFrom(data.data());
+      return Map.castFrom(data.data);
     }
     catch(_){
       return null;

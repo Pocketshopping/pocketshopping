@@ -1,3 +1,4 @@
+/*
 package fleepage.pocketshopping
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugins.firebasemessaging.FirebaseMessagingPlugin
@@ -20,4 +21,4 @@ class FirebaseCloudMessagingPluginRegistrant {
             return false
         }
     }
-}
+}*/

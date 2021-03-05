@@ -344,7 +344,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
-                                    autovalidate: true,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                     /*validator: (_) {
                                       return !state.isNameValid
                                           ? 'Invalid Name'
@@ -390,7 +390,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                               border: InputBorder.none),
                                           keyboardType: TextInputType.phone,
                                           autocorrect: false,
-                                          autovalidate: true,
+                                          autovalidateMode: AutovalidateMode.onUserInteraction,
                                           validator: (_) {
                                             return !state.isTelephoneValid
                                                 ? 'Invalid Telephone'
@@ -418,7 +418,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
-                                    autovalidate: true,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                     /*validator: (_) {
                                       return !state.isAddressValid
                                           ? 'Invalid Address'
@@ -475,7 +475,7 @@ class _BusinessSetupFormState extends State<BusinessSetupForm> {
                                 onSuggestionSelected: (suggestion){
                                   this._categoryController.text=suggestion;
                                 },
-                                autovalidate: true,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
                                 validator: (_) {
                                   return !state.isCategoryValid ? 'Invalid Category' : null;
                                 },

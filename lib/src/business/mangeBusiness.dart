@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -164,7 +163,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   enabled: _nameEnabler,
                                                   autofocus: _nameEnabler,
                                                   focusNode: _nameFocus,
@@ -231,7 +230,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   enabled: _addressEnabler,
                                                   focusNode: _addressFocus,
                                                   inputFormatters: <TextInputFormatter>[
@@ -294,7 +293,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   maxLines: 3,
                                                   enabled: _descriptionEnabler,
                                                   focusNode: _descriptionFocus,
@@ -541,7 +540,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   focusNode: _emailFocus,
                                                   enabled: _emailEnabler,
                                                   inputFormatters: <TextInputFormatter>[
@@ -604,7 +603,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   focusNode: _telephone,
                                                   enabled: _telephoneEnabler,
                                                   inputFormatters: <TextInputFormatter>[
@@ -667,7 +666,7 @@ class _ManageBusinessState extends State<ManageBusiness> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   focusNode: _telephone2Focus,
                                                   enabled: _telephone2Enabler,
                                                   inputFormatters: <TextInputFormatter>[

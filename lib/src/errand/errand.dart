@@ -76,15 +76,16 @@ class _ErrandState extends State<Errand> {
       sourcePosition.value = LatLng(position.latitude,position.longitude);
       FenceRepo.nearByLogistic(position, null).then((value) => logisticList.value = value);
     }
-
-    location.changeSettings(accuracy: loc.LocationAccuracy.high, interval: 60000);
-    geoStream = location.onLocationChanged.listen((loc.LocationData cLoc) {
-      position = Position(latitude: cLoc.latitude,longitude: cLoc.longitude);
-      if (mounted) setState(() {});
-      Utility.address(position).then((value) => source.text=value);
-      sourcePosition.value = LatLng(position.latitude,position.longitude);
-      FenceRepo.nearByLogistic(position, null).then((value) => logisticList.value = value);
-    });
+    else{
+      location.changeSettings(accuracy: loc.LocationAccuracy.high);
+      location.getLocation().then((loc.LocationData cLoc) {
+        position = Position(latitude: cLoc.latitude,longitude: cLoc.longitude);
+        if (mounted) setState(() {});
+        Utility.address(position).then((value) => source.text=value);
+        sourcePosition.value = LatLng(position.latitude,position.longitude);
+        FenceRepo.nearByLogistic(position, null).then((value) => logisticList.value = value);
+      });
+    }
 
     /*googlePlace.autocomplete.get('a',
       location: LatLon(position.latitude,position.longitude),
@@ -495,7 +496,7 @@ class _ErrandState extends State<Errand> {
 
 
                                                   if(sourcePosition.value != null && destinationPosition.value != null){
-                                                    double distance =  await Geolocator().distanceBetween(sourcePosition.value.latitude, sourcePosition.value.longitude,
+                                                    double distance =  distanceBetween(sourcePosition.value.latitude, sourcePosition.value.longitude,
                                                         destinationPosition.value.latitude, destinationPosition.value.longitude);
                                                     if(distance > 0){
                                                       /*Get.to(SelectAuto(
@@ -531,7 +532,13 @@ class _ErrandState extends State<Errand> {
                                                                         ),
                                                                         ListTile(
                                                                           onTap: (){
-                                                                            Get.off(SelectAuto(
+                                                                            Merchant one = logisticList.value.firstWhere((element) => (element.vanCount > 0 || element.bikeCount>0 || element.carCount>0)&&(element.bStatus == 1 &&
+                                                                                Utility.isOperational(
+                                                                                    element.bOpen,
+                                                                                    element.bClose)));
+                                                                            Get.off(
+
+                                                                                SelectAuto(
                                                                               user: currentUser,
                                                                               position: position,
                                                                               source: sourcePosition.value,
@@ -539,6 +546,13 @@ class _ErrandState extends State<Errand> {
                                                                               distance: (distance/1000).round(),
                                                                               sourceAddress: source.text,
                                                                               destinationAddress: destination.text,
+                                                                              logistic:one?.mID,
+                                                                              bCount: one?.bikeCount,
+                                                                              cCount: one?.carCount,
+                                                                              vCount: one?.vanCount,
+                                                                              logName: one?.bName,
+                                                                              canCheck: true,
+
                                                                             )).then((value) {
                                                                               destination.clear();
                                                                               isTyping.value=false;
@@ -603,11 +617,13 @@ class _ErrandState extends State<Errand> {
                                                                                                     if(value.isNotEmpty)
                                                                                                     {
                                                                                                       logisticList.value=null;
+                                                                                                      favourites.value = null;
                                                                                                       logisticList.value = await FenceRepo.searchNearByLogistic(position, value.toLowerCase().trim());
 
                                                                                                     }
                                                                                                     else{
                                                                                                       logisticList.value=null;
+                                                                                                      FavRepo.getFavourites(widget.user.user.uid, 'count',category: 'logistic').then((value) => favourites.value = value);
                                                                                                       logisticList.value = await FenceRepo.nearByLogistic(position, null);
                                                                                                     }
                                                                                                   },
@@ -621,6 +637,7 @@ class _ErrandState extends State<Errand> {
                                                                                                         valueListenable: favourites,
                                                                                                         builder: (i,Favourite fav,ii){
                                                                                                           if(fav != null){
+                                                                                                            if(fav.favourite.isNotEmpty)
                                                                                                             return Column(
                                                                                                               children: [
                                                                                                                 Align(
@@ -764,11 +781,11 @@ class _ErrandState extends State<Errand> {
                                                                                                                                               children: [
                                                                                                                                                 Expanded(child:
                                                                                                                                                 FutureBuilder(
-                                                                                                                                                    future: Utility.computeDistance(merchant.data.bGeoPoint['geopoint'],GeoPoint(position.latitude, position.longitude)),
+                                                                                                                                                    future: Utility.computeDistance(merchant.data.bGeoPoint['geopoint'],GeoPoint(sourcePosition.value.latitude, sourcePosition.value.longitude)),
                                                                                                                                                     initialData: 0.1,
                                                                                                                                                     builder: (context,AsyncSnapshot<double> distance){
                                                                                                                                                       if(distance.hasData){
-                                                                                                                                                        return Text('${Utility.formatDistance(distance.data, 'You')}');
+                                                                                                                                                        return Text('${Utility.formatDistance(distance.data, 'Source')}');
                                                                                                                                                       }
                                                                                                                                                       else{
                                                                                                                                                         return const SizedBox.shrink();
@@ -808,6 +825,8 @@ class _ErrandState extends State<Errand> {
                                                                                                                 ),
                                                                                                               ],
                                                                                                             );
+                                                                                                            else
+                                                                                                              return const SizedBox.shrink();
                                                                                                           }
                                                                                                           else{return const SizedBox.shrink();}
                                                                                                         },
@@ -925,11 +944,11 @@ class _ErrandState extends State<Errand> {
 
                                                                                                                                         Expanded(child:
                                                                                                                                         FutureBuilder(
-                                                                                                                                            future: Utility.computeDistance(logisticList[index].bGeoPoint['geopoint'],GeoPoint(position.latitude, position.longitude)),
+                                                                                                                                            future: Utility.computeDistance(logisticList[index].bGeoPoint['geopoint'],GeoPoint(sourcePosition.value.latitude, sourcePosition.value.longitude)),
                                                                                                                                             initialData: 0.1,
                                                                                                                                             builder: (context,AsyncSnapshot<double> distance){
                                                                                                                                               if(distance.hasData){
-                                                                                                                                                return Text('${Utility.formatDistance(distance.data, 'You')}');
+                                                                                                                                                return Text('${Utility.formatDistance(distance.data, 'Source')}');
                                                                                                                                               }
                                                                                                                                               else{
                                                                                                                                                 return const SizedBox.shrink();
@@ -1116,6 +1135,7 @@ class _ErrandState extends State<Errand> {
                                                            if(result != null){
                                                              source.text = ((predictions[index].description as String).contains('Nigeria')?(predictions[index].description as String).replaceFirst(', Nigeria', ''):(predictions[index].description as String));
                                                              sourcePosition.value=LatLng(result.result.geometry.location.lat,result.result.geometry.location.lng);
+                                                             logisticList.value = await FenceRepo.nearByLogistic(Position(latitude: sourcePosition.value.latitude,longitude: sourcePosition.value.longitude), null);
                                                              if(destination.text.isNotEmpty) showButton.value = true;
                                                              isTypingSource.value=false;
                                                            }

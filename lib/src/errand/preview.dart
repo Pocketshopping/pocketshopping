@@ -48,6 +48,9 @@ class Preview extends StatefulWidget {
   final String sourceAddress;
   final String destinationAddress;
   final String logistic;
+  final bool canCheck;
+  final String logisticName;
+  final List<AgentLocUp> agents;
   Preview({
     this.user,
     this.position,
@@ -60,6 +63,9 @@ class Preview extends StatefulWidget {
     this.sourceAddress,
     this.destinationAddress,
     this.logistic="",
+    this.canCheck = false,
+    this.logisticName = "",
+    this.agents,
   });
 
   @override
@@ -104,6 +110,7 @@ class _PreviewState extends State<Preview> {
     currentUser = widget.user;
     position = widget.position;
     fee.value = widget.fee;
+    agents.value = widget.agents;
     keyboard.value=false;
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
     _walletStream = WalletBloc.instance.walletStream;
@@ -115,14 +122,14 @@ class _PreviewState extends State<Preview> {
       keyboard.value = visible;
     });
 
-    _agentStream = ErrandBloc.instance.errandStream;
+    /*_agentStream = ErrandBloc.instance.errandStream;
     _agentStream.listen((result) {
       if(mounted)
       agents.value  = result;
-    });
+    });*/
 
 
-    Utility.locationAccess();
+    //Utility.locationAccess();
     super.initState();
 
   }
@@ -362,7 +369,7 @@ class _PreviewState extends State<Preview> {
                                                                     dComment.value = _commentController.text;
                                                                     dContact.value = _contactController.text;
                                                                     dName.value = _nameController.text;
-                                                                    if(widget.logistic.isEmpty)
+                                                                    if(widget.canCheck)
                                                                       singleAgent.value = agentLocUp.firstWhere((element) => element.agentAutomobile == widget.auto);
                                                                     else
                                                                       singleAgent.value=null;
@@ -552,8 +559,7 @@ class _PreviewState extends State<Preview> {
                                                                       confirm: FlatButton(
                                                                         onPressed: () {
                                                                           Get.back();
-                                                                          Get.bottomSheet(builder: (context){
-                                                                            return Container(
+                                                                          Get.bottomSheet(Container(
                                                                               //resizeToAvoidBottomInset: true,
                                                                               color: Colors.white,
                                                                               child: ATMCard(
@@ -562,8 +568,7 @@ class _PreviewState extends State<Preview> {
                                                                                     processPay('CARD',details);
                                                                                   }
                                                                               ),
-                                                                            );
-                                                                          },
+                                                                            ),
                                                                               isScrollControlled: true
                                                                           );
 
@@ -707,7 +712,7 @@ class _PreviewState extends State<Preview> {
   processPay(String method,Map<String,dynamic> details ) async {
     payStatus.value = 1;
     Agent agent;
-    if(widget.logistic.isEmpty)
+    if(widget.canCheck)
     agent = await LogisticRepo.getOneAgent(singleAgent.value.agent);
     Map<String,String> reference;
     details['email']=widget.user.user.email;
@@ -724,7 +729,7 @@ class _PreviewState extends State<Preview> {
         tableNumber: '',
         coordinate: GeoPoint(position.latitude,position.longitude),
         fee: fee.value,
-        deliveryMan: widget.logistic.isEmpty?singleAgent.value.agentName:'',
+        deliveryMan: singleAgent.value != null?singleAgent.value.agentName:widget.logisticName,
         address: '',
         acceptedBy: '',
         mode: 'Errand'
@@ -738,11 +743,11 @@ class _PreviewState extends State<Preview> {
       docID: '',
       customerDevice: await FirebaseMessaging().getToken(),
       resolution: '',
-      agent: widget.logistic.isEmpty?agent.agent:'',
+      agent: singleAgent.value != null?agent.agent:'',
       auto: widget.auto,
       customerID: currentUser.user.uid,
-      orderLogistic: widget.logistic,
-      potentials: widget.logistic.isEmpty?[singleAgent.value.agent]:[],
+      orderLogistic: singleAgent.value != null?"":widget.logistic,
+      potentials: singleAgent.value != null?[singleAgent.value.agent]:[widget.logistic ],
       orderConfirmation: Confirmation(
         isConfirmed: false,
         confirmOTP: randomAlphaNumeric(6),

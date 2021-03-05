@@ -150,7 +150,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                       border: InputBorder.none),
                                                   keyboardType: TextInputType.text,
                                                   autocorrect: false,
-                                                  autovalidate: true,
+                                                  autovalidateMode: AutovalidateMode.onUserInteraction,
                                                   enabled: _nameEnabler,
                                                   autofocus: _nameEnabler,
                                                   focusNode: _nameFocus,
@@ -218,7 +218,7 @@ class _EditProductFormState extends State<EditProductForm> {
                                                         border: InputBorder.none),
                                                     keyboardType: TextInputType.number,
                                                     autocorrect: false,
-                                                    autovalidate: true,
+                                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                                     enabled: _priceEnabler,
                                                     focusNode: _priceFocus,
                                                     inputFormatters: <TextInputFormatter>[

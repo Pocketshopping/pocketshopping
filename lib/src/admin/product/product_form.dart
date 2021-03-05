@@ -294,7 +294,7 @@ class _ProductFormState extends State<ProductForm> {
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.text,
                                     autocorrect: false,
-                                    autovalidate: true,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                     validator: (_) {
                                       return !state.isNameValid
                                           ? 'Invalid Name'
@@ -322,7 +322,7 @@ class _ProductFormState extends State<ProductForm> {
                                         border: InputBorder.none),
                                     keyboardType: TextInputType.number,
                                     autocorrect: false,
-                                    autovalidate: true,
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
                                     inputFormatters: <TextInputFormatter>[
                                       //WhitelistingTextInputFormatter.digitsOnly
                                     ],

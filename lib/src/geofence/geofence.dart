@@ -46,9 +46,9 @@ class _GeoFenceState extends State<GeoFence> {
     category.value = widget.category.toLowerCase();
     position.value = widget.position;
     WalletRepo.getWallet(currentUser.user.walletId).then((value) => WalletBloc.instance.newWallet(value));
-    locStream = Geolocator().getPositionStream(LocationOptions(
-    accuracy: LocationAccuracy.bestForNavigation,
-    timeInterval: 180000)).listen((Position cLoc)
+    locStream = getPositionStream(
+    desiredAccuracy: LocationAccuracy.bestForNavigation,
+    timeInterval: 180000).listen((Position cLoc)
     {
     position.value =cLoc;
     });
@@ -437,11 +437,12 @@ class OneProduct extends StatelessWidget{
                      children: <Widget>[
                        Expanded(
                          child: FlatButton(
-                           color: PRIMARYCOLOR,
+                           color: Colors.grey.withOpacity(0.2),
+                           
                            onPressed: () {
                              if(merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose)) {
                                Get.bottomSheet(
-                                 builder: (_) => OrderUI(
+                                  OrderUI(
                                    merchant: merchant.data,
                                    payload: product,
                                    user: user,
@@ -461,10 +462,10 @@ class OneProduct extends StatelessWidget{
 
                            },
                            child: Text(
-                             "Order",
+                             "Order Now",
                              style: TextStyle(
                                  fontWeight: FontWeight.bold,
-                                 color: Colors.white),
+                                 color: PRIMARYCOLOR),
                            ),
                          ),
                        ),
@@ -479,7 +480,7 @@ class OneProduct extends StatelessWidget{
                           onPressed: () {
                           if(merchant.data.bStatus == 1 && Utility.isOperational(merchant.data.bOpen, merchant.data.bClose)) {
                             Get.bottomSheet(
-                              builder: (_) => OrderUI(
+                               OrderUI(
                                 merchant: merchant.data,
                                 payload: product,
                                 user: user,
@@ -499,7 +500,7 @@ class OneProduct extends StatelessWidget{
 
                           },
                           child: Text(
-                            "Order",
+                            "Order Now",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white),
