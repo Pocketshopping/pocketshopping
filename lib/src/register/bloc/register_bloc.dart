@@ -83,11 +83,15 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   }
 
   Stream<RegisterState> _mapEmailChangedToState(String email) async* {
-    yield state.update(isEmailValid: Validators.isValidEmail(email),isNewUser: true);
+    yield state.update(
+        isEmailValid: Validators.isValidEmail(email), isNewUser: true);
   }
 
-  Stream<RegisterState> _mapConfirmPasswordChangedToState(String password) async* {
-    yield state.update(isConfirmPasswordValid: true,);
+  Stream<RegisterState> _mapConfirmPasswordChangedToState(
+      String password) async* {
+    yield state.update(
+      isConfirmPasswordValid: true,
+    );
     print(password);
     //Validators.isValidConfirmPassword(password, state.password)
   }
@@ -112,24 +116,24 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     );
   }
 
-  Stream<RegisterState> _mapFormSubmittedToState(
-    String email,
-    String password,
-    String name,
-    String telephone,
-    String referral,
-    String cPassword
-  ) async* {
+  Stream<RegisterState> _mapFormSubmittedToState(String email, String password,
+      String name, String telephone, String referral, String cPassword) async* {
     yield RegisterState.loading(code: state.code);
     try {
-      bool isComfirmedPassword = Validators.isValidConfirmPassword(cPassword, password);
-      if(isComfirmedPassword){
+      bool isComfirmedPassword =
+          Validators.isValidConfirmPassword(cPassword, password);
+      if (isComfirmedPassword) {
         bool isNew = await UserRepo().isNew(email);
-        if(isNew){
-          var wID = await makeWallet(name, email, telephone, referral,password);
+        if (isNew) {
+          var wID =
+              await makeWallet(name, email, telephone, referral, password);
           if (wID.isNotEmpty) {
-            var uid = await _userRepository.signUp(role: 'user', email: email, password: password,);
-            if(uid != null){
+            var uid = await _userRepository.signUp(
+              role: 'user',
+              email: email,
+              password: password,
+            );
+            if (uid != null) {
               User user = User(
                 uid,
                 fname: name,
@@ -140,34 +144,41 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
                 profile: PocketShoppingDefaultAvatar,
                 role: "user",
                 defaultAddress: '',
-                country: 'NG',//await Utility.getCountryCode(),
+                country: 'NG', //await Utility.getCountryCode(),
                 walletId: wID,
               );
               await UserRepo().save(user);
-              SharedPreferences prefs= await SharedPreferences.getInstance();
-              if(!prefs.containsKey('uid'))prefs.setString('uid', 'loggedInBefore');
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              if (!prefs.containsKey('uid'))
+                prefs.setString('uid', 'loggedInBefore');
               yield RegisterState.success();
-            }
-            else RegisterState.failure(code: state.code, password: password);
+            } else
+              RegisterState.failure(code: state.code, password: password);
+          } else {
+            yield RegisterState.failure(code: state.code, password: password);
           }
-          else {yield RegisterState.failure(code: state.code, password: password);}
+        } else {
+          yield RegisterState.failure(
+              code: state.code, isNew: isNew, password: password);
         }
-        else{
-          yield RegisterState.failure(code: state.code, isNew: isNew, password: password);
-        }
+      } else {
+        yield RegisterState.failure(
+            code: state.code,
+            isComfirmed: isComfirmedPassword,
+            password: password);
       }
-      else{
-        yield RegisterState.failure(code: state.code, isComfirmed: isComfirmedPassword, password: password);
-      }
-    } catch (_) {yield RegisterState.failure(code: state.code, password: password);}
+    } catch (_) {
+      yield RegisterState.failure(code: state.code, password: password);
+    }
   }
 
-  Future<String> makeWallet(String name, String email, String telephone, String refferal,String password) async {
-    try{
+  Future<String> makeWallet(String name, String email, String telephone,
+      String refferal, String password) async {
+    try {
       final response = await http.post("${WALLETAPI}Users/register",
           headers: {
             'Content-Type': 'application/json',
-            'ApiKey':await ServerBloc.instance.getServerKey(),
+            'ApiKey': await ServerBloc.instance.getServerKey(),
           },
           body: jsonEncode(
             <String, dynamic>{
@@ -178,19 +189,19 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
               //"Refferal": "$refferal",
             },
           ));
-      if(response != null){
+      print(response.body);
+      if (response != null) {
         if (response.statusCode == 200) {
           var result = jsonDecode(response.body);
           return result['walletID'].toString();
         } else {
           return '';
         }
-      }
-      else{
+      } else {
         return '';
       }
-    }
-    catch(_){
+    } catch (_) {
+      print(_);
       return '';
     }
   }
